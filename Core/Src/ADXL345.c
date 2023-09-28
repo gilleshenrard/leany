@@ -7,6 +7,8 @@
 #include "ADXL345.h"
 #include "main.h"
 
+#define ADXL_HIGH_RESERVED_REG	0x1C	///< Number of the last reserved register
+
 #define ADXL_TIMEOUT_MS	10		///< SPI direct transmission timeout span in milliseconds
 
 #define ADXL_WRITE		0x00	///< MSB configuration for write operations
@@ -40,6 +42,15 @@ HAL_StatusTypeDef ADXL345readRegister(adxl345Registers_e registerNumber, uint8_t
 	HAL_StatusTypeDef result;
 	uint8_t instruction = ADXL_READ | ADXL_SINGLE | registerNumber;
 
+	//if register number above known, error
+	if(registerNumber > ADXL_NB_REGISTERS)
+		return (HAL_ERROR);
+
+	//if register number between 0x01 and 0x1C included, error
+	if((uint8_t)(registerNumber - 1) < ADXL_HIGH_RESERVED_REG)
+		return (HAL_ERROR);
+
+	//transmit the read instruction and receive the reply
 	ENABLE_SPI
 	result = HAL_SPI_Transmit(ADXL_spiHandle, &instruction, 1, ADXL_TIMEOUT_MS);
 	if(result == HAL_OK)
