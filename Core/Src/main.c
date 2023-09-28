@@ -43,7 +43,10 @@
 SPI_HandleTypeDef hspi1;
 
 /* USER CODE BEGIN PV */
-uint8_t buffer[2];
+uint8_t buffer[6];
+int16_t finalX;
+int16_t finalY;
+int16_t finalZ;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -96,7 +99,10 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  ADXL345readRegisters(DATA_Z0, buffer, 2);
+	  ADXL345readRegisters(DATA_X0, buffer, 6);
+	  finalX = ((uint16_t)(buffer[1]) << 8) | (uint16_t)(buffer[0]);
+	  finalY = ((uint16_t)(buffer[3]) << 8) | (uint16_t)(buffer[2]);
+	  finalZ = ((uint16_t)(buffer[5]) << 8) | (uint16_t)(buffer[4]);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
