@@ -36,6 +36,8 @@ typedef enum{
 	ADXL_NB_REGISTERS
 }adxl345Registers_e;
 
+extern volatile uint8_t adxlINT1occurred;
+
 HAL_StatusTypeDef ADXL345initialise(const SPI_HandleTypeDef* handle);
 HAL_StatusTypeDef ADXL345readRegister(adxl345Registers_e registerNumber, uint8_t* value);
 HAL_StatusTypeDef ADXL345writeRegister(adxl345Registers_e registerNumber, uint8_t value);
