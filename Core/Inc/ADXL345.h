@@ -20,7 +20,7 @@ typedef enum{
 	TAP_AXES,
 	TAP_ACTIVITY_SOURCE,
 	BANDWIDTH_POWERMODE,
-	POWERSAVE_CONTROL,
+	POWER_CONTROL,
 	INTERRUPT_ENABLE,
 	INTERRUPT_MAPPING,
 	INTERRUPT_SOURCE,
@@ -36,7 +36,9 @@ typedef enum{
 	ADXL_NB_REGISTERS
 }adxl345Registers_e;
 
-void ADXL345initialise(const SPI_HandleTypeDef* handle);
+HAL_StatusTypeDef ADXL345initialise(const SPI_HandleTypeDef* handle);
 HAL_StatusTypeDef ADXL345readRegister(adxl345Registers_e registerNumber, uint8_t* value);
+HAL_StatusTypeDef ADXL345writeRegister(adxl345Registers_e registerNumber, uint8_t value);
+HAL_StatusTypeDef ADXL345readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint8_t size);
 
 #endif /* INC_ADXL345_H_ */
