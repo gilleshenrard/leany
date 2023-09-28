@@ -38,10 +38,10 @@ void ADXL345initialise(const SPI_HandleTypeDef* handle){
  */
 HAL_StatusTypeDef ADXL345readRegister(adxl345Registers_e registerNumber, uint8_t* value){
 	HAL_StatusTypeDef result;
-	uint8_t tmp = ADXL_READ | ADXL_SINGLE | registerNumber;
+	uint8_t instruction = ADXL_READ | ADXL_SINGLE | registerNumber;
 
 	ENABLE_SPI
-	result = HAL_SPI_Transmit(ADXL_spiHandle, &tmp, 1, ADXL_TIMEOUT_MS);
+	result = HAL_SPI_Transmit(ADXL_spiHandle, &instruction, 1, ADXL_TIMEOUT_MS);
 	if(result == HAL_OK)
 		result = HAL_SPI_Receive(ADXL_spiHandle, value, 1, ADXL_TIMEOUT_MS);
 	DISABLE_SPI
