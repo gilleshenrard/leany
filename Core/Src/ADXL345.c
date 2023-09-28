@@ -3,6 +3,10 @@
  * @author Gilles Henrard
  * @date 28/09/2023
  *
+ * @note Additional information can be found in :
+ *   - ADXL345 datasheet : https://www.analog.com/media/en/technical-documentation/data-sheets/ADXL345.pdf
+ *   - AN-1025 (FIFO application note) document : https://www.analog.com/media/en/technical-documentation/application-notes/AN-1025.pdf
+ *
  */
 #include "ADXL345.h"
 #include "main.h"
@@ -16,6 +20,37 @@
 #define ADXL_SINGLE		0x00		///< Bit 6 configuration for single register operations
 #define ADXL_MULTIPLE	0x40		///< Bit 6 configuration for multiple register operations
 
+#define ADXL_MODE_BYPASS	0x00
+#define ADXL_MODE_FIFO		0x40
+#define ADXL_MODE_STREAM	0x80
+#define ADXL_MODE_TRIGGER	0xC0
+#define ADXL_TRIGGER_INT1	0x00
+#define ADXL_TRIGGER_INT2	0x20
+#define ADXL_SAMPLES_16		0x10
+
+#define ADXL_INT_DATARDY	0x80
+#define ADXL_INT_SINGLETAP	0x40
+#define ADXL_INT_DOUBLETAP	0x20
+#define ADXL_INT_ACTIVITY	0x10
+#define ADXL_INT_INACTIVITY	0x08
+#define ADXL_INT_FREEFALL	0x04
+#define ADXL_INT_WATERMARK	0x02
+#define ADXL_INT_OVERRUN	0x01
+
+#define ADXL_SELF_TEST		0x80
+#define ADXL_NO_SELF_TEST	0x00
+#define ADXL_SPI_3WIRE		0x40
+#define ADXL_SPI_4WIRE		0x00
+#define ADXL_INT_ACT_HIGH	0x00
+#define ADXL_INT_ACT_LOW	0x20
+#define ADXL_FULL_RESOL		0x08
+#define ADXL_LEFT_JUSTIFY	0x04
+#define ADXL_RIGHT_JUSTIFY	0x00
+#define ADXL_RANGE_2G		0x00
+#define ADXL_RANGE_4G		0x01
+#define ADXL_RANGE_8G		0x02
+#define ADXL_RANGE_16G		0x03
+
 #define ADXL_STANDBY_MODE	0x00	///< Power control bit 3 configuration for standby mode
 #define ADXL_MEASURE_MODE	0x08	///< Power control bit 3 configuration for measurement mode
 
@@ -23,6 +58,7 @@
 #define DISABLE_SPI	HAL_GPIO_WritePin(ADXL_CS_GPIO_Port, ADXL_CS_Pin, GPIO_PIN_SET);	///< Macro used to disable the SPI communication towards the accelerometer
 
 SPI_HandleTypeDef* ADXL_spiHandle = NULL;	///< SPI handle used with the ADXL345
+volatile uint8_t adxlINT1occurred = 0;
 
 /**
  * @brief Initialise the ADXL345
@@ -31,6 +67,12 @@ SPI_HandleTypeDef* ADXL_spiHandle = NULL;	///< SPI handle used with the ADXL345
  */
 HAL_StatusTypeDef ADXL345initialise(const SPI_HandleTypeDef* handle){
 	ADXL_spiHandle = (SPI_HandleTypeDef*)handle;
+
+	ADXL345writeRegister(DATA_FORMAT, ADXL_SPI_4WIRE | ADXL_INT_ACT_HIGH | ADXL_RANGE_2G);
+
+	//configure the FIFO as to wait for 16 samples before triggering INT1
+	ADXL345writeRegister(FIFO_CONTROL, ADXL_MODE_FIFO | ADXL_TRIGGER_INT1 | ADXL_SAMPLES_16);
+	ADXL345writeRegister(INTERRUPT_ENABLE, ADXL_INT_WATERMARK);
 
 	//set the ADXL in the measurement mode (to be done last)
 	return (ADXL345writeRegister(POWER_CONTROL, ADXL_MEASURE_MODE));

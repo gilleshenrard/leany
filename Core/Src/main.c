@@ -99,10 +99,13 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  ADXL345readRegisters(DATA_X0, buffer, 6);
-	  finalX = ((uint16_t)(buffer[1]) << 8) | (uint16_t)(buffer[0]);
-	  finalY = ((uint16_t)(buffer[3]) << 8) | (uint16_t)(buffer[2]);
-	  finalZ = ((uint16_t)(buffer[5]) << 8) | (uint16_t)(buffer[4]);
+//	  if(adxlINT1occurred){
+		  adxlINT1occurred = 0;
+		  ADXL345readRegisters(DATA_X0, buffer, 6);
+		  finalX = ((uint16_t)(buffer[1]) << 8) | (uint16_t)(buffer[0]);
+		  finalY = ((uint16_t)(buffer[3]) << 8) | (uint16_t)(buffer[2]);
+		  finalZ = ((uint16_t)(buffer[5]) << 8) | (uint16_t)(buffer[4]);
+//	  }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -201,6 +204,7 @@ static void MX_GPIO_Init(void)
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(ADXL_CS_GPIO_Port, ADXL_CS_Pin, GPIO_PIN_RESET);
@@ -211,6 +215,16 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(ADXL_CS_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : ADXL_INT1_Pin */
+  GPIO_InitStruct.Pin = ADXL_INT1_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(ADXL_INT1_GPIO_Port, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI0_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI0_IRQn);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */

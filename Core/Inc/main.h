@@ -65,6 +65,9 @@ void Error_Handler(void);
 #define ADXL_MISO_GPIO_Port GPIOA
 #define ADXL_MOSI_Pin GPIO_PIN_7
 #define ADXL_MOSI_GPIO_Port GPIOA
+#define ADXL_INT1_Pin GPIO_PIN_0
+#define ADXL_INT1_GPIO_Port GPIOB
+#define ADXL_INT1_EXTI_IRQn EXTI0_IRQn
 
 /* USER CODE BEGIN Private defines */
 
