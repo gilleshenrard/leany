@@ -68,7 +68,7 @@ volatile uint8_t adxlINT1occurred = 0;
 HAL_StatusTypeDef ADXL345initialise(const SPI_HandleTypeDef* handle){
 	ADXL_spiHandle = (SPI_HandleTypeDef*)handle;
 
-	ADXL345writeRegister(DATA_FORMAT, ADXL_SPI_4WIRE | ADXL_INT_ACT_HIGH | ADXL_RANGE_2G);
+	ADXL345writeRegister(DATA_FORMAT, ADXL_SPI_4WIRE | ADXL_INT_ACT_LOW | ADXL_RANGE_2G);
 
 	//configure the FIFO as to wait for 16 samples before triggering INT1
 	ADXL345writeRegister(FIFO_CONTROL, ADXL_MODE_FIFO | ADXL_TRIGGER_INT1 | ADXL_SAMPLES_16);
