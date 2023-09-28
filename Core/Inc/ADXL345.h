@@ -39,8 +39,6 @@ typedef enum{
 extern volatile uint8_t adxlINT1occurred;
 
 HAL_StatusTypeDef ADXL345initialise(const SPI_HandleTypeDef* handle);
-HAL_StatusTypeDef ADXL345readRegister(adxl345Registers_e registerNumber, uint8_t* value);
-HAL_StatusTypeDef ADXL345writeRegister(adxl345Registers_e registerNumber, uint8_t value);
-HAL_StatusTypeDef ADXL345readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint8_t size);
+uint16_t ADXL345update();
 
 #endif /* INC_ADXL345_H_ */
