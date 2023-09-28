@@ -57,8 +57,16 @@
 #define ENABLE_SPI	HAL_GPIO_WritePin(ADXL_CS_GPIO_Port, ADXL_CS_Pin, GPIO_PIN_RESET);	///< Macro used to enable the SPI communication towards the accelerometer
 #define DISABLE_SPI	HAL_GPIO_WritePin(ADXL_CS_GPIO_Port, ADXL_CS_Pin, GPIO_PIN_SET);	///< Macro used to disable the SPI communication towards the accelerometer
 
+HAL_StatusTypeDef ADXL345readRegister(adxl345Registers_e registerNumber, uint8_t* value);
+HAL_StatusTypeDef ADXL345writeRegister(adxl345Registers_e registerNumber, uint8_t value);
+HAL_StatusTypeDef ADXL345readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint8_t size);
+
 SPI_HandleTypeDef* ADXL_spiHandle = NULL;	///< SPI handle used with the ADXL345
 volatile uint8_t adxlINT1occurred = 0;
+uint8_t buffer[6];
+int16_t finalX;
+int16_t finalY;
+int16_t finalZ;
 
 /**
  * @brief Initialise the ADXL345
@@ -76,6 +84,17 @@ HAL_StatusTypeDef ADXL345initialise(const SPI_HandleTypeDef* handle){
 
 	//set the ADXL in the measurement mode (to be done last)
 	return (ADXL345writeRegister(POWER_CONTROL, ADXL_MEASURE_MODE));
+}
+
+uint16_t ADXL345update(){
+//	if(adxlINT1occurred){
+		adxlINT1occurred = 0;
+		ADXL345readRegisters(DATA_X0, buffer, 6);
+		finalX = ((uint16_t)(buffer[1]) << 8) | (uint16_t)(buffer[0]);
+		finalY = ((uint16_t)(buffer[3]) << 8) | (uint16_t)(buffer[2]);
+		finalZ = ((uint16_t)(buffer[5]) << 8) | (uint16_t)(buffer[4]);
+//	}
+	return (0);
 }
 
 /**
