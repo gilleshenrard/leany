@@ -32,7 +32,7 @@ SPI_HandleTypeDef* ADXL_spiHandle = NULL;	///< SPI handle used with the ADXL345
 HAL_StatusTypeDef ADXL345initialise(const SPI_HandleTypeDef* handle){
 	ADXL_spiHandle = (SPI_HandleTypeDef*)handle;
 
-	//set the ADXL in the measurement mode
+	//set the ADXL in the measurement mode (to be done last)
 	return (ADXL345writeRegister(POWER_CONTROL, ADXL_MEASURE_MODE));
 }
 
