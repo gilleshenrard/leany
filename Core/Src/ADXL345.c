@@ -24,9 +24,6 @@ HAL_StatusTypeDef ADXL345readRegisters(adxl345Registers_e firstRegister, uint8_t
 SPI_HandleTypeDef* ADXL_spiHandle = NULL;	///< SPI handle used with the ADXL345
 volatile uint8_t adxlINT1occurred = 0;
 uint8_t buffer[6];
-int16_t castedX;
-int16_t castedY;
-int16_t castedZ;
 int16_t finalX;
 int16_t finalY;
 int16_t finalZ;
@@ -59,13 +56,9 @@ uint16_t ADXL345update(){
 	finalX = finalY = finalZ = 0;
 	for(uint8_t i = 0 ; i < ADXL_SAMPLES_16 ; i++){
 		ADXL345readRegisters(DATA_X0, buffer, 6);
-		castedX = ((uint16_t)(buffer[1]) << 8) | (uint16_t)(buffer[0]);
-		castedY = ((uint16_t)(buffer[3]) << 8) | (uint16_t)(buffer[2]);
-		castedZ = ((uint16_t)(buffer[5]) << 8) | (uint16_t)(buffer[4]);
-
-		finalX += castedX;
-		finalY += castedY;
-		finalZ += castedZ;
+		finalX += (int16_t)(((uint16_t)(buffer[1]) << 8) | (uint16_t)(buffer[0]));
+		finalY += (int16_t)(((uint16_t)(buffer[3]) << 8) | (uint16_t)(buffer[2]));
+		finalZ += (int16_t)(((uint16_t)(buffer[5]) << 8) | (uint16_t)(buffer[4]));
 	}
 
 	finalX >>= 4;
