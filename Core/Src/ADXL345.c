@@ -68,9 +68,9 @@ uint16_t ADXL345update(){
 		finalZ += castedZ;
 	}
 
-	finalX /= ADXL_SAMPLES_16;
-	finalY /= ADXL_SAMPLES_16;
-	finalZ /= ADXL_SAMPLES_16;
+	finalX >>= 4;
+	finalY >>= 4;
+	finalZ >>= 4;
 	return (0);
 }
 
