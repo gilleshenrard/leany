@@ -40,6 +40,11 @@
 #define ADXL_RANGE_8G		0x02
 #define ADXL_RANGE_16G		0x03
 
+#define ADXL_POWER_NORMAL	0x00
+#define ADXL_POWER_LOW		0x10
+#define ADXL_RATE_100HZ		0x0A
+#define ADXL_RATE_50HZ		0x09
+
 #define ADXL_STANDBY_MODE	0x00	///< Power control bit 3 configuration for standby mode
 #define ADXL_MEASURE_MODE	0x08	///< Power control bit 3 configuration for measurement mode
 
