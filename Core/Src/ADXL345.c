@@ -1,7 +1,7 @@
 /**
  * @brief Implement the ADXL345 accelerometer communication
  * @author Gilles Henrard
- * @date 28/09/2023
+ * @date 29/09/2023
  *
  * @note Additional information can be found in :
  *   - ADXL345 datasheet : https://www.analog.com/media/en/technical-documentation/data-sheets/ADXL345.pdf
@@ -9,50 +9,10 @@
  *
  */
 #include "ADXL345.h"
+#include "ADXL345registers.h"
 #include "main.h"
 
-#define ADXL_HIGH_RESERVED_REG	0x1C	///< Number of the last reserved register
-
 #define ADXL_TIMEOUT_MS	10			///< SPI direct transmission timeout span in milliseconds
-
-#define ADXL_WRITE		0x00		///< MSB configuration for write operations
-#define ADXL_READ		0x80		///< MSB configuration for read operations
-#define ADXL_SINGLE		0x00		///< Bit 6 configuration for single register operations
-#define ADXL_MULTIPLE	0x40		///< Bit 6 configuration for multiple register operations
-
-#define ADXL_MODE_BYPASS	0x00
-#define ADXL_MODE_FIFO		0x40
-#define ADXL_MODE_STREAM	0x80
-#define ADXL_MODE_TRIGGER	0xC0
-#define ADXL_TRIGGER_INT1	0x00
-#define ADXL_TRIGGER_INT2	0x20
-#define ADXL_SAMPLES_16		0x10
-
-#define ADXL_INT_DATARDY	0x80
-#define ADXL_INT_SINGLETAP	0x40
-#define ADXL_INT_DOUBLETAP	0x20
-#define ADXL_INT_ACTIVITY	0x10
-#define ADXL_INT_INACTIVITY	0x08
-#define ADXL_INT_FREEFALL	0x04
-#define ADXL_INT_WATERMARK	0x02
-#define ADXL_INT_OVERRUN	0x01
-
-#define ADXL_SELF_TEST		0x80
-#define ADXL_NO_SELF_TEST	0x00
-#define ADXL_SPI_3WIRE		0x40
-#define ADXL_SPI_4WIRE		0x00
-#define ADXL_INT_ACTIV_HIGH 0x00
-#define ADXL_INT_ACTIV_LOW	0x20
-#define ADXL_FULL_RESOL		0x08
-#define ADXL_LEFT_JUSTIFY	0x04
-#define ADXL_RIGHT_JUSTIFY	0x00
-#define ADXL_RANGE_2G		0x00
-#define ADXL_RANGE_4G		0x01
-#define ADXL_RANGE_8G		0x02
-#define ADXL_RANGE_16G		0x03
-
-#define ADXL_STANDBY_MODE	0x00	///< Power control bit 3 configuration for standby mode
-#define ADXL_MEASURE_MODE	0x08	///< Power control bit 3 configuration for measurement mode
 
 #define ENABLE_SPI	HAL_GPIO_WritePin(ADXL_CS_GPIO_Port, ADXL_CS_Pin, GPIO_PIN_RESET);	///< Macro used to enable the SPI communication towards the accelerometer
 #define DISABLE_SPI	HAL_GPIO_WritePin(ADXL_CS_GPIO_Port, ADXL_CS_Pin, GPIO_PIN_SET);	///< Macro used to disable the SPI communication towards the accelerometer
@@ -64,9 +24,9 @@ HAL_StatusTypeDef ADXL345readRegisters(adxl345Registers_e firstRegister, uint8_t
 SPI_HandleTypeDef* ADXL_spiHandle = NULL;	///< SPI handle used with the ADXL345
 volatile uint8_t adxlINT1occurred = 0;
 uint8_t buffer[6];
-int16_t finalX;
-int16_t finalY;
-int16_t finalZ;
+int16_t castedX;
+int16_t castedY;
+int16_t castedZ;
 
 /**
  * @brief Initialise the ADXL345
@@ -90,9 +50,9 @@ uint16_t ADXL345update(){
 //	if(adxlINT1occurred){
 		adxlINT1occurred = 0;
 		ADXL345readRegisters(DATA_X0, buffer, 6);
-		finalX = ((uint16_t)(buffer[1]) << 8) | (uint16_t)(buffer[0]);
-		finalY = ((uint16_t)(buffer[3]) << 8) | (uint16_t)(buffer[2]);
-		finalZ = ((uint16_t)(buffer[5]) << 8) | (uint16_t)(buffer[4]);
+		castedX = ((uint16_t)(buffer[1]) << 8) | (uint16_t)(buffer[0]);
+		castedY = ((uint16_t)(buffer[3]) << 8) | (uint16_t)(buffer[2]);
+		castedZ = ((uint16_t)(buffer[5]) << 8) | (uint16_t)(buffer[4]);
 //	}
 	return (0);
 }
