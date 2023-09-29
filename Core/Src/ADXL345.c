@@ -47,20 +47,31 @@ HAL_StatusTypeDef ADXL345initialise(const SPI_HandleTypeDef* handle){
 	return (ADXL345writeRegister(POWER_CONTROL, ADXL_MEASURE_MODE));
 }
 
+/**
+ * @brief Update the ADXL345 measurements
+ *
+ * @return 0
+ */
 uint16_t ADXL345update(){
+	//if watermark interrupt not fired, exit
 	if(!adxlINT1occurred)
 		return (0);
 
 	adxlINT1occurred = 0;
-
 	finalX = finalY = finalZ = 0;
+
+	//for eatch of the 16 samples to read
 	for(uint8_t i = 0 ; i < ADXL_SAMPLES_16 ; i++){
+		//read all data registers for 1 sample
 		ADXL345readRegisters(DATA_X0, buffer, 6);
+
+		//add the measurements (formatted back to a two's complement) to their final value buffer
 		finalX += (int16_t)(((uint16_t)(buffer[1]) << 8) | (uint16_t)(buffer[0]));
 		finalY += (int16_t)(((uint16_t)(buffer[3]) << 8) | (uint16_t)(buffer[2]));
 		finalZ += (int16_t)(((uint16_t)(buffer[5]) << 8) | (uint16_t)(buffer[4]));
 	}
 
+	//divide the buffers by 16
 	finalX >>= 4;
 	finalY >>= 4;
 	finalZ >>= 4;
