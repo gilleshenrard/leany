@@ -14,8 +14,9 @@
 
 #define ADXL_TIMEOUT_MS	10			///< SPI direct transmission timeout span in milliseconds
 
-#define ENABLE_SPI	HAL_GPIO_WritePin(ADXL_CS_GPIO_Port, ADXL_CS_Pin, GPIO_PIN_RESET);	///< Macro used to enable the SPI communication towards the accelerometer
-#define DISABLE_SPI	HAL_GPIO_WritePin(ADXL_CS_GPIO_Port, ADXL_CS_Pin, GPIO_PIN_SET);	///< Macro used to disable the SPI communication towards the accelerometer
+#define ENABLE_SPI		HAL_GPIO_WritePin(ADXL_CS_GPIO_Port, ADXL_CS_Pin, GPIO_PIN_RESET);	///< Macro used to enable the SPI communication towards the accelerometer
+#define DISABLE_SPI		HAL_GPIO_WritePin(ADXL_CS_GPIO_Port, ADXL_CS_Pin, GPIO_PIN_SET);	///< Macro used to disable the SPI communication towards the accelerometer
+#define DIVIDE_16(val)	val >>= 4;
 
 HAL_StatusTypeDef ADXL345readRegister(adxl345Registers_e registerNumber, uint8_t* value);
 HAL_StatusTypeDef ADXL345writeRegister(adxl345Registers_e registerNumber, uint8_t value);
@@ -63,18 +64,18 @@ uint16_t ADXL345update(){
 	//for eatch of the 16 samples to read
 	for(uint8_t i = 0 ; i < ADXL_SAMPLES_16 ; i++){
 		//read all data registers for 1 sample
-		ADXL345readRegisters(DATA_X0, buffer, 6);
+		ADXL345readRegisters(DATA_X0, buffer, ADXL_NB_DATA_REGISTERS);
 
-		//add the measurements (formatted back to a two's complement) to their final value buffer
-		finalX += (int16_t)(((uint16_t)(buffer[1]) << 8) | (uint16_t)(buffer[0]));
-		finalY += (int16_t)(((uint16_t)(buffer[3]) << 8) | (uint16_t)(buffer[2]));
-		finalZ += (int16_t)(((uint16_t)(buffer[5]) << 8) | (uint16_t)(buffer[4]));
+		//add the measurements (formatted from a two's complement) to their final value buffer
+		finalX += (int16_t)(((uint16_t)(buffer[1]) << 8) | (uint16_t)(buffer[0])); // @suppress("Avoid magic numbers")
+		finalY += (int16_t)(((uint16_t)(buffer[3]) << 8) | (uint16_t)(buffer[2])); // @suppress("Avoid magic numbers")
+		finalZ += (int16_t)(((uint16_t)(buffer[5]) << 8) | (uint16_t)(buffer[4])); // @suppress("Avoid magic numbers")
 	}
 
 	//divide the buffers by 16
-	finalX >>= 4;
-	finalY >>= 4;
-	finalZ >>= 4;
+	DIVIDE_16(finalX);
+	DIVIDE_16(finalY);
+	DIVIDE_16(finalZ);
 	return (0);
 }
 
