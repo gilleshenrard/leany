@@ -27,6 +27,9 @@ uint8_t buffer[6];
 int16_t castedX;
 int16_t castedY;
 int16_t castedZ;
+int16_t finalX;
+int16_t finalY;
+int16_t finalZ;
 
 /**
  * @brief Initialise the ADXL345
@@ -38,7 +41,8 @@ HAL_StatusTypeDef ADXL345initialise(const SPI_HandleTypeDef* handle){
 
 	ADXL345writeRegister(DATA_FORMAT, ADXL_SPI_4WIRE | ADXL_INT_ACTIV_LOW | ADXL_RANGE_2G);
 
-	//configure the FIFO as to wait for 16 samples before triggering INT1
+	//clear the FIFO, then configure it as to wait for 16 samples before triggering INT1
+	ADXL345writeRegister(FIFO_CONTROL, ADXL_MODE_BYPASS);
 	ADXL345writeRegister(FIFO_CONTROL, ADXL_MODE_FIFO | ADXL_TRIGGER_INT1 | ADXL_SAMPLES_16);
 	ADXL345writeRegister(INTERRUPT_ENABLE, ADXL_INT_WATERMARK);
 
@@ -47,13 +51,26 @@ HAL_StatusTypeDef ADXL345initialise(const SPI_HandleTypeDef* handle){
 }
 
 uint16_t ADXL345update(){
-//	if(adxlINT1occurred){
-		adxlINT1occurred = 0;
+	if(!adxlINT1occurred)
+		return (0);
+
+	adxlINT1occurred = 0;
+
+	finalX = finalY = finalZ = 0;
+	for(uint8_t i = 0 ; i < ADXL_SAMPLES_16 ; i++){
 		ADXL345readRegisters(DATA_X0, buffer, 6);
 		castedX = ((uint16_t)(buffer[1]) << 8) | (uint16_t)(buffer[0]);
 		castedY = ((uint16_t)(buffer[3]) << 8) | (uint16_t)(buffer[2]);
 		castedZ = ((uint16_t)(buffer[5]) << 8) | (uint16_t)(buffer[4]);
-//	}
+
+		finalX += castedX;
+		finalY += castedY;
+		finalZ += castedZ;
+	}
+
+	finalX /= ADXL_SAMPLES_16;
+	finalY /= ADXL_SAMPLES_16;
+	finalZ /= ADXL_SAMPLES_16;
 	return (0);
 }
 
