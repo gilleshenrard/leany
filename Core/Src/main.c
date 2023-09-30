@@ -95,7 +95,7 @@ int main(void)
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
   ADXL345initialise(&hspi1);
-  SSD1306initialise();
+  SSD1306initialise(&hi2c1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
