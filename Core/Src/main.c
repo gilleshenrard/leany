@@ -22,6 +22,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "ADXL345.h"
+#include "SSD1306.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -94,6 +95,7 @@ int main(void)
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
   ADXL345initialise(&hspi1);
+  SSD1306initialise();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -101,6 +103,7 @@ int main(void)
   while (1)
   {
 	  ADXL345update();
+	  SSD1306update();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
