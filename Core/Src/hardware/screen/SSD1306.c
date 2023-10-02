@@ -17,6 +17,17 @@ SPI_HandleTypeDef* SSD_SPIhandle = NULL;	///< SPI handle used with the SSD1306
  */
 void SSD1306initialise(SPI_HandleTypeDef* handle){
 	SSD_SPIhandle = handle;
+
+	//initialisation taken from PDF p. 64 (Application Example)
+	//	values which don't change from reset values aren't modified
+	//TODO check for pins hardware config (0xDA)
+	//TODO test for max oscillator frequency
+	//TODO check for charge pump
+
+	SSD1306WriteValue(CONTRAST_CONTROL, SSD_CONTRAST_HIGHEST);
+	SSD1306WriteValue(CLOCK_DIVIDE_RATIO, SSD_CLOCK_FREQ_MID | SSD_CLOCK_DIVIDER_1);
+	SSD1306WriteValue(CHG_PUMP_REGULATOR, SSD_ENABLE_CHG_PUMP);
+	SSD1306WriteRegister(DISPLAY_ON);
 }
 
 /**
@@ -25,6 +36,11 @@ void SSD1306initialise(SPI_HandleTypeDef* handle){
  * @return Return code
  */
 uint16_t SSD1306update(){
+	return (0);
+}
+
+uint16_t SSD1306WriteRegister(SSD1306register_e regNumber){
+	UNUSED(regNumber);
 	return (0);
 }
 
