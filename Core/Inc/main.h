@@ -78,6 +78,8 @@ void Error_Handler(void);
 #define SSD1306_CS_GPIO_Port GPIOA
 #define SSD1306_DC_Pin GPIO_PIN_9
 #define SSD1306_DC_GPIO_Port GPIOA
+#define SSD1306_RST_Pin GPIO_PIN_10
+#define SSD1306_RST_GPIO_Port GPIOA
 
 /* USER CODE BEGIN Private defines */
 
