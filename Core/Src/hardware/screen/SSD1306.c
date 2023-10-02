@@ -1,9 +1,9 @@
 #include "SSD1306.h"
 
-I2C_HandleTypeDef* SSD_I2Chandle = NULL;
+SPI_HandleTypeDef* SSD_SPIhandle = NULL;
 
-void SSD1306initialise(I2C_HandleTypeDef* handle){
-	SSD_I2Chandle = handle;
+void SSD1306initialise(SPI_HandleTypeDef* handle){
+	SSD_SPIhandle = handle;
 }
 
 uint16_t SSD1306update(){
