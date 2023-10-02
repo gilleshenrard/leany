@@ -90,10 +90,8 @@ uint16_t SSD1306WriteValue(SSD1306register_e regNumber, uint8_t value){
 
 	SSD1306_SET_COMMAND
 	result = HAL_SPI_Transmit(SSD_SPIhandle, &regNumber, 1, SSD1306_SPI_TIMEOUT_MS);
-	if(result == HAL_OK){
-		SSD1306_SET_DATA
+	if(result == HAL_OK)
 		result = HAL_SPI_Transmit(SSD_SPIhandle, &value, 1, SSD1306_SPI_TIMEOUT_MS);
-	}
 
 	SSD1306_DISABLE_SPI
 
