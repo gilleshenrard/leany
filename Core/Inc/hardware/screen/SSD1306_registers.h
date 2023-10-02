@@ -1,6 +1,8 @@
 #ifndef INC_HARDWARE_SCREEN_SSD1306_REGISTERS_H_
 #define INC_HARDWARE_SCREEN_SSD1306_REGISTERS_H_
 
+#define SSD_MUX_RATIO64	0x3F	///< Value to set the multiplexer ratio to 64
+
 /**
  * @brief Enumeration of all the SSD1306 registers listed in the datasheet
  */
