@@ -1,6 +1,9 @@
 #ifndef INC_HARDWARE_SCREEN_SSD1306_REGISTERS_H_
 #define INC_HARDWARE_SCREEN_SSD1306_REGISTERS_H_
 
+/**
+ * @brief Enumeration of all the SSD1306 registers listed in the datasheet
+ */
 typedef enum{
 	LOW_COL_START_ADDR	= 0x00,	///< Set Lower Column Start Address for Page Addressing Mode
 	HIGH_COL_START_ADDR	= 0x10,	///< Set Higher Column Start Address for Page Addressing Mode
