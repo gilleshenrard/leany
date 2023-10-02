@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <stm32f1xx.h>
 
-void SSD1306initialise(I2C_HandleTypeDef* handle);
+void SSD1306initialise(SPI_HandleTypeDef* handle);
 uint16_t SSD1306update();
 
 #endif /* INC_HARDWARE_SCREEN_SSD1306_H_ */

@@ -68,10 +68,12 @@ void Error_Handler(void);
 #define ADXL_INT1_Pin GPIO_PIN_0
 #define ADXL_INT1_GPIO_Port GPIOB
 #define ADXL_INT1_EXTI_IRQn EXTI0_IRQn
-#define SSD1306_SCL_Pin GPIO_PIN_6
-#define SSD1306_SCL_GPIO_Port GPIOB
-#define SSD1306_SDA_Pin GPIO_PIN_7
-#define SSD1306_SDA_GPIO_Port GPIOB
+#define SSD1306_SCK_Pin GPIO_PIN_13
+#define SSD1306_SCK_GPIO_Port GPIOB
+#define SSD1306_MISO_Pin GPIO_PIN_14
+#define SSD1306_MISO_GPIO_Port GPIOB
+#define SSD1306_MOSI_Pin GPIO_PIN_15
+#define SSD1306_MOSI_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 
