@@ -7,6 +7,12 @@
  * @note Datasheet : https://cdn-shop.adafruit.com/datasheets/SSD1306.pdf
  */
 #include "SSD1306.h"
+#include "main.h"
+
+#define SSD1306_SUCCESS	0x00
+
+#define SSD1306_ENABLE_SPI HAL_GPIO_WritePin(SSD1306_CS_GPIO_Port, SSD1306_CS_Pin, GPIO_PIN_RESET);
+#define SSD1306_DISABLE_SPI HAL_GPIO_WritePin(SSD1306_CS_GPIO_Port, SSD1306_CS_Pin, GPIO_PIN_SET);
 
 SPI_HandleTypeDef* SSD_SPIhandle = NULL;	///< SPI handle used with the SSD1306
 
@@ -17,6 +23,13 @@ SPI_HandleTypeDef* SSD_SPIhandle = NULL;	///< SPI handle used with the SSD1306
  */
 void SSD1306initialise(SPI_HandleTypeDef* handle){
 	SSD_SPIhandle = handle;
+
+	//make sure to disable SSD1306 SPI communication
+	SSD1306_DISABLE_SPI
+
+	//reset the chip
+	HAL_GPIO_WritePin(SSD1306_RST_GPIO_Port, SSD1306_RST_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(SSD1306_RST_GPIO_Port, SSD1306_RST_Pin, GPIO_PIN_SET);
 
 	//initialisation taken from PDF p. 64 (Application Example)
 	//	values which don't change from reset values aren't modified
@@ -36,12 +49,22 @@ void SSD1306initialise(SPI_HandleTypeDef* handle){
  * @return Return code
  */
 uint16_t SSD1306update(){
-	return (0);
+	return (SSD1306_SUCCESS);
 }
 
+/**
+ * @brief Call a register command
+ *
+ * @param regNumber Register number
+ * @return Return code
+ */
 uint16_t SSD1306WriteRegister(SSD1306register_e regNumber){
 	UNUSED(regNumber);
-	return (0);
+
+	SSD1306_ENABLE_SPI
+	SSD1306_DISABLE_SPI
+
+	return (SSD1306_SUCCESS);
 }
 
 /**
@@ -54,5 +77,8 @@ uint16_t SSD1306WriteRegister(SSD1306register_e regNumber){
 uint16_t SSD1306WriteValue(SSD1306register_e regNumber, uint8_t value){
 	UNUSED(regNumber);
 	UNUSED(value);
-	return (0);
+
+	SSD1306_ENABLE_SPI
+	SSD1306_DISABLE_SPI
+	return (SSD1306_SUCCESS);
 }
