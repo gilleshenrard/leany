@@ -41,11 +41,11 @@ void SSD1306initialise(SPI_HandleTypeDef* handle){
 	//TODO test for max oscillator frequency
 	//TODO check for charge pump
 
-	SSD1306WriteValue(CONTRAST_CONTROL, SSD_CONTRAST_HIGHEST);
-	SSD1306WriteValue(CLOCK_DIVIDE_RATIO, SSD_CLOCK_FREQ_MID | SSD_CLOCK_DIVIDER_1);
-	SSD1306WriteValue(CHG_PUMP_REGULATOR, SSD_ENABLE_CHG_PUMP);
-	SSD1306WriteRegister(DISPLAY_ON);
-	SSD1306WriteRegister(DISPLAY_ALL_ON);
+	SSD1306sendCommandParameters(CONTRAST_CONTROL, SSD_CONTRAST_HIGHEST);
+	SSD1306sendCommandParameters(CLOCK_DIVIDE_RATIO, SSD_CLOCK_FREQ_MID | SSD_CLOCK_DIVIDER_1);
+	SSD1306sendCommandParameters(CHG_PUMP_REGULATOR, SSD_ENABLE_CHG_PUMP);
+	SSD1306sendCommand(DISPLAY_ON);
+	SSD1306sendCommand(DISPLAY_ALL_ON);
 }
 
 /**
@@ -58,12 +58,12 @@ uint16_t SSD1306update(){
 }
 
 /**
- * @brief Call a register command
+ * @brief Send a command without parameters
  *
  * @param regNumber Register number
  * @return Return code
  */
-uint16_t SSD1306WriteRegister(SSD1306register_e regNumber){
+uint16_t SSD1306sendCommand(SSD1306register_e regNumber){
 	HAL_StatusTypeDef result;
 
 	SSD1306_SET_COMMAND
@@ -76,13 +76,13 @@ uint16_t SSD1306WriteRegister(SSD1306register_e regNumber){
 }
 
 /**
- * @brief Write a byte value to a register
+ * @brief Send a command with parameters
  *
  * @param regNumber Register number
- * @param value Value to write
+ * @param value Parameters to write
  * @return Return code
  */
-uint16_t SSD1306WriteValue(SSD1306register_e regNumber, uint8_t value){
+uint16_t SSD1306sendCommandParameters(SSD1306register_e regNumber, uint8_t value){
 	HAL_StatusTypeDef result;
 
 	SSD1306_SET_COMMAND

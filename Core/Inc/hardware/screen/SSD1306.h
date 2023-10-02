@@ -6,7 +6,7 @@
 
 void SSD1306initialise(SPI_HandleTypeDef* handle);
 uint16_t SSD1306update();
-uint16_t SSD1306WriteRegister(SSD1306register_e regNumber);
-uint16_t SSD1306WriteValue(SSD1306register_e regNumber, uint8_t value);
+uint16_t SSD1306sendCommand(SSD1306register_e regNumber);
+uint16_t SSD1306sendCommandParameters(SSD1306register_e regNumber, uint8_t value);
 
 #endif /* INC_HARDWARE_SCREEN_SSD1306_H_ */
