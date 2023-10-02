@@ -9,10 +9,14 @@
 #include "SSD1306.h"
 #include "main.h"
 
-#define SSD1306_SUCCESS	0x00
+#define SSD1306_SUCCESS			0x00
+#define SSD1306_SPI_TIMEOUT_MS	10
 
 #define SSD1306_ENABLE_SPI HAL_GPIO_WritePin(SSD1306_CS_GPIO_Port, SSD1306_CS_Pin, GPIO_PIN_RESET);
 #define SSD1306_DISABLE_SPI HAL_GPIO_WritePin(SSD1306_CS_GPIO_Port, SSD1306_CS_Pin, GPIO_PIN_SET);
+
+#define SSD1306_SET_COMMAND HAL_GPIO_WritePin(SSD1306_DC_GPIO_Port, SSD1306_DC_Pin, GPIO_PIN_RESET);
+#define SSD1306_SET_DATA HAL_GPIO_WritePin(SSD1306_DC_GPIO_Port, SSD1306_DC_Pin, GPIO_PIN_SET);
 
 SPI_HandleTypeDef* SSD_SPIhandle = NULL;	///< SPI handle used with the SSD1306
 
@@ -41,6 +45,7 @@ void SSD1306initialise(SPI_HandleTypeDef* handle){
 	SSD1306WriteValue(CLOCK_DIVIDE_RATIO, SSD_CLOCK_FREQ_MID | SSD_CLOCK_DIVIDER_1);
 	SSD1306WriteValue(CHG_PUMP_REGULATOR, SSD_ENABLE_CHG_PUMP);
 	SSD1306WriteRegister(DISPLAY_ON);
+	SSD1306WriteRegister(DISPLAY_ALL_ON);
 }
 
 /**
@@ -59,12 +64,16 @@ uint16_t SSD1306update(){
  * @return Return code
  */
 uint16_t SSD1306WriteRegister(SSD1306register_e regNumber){
-	UNUSED(regNumber);
+	HAL_StatusTypeDef result;
 
 	SSD1306_ENABLE_SPI
+
+	SSD1306_SET_COMMAND
+	result = HAL_SPI_Transmit(SSD_SPIhandle, &regNumber, 1, SSD1306_SPI_TIMEOUT_MS);
+
 	SSD1306_DISABLE_SPI
 
-	return (SSD1306_SUCCESS);
+	return (result != HAL_OK);
 }
 
 /**
@@ -75,10 +84,18 @@ uint16_t SSD1306WriteRegister(SSD1306register_e regNumber){
  * @return Return code
  */
 uint16_t SSD1306WriteValue(SSD1306register_e regNumber, uint8_t value){
-	UNUSED(regNumber);
-	UNUSED(value);
+	HAL_StatusTypeDef result;
 
 	SSD1306_ENABLE_SPI
+
+	SSD1306_SET_COMMAND
+	result = HAL_SPI_Transmit(SSD_SPIhandle, &regNumber, 1, SSD1306_SPI_TIMEOUT_MS);
+	if(result == HAL_OK){
+		SSD1306_SET_DATA
+		result = HAL_SPI_Transmit(SSD_SPIhandle, &value, 1, SSD1306_SPI_TIMEOUT_MS);
+	}
+
 	SSD1306_DISABLE_SPI
-	return (SSD1306_SUCCESS);
+
+	return (result != HAL_OK);
 }
