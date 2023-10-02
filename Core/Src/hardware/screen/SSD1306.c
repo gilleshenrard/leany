@@ -66,11 +66,10 @@ uint16_t SSD1306update(){
 uint16_t SSD1306WriteRegister(SSD1306register_e regNumber){
 	HAL_StatusTypeDef result;
 
-	SSD1306_ENABLE_SPI
-
 	SSD1306_SET_COMMAND
-	result = HAL_SPI_Transmit(SSD_SPIhandle, &regNumber, 1, SSD1306_SPI_TIMEOUT_MS);
 
+	SSD1306_ENABLE_SPI
+	result = HAL_SPI_Transmit(SSD_SPIhandle, &regNumber, 1, SSD1306_SPI_TIMEOUT_MS);
 	SSD1306_DISABLE_SPI
 
 	return (result != HAL_OK);
@@ -86,13 +85,12 @@ uint16_t SSD1306WriteRegister(SSD1306register_e regNumber){
 uint16_t SSD1306WriteValue(SSD1306register_e regNumber, uint8_t value){
 	HAL_StatusTypeDef result;
 
-	SSD1306_ENABLE_SPI
-
 	SSD1306_SET_COMMAND
+
+	SSD1306_ENABLE_SPI
 	result = HAL_SPI_Transmit(SSD_SPIhandle, &regNumber, 1, SSD1306_SPI_TIMEOUT_MS);
 	if(result == HAL_OK)
 		result = HAL_SPI_Transmit(SSD_SPIhandle, &value, 1, SSD1306_SPI_TIMEOUT_MS);
-
 	SSD1306_DISABLE_SPI
 
 	return (result != HAL_OK);
