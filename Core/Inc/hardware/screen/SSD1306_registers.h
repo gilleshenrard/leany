@@ -1,7 +1,21 @@
 #ifndef INC_HARDWARE_SCREEN_SSD1306_REGISTERS_H_
 #define INC_HARDWARE_SCREEN_SSD1306_REGISTERS_H_
 
-#define SSD_MUX_RATIO64	0x3F	///< Value to set the multiplexer ratio to 64
+#define SSD_MUX_RATIO_64		0x3F	///< Value to set the multiplexer ratio to 64 (reset value)
+#define SSD_OFFSET_0			0x00	///< Value to set the screen offset to 0 (reset value)
+#define SSD_START_LINE_0		0x00	///< Value to set the start line to 0 (reset value)
+
+#define SSD_CONTRAST_LOWEST		0x00	///< Value to set the contrast to the lowest value
+#define SSD_CONTRAST_MID		0x7F	///< Value to set the contrast to the middle value (reset value)
+#define SSD_CONTRAST_HIGHEST	0xFF	///< Value to set the contrast to the highest value
+
+#define SSD_CLOCK_DIVIDER_1		0x00	///< Value to set the clock divide ratio to 1
+#define SSD_CLOCK_DIVIDER_16	0x0F	///< Value to set the clock divide ratio to 16
+#define SSD_CLOCK_FREQ_MID		0x80	///< Value to set the middle clock oscillator frequency
+#define SSD_CLOCK_FREQ_MAX		0xF0	///< Value to set the maximum clock oscillator frequency
+
+#define SSD_DISABLE_CHG_PUMP	0x10	///< Value to disable the charge pump
+#define SSD_ENABLE_CHG_PUMP		0x14	///< Value to enable the charge pump
 
 /**
  * @brief Enumeration of all the SSD1306 registers listed in the datasheet
@@ -20,6 +34,7 @@ typedef enum{
 	SCROLL_ENABLE		= 0x2F,	///< Activate scroll
 	DISPLAY_START_LINE	= 0x40,	///< Set Display Start Line
 	CONTRAST_CONTROL	= 0x81,	///< Set Contrast Control
+	CHG_PUMP_REGULATOR	= 0x8D,	///< Charge Pump Setting
 	SEGMENT_REMAP_0		= 0xA0,	///< Set Segment Re-map - column address 0 is mapped to SEG0
 	SEGMENT_REMAP_127	= 0xA1,	///< Set Segment Re-map - column address 127 is mapped to SEG0
 	SCROLL_VER_AREA		= 0xA3,	///< Set Vertical Scroll Area
@@ -31,7 +46,8 @@ typedef enum{
 	DISPLAY_OFF			= 0xAE,	///< Set Display ON/OFF - Display OFF
 	DISPLAY_ON			= 0xAF,	///< Set Display ON/OFF - Display ON
 	ADDR_MODE_PAGESTART = 0xB0,	///< Set Page Start Address for Page Addressing Mode
-	SCAN_DIRECTION		= 0xC0,	///< Set COM Output Scan Direction
+	SCAN_DIRECTION_0_N1	= 0xC0,	///< Set COM Output Scan Direction - Scan from COM0 to COM[N–1]
+	SCAN_DIRECTION_N1_0	= 0xC8,	///< Set COM Output Scan Direction - Scan from COM[N-1] to COM0
 	DISPLAY_OFFSET		= 0xD3,	///< Set Display Offset
 	CLOCK_DIVIDE_RATIO	= 0xD5,	///< Set Display Clock Divide Ratio/Oscillator Frequency
 	PRECHARGE_PERIOD	= 0xD9,	///< Set Pre-charge Period
