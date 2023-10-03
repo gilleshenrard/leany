@@ -51,7 +51,6 @@ void SSD1306initialise(SPI_HandleTypeDef* handle){
 	SSD1306sendCommand(CLOCK_DIVIDE_RATIO, &clockInit, 1);
 	SSD1306sendCommand(CHG_PUMP_REGULATOR, &chargePumpInit, 1);
 	SSD1306sendCommand(DISPLAY_ON, NULL, 0);
-	screenBuffer[0] = screenBuffer[1] = SSD_CONTRAST_HIGHEST;
 	SSD1306sendData(screenBuffer, SSD1306_MAX_DATA_SIZE);
 }
 
