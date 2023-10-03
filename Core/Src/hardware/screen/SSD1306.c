@@ -26,6 +26,7 @@ const uint8_t contrastInit = SSD_CONTRAST_HIGHEST;
 const uint8_t clockInit = SSD_CLOCK_FREQ_MID | SSD_CLOCK_DIVIDER_1;
 const uint8_t chargePumpInit = SSD_ENABLE_CHG_PUMP;
 uint8_t screenBuffer[SSD1306_MAX_DATA_SIZE] = {0};
+volatile uint16_t screenTimer_ms = 0;
 
 /**
  * @brief Initialise the SSD1306
@@ -53,8 +54,6 @@ void SSD1306initialise(SPI_HandleTypeDef* handle){
 	SSD1306sendCommand(CLOCK_DIVIDE_RATIO, &clockInit, 1);
 	SSD1306sendCommand(CHG_PUMP_REGULATOR, &chargePumpInit, 1);
 	SSD1306sendCommand(DISPLAY_ON, NULL, 0);
-	screenBuffer[0] = screenBuffer[1] = screenBuffer[2] = screenBuffer[3] = 0xFF;
-	SSD1306sendData(screenBuffer, SSD1306_MAX_DATA_SIZE);
 }
 
 /**
