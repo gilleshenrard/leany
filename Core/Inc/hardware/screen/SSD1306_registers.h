@@ -17,6 +17,10 @@
 #define SSD_DISABLE_CHG_PUMP	0x10	///< Value to disable the charge pump
 #define SSD_ENABLE_CHG_PUMP		0x14	///< Value to enable the charge pump
 
+#define SSD_HORIZONTAL_ADDR		0x00	///< Value to set the horizontal addressing mode
+#define SSD_VERTICAL_ADDR		0x01	///< Value to set the vertical addressing mode
+#define SSD_PAGE_ADDR			0x02	///< Value to set the page addressing mode (reset value)
+
 /**
  * @brief Enumeration of all the SSD1306 registers listed in the datasheet
  */

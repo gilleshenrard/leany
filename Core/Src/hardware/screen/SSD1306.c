@@ -21,6 +21,7 @@
 
 SPI_HandleTypeDef* SSD_SPIhandle = NULL;	///< SPI handle used with the SSD1306
 
+const uint8_t addressingModeInit = SSD_HORIZONTAL_ADDR;
 const uint8_t contrastInit = SSD_CONTRAST_HIGHEST;
 const uint8_t clockInit = SSD_CLOCK_FREQ_MID | SSD_CLOCK_DIVIDER_1;
 const uint8_t chargePumpInit = SSD_ENABLE_CHG_PUMP;
@@ -47,10 +48,12 @@ void SSD1306initialise(SPI_HandleTypeDef* handle){
 	//TODO test for max oscillator frequency
 	//TODO check for charge pump
 
+	SSD1306sendCommand(MEMORY_ADDR_MODE, &addressingModeInit, 1);
 	SSD1306sendCommand(CONTRAST_CONTROL, &contrastInit, 1);
 	SSD1306sendCommand(CLOCK_DIVIDE_RATIO, &clockInit, 1);
 	SSD1306sendCommand(CHG_PUMP_REGULATOR, &chargePumpInit, 1);
 	SSD1306sendCommand(DISPLAY_ON, NULL, 0);
+	screenBuffer[0] = screenBuffer[1] = screenBuffer[2] = screenBuffer[3] = 0xFF;
 	SSD1306sendData(screenBuffer, SSD1306_MAX_DATA_SIZE);
 }
 
