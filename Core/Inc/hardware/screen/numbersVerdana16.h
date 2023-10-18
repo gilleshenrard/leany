@@ -1,3 +1,5 @@
+#ifndef NUMBERS_VERDANA_16_H_INCLUDED
+#define NUMBERS_VERDANA_16_H_INCLUDED
 #include <stdint.h>
 
 #define VERDANA_NB_BYTES_CHAR	22U	///< Number of bytes per character
@@ -23,3 +25,5 @@ typedef enum{
 }numbers_e;
 
 extern const uint8_t verdana_16ptNumbers[];
+
+#endif
