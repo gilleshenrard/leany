@@ -36,17 +36,28 @@ int16_t finalZ;
  */
 HAL_StatusTypeDef ADXL345initialise(const SPI_HandleTypeDef* handle){
 	ADXL_spiHandle = (SPI_HandleTypeDef*)handle;
+	HAL_StatusTypeDef result;
 
-	ADXL345writeRegister(BANDWIDTH_POWERMODE, ADXL_POWER_NORMAL | ADXL_RATE_100HZ);
-	ADXL345writeRegister(DATA_FORMAT, ADXL_SPI_4WIRE | ADXL_INT_ACTIV_LOW | ADXL_RANGE_2G);
+	result = ADXL345writeRegister(BANDWIDTH_POWERMODE, ADXL_POWER_NORMAL | ADXL_RATE_100HZ);
+	if(result == HAL_OK)
+		result = ADXL345writeRegister(DATA_FORMAT, ADXL_SPI_4WIRE | ADXL_INT_ACTIV_LOW | ADXL_RANGE_2G);
 
 	//clear the FIFO, then configure it as to wait for 16 samples before triggering INT1
-	ADXL345writeRegister(FIFO_CONTROL, ADXL_MODE_BYPASS);
-	ADXL345writeRegister(FIFO_CONTROL, ADXL_MODE_FIFO | ADXL_TRIGGER_INT1 | ADXL_SAMPLES_16);
-	ADXL345writeRegister(INTERRUPT_ENABLE, ADXL_INT_WATERMARK);
+
+	if(result == HAL_OK)
+		result = ADXL345writeRegister(FIFO_CONTROL, ADXL_MODE_BYPASS);
+
+	if(result == HAL_OK)
+		result = ADXL345writeRegister(FIFO_CONTROL, ADXL_MODE_FIFO | ADXL_TRIGGER_INT1 | ADXL_SAMPLES_16);
+
+	if(result == HAL_OK)
+		result = ADXL345writeRegister(INTERRUPT_ENABLE, ADXL_INT_WATERMARK);
 
 	//set the ADXL in the measurement mode (to be done last)
-	return (ADXL345writeRegister(POWER_CONTROL, ADXL_MEASURE_MODE));
+	if(result == HAL_OK)
+		result = ADXL345writeRegister(POWER_CONTROL, ADXL_MEASURE_MODE);
+
+	return (result);
 }
 
 /**
