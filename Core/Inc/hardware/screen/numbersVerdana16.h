@@ -24,6 +24,6 @@ typedef enum{
 	NB_NUMBERS
 }numbers_e;
 
-extern const uint8_t verdana_16ptNumbers[];
+extern const uint8_t verdana_16ptNumbers[NB_NUMBERS][VERDANA_NB_BYTES_CHAR];
 
 #endif
