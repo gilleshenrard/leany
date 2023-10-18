@@ -4,8 +4,6 @@
 #include <stm32f1xx.h>
 #include "SSD1306_registers.h"
 
-extern volatile uint16_t screenTimer_ms;
-
 void SSD1306initialise(SPI_HandleTypeDef* handle);
 uint16_t SSD1306update();
 uint16_t SSD1306sendCommand(SSD1306register_e regNumber, const uint8_t parameters[], uint8_t nbParameters);

@@ -2,31 +2,36 @@
  * @file SSD1306.c
  * @brief Implement the functioning of the SSD1306 OLED screen via SPI and DMA
  * @author Gilles Henrard
- * @date 03/10/2023
+ * @date 18/10/2023
  *
  * @note Datasheet : https://cdn-shop.adafruit.com/datasheets/SSD1306.pdf
  */
 #include "SSD1306.h"
 #include "main.h"
 
-#define SSD1306_SUCCESS			0x00
-#define SSD1306_SPI_TIMEOUT_MS	10U
-#define SSD1306_MAX_PARAMETERS	6U
+//definitions
+#define SSD1306_SUCCESS			0x00	///< Return code corresponding to a success
+#define SSD1306_SPI_TIMEOUT_MS	10U		///< Maximum number of milliseconds SPI traffic should last before timeout
+#define SSD1306_MAX_PARAMETERS	6U		///< Maximum number of parameters a command can have
 #define SSD1306_MAX_DATA_SIZE	1024U	///< Maximum data size (128 * 64 bits / 8 bits per bytes)
 
+//macros
 #define SSD1306_ENABLE_SPI HAL_GPIO_WritePin(SSD1306_CS_GPIO_Port, SSD1306_CS_Pin, GPIO_PIN_RESET);
 #define SSD1306_DISABLE_SPI HAL_GPIO_WritePin(SSD1306_CS_GPIO_Port, SSD1306_CS_Pin, GPIO_PIN_SET);
 #define SSD1306_SET_COMMAND HAL_GPIO_WritePin(SSD1306_DC_GPIO_Port, SSD1306_DC_Pin, GPIO_PIN_RESET);
 #define SSD1306_SET_DATA HAL_GPIO_WritePin(SSD1306_DC_GPIO_Port, SSD1306_DC_Pin, GPIO_PIN_SET);
 
+//SPI handle
 SPI_HandleTypeDef* SSD_SPIhandle = NULL;	///< SPI handle used with the SSD1306
 
-const uint8_t addressingModeInit = SSD_HORIZONTAL_ADDR;
-const uint8_t contrastInit = SSD_CONTRAST_HIGHEST;
-const uint8_t clockInit = SSD_CLOCK_FREQ_MID | SSD_CLOCK_DIVIDER_1;
-const uint8_t chargePumpInit = SSD_ENABLE_CHG_PUMP;
-uint8_t screenBuffer[SSD1306_MAX_DATA_SIZE] = {0};
-volatile uint16_t screenTimer_ms = 0;
+//pre-configured values
+const uint8_t addressingModeInit = SSD_HORIZONTAL_ADDR;				///< Default addressing mode value
+const uint8_t contrastInit = SSD_CONTRAST_HIGHEST;					///< Default contrast value
+const uint8_t clockInit = SSD_CLOCK_FREQ_MID | SSD_CLOCK_DIVIDER_1;	///< Default clock initialisation value
+const uint8_t chargePumpInit = SSD_ENABLE_CHG_PUMP;					///< Default charge pump value
+
+//state variables
+uint8_t screenBuffer[SSD1306_MAX_DATA_SIZE] = {0};	///< Buffer used to send data to the screen
 
 /**
  * @brief Initialise the SSD1306
