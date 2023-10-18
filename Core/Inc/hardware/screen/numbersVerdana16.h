@@ -1,10 +1,12 @@
 #include <stdint.h>
 
+#define VERDANA_NB_BYTES_CHAR	22U	///< Number of bytes per character
+
 /**
  * @brief Enumeration of all the characters available in Verdana 16
  */
 typedef enum{
-	INDEX_0,
+	INDEX_0 = 0,
 	INDEX_1,
 	INDEX_2,
 	INDEX_3,
@@ -16,7 +18,8 @@ typedef enum{
 	INDEX_9,
 	INDEX_DOT,
 	INDEX_DASH,
+	INDEX_DEG,
 	NB_NUMBERS
 }numbers_e;
 
-extern const uint8_t numbers_Verdana16[];
+extern const uint8_t verdana_16ptNumbers[];
