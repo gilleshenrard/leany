@@ -79,9 +79,9 @@ uint16_t ADXL345update(){
 		ADXL345readRegisters(DATA_X0, buffer, ADXL_NB_DATA_REGISTERS);
 
 		//add the measurements (formatted from a two's complement) to their final value buffer
-		finalX += (int16_t)(((uint16_t)(buffer[1]) << 8) | (uint16_t)(buffer[0])); // @suppress("Avoid magic numbers")
-		finalY += (int16_t)(((uint16_t)(buffer[3]) << 8) | (uint16_t)(buffer[2])); // @suppress("Avoid magic numbers")
-		finalZ += (int16_t)(((uint16_t)(buffer[5]) << 8) | (uint16_t)(buffer[4])); // @suppress("Avoid magic numbers")
+		finalX += (int16_t)(((uint16_t)(buffer[1]) << 8) | (uint16_t)(buffer[0]));
+		finalY += (int16_t)(((uint16_t)(buffer[3]) << 8) | (uint16_t)(buffer[2]));
+		finalZ += (int16_t)(((uint16_t)(buffer[5]) << 8) | (uint16_t)(buffer[4]));
 	}
 
 	//divide the buffers by 16
