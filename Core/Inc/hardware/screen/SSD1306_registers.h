@@ -28,8 +28,8 @@ typedef enum{
 	LOW_COL_START_ADDR	= 0x00,	///< Set Lower Column Start Address for Page Addressing Mode
 	HIGH_COL_START_ADDR	= 0x10,	///< Set Higher Column Start Address for Page Addressing Mode
 	MEMORY_ADDR_MODE	= 0x20,	///< Set Memory Addressing Mode
-	COLUMN_ADDRESS		= 0x21,	///< Set Column Address
-	PAGE_ADDRESS		= 0x22,	///< Set Page Address
+	COLUMN_ADDRESS		= 0x21,	///< Set Column start and end address in horizontal or vertical addressing mode
+	PAGE_ADDRESS		= 0x22,	///< Set Page start and end Address in horizontal or vertical addressing mode
 	SCROLL_HOR_RIGHT	= 0x26,	///< Continuous Horizontal Scroll Setup - Right Horizontal Scroll
 	SCROLL_HOR_LEFT		= 0x27,	///< Continuous Horizontal Scroll Setup - Left Horizontal Scroll
 	SCROLL_BOTH_RIGHT	= 0x29,	///< Continuous Vertical and Horizontal Scroll Setup - Vertical and Right Horizontal Scroll
