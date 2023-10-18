@@ -3,6 +3,7 @@
 #include <stdint.h>
 
 #define VERDANA_NB_BYTES_CHAR	22U	///< Number of bytes per character
+#define VERDANA_CHAR_WIDTH		11U	///< Width of a character in pixels
 
 /**
  * @brief Enumeration of all the characters available in Verdana 16
