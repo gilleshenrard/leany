@@ -50,7 +50,7 @@
 
 
 #define ADXL_HIGH_RESERVED_REG	0x1C	///< Number of the last reserved register
-#define ADXL_NB_DATA_REGISTERS	6		///< Number of the last reserved register
+#define ADXL_NB_DATA_REGISTERS	6U		///< Number of the last reserved register
 
 typedef enum{
 	DEVICE_ID 		= 0x00,

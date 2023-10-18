@@ -1,7 +1,7 @@
 /**
  * @brief Implement the ADXL345 accelerometer communication
  * @author Gilles Henrard
- * @date 29/09/2023
+ * @date 18/10/2023
  *
  * @note Additional information can be found in :
  *   - ADXL345 datasheet : https://www.analog.com/media/en/technical-documentation/data-sheets/ADXL345.pdf
@@ -12,7 +12,7 @@
 #include "ADXL345registers.h"
 #include "main.h"
 
-#define ADXL_TIMEOUT_MS	10			///< SPI direct transmission timeout span in milliseconds
+#define ADXL_TIMEOUT_MS		10U			///< SPI direct transmission timeout span in milliseconds
 
 #define ENABLE_SPI		HAL_GPIO_WritePin(ADXL_CS_GPIO_Port, ADXL_CS_Pin, GPIO_PIN_RESET);	///< Macro used to enable the SPI communication towards the accelerometer
 #define DISABLE_SPI		HAL_GPIO_WritePin(ADXL_CS_GPIO_Port, ADXL_CS_Pin, GPIO_PIN_SET);	///< Macro used to disable the SPI communication towards the accelerometer
@@ -24,7 +24,7 @@ HAL_StatusTypeDef ADXL345readRegisters(adxl345Registers_e firstRegister, uint8_t
 
 SPI_HandleTypeDef* ADXL_spiHandle = NULL;	///< SPI handle used with the ADXL345
 volatile uint8_t adxlINT1occurred = 0;
-uint8_t buffer[6];
+uint8_t buffer[ADXL_NB_DATA_REGISTERS];
 int16_t finalX;
 int16_t finalY;
 int16_t finalZ;
