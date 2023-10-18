@@ -7,6 +7,7 @@
  * @note Datasheet : https://cdn-shop.adafruit.com/datasheets/SSD1306.pdf
  */
 #include "SSD1306.h"
+#include "numbersVerdana16.h"
 #include "main.h"
 
 //definitions
@@ -32,6 +33,27 @@ const uint8_t chargePumpInit = SSD_ENABLE_CHG_PUMP;					///< Default charge pump
 
 //state variables
 uint8_t screenBuffer[SSD1306_MAX_DATA_SIZE] = {0};	///< Buffer used to send data to the screen
+
+uint16_t testLetter(){
+	const uint8_t limitColumns[2] = {0, (VERDANA_CHAR_WIDTH - 1) << 1};
+	const uint8_t limitPages[2] = {0, 2};
+	uint8_t* iterator = screenBuffer;
+
+	SSD1306sendCommand(COLUMN_ADDRESS, limitColumns, 2);
+	SSD1306sendCommand(PAGE_ADDRESS, limitPages, 2);
+
+	for(uint8_t page = 0 ; page < 2 ; page++){
+		for(uint8_t character = 0 ; character < 2 ; character++){
+			for(uint8_t byte = 0 ; byte < VERDANA_CHAR_WIDTH ; byte++){
+				*iterator = verdana_16ptNumbers[character][(VERDANA_CHAR_WIDTH << page) + byte];
+				iterator++;
+			}
+		}
+	}
+
+	SSD1306sendData(screenBuffer, VERDANA_NB_BYTES_CHAR << 1);
+	return (0);
+}
 
 /**
  * @brief Initialise the SSD1306

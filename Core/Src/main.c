@@ -102,6 +102,7 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  testLetter();
   while (1)
   {
 	  ADXL345update();
