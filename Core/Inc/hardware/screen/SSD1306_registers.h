@@ -1,25 +1,34 @@
 #ifndef INC_HARDWARE_SCREEN_SSD1306_REGISTERS_H_
 #define INC_HARDWARE_SCREEN_SSD1306_REGISTERS_H_
 
-#define SSD_MUX_RATIO_64		0x3F	///< Value to set the multiplexer ratio to 64 (reset value)
-#define SSD_OFFSET_0			0x00	///< Value to set the screen offset to 0 (reset value)
-#define SSD_START_LINE_0		0x00	///< Value to set the start line to 0 (reset value)
+#define SSD_MUX_RATIO_64		0x3FU	///< Value to set the multiplexer ratio to 64 (reset value)
+#define SSD_OFFSET_0			0x00U	///< Value to set the screen offset to 0 (reset value)
+#define SSD_START_LINE_0		0x00U	///< Value to set the start line to 0 (reset value)
 
-#define SSD_CONTRAST_LOWEST		0x00	///< Value to set the contrast to the lowest value
-#define SSD_CONTRAST_MID		0x7F	///< Value to set the contrast to the middle value (reset value)
-#define SSD_CONTRAST_HIGHEST	0xFF	///< Value to set the contrast to the highest value
+#define SSD_CONTRAST_LOWEST		0x00U	///< Value to set the contrast to the lowest value
+#define SSD_CONTRAST_MID		0x7FU	///< Value to set the contrast to the middle value (reset value)
+#define SSD_CONTRAST_HIGHEST	0xFFU	///< Value to set the contrast to the highest value
 
-#define SSD_CLOCK_DIVIDER_1		0x00	///< Value to set the clock divide ratio to 1
-#define SSD_CLOCK_DIVIDER_16	0x0F	///< Value to set the clock divide ratio to 16
-#define SSD_CLOCK_FREQ_MID		0x80	///< Value to set the middle clock oscillator frequency
-#define SSD_CLOCK_FREQ_MAX		0xF0	///< Value to set the maximum clock oscillator frequency
+#define SSD_CLOCK_DIVIDER_1		0x00U	///< Value to set the clock divide ratio to 1 (reset value)
+#define SSD_CLOCK_DIVIDER_16	0x0FU	///< Value to set the clock divide ratio to 16
+#define SSD_CLOCK_FREQ_MID		0x80U	///< Value to set the middle clock oscillator frequency (reset value)
+#define SSD_CLOCK_FREQ_MAX		0xF0U	///< Value to set the maximum clock oscillator frequency
 
-#define SSD_DISABLE_CHG_PUMP	0x10	///< Value to disable the charge pump
-#define SSD_ENABLE_CHG_PUMP		0x14	///< Value to enable the charge pump
+#define SSD_DISABLE_CHG_PUMP	0x10U	///< Value to disable the charge pump (reset value)
+#define SSD_ENABLE_CHG_PUMP		0x14U	///< Value to enable the charge pump
 
-#define SSD_HORIZONTAL_ADDR		0x00	///< Value to set the horizontal addressing mode
-#define SSD_VERTICAL_ADDR		0x01	///< Value to set the vertical addressing mode
-#define SSD_PAGE_ADDR			0x02	///< Value to set the page addressing mode (reset value)
+#define SSD_HORIZONTAL_ADDR		0x00U	///< Value to set the horizontal addressing mode
+#define SSD_VERTICAL_ADDR		0x01U	///< Value to set the vertical addressing mode
+#define SSD_PAGE_ADDR			0x02U	///< Value to set the page addressing mode (reset value)
+
+#define SSD_START_PAGE_0		0x00U	///< Value to set the start page address to 0 (reset value)
+#define SSD_START_PAGE_63		0x3FU	///< Value to set the start page address to 63
+
+#define SSD_PIN_CONFIG_SEQ		0x00U	///< Value to set sequential COM pin configuration
+#define SSD_PIN_CONFIG_ALT		0x10U	///< Value to set alternative COM pin configuration (reset value)
+#define SSD_COM_REMAP_DISABLE	0x00U	///< Value to disable the COM left/right remap (reset value)
+#define SSD_COM_REMAP_ENABLE	0x20U	///< Value to disable the COM left/right remap
+
 
 /**
  * @brief Enumeration of all the SSD1306 registers listed in the datasheet
