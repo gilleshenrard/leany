@@ -45,7 +45,7 @@ uint16_t testLetter(){
 	for(uint8_t page = 0 ; page < 2 ; page++){
 		for(uint8_t character = 0 ; character < 2 ; character++){
 			for(uint8_t column = 0 ; column < VERDANA_CHAR_WIDTH ; column++){
-				*iterator = verdana_16ptNumbers[character][(VERDANA_CHAR_WIDTH << page) + column];
+				*iterator = verdana_16ptNumbers[character][(VERDANA_CHAR_WIDTH * page) + column];
 				iterator++;
 			}
 		}
