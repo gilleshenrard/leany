@@ -2,7 +2,7 @@
  * @file SSD1306.c
  * @brief Implement the functioning of the SSD1306 OLED screen via SPI and DMA
  * @author Gilles Henrard
- * @date 18/10/2023
+ * @date 19/10/2023
  *
  * @note Datasheet : https://cdn-shop.adafruit.com/datasheets/SSD1306.pdf
  */
@@ -26,10 +26,10 @@
 SPI_HandleTypeDef* SSD_SPIhandle = NULL;	///< SPI handle used with the SSD1306
 
 //pre-configured values
-const uint8_t addressingModeInit = SSD_HORIZONTAL_ADDR;				///< Default addressing mode value
-const uint8_t contrastInit = SSD_CONTRAST_HIGHEST;					///< Default contrast value
-const uint8_t clockInit = SSD_CLOCK_FREQ_MID | SSD_CLOCK_DIVIDER_1;	///< Default clock initialisation value
-const uint8_t chargePumpInit = SSD_ENABLE_CHG_PUMP;					///< Default charge pump value
+const uint8_t addressingModeInit = SSD_HORIZONTAL_ADDR;							///< Default addressing mode value
+const uint8_t contrastInit = SSD_CONTRAST_HIGHEST;								///< Default contrast value
+const uint8_t clockInit = SSD_CLOCK_FREQ_MID | SSD_CLOCK_DIVIDER_1;				///< Default clock initialisation value
+const uint8_t chargePumpInit = SSD_ENABLE_CHG_PUMP;								///< Default charge pump value
 
 //state variables
 uint8_t screenBuffer[SSD1306_MAX_DATA_SIZE] = {0};	///< Buffer used to send data to the screen
@@ -76,6 +76,7 @@ void SSD1306initialise(SPI_HandleTypeDef* handle){
 	//TODO test for max oscillator frequency
 	//TODO check for charge pump
 
+	SSD1306sendCommand(SEGMENT_REMAP_127, NULL, 0);
 	SSD1306sendCommand(MEMORY_ADDR_MODE, &addressingModeInit, 1);
 	SSD1306sendCommand(CONTRAST_CONTROL, &contrastInit, 1);
 	SSD1306sendCommand(CLOCK_DIVIDE_RATIO, &clockInit, 1);
