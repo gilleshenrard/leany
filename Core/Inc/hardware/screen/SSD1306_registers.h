@@ -24,10 +24,10 @@
 #define SSD_START_PAGE_0		0x00U	///< Value to set the start page address to 0 (reset value)
 #define SSD_START_PAGE_63		0x3FU	///< Value to set the start page address to 63
 
-#define SSD_PIN_CONFIG_SEQ		0x00U	///< Value to set sequential COM pin configuration
-#define SSD_PIN_CONFIG_ALT		0x10U	///< Value to set alternative COM pin configuration (reset value)
-#define SSD_COM_REMAP_DISABLE	0x00U	///< Value to disable the COM left/right remap (reset value)
-#define SSD_COM_REMAP_ENABLE	0x20U	///< Value to disable the COM left/right remap
+#define SSD_PIN_CONFIG_SEQ		0x02U	///< Value to set sequential COM pin configuration
+#define SSD_PIN_CONFIG_ALT		0x12U	///< Value to set alternative COM pin configuration (reset value)
+#define SSD_COM_REMAP_DISABLE	0x02U	///< Value to disable the COM left/right remap (reset value)
+#define SSD_COM_REMAP_ENABLE	0x22U	///< Value to disable the COM left/right remap
 
 
 /**

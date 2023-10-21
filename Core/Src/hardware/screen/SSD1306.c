@@ -2,7 +2,7 @@
  * @file SSD1306.c
  * @brief Implement the functioning of the SSD1306 OLED screen via SPI and DMA
  * @author Gilles Henrard
- * @date 19/10/2023
+ * @date 21/10/2023
  *
  * @note Datasheet : https://cdn-shop.adafruit.com/datasheets/SSD1306.pdf
  */
@@ -26,6 +26,7 @@
 SPI_HandleTypeDef* SSD_SPIhandle = NULL;	///< SPI handle used with the SSD1306
 
 //pre-configured values
+const uint8_t hardwareConfigInit = SSD_PIN_CONFIG_ALT | SSD_COM_REMAP_DISABLE;	///< Default hardware config value
 const uint8_t addressingModeInit = SSD_HORIZONTAL_ADDR;							///< Default addressing mode value
 const uint8_t contrastInit = SSD_CONTRAST_HIGHEST;								///< Default contrast value
 const uint8_t clockInit = SSD_CLOCK_FREQ_MID | SSD_CLOCK_DIVIDER_1;				///< Default clock initialisation value
@@ -76,6 +77,8 @@ void SSD1306initialise(SPI_HandleTypeDef* handle){
 	//TODO test for max oscillator frequency
 	//TODO check for charge pump
 
+	SSD1306sendCommand(SCAN_DIRECTION_N1_0, NULL, 0);
+	SSD1306sendCommand(HARDWARE_CONFIG, &hardwareConfigInit, 1);
 	SSD1306sendCommand(SEGMENT_REMAP_127, NULL, 0);
 	SSD1306sendCommand(MEMORY_ADDR_MODE, &addressingModeInit, 1);
 	SSD1306sendCommand(CONTRAST_CONTROL, &contrastInit, 1);
