@@ -39,27 +39,6 @@ uint8_t screenBuffer[SSD1306_MAX_DATA_SIZE] = {0};	///< Buffer used to send data
 static uint16_t SSD1306sendCommand(SSD1306register_e regNumber, const uint8_t parameters[], uint8_t nbParameters);
 static uint16_t SSD1306sendData(const uint8_t values[], uint16_t size);
 
-uint16_t testLetter(){
-	const uint8_t limitColumns[2] = {0, (VERDANA_CHAR_WIDTH * 11) - 1};
-	const uint8_t limitPages[2] = {0, 1};
-	uint8_t* iterator = screenBuffer;
-
-	SSD1306sendCommand(COLUMN_ADDRESS, limitColumns, 2);
-	SSD1306sendCommand(PAGE_ADDRESS, limitPages, 2);
-
-	for(uint8_t page = 0 ; page < 2 ; page++){
-		for(uint8_t character = 0 ; character < 11 ; character++){
-			for(uint8_t column = 0 ; column < VERDANA_CHAR_WIDTH ; column++){
-				*iterator = verdana_16ptNumbers[character][(VERDANA_CHAR_WIDTH * page) + column];
-				iterator++;
-			}
-		}
-	}
-
-	SSD1306sendData(screenBuffer, VERDANA_NB_BYTES_CHAR * 11);
-	return (0);
-}
-
 /**
  * @brief Initialise the SSD1306
  *
