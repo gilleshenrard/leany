@@ -16,6 +16,15 @@
 #define SSD1306_SPI_TIMEOUT_MS	10U		///< Maximum number of milliseconds SPI traffic should last before timeout
 #define SSD1306_MAX_PARAMETERS	6U		///< Maximum number of parameters a command can have
 #define SSD1306_MAX_DATA_SIZE	1024U	///< Maximum data size (128 * 64 bits / 8 bits per bytes)
+#define SSD1306_MIN_ANGLE_DEG	-90.0f	///< Minimum angle allowed (in degrees)
+#define SSD1306_MAX_ANGLE_DEG	90.0f	///< Maximum angle allowed (in degrees)
+#define SSD1306_FLOAT_FACTOR_10	10.0f	///< Factor of 10 used in float calculations
+#define SSD1306_INT_FACTOR_10	10U		///< Factor of 10 used in integer calculations
+#define SSD1306_NEG_THRESHOLD	-0.05f	///< Threshold above which an angle is considered positive (circumvents float incaccuracies)
+#define SSD1306_INDEX_TENS		1U		///< Index of the tens in the angle indexes array
+#define SSD1306_INDEX_UNITS		2U		///< Index of the units in the angle indexes array
+#define SSD1306_INDEX_TENTHS	4U		///< Index of the tenths in the angle indexes array
+#define SSD1306_ANGLE_NB_CHARS	6U		///< Number of characters in the angle array
 
 //macros
 #define SSD1306_ENABLE_SPI HAL_GPIO_WritePin(SSD1306_CS_GPIO_Port, SSD1306_CS_Pin, GPIO_PIN_RESET);
@@ -36,6 +45,7 @@ const uint8_t chargePumpInit = SSD_ENABLE_CHG_PUMP;								///< Default charge p
 //state variables
 uint8_t screenBuffer[SSD1306_MAX_DATA_SIZE] = {0};	///< Buffer used to send data to the screen
 
+//communication functions with the SSD1306
 static uint16_t SSD1306sendCommand(SSD1306register_e regNumber, const uint8_t parameters[], uint8_t nbParameters);
 static uint16_t SSD1306sendData(const uint8_t values[], uint16_t size);
 
@@ -138,4 +148,50 @@ uint16_t SSD1306sendData(const uint8_t values[], uint16_t size){
 	//disable SPI and return status
 	SSD1306_DISABLE_SPI
 	return (result != HAL_OK);
+}
+
+/**
+ * @brief Print an angle (in degrees, with sign) on the screen
+ *
+ * @param angle	Angle to print
+ * @param page	First page on which to print the angle (screen line)
+ * @param column First column on which to print the angle
+ * @return Error code
+ */
+uint16_t SSD1306_printAngle(float angle, uint8_t page, uint8_t column){
+	uint8_t charIndexes[SSD1306_ANGLE_NB_CHARS] = {INDEX_PLUS, 0, 0, INDEX_DOT, 0, INDEX_DEG};
+	const uint8_t limitColumns[2] = {column, column + (VERDANA_CHAR_WIDTH * 6) - 1};
+	const uint8_t limitPages[2] = {page, page + 1};
+	uint8_t* iterator = screenBuffer;
+
+	//if angle out of bounds, return error
+	if((angle < SSD1306_MIN_ANGLE_DEG) || (angle > SSD1306_MAX_ANGLE_DEG))
+		return (1);
+
+	//if angle negative, replace plus sign with minus sign
+	if(angle < SSD1306_NEG_THRESHOLD)
+		charIndexes[0] = INDEX_MINUS;
+
+	//fill the angle characters indexes array with the float values (tens, units, tenths)
+	charIndexes[SSD1306_INDEX_TENS] = (uint8_t)(angle / SSD1306_FLOAT_FACTOR_10);
+	charIndexes[SSD1306_INDEX_UNITS] = ((uint8_t)angle) % SSD1306_INT_FACTOR_10;
+	charIndexes[SSD1306_INDEX_TENTHS] = (uint8_t)((uint16_t)(angle * SSD1306_FLOAT_FACTOR_10) % SSD1306_INT_FACTOR_10);
+
+	//send the set column and set page commands
+	SSD1306sendCommand(COLUMN_ADDRESS, limitColumns, 2);
+	SSD1306sendCommand(PAGE_ADDRESS, limitPages, 2);
+
+	//fill the buffer with all the required bitmaps bytes (column by column, then character by character, then page by page)
+	for(page = 0 ; page < 2 ; page++){
+		for(uint8_t character = 0 ; character < SSD1306_ANGLE_NB_CHARS ; character++){
+			for(column = 0 ; column < VERDANA_CHAR_WIDTH ; column++){
+				*iterator = verdana_16ptNumbers[charIndexes[character]][(VERDANA_CHAR_WIDTH * page) + column];
+				iterator++;
+			}
+		}
+	}
+
+	//send the buffer
+	SSD1306sendData(screenBuffer, VERDANA_NB_BYTES_CHAR * SSD1306_ANGLE_NB_CHARS);
+	return (0);
 }
