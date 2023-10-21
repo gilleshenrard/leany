@@ -2,7 +2,7 @@
  * @file SSD1306.c
  * @brief Implement the functioning of the SSD1306 OLED screen via SPI and DMA
  * @author Gilles Henrard
- * @date 21/10/2023
+ * @date 22/10/2023
  *
  * @note Datasheet : https://cdn-shop.adafruit.com/datasheets/SSD1306.pdf
  */
@@ -34,6 +34,9 @@ const uint8_t chargePumpInit = SSD_ENABLE_CHG_PUMP;								///< Default charge p
 
 //state variables
 uint8_t screenBuffer[SSD1306_MAX_DATA_SIZE] = {0};	///< Buffer used to send data to the screen
+
+static uint16_t SSD1306sendCommand(SSD1306register_e regNumber, const uint8_t parameters[], uint8_t nbParameters);
+static uint16_t SSD1306sendData(const uint8_t values[], uint16_t size);
 
 uint16_t testLetter(){
 	const uint8_t limitColumns[2] = {0, (VERDANA_CHAR_WIDTH * 11) - 1};
