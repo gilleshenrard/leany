@@ -169,8 +169,10 @@ uint16_t SSD1306_printAngle(float angle, uint8_t page, uint8_t column){
 		return (1);
 
 	//if angle negative, replace plus sign with minus sign
-	if(angle < SSD1306_NEG_THRESHOLD)
+	if(angle < SSD1306_NEG_THRESHOLD){
 		charIndexes[0] = INDEX_MINUS;
+		angle = -angle;
+	}
 
 	//fill the angle characters indexes array with the float values (tens, units, tenths)
 	charIndexes[SSD1306_INDEX_TENS] = (uint8_t)(angle / SSD1306_FLOAT_FACTOR_10);

@@ -102,7 +102,7 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  SSD1306_printAngle(32.5, 0, 0);
+  SSD1306_printAngle(-43.1f, 0, 0);
   while (1)
   {
 	  ADXL345update();
