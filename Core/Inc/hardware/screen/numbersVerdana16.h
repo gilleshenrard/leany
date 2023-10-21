@@ -20,7 +20,8 @@ typedef enum{
 	INDEX_8,
 	INDEX_9,
 	INDEX_DOT,
-	INDEX_DASH,
+	INDEX_PLUS,
+	INDEX_MINUS,
 	INDEX_DEG,
 	NB_NUMBERS
 }numbers_e;
