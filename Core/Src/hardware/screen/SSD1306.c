@@ -36,7 +36,7 @@ const uint8_t chargePumpInit = SSD_ENABLE_CHG_PUMP;								///< Default charge p
 uint8_t screenBuffer[SSD1306_MAX_DATA_SIZE] = {0};	///< Buffer used to send data to the screen
 
 uint16_t testLetter(){
-	const uint8_t limitColumns[2] = {0, (VERDANA_CHAR_WIDTH << 1) - 1};
+	const uint8_t limitColumns[2] = {0, (VERDANA_CHAR_WIDTH * 11) - 1};
 	const uint8_t limitPages[2] = {0, 1};
 	uint8_t* iterator = screenBuffer;
 
@@ -44,7 +44,7 @@ uint16_t testLetter(){
 	SSD1306sendCommand(PAGE_ADDRESS, limitPages, 2);
 
 	for(uint8_t page = 0 ; page < 2 ; page++){
-		for(uint8_t character = 0 ; character < 2 ; character++){
+		for(uint8_t character = 0 ; character < 11 ; character++){
 			for(uint8_t column = 0 ; column < VERDANA_CHAR_WIDTH ; column++){
 				*iterator = verdana_16ptNumbers[character][(VERDANA_CHAR_WIDTH * page) + column];
 				iterator++;
@@ -52,7 +52,7 @@ uint16_t testLetter(){
 		}
 	}
 
-	SSD1306sendData(screenBuffer, VERDANA_NB_BYTES_CHAR << 1);
+	SSD1306sendData(screenBuffer, VERDANA_NB_BYTES_CHAR * 11);
 	return (0);
 }
 
