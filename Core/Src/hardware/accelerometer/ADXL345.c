@@ -1,7 +1,7 @@
 /**
  * @brief Implement the ADXL345 accelerometer communication
  * @author Gilles Henrard
- * @date 18/10/2023
+ * @date 22/10/2023
  *
  * @note Additional information can be found in :
  *   - ADXL345 datasheet : https://www.analog.com/media/en/technical-documentation/data-sheets/ADXL345.pdf
@@ -11,6 +11,7 @@
 #include "ADXL345.h"
 #include "ADXL345registers.h"
 #include "main.h"
+#include <math.h>
 
 #define ADXL_TIMEOUT_MS		10U		///< SPI direct transmission timeout span in milliseconds
 #define ADXL_BYTE_OFFSET	8U		///< Number of bits to offset a byte
@@ -24,6 +25,7 @@
 #define ENABLE_SPI		HAL_GPIO_WritePin(ADXL_CS_GPIO_Port, ADXL_CS_Pin, GPIO_PIN_RESET);	///< Macro used to enable the SPI communication towards the accelerometer
 #define DISABLE_SPI		HAL_GPIO_WritePin(ADXL_CS_GPIO_Port, ADXL_CS_Pin, GPIO_PIN_SET);	///< Macro used to disable the SPI communication towards the accelerometer
 #define DIVIDE_16(val)	val >>= 4;															///< Macro used to divide a number by 16 and store it
+#define RAD_TO_DEG(val)	(val * 180.0f) / (float)M_PI
 
 HAL_StatusTypeDef ADXL345readRegister(adxl345Registers_e registerNumber, uint8_t* value);
 HAL_StatusTypeDef ADXL345writeRegister(adxl345Registers_e registerNumber, uint8_t value);
@@ -192,4 +194,22 @@ HAL_StatusTypeDef ADXL345readRegisters(adxl345Registers_e firstRegister, uint8_t
 	DISABLE_SPI
 
 	return (result);
+}
+
+/**
+ * @brief Get the latest measured angle between the X axis and the Z axis
+ *
+ * @return Angle in degrees
+ */
+float ADXL345getXangleDegrees(){
+	return (RAD_TO_DEG(atanf((float)finalX / (float)finalZ)));
+}
+
+/**
+ * @brief Get the latest measured angle between the Y axis and the Z axis
+ *
+ * @return Angle in degrees
+ */
+float ADXL345getYangleDegrees(){
+	return (RAD_TO_DEG(atanf((float)finalY / (float)finalZ)));
 }

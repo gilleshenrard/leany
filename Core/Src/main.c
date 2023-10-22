@@ -46,7 +46,8 @@ SPI_HandleTypeDef hspi2;
 DMA_HandleTypeDef hdma_spi2_tx;
 
 /* USER CODE BEGIN PV */
-
+float axisX = 0.0f;
+float axisY = 0.0f;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -107,6 +108,9 @@ int main(void)
   {
 	  ADXL345update();
 	  SSD1306update();
+
+	  axisX = ADXL345getXangleDegrees();
+	  axisY = ADXL345getYangleDegrees();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
