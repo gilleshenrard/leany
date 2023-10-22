@@ -71,7 +71,10 @@ static void MX_SPI2_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
+	float oldXaxis = 0.0f;
+	float newXaxis = 0.0f;
+	float oldYaxis = 0.0f;
+	float newYaxis = 0.0f;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -105,12 +108,25 @@ int main(void)
   SSD1306_printAngle(-43.1f, 0, 0);
   while (1)
   {
+	  //update modules
 	  ADXL345update();
 	  SSD1306update();
 
+	  //if values have been updated
 	  if(ADXL345hasNewMeasurements()){
-		  SSD1306_printAngle(ADXL345getXangleDegrees(), 0, 0);
-		  SSD1306_printAngle(ADXL345getYangleDegrees(), 3, 0);
+		  //if X has changed, update the screen
+		  newXaxis = ADXL345getXangleDegrees();
+		  if(newXaxis != oldXaxis){
+			  oldXaxis = newXaxis;
+			  SSD1306_printAngle(newXaxis, 0, 0);
+		  }
+
+		  //if Y has changed, update the screen
+		  newYaxis = ADXL345getYangleDegrees();
+		  if(newYaxis != oldYaxis){
+			  oldYaxis = newYaxis;
+			  SSD1306_printAngle(newYaxis, 3, 0);
+		  }
 	  }
     /* USER CODE END WHILE */
 
