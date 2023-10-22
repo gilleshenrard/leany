@@ -12,7 +12,14 @@
 #include "ADXL345registers.h"
 #include "main.h"
 
-#define ADXL_TIMEOUT_MS		10U			///< SPI direct transmission timeout span in milliseconds
+#define ADXL_TIMEOUT_MS		10U		///< SPI direct transmission timeout span in milliseconds
+#define ADXL_BYTE_OFFSET	8U		///< Number of bits to offset a byte
+#define ADXL_X_INDEX_MSB	1U		///< Index of the X MSB in the measurements
+#define ADXL_X_INDEX_LSB	0U		///< Index of the X LSB in the measurements
+#define ADXL_Y_INDEX_MSB	3U		///< Index of the Y MSB in the measurements
+#define ADXL_Y_INDEX_LSB	2U		///< Index of the Y LSB in the measurements
+#define ADXL_Z_INDEX_MSB	5U		///< Index of the Z MSB in the measurements
+#define ADXL_Z_INDEX_LSB	4U		///< Index of the Z LSB in the measurements
 
 #define ENABLE_SPI		HAL_GPIO_WritePin(ADXL_CS_GPIO_Port, ADXL_CS_Pin, GPIO_PIN_RESET);	///< Macro used to enable the SPI communication towards the accelerometer
 #define DISABLE_SPI		HAL_GPIO_WritePin(ADXL_CS_GPIO_Port, ADXL_CS_Pin, GPIO_PIN_SET);	///< Macro used to disable the SPI communication towards the accelerometer
@@ -23,11 +30,11 @@ HAL_StatusTypeDef ADXL345writeRegister(adxl345Registers_e registerNumber, uint8_
 HAL_StatusTypeDef ADXL345readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint8_t size);
 
 SPI_HandleTypeDef* ADXL_spiHandle = NULL;	///< SPI handle used with the ADXL345
-volatile uint8_t adxlINT1occurred = 0;
-uint8_t buffer[ADXL_NB_DATA_REGISTERS];
-int16_t finalX;
-int16_t finalY;
-int16_t finalZ;
+volatile uint8_t adxlINT1occurred = 0;		///< Flag used to indicate the ADXL triggered an interrupt
+uint8_t buffer[ADXL_NB_DATA_REGISTERS];		///< Buffer used to pop 1 measurement from each ADXL FIFO
+int16_t finalX;								///< X value obtained after integration
+int16_t finalY;								///< Y value obtained after integration
+int16_t finalZ;								///< Z value obtained after integration
 
 /**
  * @brief Initialise the ADXL345
@@ -79,9 +86,9 @@ uint16_t ADXL345update(){
 		ADXL345readRegisters(DATA_X0, buffer, ADXL_NB_DATA_REGISTERS);
 
 		//add the measurements (formatted from a two's complement) to their final value buffer
-		finalX += (int16_t)(((uint16_t)(buffer[1]) << 8) | (uint16_t)(buffer[0]));
-		finalY += (int16_t)(((uint16_t)(buffer[3]) << 8) | (uint16_t)(buffer[2]));
-		finalZ += (int16_t)(((uint16_t)(buffer[5]) << 8) | (uint16_t)(buffer[4]));
+		finalX += (int16_t)(((uint16_t)(buffer[ADXL_X_INDEX_MSB]) << ADXL_BYTE_OFFSET) | (uint16_t)(buffer[ADXL_X_INDEX_LSB]));
+		finalY += (int16_t)(((uint16_t)(buffer[ADXL_Y_INDEX_MSB]) << ADXL_BYTE_OFFSET) | (uint16_t)(buffer[ADXL_Y_INDEX_LSB]));
+		finalZ += (int16_t)(((uint16_t)(buffer[ADXL_Z_INDEX_MSB]) << ADXL_BYTE_OFFSET) | (uint16_t)(buffer[ADXL_Z_INDEX_LSB]));
 	}
 
 	//divide the buffers by 16
