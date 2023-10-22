@@ -48,6 +48,7 @@ uint8_t screenBuffer[SSD1306_MAX_DATA_SIZE] = {0};	///< Buffer used to send data
 //communication functions with the SSD1306
 static uint16_t SSD1306sendCommand(SSD1306register_e regNumber, const uint8_t parameters[], uint8_t nbParameters);
 static uint16_t SSD1306sendData(const uint8_t values[], uint16_t size);
+static uint16_t SSD1306clearScreen();
 
 /**
  * @brief Initialise the SSD1306
@@ -78,6 +79,8 @@ void SSD1306initialise(SPI_HandleTypeDef* handle){
 	SSD1306sendCommand(CLOCK_DIVIDE_RATIO, &clockInit, 1);
 	SSD1306sendCommand(CHG_PUMP_REGULATOR, &chargePumpInit, 1);
 	SSD1306sendCommand(DISPLAY_ON, NULL, 0);
+
+	SSD1306clearScreen();
 }
 
 /**
@@ -148,6 +151,24 @@ uint16_t SSD1306sendData(const uint8_t values[], uint16_t size){
 	//disable SPI and return status
 	SSD1306_DISABLE_SPI
 	return (result != HAL_OK);
+}
+
+/**
+ * @brief Send the whole screen buffer to wipe it
+ * @warning To use after initialisation so the buffer is clean
+ *
+ * @return 0
+ */
+uint16_t SSD1306clearScreen(){
+	const uint8_t limitColumns[2] = {0, 127};
+	const uint8_t limitPages[2] = {0, 31};
+
+	SSD1306sendCommand(COLUMN_ADDRESS, limitColumns, 2);
+	SSD1306sendCommand(PAGE_ADDRESS, limitPages, 2);
+
+	SSD1306sendData(screenBuffer, SSD1306_MAX_DATA_SIZE);
+
+	return (0);
 }
 
 /**
