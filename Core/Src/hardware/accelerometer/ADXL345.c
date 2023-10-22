@@ -33,6 +33,7 @@ HAL_StatusTypeDef ADXL345readRegisters(adxl345Registers_e firstRegister, uint8_t
 
 SPI_HandleTypeDef* ADXL_spiHandle = NULL;	///< SPI handle used with the ADXL345
 volatile uint8_t adxlINT1occurred = 0;		///< Flag used to indicate the ADXL triggered an interrupt
+uint8_t adxlMeasurementsUpdated = 0;		///< Flag used to indicate new integrated measurements are ready within the ADXL345
 uint8_t buffer[ADXL_NB_DATA_REGISTERS];		///< Buffer used to pop 1 measurement from each ADXL FIFO
 int16_t finalX;								///< X value obtained after integration
 int16_t finalY;								///< Y value obtained after integration
@@ -97,7 +98,22 @@ uint16_t ADXL345update(){
 	DIVIDE_16(finalX);
 	DIVIDE_16(finalY);
 	DIVIDE_16(finalZ);
+
+	adxlMeasurementsUpdated = 1;
 	return (0);
+}
+
+/**
+ * @brief Check if new measurements have been updated
+ *
+ * @retval 0 No new values available
+ * @retval 1 New values are available
+ */
+uint8_t ADXL345hasNewMeasurements(){
+	uint8_t tmp = adxlMeasurementsUpdated;
+	adxlMeasurementsUpdated = 0;
+
+	return (tmp);
 }
 
 /**
