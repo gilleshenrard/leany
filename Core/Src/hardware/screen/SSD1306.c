@@ -2,7 +2,7 @@
  * @file SSD1306.c
  * @brief Implement the functioning of the SSD1306 OLED screen via SPI and DMA
  * @author Gilles Henrard
- * @date 22/10/2023
+ * @date 23/10/2023
  *
  * @note Datasheet : https://cdn-shop.adafruit.com/datasheets/SSD1306.pdf
  */
@@ -12,19 +12,20 @@
 #include "main.h"
 
 //definitions
-#define SSD1306_SUCCESS			0x00	///< Return code corresponding to a success
-#define SSD1306_SPI_TIMEOUT_MS	10U		///< Maximum number of milliseconds SPI traffic should last before timeout
-#define SSD1306_MAX_PARAMETERS	6U		///< Maximum number of parameters a command can have
-#define SSD1306_MAX_DATA_SIZE	1024U	///< Maximum data size (128 * 64 bits / 8 bits per bytes)
-#define SSD1306_MIN_ANGLE_DEG	-90.0f	///< Minimum angle allowed (in degrees)
-#define SSD1306_MAX_ANGLE_DEG	90.0f	///< Maximum angle allowed (in degrees)
-#define SSD1306_FLOAT_FACTOR_10	10.0f	///< Factor of 10 used in float calculations
-#define SSD1306_INT_FACTOR_10	10U		///< Factor of 10 used in integer calculations
-#define SSD1306_NEG_THRESHOLD	-0.05f	///< Threshold above which an angle is considered positive (circumvents float incaccuracies)
-#define SSD1306_INDEX_TENS		1U		///< Index of the tens in the angle indexes array
-#define SSD1306_INDEX_UNITS		2U		///< Index of the units in the angle indexes array
-#define SSD1306_INDEX_TENTHS	4U		///< Index of the tenths in the angle indexes array
-#define SSD1306_ANGLE_NB_CHARS	6U		///< Number of characters in the angle array
+#define SSD1306_SUCCESS				0x00	///< Return code corresponding to a success
+#define SSD1306_SPI_TIMEOUT_MS		10U		///< Maximum number of milliseconds SPI traffic should last before timeout
+#define SSD1306_MAX_PARAMETERS		6U		///< Maximum number of parameters a command can have
+#define SSD1306_MAX_DATA_SIZE		1024U	///< Maximum data size (128 * 64 bits / 8 bits per bytes)
+#define SSD1306_MIN_ANGLE_DEG		-90.0f	///< Minimum angle allowed (in degrees)
+#define SSD1306_MAX_ANGLE_DEG		90.0f	///< Maximum angle allowed (in degrees)
+#define SSD1306_FLOAT_FACTOR_10		10.0f	///< Factor of 10 used in float calculations
+#define SSD1306_INT_FACTOR_10		10U		///< Factor of 10 used in integer calculations
+#define SSD1306_NEG_THRESHOLD		-0.05f	///< Threshold above which an angle is considered positive (circumvents float incaccuracies)
+#define SSD1306_INDEX_TENS			1U		///< Index of the tens in the angle indexes array
+#define SSD1306_INDEX_UNITS			2U		///< Index of the units in the angle indexes array
+#define SSD1306_INDEX_TENTHS		4U		///< Index of the tenths in the angle indexes array
+#define SSD1306_ANGLE_NB_CHARS		6U		///< Number of characters in the angle array
+#define SSD1306_ERR_INVALID_PARAM	1U		///< Error code to return when invalid parameters have been given to a function
 
 //macros
 #define SSD1306_ENABLE_SPI HAL_GPIO_WritePin(SSD1306_CS_GPIO_Port, SSD1306_CS_Pin, GPIO_PIN_RESET);
@@ -105,7 +106,7 @@ uint16_t SSD1306sendCommand(SSD1306register_e regNumber, const uint8_t parameter
 
 	//if too many parameters, error
 	if(nbParameters > SSD1306_MAX_PARAMETERS)
-		return(HAL_ERROR);
+		return(SSD1306_ERR_INVALID_PARAM);
 
 	//set command pin and enable SPI
 	SSD1306_SET_COMMAND
@@ -113,14 +114,23 @@ uint16_t SSD1306sendCommand(SSD1306register_e regNumber, const uint8_t parameter
 
 	//send the command byte
 	result = HAL_SPI_Transmit(SSD_SPIhandle, &regNumber, 1, SSD1306_SPI_TIMEOUT_MS);
+	if(result != HAL_OK){
+		SSD1306_DISABLE_SPI
+		return (result);
+	}
 
 	//if command send OK, send all parameters
-	if(parameters && nbParameters && (result == HAL_OK))
+	if(parameters && nbParameters){
 		result = HAL_SPI_Transmit(SSD_SPIhandle, (uint8_t*)parameters, nbParameters, SSD1306_SPI_TIMEOUT_MS);
+		if(result != HAL_OK){
+			SSD1306_DISABLE_SPI
+			return (result);
+		}
+	}
 
 	//disable SPI and return status
 	SSD1306_DISABLE_SPI
-	return (result != HAL_OK);
+	return (HAL_OK);
 }
 
 /**
