@@ -205,17 +205,23 @@ uint16_t SSD1306clearScreen(){
  * @param angle	Angle to print
  * @param page	First page on which to print the angle (screen line)
  * @param column First column on which to print the angle
- * @return Error code
+ *
+ * @retval 0 Success
+ * @retval 1 An error occurred while writing SPI
+ * @retval 2 SPI was busy
+ * @retval 3 A timeout occurred while writing SPI
+ * @retval 4 size above maximum
  */
 uint16_t SSD1306_printAngle(float angle, uint8_t page, uint8_t column){
 	uint8_t charIndexes[SSD1306_ANGLE_NB_CHARS] = {INDEX_PLUS, 0, 0, INDEX_DOT, 0, INDEX_DEG};
 	const uint8_t limitColumns[2] = {column, column + (VERDANA_CHAR_WIDTH * 6) - 1};
 	const uint8_t limitPages[2] = {page, page + 1};
 	uint8_t* iterator = screenBuffer;
+	uint16_t result;
 
 	//if angle out of bounds, return error
 	if((angle < SSD1306_MIN_ANGLE_DEG) || (angle > SSD1306_MAX_ANGLE_DEG))
-		return (1);
+		return (SSD1306_ERR_INVALID_PARAM);
 
 	//if angle negative, replace plus sign with minus sign
 	if(angle < SSD1306_NEG_THRESHOLD){
@@ -228,9 +234,15 @@ uint16_t SSD1306_printAngle(float angle, uint8_t page, uint8_t column){
 	charIndexes[SSD1306_INDEX_UNITS] = ((uint8_t)angle) % SSD1306_INT_FACTOR_10;
 	charIndexes[SSD1306_INDEX_TENTHS] = (uint8_t)((uint16_t)(angle * SSD1306_FLOAT_FACTOR_10) % SSD1306_INT_FACTOR_10);
 
-	//send the set column and set page commands
-	SSD1306sendCommand(COLUMN_ADDRESS, limitColumns, 2);
-	SSD1306sendCommand(PAGE_ADDRESS, limitPages, 2);
+	//send the set start and end column addresses
+	result = SSD1306sendCommand(COLUMN_ADDRESS, limitColumns, 2);
+	if(result != HAL_OK)
+		return (result);
+
+	//send the set start and end page addresses
+	result = SSD1306sendCommand(PAGE_ADDRESS, limitPages, 2);
+	if(result != HAL_OK)
+		return (result);
 
 	//fill the buffer with all the required bitmaps bytes (column by column, then character by character, then page by page)
 	for(page = 0 ; page < 2 ; page++){
@@ -243,6 +255,5 @@ uint16_t SSD1306_printAngle(float angle, uint8_t page, uint8_t column){
 	}
 
 	//send the buffer
-	SSD1306sendData(screenBuffer, VERDANA_NB_BYTES_CHAR * SSD1306_ANGLE_NB_CHARS);
-	return (0);
+	return (SSD1306sendData(screenBuffer, VERDANA_NB_BYTES_CHAR * SSD1306_ANGLE_NB_CHARS));
 }
