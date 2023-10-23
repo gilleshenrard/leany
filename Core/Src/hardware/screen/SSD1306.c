@@ -142,18 +142,22 @@ uint16_t SSD1306sendCommand(SSD1306register_e regNumber, const uint8_t parameter
  *
  * @param values Data bytes to display
  * @param size Number of bytes to display
- * @return
+ * @retval 0 Success
+ * @retval 1 An error occurred while writing SPI
+ * @retval 2 SPI was busy
+ * @retval 3 A timeout occurred while writing SPI
+ * @retval 4 size above maximum
  */
 uint16_t SSD1306sendData(const uint8_t values[], uint16_t size){
 	HAL_StatusTypeDef result;
 
 	//if nothing to send, exit
 	if(!values || !size)
-		return(0);
+		return(HAL_OK);
 
 	//if more bytes than sectors in the GDDRAM, error
 	if(size > SSD1306_MAX_DATA_SIZE)
-		return(1);
+		return(SSD1306_ERR_INVALID_PARAM);
 
 	//set command pin and enable SPI
 	SSD1306_SET_DATA
@@ -161,10 +165,14 @@ uint16_t SSD1306sendData(const uint8_t values[], uint16_t size){
 
 	//transmit the buffer all at once
 	result = HAL_SPI_Transmit(SSD_SPIhandle, (uint8_t*)values, size, SSD1306_SPI_TIMEOUT_MS);
+	if(result != HAL_OK){
+		SSD1306_DISABLE_SPI
+		return(result);
+	}
 
 	//disable SPI and return status
 	SSD1306_DISABLE_SPI
-	return (result != HAL_OK);
+	return (HAL_OK);
 }
 
 /**
