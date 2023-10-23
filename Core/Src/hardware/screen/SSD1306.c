@@ -179,18 +179,24 @@ uint16_t SSD1306sendData(const uint8_t values[], uint16_t size){
  * @brief Send the whole screen buffer to wipe it
  * @warning To use after initialisation so the buffer is clean
  *
- * @return 0
+ * @retval 0 Success
+ * @retval 1 An error occurred while writing SPI
+ * @retval 2 SPI was busy
+ * @retval 3 A timeout occurred while writing SPI
+ * @retval 4 size above maximum
  */
 uint16_t SSD1306clearScreen(){
 	const uint8_t limitColumns[2] = {0, 127};
 	const uint8_t limitPages[2] = {0, 31};
+	uint16_t result;
 
-	SSD1306sendCommand(COLUMN_ADDRESS, limitColumns, 2);
-	SSD1306sendCommand(PAGE_ADDRESS, limitPages, 2);
+	result = SSD1306sendCommand(COLUMN_ADDRESS, limitColumns, 2);
+	if(result == HAL_OK)
+		result = SSD1306sendCommand(PAGE_ADDRESS, limitPages, 2);
+	if(result == HAL_OK)
+		result = SSD1306sendData(screenBuffer, SSD1306_MAX_DATA_SIZE);
 
-	SSD1306sendData(screenBuffer, SSD1306_MAX_DATA_SIZE);
-
-	return (0);
+	return (result);
 }
 
 /**
