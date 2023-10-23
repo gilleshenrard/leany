@@ -25,7 +25,7 @@
 #define SSD1306_INDEX_UNITS			2U		///< Index of the units in the angle indexes array
 #define SSD1306_INDEX_TENTHS		4U		///< Index of the tenths in the angle indexes array
 #define SSD1306_ANGLE_NB_CHARS		6U		///< Number of characters in the angle array
-#define SSD1306_ERR_INVALID_PARAM	1U		///< Error code to return when invalid parameters have been given to a function
+#define SSD1306_ERR_INVALID_PARAM	4U		///< Error code to return when invalid parameters have been given to a function
 
 //macros
 #define SSD1306_ENABLE_SPI HAL_GPIO_WritePin(SSD1306_CS_GPIO_Port, SSD1306_CS_Pin, GPIO_PIN_RESET);
@@ -99,7 +99,11 @@ uint16_t SSD1306update(){
  * @param regNumber Register number
  * @param parameters Parameters to write
  * @param nbParameters Number of parameters to write
- * @return Return code
+ * @retval 0 Success
+ * @retval 1 An error occurred while writing SPI
+ * @retval 2 SPI was busy
+ * @retval 3 A timeout occurred while writing SPI
+ * @retval 4 nbParameters above maximum
  */
 uint16_t SSD1306sendCommand(SSD1306register_e regNumber, const uint8_t parameters[], uint8_t nbParameters){
 	HAL_StatusTypeDef result;
