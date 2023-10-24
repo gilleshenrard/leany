@@ -46,7 +46,15 @@
 #include "errors.h"
 #include "stm32f1xx.h"
 
-#define SUCCESS_VALUE	0x00000000U							///< Value assigned to successes
+//definitions
+#define ERR_IDS_MASK		0xFFFF0000U		///< Value used to erase the codes stack
+#define ERR_STACK_MASK		0x0000FFFFU		///< Value used to erase the IDs fields
+#define ERR_FUNCTION_MASK	0xFFC0FFFFU		///< Value used to erase the function ID
+#define SUCCESS_VALUE		0x00000000U		///< Value assigned to successes
+#define ERR_LAYER0_OFFSET	12U				///< Number of bits to shift a code to reach the layer 0
+#define ERR_FUNCTION_OFFSET	16U				///< Number of bits to shift an ID to reach the function ID
+
+//global variables
 const errorCode_u ERR_SUCCESS = { .dword = SUCCESS_VALUE };	///< Variable used as a success code
 
 /**
@@ -58,9 +66,34 @@ const errorCode_u ERR_SUCCESS = { .dword = SUCCESS_VALUE };	///< Variable used a
  * @return Formatted code
  */
 errorCode_u errorCode(errorCode_u received, uint32_t functionID, uint32_t newCode){
-	UNUSED(received);
-	UNUSED(functionID);
-	UNUSED(newCode);
+	uint32_t code;
 
-	return (ERR_SUCCESS);
+	//if code means success, return success
+	if(newCode == SUCCESS_VALUE)
+		return (ERR_SUCCESS);
+
+	//if function ID too large, do nothing
+	if(functionID >= (1 << ERR_ID_NBBITS))
+		return (received);
+
+	//if error code too large, do nothing
+	if(newCode >= (1 << ERR_LAYER_NBBITS))
+		return (received);
+
+	//erase and replace the function ID
+	received.dword &= ERR_FUNCTION_MASK;
+	received.dword |= (functionID << ERR_FUNCTION_OFFSET);
+
+	//isolate the codes stack, shift it and push a new code
+	//	(code already in layer 3 is lost)
+	code = (received.dword & ERR_STACK_MASK);
+	code >>= ERR_LAYER_NBBITS;
+	code |= (newCode << ERR_LAYER0_OFFSET);
+
+	//erase the codes stack and replace it
+	received.dword &= ERR_IDS_MASK;
+	received.dword |= code;
+
+	//return the final code
+	return (received);
 }
