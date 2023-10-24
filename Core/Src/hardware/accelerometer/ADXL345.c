@@ -27,9 +27,9 @@
 #define DIVIDE_16(val)	val >>= 4;															///< Macro used to divide a number by 16 and store it
 #define RAD_TO_DEG(val)	(val * 180.0f) / (float)M_PI										///< Macro used to transform angles from radians to degrees
 
-HAL_StatusTypeDef ADXL345readRegister(adxl345Registers_e registerNumber, uint8_t* value);
-HAL_StatusTypeDef ADXL345writeRegister(adxl345Registers_e registerNumber, uint8_t value);
-HAL_StatusTypeDef ADXL345readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint8_t size);
+//static HAL_StatusTypeDef ADXL345readRegister(adxl345Registers_e registerNumber, uint8_t* value);
+static HAL_StatusTypeDef ADXL345writeRegister(adxl345Registers_e registerNumber, uint8_t value);
+static HAL_StatusTypeDef ADXL345readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint8_t size);
 
 SPI_HandleTypeDef* ADXL_spiHandle = NULL;	///< SPI handle used with the ADXL345
 volatile uint8_t adxlINT1occurred = 0;		///< Flag used to indicate the ADXL triggered an interrupt
@@ -134,6 +134,7 @@ uint8_t ADXL345hasNewMeasurements(){
  * @param[out] value Register value
  * @return Return value of SPI transmissions
  */
+/*
 HAL_StatusTypeDef ADXL345readRegister(adxl345Registers_e registerNumber, uint8_t* value){
 	HAL_StatusTypeDef result;
 	uint8_t instruction = ADXL_READ | ADXL_SINGLE | registerNumber;
@@ -159,6 +160,7 @@ HAL_StatusTypeDef ADXL345readRegister(adxl345Registers_e registerNumber, uint8_t
 
 	return (result);
 }
+*/
 
 /**
  * @brief Write a single register on the ADXL345
