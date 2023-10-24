@@ -2,7 +2,7 @@
  * @file SSD1306.c
  * @brief Implement the functioning of the SSD1306 OLED screen via SPI and DMA
  * @author Gilles Henrard
- * @date 23/10/2023
+ * @date 24/10/2023
  *
  * @note Datasheet : https://cdn-shop.adafruit.com/datasheets/SSD1306.pdf
  */
@@ -82,15 +82,6 @@ void SSD1306initialise(SPI_HandleTypeDef* handle){
 	SSD1306sendCommand(DISPLAY_ON, NULL, 0);
 
 	SSD1306clearScreen();
-}
-
-/**
- * @brief Update the SSD1306
- *
- * @return Return code
- */
-uint16_t SSD1306update(){
-	return (SSD1306_SUCCESS);
 }
 
 /**
