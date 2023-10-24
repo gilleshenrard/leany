@@ -41,7 +41,7 @@ typedef enum _ADXLfunctionCodes_e{
 	GET_Y_ANGLE			///< ADXL345getYangleDegrees()
 }ADXLfunctionCodes_e;
 
-//static HAL_StatusTypeDef ADXL345readRegister(adxl345Registers_e registerNumber, uint8_t* value);
+//static errorCode_u ADXL345readRegister(adxl345Registers_e registerNumber, uint8_t* value);
 static errorCode_u ADXL345writeRegister(adxl345Registers_e registerNumber, uint8_t value);
 static errorCode_u ADXL345readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint8_t size);
 
@@ -156,32 +156,47 @@ uint8_t ADXL345hasNewMeasurements(){
 /**
  * @brief Read a single register on the ADXL345
  *
- * @param[in] registerNumber Register number
+ * @param registerNumber Register number
  * @param[out] value Register value
- * @return Return value of SPI transmissions
+ * @retval 0 Success
+ * @retval 1 No SPI handle set
+ * @retval 2 Register number out of range
+ * @retval 3 Attempted to access a reserved register
+ * @retval 4 Error while writing the command
+ * @retval 5 Error while reading the value
  */
 /*
-HAL_StatusTypeDef ADXL345readRegister(adxl345Registers_e registerNumber, uint8_t* value){
-	HAL_StatusTypeDef result;
+errorCode_u ADXL345readRegister(adxl345Registers_e registerNumber, uint8_t* value){
+	HAL_StatusTypeDef HALresult;
+	errorCode_u result = { .dword = 0};
 	uint8_t instruction = ADXL_READ | ADXL_SINGLE | registerNumber;
 
 	//if handle not set, error
 	if(ADXL_spiHandle == NULL)
-		return (HAL_ERROR);
+		return (errorCode(result, READ_REGISTER, 1));
 
 	//if register number above known, error
 	if(registerNumber > ADXL_NB_REGISTERS)
-		return (HAL_ERROR);
+		return (errorCode(result, READ_REGISTER, 2));
 
 	//if register number between 0x01 and 0x1C included, error
 	if((uint8_t)(registerNumber - 1) < ADXL_HIGH_RESERVED_REG)
-		return (HAL_ERROR);
+		return (errorCode(result, READ_REGISTER, 3)); 	// @suppress("Avoid magic numbers")
 
-	//transmit the read instruction and receive the reply
 	ENABLE_SPI
-	result = HAL_SPI_Transmit(ADXL_spiHandle, &instruction, 1, ADXL_TIMEOUT_MS);
-	if(result == HAL_OK)
-		result = HAL_SPI_Receive(ADXL_spiHandle, value, 1, ADXL_TIMEOUT_MS);
+
+	//transmit the read instruction
+	HALresult = HAL_SPI_Transmit(ADXL_spiHandle, &instruction, 1, ADXL_TIMEOUT_MS);
+	if(HALresult != HAL_OK){
+		DISABLE_SPI
+		return (errorCodeLayer0(READ_REGISTER, 4, HALresult)); 	// @suppress("Avoid magic numbers")
+	}
+
+	//receive the reply
+	HALresult = HAL_SPI_Receive(ADXL_spiHandle, value, 1, ADXL_TIMEOUT_MS);
+	if(HALresult != HAL_OK)
+		return (errorCodeLayer0(READ_REGISTER, 5, HALresult)); 	// @suppress("Avoid magic numbers")
+
 	DISABLE_SPI
 
 	return (result);
