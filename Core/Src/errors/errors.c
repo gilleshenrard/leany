@@ -54,6 +54,7 @@
 #define ERR_FUNCTION_MASK	0xFFC0FFFFU		///< Value used to erase the function ID
 #define SUCCESS_VALUE		0x00000000U		///< Value assigned to successes
 #define ERR_LAYER0_OFFSET	12U				///< Number of bits to shift a code to reach the layer 0
+#define ERR_LAYER1_OFFSET	8U				///< Number of bits to shift a code to reach the layer 1
 #define ERR_FUNCTION_OFFSET	16U				///< Number of bits to shift an ID to reach the function ID
 
 //global variables
@@ -98,4 +99,40 @@ errorCode_u errorCode(errorCode_u received, uint32_t functionID, uint32_t newCod
 
 	//return the final code
 	return (received);
+}
+
+/**
+ * @brief Create a code with a layer 0 and a layer 1
+ * @note This is to be used when receiving a code from a lower level library (such as HAL)
+ *
+ * @param functionID Function ID to replace with
+ * @param newCode Return code to set at layer 1
+ * @param layer0Code Return code to set at layer 0
+ * @return New code
+ */
+errorCode_u errorCodeLayer0(uint32_t functionID, uint32_t newCode, uint32_t layer0Code){
+	errorCode_u code = ERR_SUCCESS;
+
+	//if code means success, return success
+	if(layer0Code == SUCCESS_VALUE)
+		return (ERR_SUCCESS);
+
+	//if function ID too large, do nothing
+	if(functionID >= (1 << ERR_ID_NBBITS))
+		return (ERR_SUCCESS);
+
+	//if error code too large, do nothing
+	if(newCode >= (1 << ERR_LAYER_NBBITS))
+		return (ERR_SUCCESS);
+
+	//if error code too large, do nothing
+	if(layer0Code >= (1 << ERR_LAYER_NBBITS))
+		return (ERR_SUCCESS);
+
+	//update with the codes received
+	code.dword |= (functionID << ERR_FUNCTION_OFFSET);
+	code.dword |= (newCode << ERR_LAYER1_OFFSET);
+	code.dword |= (layer0Code << ERR_LAYER0_OFFSET);
+
+	return (code);
 }
