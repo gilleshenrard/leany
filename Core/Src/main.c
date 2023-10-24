@@ -110,7 +110,6 @@ int main(void)
   {
 	  //update modules
 	  ADXL345update();
-	  SSD1306update();
 
 	  //if values have been updated
 	  if(ADXL345hasNewMeasurements()){
