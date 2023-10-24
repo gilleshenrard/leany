@@ -46,8 +46,8 @@
 #include "errors.h"
 #include "stm32f1xx.h"
 
-#define SUCCESS_VALUE	0x00000000U
-const errorCode_u ERR_SUCCESS = { .dword = SUCCESS_VALUE };
+#define SUCCESS_VALUE	0x00000000U							///< Value assigned to successes
+const errorCode_u ERR_SUCCESS = { .dword = SUCCESS_VALUE };	///< Variable used as a success code
 
 /**
  * @brief Update an error code from a lower layer function
