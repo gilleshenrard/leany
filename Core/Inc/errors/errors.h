@@ -2,6 +2,7 @@
 #define INC_ERRORS_ERRORS_H_
 #include <stdint.h>
 
+//definitions
 #define ERR_LAYER_NBBITS	4U	///< Amount of bits in a return code layer field
 #define ERR_ID_NBBITS		6U	///< Amount of bits in function ID and module ID fields
 #define ERR_UNUSED_NBBITS	4U	///< Amount of unused bits
@@ -31,5 +32,6 @@ extern const errorCode_u ERR_SUCCESS;
 
 //error management functions
 errorCode_u errorCode(errorCode_u received, uint32_t functionID, uint32_t newCode);
+errorCode_u errorCodeLayer0(uint32_t functionID, uint32_t newCode, uint32_t layer0Code);
 
 #endif /* INC_ERRORS_ERRORS_H_ */
