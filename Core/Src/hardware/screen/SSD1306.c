@@ -64,8 +64,19 @@ static errorCode_u SSD1306clearScreen();
  * @brief Initialise the SSD1306
  *
  * @param handle SPI handle used
+ * @retval 0 Success
+ * @retval 1 Error while setting the scanning direction
+ * @retval 2 Error while setting the hardware config
+ * @retval 3 Error while setting the segment remapping
+ * @retval 4 Error while setting the memory addressing mode
+ * @retval 5 Error while setting the contrast control
+ * @retval 6 Error while setting the clock divider ratio
+ * @retval 7 Error while setting the charge pump regulation
+ * @retval 8 Error while turning the display on
+ * @retval 9 Error while clearing the screen
  */
-void SSD1306initialise(SPI_HandleTypeDef* handle){
+errorCode_u SSD1306initialise(SPI_HandleTypeDef* handle){
+	errorCode_u result;
 	SSD_SPIhandle = handle;
 
 	//make sure to disable SSD1306 SPI communication
@@ -81,16 +92,43 @@ void SSD1306initialise(SPI_HandleTypeDef* handle){
 	//TODO test for max oscillator frequency
 	//TODO check for charge pump
 
-	SSD1306sendCommand(SCAN_DIRECTION_N1_0, NULL, 0);
-	SSD1306sendCommand(HARDWARE_CONFIG, &hardwareConfigInit, 1);
-	SSD1306sendCommand(SEGMENT_REMAP_127, NULL, 0);
-	SSD1306sendCommand(MEMORY_ADDR_MODE, &addressingModeInit, 1);
-	SSD1306sendCommand(CONTRAST_CONTROL, &contrastInit, 1);
-	SSD1306sendCommand(CLOCK_DIVIDE_RATIO, &clockInit, 1);
-	SSD1306sendCommand(CHG_PUMP_REGULATOR, &chargePumpInit, 1);
-	SSD1306sendCommand(DISPLAY_ON, NULL, 0);
+	result = SSD1306sendCommand(SCAN_DIRECTION_N1_0, NULL, 0);
+	if(IS_ERROR(result))
+		return (errorCode(result, INIT, 1));
 
-	SSD1306clearScreen();
+	result = SSD1306sendCommand(HARDWARE_CONFIG, &hardwareConfigInit, 1);
+	if(IS_ERROR(result))
+		return (errorCode(result, INIT, 2));
+
+	result = SSD1306sendCommand(SEGMENT_REMAP_127, NULL, 0);
+	if(IS_ERROR(result))
+		return (errorCode(result, INIT, 3));		// @suppress("Avoid magic numbers")
+
+	result = SSD1306sendCommand(MEMORY_ADDR_MODE, &addressingModeInit, 1);
+	if(IS_ERROR(result))
+		return (errorCode(result, INIT, 4));		// @suppress("Avoid magic numbers")
+
+	result = SSD1306sendCommand(CONTRAST_CONTROL, &contrastInit, 1);
+	if(IS_ERROR(result))
+		return (errorCode(result, INIT, 5));		// @suppress("Avoid magic numbers")
+
+	result = SSD1306sendCommand(CLOCK_DIVIDE_RATIO, &clockInit, 1);
+	if(IS_ERROR(result))
+		return (errorCode(result, INIT, 6));		// @suppress("Avoid magic numbers")
+
+	result = SSD1306sendCommand(CHG_PUMP_REGULATOR, &chargePumpInit, 1);
+	if(IS_ERROR(result))
+		return (errorCode(result, INIT, 7));		// @suppress("Avoid magic numbers")
+
+	result = SSD1306sendCommand(DISPLAY_ON, NULL, 0);
+	if(IS_ERROR(result))
+		return (errorCode(result, INIT, 8));		// @suppress("Avoid magic numbers")
+
+	result = SSD1306clearScreen();
+	if(IS_ERROR(result))
+		return (errorCode(result, INIT, 9));		// @suppress("Avoid magic numbers")
+
+	return (ERR_SUCCESS);
 }
 
 /**
@@ -100,10 +138,9 @@ void SSD1306initialise(SPI_HandleTypeDef* handle){
  * @param parameters Parameters to write
  * @param nbParameters Number of parameters to write
  * @retval 0 Success
- * @retval 1 An error occurred while writing SPI
- * @retval 2 SPI was busy
- * @retval 3 A timeout occurred while writing SPI
- * @retval 4 nbParameters above maximum
+ * @retval 1 Number of parameters above maximum
+ * @retval 2 Error while sending the command
+ * @retval 3 Error while sending the data
  */
 errorCode_u SSD1306sendCommand(SSD1306register_e regNumber, const uint8_t parameters[], uint8_t nbParameters){
 	HAL_StatusTypeDef HALresult;
@@ -142,10 +179,8 @@ errorCode_u SSD1306sendCommand(SSD1306register_e regNumber, const uint8_t parame
  * @param values Data bytes to display
  * @param size Number of bytes to display
  * @retval 0 Success
- * @retval 1 An error occurred while writing SPI
- * @retval 2 SPI was busy
- * @retval 3 A timeout occurred while writing SPI
- * @retval 4 size above maximum
+ * @retval 1 Size above maximum
+ * @retval 2 Error while sending data
  */
 errorCode_u SSD1306sendData(const uint8_t values[], uint16_t size){
 	errorCode_u result = { .dword = 0 };
@@ -178,10 +213,9 @@ errorCode_u SSD1306sendData(const uint8_t values[], uint16_t size){
  * @warning To use after initialisation so the buffer is clean
  *
  * @retval 0 Success
- * @retval 1 An error occurred while writing SPI
- * @retval 2 SPI was busy
- * @retval 3 A timeout occurred while writing SPI
- * @retval 4 size above maximum
+ * @retval 1 Error while sending the start/end columns
+ * @retval 2 Error while sending the start/end pages
+ * @retval 3 Error while sending the screen buffer
  */
 errorCode_u SSD1306clearScreen(){
 	const uint8_t limitColumns[2] = {0, 127};
@@ -214,10 +248,10 @@ errorCode_u SSD1306clearScreen(){
  * @param column First column on which to print the angle
  *
  * @retval 0 Success
- * @retval 1 An error occurred while writing SPI
- * @retval 2 SPI was busy
- * @retval 3 A timeout occurred while writing SPI
- * @retval 4 size above maximum
+ * @retval 1 Angle above maximum amplitude
+ * @retval 2 Error while sending the start/end columns
+ * @retval 3 Error while sending the start/end pages
+ * @retval 3 Error while sending the screen buffer
  */
 errorCode_u SSD1306_printAngle(float angle, uint8_t page, uint8_t column){
 	uint8_t charIndexes[SSD1306_ANGLE_NB_CHARS] = {INDEX_PLUS, 0, 0, INDEX_DOT, 0, INDEX_DEG};
