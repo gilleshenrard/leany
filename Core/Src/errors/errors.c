@@ -46,7 +46,6 @@
  * @note When pushing a code in the stack. Any code already stored in layer 3 is lost.
  */
 #include "errors.h"
-#include "stm32f1xx.h"
 
 //definitions
 #define ERR_IDS_MASK		0xFFFF0000U		///< Value used to erase the codes stack
