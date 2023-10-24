@@ -61,3 +61,6 @@ Debug/
 # STM32 git ignore
 *.mxproject
 
+# Doxygen files
+doxygen/
+
