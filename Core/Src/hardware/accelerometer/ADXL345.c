@@ -56,7 +56,14 @@ int16_t finalZ;								///< Z value obtained after integration
 /**
  * @brief Initialise the ADXL345
  *
- * @param[in] handle SPI handle used
+ * @param handle SPI handle used
+ * @retval 0 Success
+ * @retval 1 Error while setting bandwidth and power
+ * @retval 2 Error while setting data format
+ * @retval 3 Error while clearing FIFO
+ * @retval 4 Error while setting FIFO mode
+ * @retval 5 Error while setting interrupts
+ * @retval 6 Error while setting measurement mode
  */
 errorCode_u ADXL345initialise(const SPI_HandleTypeDef* handle){
 	ADXL_spiHandle = (SPI_HandleTypeDef*)handle;
@@ -179,9 +186,14 @@ HAL_StatusTypeDef ADXL345readRegister(adxl345Registers_e registerNumber, uint8_t
 /**
  * @brief Write a single register on the ADXL345
  *
- * @param[in] registerNumber Register number
- * @param[in] value Register value
- * @return Return value of SPI transmissions
+ * @param registerNumber Register number
+ * @param value Register value
+ * @retval 0 Success
+ * @retval 1 No SPI handle set
+ * @retval 2 Register number out of range
+ * @retval 3 Attempted to access a reserved register
+ * @retval 4 Error while writing the command
+ * @retval 5 Error while writing the value
  */
 errorCode_u ADXL345writeRegister(adxl345Registers_e registerNumber, uint8_t value){
 	HAL_StatusTypeDef HALresult;
