@@ -42,6 +42,8 @@
  * - main() receives the final code, applies a module ID and logs the error (module ID 4)
  *
  * | 4  | 8 |  2   |  3  | 1  | 0  |
+ *
+ * @note When pushing a code in the stack. Any code already stored in layer 3 is lost.
  */
 #include "errors.h"
 #include "stm32f1xx.h"
