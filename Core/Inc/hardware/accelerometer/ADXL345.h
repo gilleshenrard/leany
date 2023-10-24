@@ -6,7 +6,7 @@
 extern volatile uint8_t adxlINT1occurred;
 
 errorCode_u ADXL345initialise(const SPI_HandleTypeDef* handle);
-uint16_t ADXL345update();
+errorCode_u ADXL345update();
 uint8_t ADXL345hasNewMeasurements();
 float ADXL345getXangleDegrees();
 float ADXL345getYangleDegrees();
