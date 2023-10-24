@@ -1,7 +1,7 @@
 /**
  * @brief Implement the ADXL345 accelerometer communication
  * @author Gilles Henrard
- * @date 22/10/2023
+ * @date 24/10/2023
  *
  * @note Additional information can be found in :
  *   - ADXL345 datasheet : https://www.analog.com/media/en/technical-documentation/data-sheets/ADXL345.pdf
@@ -27,8 +27,22 @@
 #define DIVIDE_16(val)	val >>= 4;															///< Macro used to divide a number by 16 and store it
 #define RAD_TO_DEG(val)	(val * 180.0f) / (float)M_PI										///< Macro used to transform angles from radians to degrees
 
+/**
+ * @brief Enumeration of the function IDs of the ADXL345
+ */
+typedef enum _ADXLfunctionCodes_e{
+	INIT = 0,      		///< ADXL345initialise()
+	UPDATE,        		///< ADXL345update()
+	CHK_MEASURES,  		///< ADXL345hasNewMeasurements()
+	READ_REGISTER,		///< ADXL345readRegister()
+	WRITE_REGISTER,		///< ADXL345writeRegister()
+	READ_REGISTERS,		///< ADXL345readRegisters()
+	GET_X_ANGLE,		///< ADXL345getXangleDegrees()
+	GET_Y_ANGLE			///< ADXL345getYangleDegrees()
+}ADXLfunctionCodes_e;
+
 //static HAL_StatusTypeDef ADXL345readRegister(adxl345Registers_e registerNumber, uint8_t* value);
-static HAL_StatusTypeDef ADXL345writeRegister(adxl345Registers_e registerNumber, uint8_t value);
+static errorCode_u ADXL345writeRegister(adxl345Registers_e registerNumber, uint8_t value);
 static HAL_StatusTypeDef ADXL345readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint8_t size);
 
 SPI_HandleTypeDef* ADXL_spiHandle = NULL;	///< SPI handle used with the ADXL345
@@ -44,39 +58,39 @@ int16_t finalZ;								///< Z value obtained after integration
  *
  * @param[in] handle SPI handle used
  */
-HAL_StatusTypeDef ADXL345initialise(const SPI_HandleTypeDef* handle){
+errorCode_u ADXL345initialise(const SPI_HandleTypeDef* handle){
 	ADXL_spiHandle = (SPI_HandleTypeDef*)handle;
-	HAL_StatusTypeDef result;
+	errorCode_u result;
 
 	//configure bandwidth and power mode
 	result = ADXL345writeRegister(BANDWIDTH_POWERMODE, ADXL_POWER_NORMAL | ADXL_RATE_100HZ);
-	if(result != HAL_OK)
-		return (result);
+	if(IS_ERROR(result))
+		return (errorCode(result, INIT, 1));
 
 	//configure data format
 	result = ADXL345writeRegister(DATA_FORMAT, ADXL_SPI_4WIRE | ADXL_INT_ACTIV_LOW | ADXL_RANGE_2G);
-	if(result != HAL_OK)
-		return (result);
+	if(IS_ERROR(result))
+		return (errorCode(result, INIT, 2));
 
 	//clear the FIFO
 	result = ADXL345writeRegister(FIFO_CONTROL, ADXL_MODE_BYPASS);
-	if(result != HAL_OK)
-		return (result);
+	if(IS_ERROR(result))
+		return (errorCode(result, INIT, 3)); 	// @suppress("Avoid magic numbers")
 
 	//set the FIFO mode and set 16 samples
 	result = ADXL345writeRegister(FIFO_CONTROL, ADXL_MODE_FIFO | ADXL_TRIGGER_INT1 | ADXL_SAMPLES_16);
-	if(result != HAL_OK)
-		return (result);
+	if(IS_ERROR(result))
+		return (errorCode(result, INIT, 4)); 	// @suppress("Avoid magic numbers")
 
 	//trigger an interrupt when 16 measurements reached
 	result = ADXL345writeRegister(INTERRUPT_ENABLE, ADXL_INT_WATERMARK);
-	if(result != HAL_OK)
-		return (result);
+	if(IS_ERROR(result))
+		return (errorCode(result, INIT, 5)); 	// @suppress("Avoid magic numbers")
 
 	//set the ADXL as in measurement mode (to be done last)
 	result = ADXL345writeRegister(POWER_CONTROL, ADXL_MEASURE_MODE);
-	if(result != HAL_OK)
-		return (result);
+	if(IS_ERROR(result))
+		return (errorCode(result, INIT, 6)); 	// @suppress("Avoid magic numbers")
 
 	return (result);
 }
@@ -169,29 +183,38 @@ HAL_StatusTypeDef ADXL345readRegister(adxl345Registers_e registerNumber, uint8_t
  * @param[in] value Register value
  * @return Return value of SPI transmissions
  */
-HAL_StatusTypeDef ADXL345writeRegister(adxl345Registers_e registerNumber, uint8_t value){
-	HAL_StatusTypeDef result;
+errorCode_u ADXL345writeRegister(adxl345Registers_e registerNumber, uint8_t value){
+	HAL_StatusTypeDef HALresult;
+	errorCode_u result = { .dword = 0};
 	uint8_t instruction = ADXL_WRITE | ADXL_SINGLE | registerNumber;
 
 	//if handle not set, error
 	if(ADXL_spiHandle == NULL)
-		return (HAL_ERROR);
+		return (errorCode(result, WRITE_REGISTER, 1));
 
 	//if register number above known, error
 	if(registerNumber > ADXL_NB_REGISTERS)
-		return (HAL_ERROR);
+		return (errorCode(result, WRITE_REGISTER, 2));
 
 	//if register number between 0x01 and 0x1C included, error
 	if((uint8_t)(registerNumber - 1) < ADXL_HIGH_RESERVED_REG)
-		return (HAL_ERROR);
+		return (errorCode(result, WRITE_REGISTER, 3)); 	// @suppress("Avoid magic numbers")
 
-	//transmit the read instruction and receive the reply
 	ENABLE_SPI
-	result = HAL_SPI_Transmit(ADXL_spiHandle, &instruction, 1, ADXL_TIMEOUT_MS);
-	if(result == HAL_OK)
-		result = HAL_SPI_Transmit(ADXL_spiHandle, &value, 1, ADXL_TIMEOUT_MS);
-	DISABLE_SPI
 
+	//transmit the read instruction
+	HALresult = HAL_SPI_Transmit(ADXL_spiHandle, &instruction, 1, ADXL_TIMEOUT_MS);
+	if(HALresult != HAL_OK){
+		DISABLE_SPI
+		return (errorCodeLayer0(WRITE_REGISTER, 4, HALresult)); 	// @suppress("Avoid magic numbers")
+	}
+
+	//receive the reply
+	HALresult = HAL_SPI_Transmit(ADXL_spiHandle, &value, 1, ADXL_TIMEOUT_MS);
+	if(HALresult != HAL_OK)
+		result = errorCodeLayer0(WRITE_REGISTER, 5, HALresult); 	// @suppress("Avoid magic numbers")
+
+	DISABLE_SPI
 	return (result);
 }
 

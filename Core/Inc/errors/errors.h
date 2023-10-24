@@ -7,6 +7,10 @@
 #define ERR_ID_NBBITS		6U	///< Amount of bits in function ID and module ID fields
 #define ERR_UNUSED_NBBITS	4U	///< Amount of unused bits
 
+//macros
+#define IS_SUCCESS(value)	(value.fields.layer0 == 0)	///< Macro used to know if a code means success
+#define IS_ERROR(value)		(value.fields.layer0 != 0)	///< Macro used to know if a code means error
+
 /**
  * @brief Union implementing the error codes structure
  */
