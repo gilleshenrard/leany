@@ -41,7 +41,8 @@ typedef enum _ADXLfunctionCodes_e{
 	WRITE_REGISTER,		///< ADXL345writeRegister()
 	READ_REGISTERS,		///< ADXL345readRegisters()
 	GET_X_ANGLE,		///< ADXL345getXangleDegrees()
-	GET_Y_ANGLE			///< ADXL345getYangleDegrees()
+	GET_Y_ANGLE,		///< ADXL345getYangleDegrees()
+	STARTUP				///< stStartup()
 }ADXLfunctionCodes_e;
 
 typedef errorCode_u (*adxlState)();
@@ -50,9 +51,10 @@ typedef errorCode_u (*adxlState)();
 static errorCode_u stStartup();
 static errorCode_u stConfiguration();
 static errorCode_u stMeasuring();
+static errorCode_u stError();
 
 //manipulation functions
-//static errorCode_u ADXL345readRegister(adxl345Registers_e registerNumber, uint8_t* value);
+static errorCode_u ADXL345readRegister(adxl345Registers_e registerNumber, uint8_t* value);
 static errorCode_u ADXL345writeRegister(adxl345Registers_e registerNumber, uint8_t value);
 static errorCode_u ADXL345readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint8_t size);
 
@@ -122,7 +124,6 @@ uint8_t ADXL345hasNewMeasurements(){
  * @retval 4 Error while writing the command
  * @retval 5 Error while reading the value
  */
-/*
 errorCode_u ADXL345readRegister(adxl345Registers_e registerNumber, uint8_t* value){
 	HAL_StatusTypeDef HALresult;
 	errorCode_u result = { .dword = 0};
@@ -158,7 +159,6 @@ errorCode_u ADXL345readRegister(adxl345Registers_e registerNumber, uint8_t* valu
 
 	return (result);
 }
-*/
 
 /**
  * @brief Write a single register on the ADXL345
@@ -276,9 +276,27 @@ float ADXL345getYangleDegrees(){
 /**
  * @brief Begin state of the state machine
  *
- * @return Success
+ * @retval 0 Success
+ * @retval 1 No SPI handle has been specified
+ * @retval 2 Unable to read device ID or device ID invalid
  */
 errorCode_u stStartup(){
+	errorCode_u result = ERR_SUCCESS;
+	uint8_t deviceID = 0;
+
+	//if no handle specified, go error
+	if(ADXL_spiHandle == NULL){
+		state = stError;
+		return (errorCode(result, STARTUP, 1));
+	}
+
+	//if invalid device ID read, go error
+	result = ADXL345readRegister(DEVICE_ID, &deviceID);
+	if(IS_ERROR(result) || (deviceID != ADXL_DEVICE_ID)){
+		state = stError;
+		return (errorCode(result, STARTUP, 2));
+	}
+
 	state = stConfiguration;
 	return (ERR_SUCCESS);
 }
@@ -360,5 +378,14 @@ static errorCode_u stMeasuring(){
 	DIVIDE_16(finalZ);
 
 	adxlMeasurementsUpdated = 1;
+	return (ERR_SUCCESS);
+}
+
+/**
+ * @brief State in which the ADXL stays in an error state forever
+ *
+ * @return Success
+ */
+errorCode_u stError(){
 	return (ERR_SUCCESS);
 }
