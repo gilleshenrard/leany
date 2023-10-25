@@ -3,7 +3,8 @@
 #include <stm32f1xx.h>
 #include "errors.h"
 
-extern volatile uint8_t adxlINT1occurred;
+extern volatile uint8_t		adxlINT1occurred;
+extern volatile uint16_t	adxlTimer_ms;
 
 errorCode_u ADXL345initialise(const SPI_HandleTypeDef* handle);
 errorCode_u ADXL345update();

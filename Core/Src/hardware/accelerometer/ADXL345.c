@@ -14,7 +14,8 @@
 #include <math.h>
 
 //definitions
-#define ADXL_TIMEOUT_MS		10U		///< SPI direct transmission timeout span in milliseconds
+#define ADXL_SPI_TIMEOUT_MS	10U		///< SPI direct transmission timeout span in milliseconds
+#define ADXL_INT_TIMEOUT_MS	1000U	///< Maximum number of milliseconds before watermark int. timeout
 #define ADXL_BYTE_OFFSET	8U		///< Number of bits to offset a byte
 #define ADXL_X_INDEX_MSB	1U		///< Index of the X MSB in the measurements
 #define ADXL_X_INDEX_LSB	0U		///< Index of the X LSB in the measurements
@@ -81,6 +82,7 @@ const uint8_t initialisationArray[ADXL_NB_REG_INIT][2] = {
 SPI_HandleTypeDef*	ADXL_spiHandle = NULL;			///< SPI handle used with the ADXL345
 adxlState			state = stStartup;				///< State machine current state
 volatile uint8_t	adxlINT1occurred = 0;			///< Flag used to indicate the ADXL triggered an interrupt
+volatile uint16_t	adxlTimer_ms = 0;				///< Timer used in various states of the ADXL (in ms)
 uint8_t				adxlMeasurementsUpdated = 0;	///< Flag used to indicate new integrated measurements are ready within the ADXL345
 uint8_t				buffer[ADXL_NB_DATA_REGISTERS];	///< Buffer used to pop 1 measurement from each ADXL FIFO
 int16_t				finalX;							///< X value obtained after integration
@@ -157,14 +159,14 @@ errorCode_u ADXL345readRegister(adxl345Registers_e registerNumber, uint8_t* valu
 	ENABLE_SPI
 
 	//transmit the read instruction
-	HALresult = HAL_SPI_Transmit(ADXL_spiHandle, &instruction, 1, ADXL_TIMEOUT_MS);
+	HALresult = HAL_SPI_Transmit(ADXL_spiHandle, &instruction, 1, ADXL_SPI_TIMEOUT_MS);
 	if(HALresult != HAL_OK){
 		DISABLE_SPI
 		return (errorCodeLayer0(READ_REGISTER, 4, HALresult)); 	// @suppress("Avoid magic numbers")
 	}
 
 	//receive the reply
-	HALresult = HAL_SPI_Receive(ADXL_spiHandle, value, 1, ADXL_TIMEOUT_MS);
+	HALresult = HAL_SPI_Receive(ADXL_spiHandle, value, 1, ADXL_SPI_TIMEOUT_MS);
 	if(HALresult != HAL_OK)
 		return (errorCodeLayer0(READ_REGISTER, 5, HALresult)); 	// @suppress("Avoid magic numbers")
 
@@ -205,14 +207,14 @@ errorCode_u ADXL345writeRegister(adxl345Registers_e registerNumber, uint8_t valu
 	ENABLE_SPI
 
 	//transmit the read instruction
-	HALresult = HAL_SPI_Transmit(ADXL_spiHandle, &instruction, 1, ADXL_TIMEOUT_MS);
+	HALresult = HAL_SPI_Transmit(ADXL_spiHandle, &instruction, 1, ADXL_SPI_TIMEOUT_MS);
 	if(HALresult != HAL_OK){
 		DISABLE_SPI
 		return (errorCodeLayer0(WRITE_REGISTER, 4, HALresult)); 	// @suppress("Avoid magic numbers")
 	}
 
 	//receive the reply
-	HALresult = HAL_SPI_Transmit(ADXL_spiHandle, &value, 1, ADXL_TIMEOUT_MS);
+	HALresult = HAL_SPI_Transmit(ADXL_spiHandle, &value, 1, ADXL_SPI_TIMEOUT_MS);
 	if(HALresult != HAL_OK)
 		result = errorCodeLayer0(WRITE_REGISTER, 5, HALresult); 	// @suppress("Avoid magic numbers")
 
@@ -248,14 +250,14 @@ errorCode_u ADXL345readRegisters(adxl345Registers_e firstRegister, uint8_t* valu
 	ENABLE_SPI
 
 	//transmit the read instruction
-	HALresult = HAL_SPI_Transmit(ADXL_spiHandle, &instruction, 1, ADXL_TIMEOUT_MS);
+	HALresult = HAL_SPI_Transmit(ADXL_spiHandle, &instruction, 1, ADXL_SPI_TIMEOUT_MS);
 	if(HALresult != HAL_OK){
 		DISABLE_SPI
 		return (errorCodeLayer0(READ_REGISTERS, 3, HALresult)); 	// @suppress("Avoid magic numbers")
 	}
 
 	//receive the reply
-	HALresult = HAL_SPI_Receive(ADXL_spiHandle, value, size, ADXL_TIMEOUT_MS);
+	HALresult = HAL_SPI_Receive(ADXL_spiHandle, value, size, ADXL_SPI_TIMEOUT_MS);
 	if(HALresult != HAL_OK)
 		result = errorCodeLayer0(READ_REGISTERS, 4, HALresult); 	// @suppress("Avoid magic numbers")
 
@@ -343,6 +345,7 @@ errorCode_u stConfiguring(){
  * @return Success
  */
 static errorCode_u stSelfTesting(){
+	adxlTimer_ms = ADXL_INT_TIMEOUT_MS;
 	state = stMeasuring;
 	return (ERR_SUCCESS);
 }
@@ -351,15 +354,23 @@ static errorCode_u stSelfTesting(){
  * @brief State in which the ADXL measures accelerations
  *
  * @retval 0 Success
- * @retval 1 Error occurred while reading the axis values registers
+ * @retval 1 Timeout occurred while waiting for watermark interrupt
+ * @retval 2 Error occurred while reading the axis values registers
  */
 static errorCode_u stMeasuring(){
 	errorCode_u result = { .dword = 0};
+
+	//if timeout, go error
+	if(!adxlTimer_ms){
+		state = stError;
+		return (errorCode(result, MEASURE, 1));
+	}
 
 	//if watermark interrupt not fired, exit
 	if(!adxlINT1occurred)
 		return (ERR_SUCCESS);
 
+	adxlTimer_ms = ADXL_INT_TIMEOUT_MS;
 	adxlINT1occurred = 0;
 	finalX = finalY = finalZ = 0;
 
@@ -367,8 +378,10 @@ static errorCode_u stMeasuring(){
 	for(uint8_t i = 0 ; i < ADXL_SAMPLES_16 ; i++){
 		//read all data registers for 1 sample
 		result = ADXL345readRegisters(DATA_X0, buffer, ADXL_NB_DATA_REGISTERS);
-		if(IS_ERROR(result))
-			return (errorCode(result, MEASURE, 1));
+		if(IS_ERROR(result)){
+			state = stError;
+			return (errorCode(result, MEASURE, 2));
+		}
 
 		//add the measurements (formatted from a two's complement) to their final value buffer
 		finalX += (int16_t)(((uint16_t)(buffer[ADXL_X_INDEX_MSB]) << ADXL_BYTE_OFFSET) | (uint16_t)(buffer[ADXL_X_INDEX_LSB]));
