@@ -35,7 +35,7 @@
  */
 typedef enum _ADXLfunctionCodes_e{
 	INIT = 0,      		///< ADXL345initialise()
-	UPDATE,        		///< ADXL345update()
+	MEASURE,        	///< stMeasuring()
 	CHK_MEASURES,  		///< ADXL345hasNewMeasurements()
 	READ_REGISTER,		///< ADXL345readRegister()
 	WRITE_REGISTER,		///< ADXL345writeRegister()
@@ -89,10 +89,9 @@ errorCode_u ADXL345initialise(const SPI_HandleTypeDef* handle){
 }
 
 /**
- * @brief Update the ADXL345 measurements
+ * @brief Run the ADXL state machine
  *
- * @retval 0 Success
- * @retval 1 Error occurred while reading the axis values registers
+ * @return Current machine state return value
  */
 errorCode_u ADXL345update(){
 	return ( (*state)() );
@@ -329,7 +328,8 @@ errorCode_u stConfiguration(){
 /**
  * @brief State in which the ADXL measures accelerations
  *
- * @return Success
+ * @retval 0 Success
+ * @retval 1 Error occurred while reading the axis values registers
  */
 static errorCode_u stMeasuring(){
 	errorCode_u result = { .dword = 0};
@@ -346,7 +346,7 @@ static errorCode_u stMeasuring(){
 		//read all data registers for 1 sample
 		result = ADXL345readRegisters(DATA_X0, buffer, ADXL_NB_DATA_REGISTERS);
 		if(IS_ERROR(result))
-			return (errorCode(result, UPDATE, 1));
+			return (errorCode(result, MEASURE, 1));
 
 		//add the measurements (formatted from a two's complement) to their final value buffer
 		finalX += (int16_t)(((uint16_t)(buffer[ADXL_X_INDEX_MSB]) << ADXL_BYTE_OFFSET) | (uint16_t)(buffer[ADXL_X_INDEX_LSB]));
