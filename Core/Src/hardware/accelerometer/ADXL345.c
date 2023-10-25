@@ -1,7 +1,7 @@
 /**
  * @brief Implement the ADXL345 accelerometer communication
  * @author Gilles Henrard
- * @date 24/10/2023
+ * @date 25/10/2023
  *
  * @note Additional information can be found in :
  *   - ADXL345 datasheet : https://www.analog.com/media/en/technical-documentation/data-sheets/ADXL345.pdf
@@ -13,6 +13,7 @@
 #include "main.h"
 #include <math.h>
 
+//definitions
 #define ADXL_TIMEOUT_MS		10U		///< SPI direct transmission timeout span in milliseconds
 #define ADXL_BYTE_OFFSET	8U		///< Number of bits to offset a byte
 #define ADXL_X_INDEX_MSB	1U		///< Index of the X MSB in the measurements
@@ -22,11 +23,13 @@
 #define ADXL_Z_INDEX_MSB	5U		///< Index of the Z MSB in the measurements
 #define ADXL_Z_INDEX_LSB	4U		///< Index of the Z LSB in the measurements
 
+//macros
 #define ENABLE_SPI		HAL_GPIO_WritePin(ADXL_CS_GPIO_Port, ADXL_CS_Pin, GPIO_PIN_RESET);	///< Macro used to enable the SPI communication towards the accelerometer
 #define DISABLE_SPI		HAL_GPIO_WritePin(ADXL_CS_GPIO_Port, ADXL_CS_Pin, GPIO_PIN_SET);	///< Macro used to disable the SPI communication towards the accelerometer
 #define DIVIDE_16(val)	val >>= 4;															///< Macro used to divide a number by 16 and store it
 #define RAD_TO_DEG(val)	(val * 180.0f) / (float)M_PI										///< Macro used to transform angles from radians to degrees
 
+//type definitions
 /**
  * @brief Enumeration of the function IDs of the ADXL345
  */
@@ -41,10 +44,12 @@ typedef enum _ADXLfunctionCodes_e{
 	GET_Y_ANGLE			///< ADXL345getYangleDegrees()
 }ADXLfunctionCodes_e;
 
+//manipulation functions
 //static errorCode_u ADXL345readRegister(adxl345Registers_e registerNumber, uint8_t* value);
 static errorCode_u ADXL345writeRegister(adxl345Registers_e registerNumber, uint8_t value);
 static errorCode_u ADXL345readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint8_t size);
 
+//global variables
 SPI_HandleTypeDef* ADXL_spiHandle = NULL;	///< SPI handle used with the ADXL345
 volatile uint8_t adxlINT1occurred = 0;		///< Flag used to indicate the ADXL triggered an interrupt
 uint8_t adxlMeasurementsUpdated = 0;		///< Flag used to indicate new integrated measurements are ready within the ADXL345
@@ -52,6 +57,11 @@ uint8_t buffer[ADXL_NB_DATA_REGISTERS];		///< Buffer used to pop 1 measurement f
 int16_t finalX;								///< X value obtained after integration
 int16_t finalY;								///< Y value obtained after integration
 int16_t finalZ;								///< Z value obtained after integration
+
+
+/********************************************************************************************************************************************/
+/********************************************************************************************************************************************/
+
 
 /**
  * @brief Initialise the ADXL345
