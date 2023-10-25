@@ -75,6 +75,7 @@ int main(void)
 	float newXaxis = 0.0f;
 	float oldYaxis = 0.0f;
 	float newYaxis = 0.0f;
+	errorCode_u result = ERR_SUCCESS;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -109,7 +110,9 @@ int main(void)
   while (1)
   {
 	  //update modules
-	  ADXL345update();
+	  result = ADXL345update();
+	  if(IS_ERROR(result))
+		  result.fields.moduleID = 1;
 
 	  //if values have been updated
 	  if(ADXL345hasNewMeasurements()){
