@@ -56,6 +56,7 @@ typedef errorCode_u (*adxlState)();
 //machine state
 static errorCode_u stStartup();
 static errorCode_u stConfiguring();
+static errorCode_u stSelfTesting();
 static errorCode_u stMeasuring();
 static errorCode_u stError();
 
@@ -331,8 +332,19 @@ errorCode_u stConfiguring(){
 		}
 	}
 
-	state = stMeasuring;
+	state = stSelfTesting;
 	return (result);
+}
+
+/**
+ * @brief State in which the ADXL goes into self-testing mode
+ * @note p. 22 of the datasheet
+ *
+ * @return Success
+ */
+static errorCode_u stSelfTesting(){
+	state = stMeasuring;
+	return (ERR_SUCCESS);
 }
 
 /**
