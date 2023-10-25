@@ -1,6 +1,8 @@
 #ifndef INC_ADXL345REGISTERS_H_
 #define INC_ADXL345REGISTERS_H_
 
+#define ADXL_DEVICE_ID		0xE5
+
 #define ADXL_WRITE			0x00		///< MSB configuration for write operations
 #define ADXL_READ			0x80		///< MSB configuration for read operations
 #define ADXL_SINGLE			0x00		///< Bit 6 configuration for single register operations
