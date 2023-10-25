@@ -44,19 +44,27 @@ typedef enum _ADXLfunctionCodes_e{
 	GET_Y_ANGLE			///< ADXL345getYangleDegrees()
 }ADXLfunctionCodes_e;
 
+typedef errorCode_u (*adxlState)();
+
+//machine state
+static errorCode_u stStartup();
+static errorCode_u stConfiguration();
+static errorCode_u stMeasuring();
+
 //manipulation functions
 //static errorCode_u ADXL345readRegister(adxl345Registers_e registerNumber, uint8_t* value);
 static errorCode_u ADXL345writeRegister(adxl345Registers_e registerNumber, uint8_t value);
 static errorCode_u ADXL345readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint8_t size);
 
 //global variables
-SPI_HandleTypeDef* ADXL_spiHandle = NULL;	///< SPI handle used with the ADXL345
-volatile uint8_t adxlINT1occurred = 0;		///< Flag used to indicate the ADXL triggered an interrupt
-uint8_t adxlMeasurementsUpdated = 0;		///< Flag used to indicate new integrated measurements are ready within the ADXL345
-uint8_t buffer[ADXL_NB_DATA_REGISTERS];		///< Buffer used to pop 1 measurement from each ADXL FIFO
-int16_t finalX;								///< X value obtained after integration
-int16_t finalY;								///< Y value obtained after integration
-int16_t finalZ;								///< Z value obtained after integration
+SPI_HandleTypeDef*	ADXL_spiHandle = NULL;			///< SPI handle used with the ADXL345
+adxlState			state = stStartup;				///< State machine current state
+volatile uint8_t	adxlINT1occurred = 0;			///< Flag used to indicate the ADXL triggered an interrupt
+uint8_t				adxlMeasurementsUpdated = 0;	///< Flag used to indicate new integrated measurements are ready within the ADXL345
+uint8_t				buffer[ADXL_NB_DATA_REGISTERS];	///< Buffer used to pop 1 measurement from each ADXL FIFO
+int16_t				finalX;							///< X value obtained after integration
+int16_t				finalY;							///< Y value obtained after integration
+int16_t				finalZ;							///< Z value obtained after integration
 
 
 /********************************************************************************************************************************************/
@@ -77,39 +85,7 @@ int16_t finalZ;								///< Z value obtained after integration
  */
 errorCode_u ADXL345initialise(const SPI_HandleTypeDef* handle){
 	ADXL_spiHandle = (SPI_HandleTypeDef*)handle;
-	errorCode_u result;
-
-	//configure bandwidth and power mode
-	result = ADXL345writeRegister(BANDWIDTH_POWERMODE, ADXL_POWER_NORMAL | ADXL_RATE_100HZ);
-	if(IS_ERROR(result))
-		return (errorCode(result, INIT, 1));
-
-	//configure data format
-	result = ADXL345writeRegister(DATA_FORMAT, ADXL_SPI_4WIRE | ADXL_INT_ACTIV_LOW | ADXL_RANGE_2G);
-	if(IS_ERROR(result))
-		return (errorCode(result, INIT, 2));
-
-	//clear the FIFO
-	result = ADXL345writeRegister(FIFO_CONTROL, ADXL_MODE_BYPASS);
-	if(IS_ERROR(result))
-		return (errorCode(result, INIT, 3)); 	// @suppress("Avoid magic numbers")
-
-	//set the FIFO mode and set 16 samples
-	result = ADXL345writeRegister(FIFO_CONTROL, ADXL_MODE_FIFO | ADXL_TRIGGER_INT1 | ADXL_SAMPLES_16);
-	if(IS_ERROR(result))
-		return (errorCode(result, INIT, 4)); 	// @suppress("Avoid magic numbers")
-
-	//trigger an interrupt when 16 measurements reached
-	result = ADXL345writeRegister(INTERRUPT_ENABLE, ADXL_INT_WATERMARK);
-	if(IS_ERROR(result))
-		return (errorCode(result, INIT, 5)); 	// @suppress("Avoid magic numbers")
-
-	//set the ADXL as in measurement mode (to be done last)
-	result = ADXL345writeRegister(POWER_CONTROL, ADXL_MEASURE_MODE);
-	if(IS_ERROR(result))
-		return (errorCode(result, INIT, 6)); 	// @suppress("Avoid magic numbers")
-
-	return (result);
+	return (ERR_SUCCESS);
 }
 
 /**
@@ -119,35 +95,7 @@ errorCode_u ADXL345initialise(const SPI_HandleTypeDef* handle){
  * @retval 1 Error occurred while reading the axis values registers
  */
 errorCode_u ADXL345update(){
-	errorCode_u result = { .dword = 0};
-
-	//if watermark interrupt not fired, exit
-	if(!adxlINT1occurred)
-		return (ERR_SUCCESS);
-
-	adxlINT1occurred = 0;
-	finalX = finalY = finalZ = 0;
-
-	//for eatch of the 16 samples to read
-	for(uint8_t i = 0 ; i < ADXL_SAMPLES_16 ; i++){
-		//read all data registers for 1 sample
-		result = ADXL345readRegisters(DATA_X0, buffer, ADXL_NB_DATA_REGISTERS);
-		if(IS_ERROR(result))
-			return (errorCode(result, UPDATE, 1));
-
-		//add the measurements (formatted from a two's complement) to their final value buffer
-		finalX += (int16_t)(((uint16_t)(buffer[ADXL_X_INDEX_MSB]) << ADXL_BYTE_OFFSET) | (uint16_t)(buffer[ADXL_X_INDEX_LSB]));
-		finalY += (int16_t)(((uint16_t)(buffer[ADXL_Y_INDEX_MSB]) << ADXL_BYTE_OFFSET) | (uint16_t)(buffer[ADXL_Y_INDEX_LSB]));
-		finalZ += (int16_t)(((uint16_t)(buffer[ADXL_Z_INDEX_MSB]) << ADXL_BYTE_OFFSET) | (uint16_t)(buffer[ADXL_Z_INDEX_LSB]));
-	}
-
-	//divide the buffers by 16
-	DIVIDE_16(finalX);
-	DIVIDE_16(finalY);
-	DIVIDE_16(finalZ);
-
-	adxlMeasurementsUpdated = 1;
-	return (ERR_SUCCESS);
+	return ( (*state)() );
 }
 
 /**
@@ -319,4 +267,98 @@ float ADXL345getXangleDegrees(){
  */
 float ADXL345getYangleDegrees(){
 	return (RAD_TO_DEG(atanf((float)finalY / (float)finalZ)));
+}
+
+
+/********************************************************************************************************************************************/
+/********************************************************************************************************************************************/
+
+
+/**
+ * @brief Begin state of the state machine
+ *
+ * @return Success
+ */
+errorCode_u stStartup(){
+	state = stConfiguration;
+	return (ERR_SUCCESS);
+}
+
+/**
+ * @brief State in which the registers of the ADXL are configured
+ *
+ * @return Success
+ */
+errorCode_u stConfiguration(){
+	errorCode_u result;
+
+	//configure bandwidth and power mode
+	result = ADXL345writeRegister(BANDWIDTH_POWERMODE, ADXL_POWER_NORMAL | ADXL_RATE_100HZ);
+	if(IS_ERROR(result))
+		return (errorCode(result, INIT, 1));
+
+	//configure data format
+	result = ADXL345writeRegister(DATA_FORMAT, ADXL_SPI_4WIRE | ADXL_INT_ACTIV_LOW | ADXL_RANGE_2G);
+	if(IS_ERROR(result))
+		return (errorCode(result, INIT, 2));
+
+	//clear the FIFO
+	result = ADXL345writeRegister(FIFO_CONTROL, ADXL_MODE_BYPASS);
+	if(IS_ERROR(result))
+		return (errorCode(result, INIT, 3)); 	// @suppress("Avoid magic numbers")
+
+	//set the FIFO mode and set 16 samples
+	result = ADXL345writeRegister(FIFO_CONTROL, ADXL_MODE_FIFO | ADXL_TRIGGER_INT1 | ADXL_SAMPLES_16);
+	if(IS_ERROR(result))
+		return (errorCode(result, INIT, 4)); 	// @suppress("Avoid magic numbers")
+
+	//trigger an interrupt when 16 measurements reached
+	result = ADXL345writeRegister(INTERRUPT_ENABLE, ADXL_INT_WATERMARK);
+	if(IS_ERROR(result))
+		return (errorCode(result, INIT, 5)); 	// @suppress("Avoid magic numbers")
+
+	//set the ADXL as in measurement mode (to be done last)
+	result = ADXL345writeRegister(POWER_CONTROL, ADXL_MEASURE_MODE);
+	if(IS_ERROR(result))
+		return (errorCode(result, INIT, 6)); 	// @suppress("Avoid magic numbers")
+
+	state = stMeasuring;
+	return (result);
+}
+
+/**
+ * @brief State in which the ADXL measures accelerations
+ *
+ * @return Success
+ */
+static errorCode_u stMeasuring(){
+	errorCode_u result = { .dword = 0};
+
+	//if watermark interrupt not fired, exit
+	if(!adxlINT1occurred)
+		return (ERR_SUCCESS);
+
+	adxlINT1occurred = 0;
+	finalX = finalY = finalZ = 0;
+
+	//for eatch of the 16 samples to read
+	for(uint8_t i = 0 ; i < ADXL_SAMPLES_16 ; i++){
+		//read all data registers for 1 sample
+		result = ADXL345readRegisters(DATA_X0, buffer, ADXL_NB_DATA_REGISTERS);
+		if(IS_ERROR(result))
+			return (errorCode(result, UPDATE, 1));
+
+		//add the measurements (formatted from a two's complement) to their final value buffer
+		finalX += (int16_t)(((uint16_t)(buffer[ADXL_X_INDEX_MSB]) << ADXL_BYTE_OFFSET) | (uint16_t)(buffer[ADXL_X_INDEX_LSB]));
+		finalY += (int16_t)(((uint16_t)(buffer[ADXL_Y_INDEX_MSB]) << ADXL_BYTE_OFFSET) | (uint16_t)(buffer[ADXL_Y_INDEX_LSB]));
+		finalZ += (int16_t)(((uint16_t)(buffer[ADXL_Z_INDEX_MSB]) << ADXL_BYTE_OFFSET) | (uint16_t)(buffer[ADXL_Z_INDEX_LSB]));
+	}
+
+	//divide the buffers by 16
+	DIVIDE_16(finalX);
+	DIVIDE_16(finalY);
+	DIVIDE_16(finalZ);
+
+	adxlMeasurementsUpdated = 1;
+	return (ERR_SUCCESS);
 }
