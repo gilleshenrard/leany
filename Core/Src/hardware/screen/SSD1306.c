@@ -90,7 +90,6 @@ errorCode_u SSD1306initialise(SPI_HandleTypeDef* handle){
 	//	values which don't change from reset values aren't modified
 	//TODO check for pins hardware config (0xDA)
 	//TODO test for max oscillator frequency
-	//TODO check for charge pump
 
 	result = SSD1306sendCommand(SCAN_DIRECTION_N1_0, NULL, 0);
 	if(IS_ERROR(result))
