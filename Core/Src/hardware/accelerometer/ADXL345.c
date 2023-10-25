@@ -22,6 +22,7 @@
 #define ADXL_Y_INDEX_LSB	2U		///< Index of the Y LSB in the measurements
 #define ADXL_Z_INDEX_MSB	5U		///< Index of the Z MSB in the measurements
 #define ADXL_Z_INDEX_LSB	4U		///< Index of the Z LSB in the measurements
+#define ADXL_NB_REG_INIT	6U		///< Number of registers configured at initialisation
 
 //macros
 #define ENABLE_SPI		HAL_GPIO_WritePin(ADXL_CS_GPIO_Port, ADXL_CS_Pin, GPIO_PIN_RESET);	///< Macro used to enable the SPI communication towards the accelerometer
@@ -45,6 +46,11 @@ typedef enum _ADXLfunctionCodes_e{
 	STARTUP				///< stStartup()
 }ADXLfunctionCodes_e;
 
+/**
+ * @brief State machine state prototype
+ *
+ * @return Error code of the state
+ */
 typedef errorCode_u (*adxlState)();
 
 //machine state
@@ -57,6 +63,18 @@ static errorCode_u stError();
 static errorCode_u ADXL345readRegister(adxl345Registers_e registerNumber, uint8_t* value);
 static errorCode_u ADXL345writeRegister(adxl345Registers_e registerNumber, uint8_t value);
 static errorCode_u ADXL345readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint8_t size);
+
+/**
+ * @brief Array of all the registers/values to write at initialisation
+ */
+const uint8_t initialisationArray[ADXL_NB_REG_INIT][2] = {
+	{BANDWIDTH_POWERMODE,	ADXL_POWER_NORMAL | ADXL_RATE_100HZ},
+	{DATA_FORMAT,			ADXL_SPI_4WIRE | ADXL_INT_ACTIV_LOW | ADXL_RANGE_2G},
+	{FIFO_CONTROL,			ADXL_MODE_BYPASS},
+	{FIFO_CONTROL,			ADXL_MODE_FIFO | ADXL_TRIGGER_INT1 | ADXL_SAMPLES_16},
+	{INTERRUPT_ENABLE,		ADXL_INT_WATERMARK},
+	{POWER_CONTROL,			ADXL_MEASURE_MODE},
+};
 
 //global variables
 SPI_HandleTypeDef*	ADXL_spiHandle = NULL;			///< SPI handle used with the ADXL345
@@ -78,12 +96,6 @@ int16_t				finalZ;							///< Z value obtained after integration
  *
  * @param handle SPI handle used
  * @retval 0 Success
- * @retval 1 Error while setting bandwidth and power
- * @retval 2 Error while setting data format
- * @retval 3 Error while clearing FIFO
- * @retval 4 Error while setting FIFO mode
- * @retval 5 Error while setting interrupts
- * @retval 6 Error while setting measurement mode
  */
 errorCode_u ADXL345initialise(const SPI_HandleTypeDef* handle){
 	ADXL_spiHandle = (SPI_HandleTypeDef*)handle;
@@ -304,51 +316,19 @@ errorCode_u stStartup(){
 /**
  * @brief State in which the registers of the ADXL are configured
  *
- * @return Success
+ * @retval 0 Success
+ * @retval 1 Error while writing a register
  */
 errorCode_u stConfiguration(){
 	errorCode_u result;
 
-	//configure bandwidth and power mode
-	result = ADXL345writeRegister(BANDWIDTH_POWERMODE, ADXL_POWER_NORMAL | ADXL_RATE_100HZ);
-	if(IS_ERROR(result)){
-		state = stError;
-		return (errorCode(result, INIT, 1));
-	}
-
-	//configure data format
-	result = ADXL345writeRegister(DATA_FORMAT, ADXL_SPI_4WIRE | ADXL_INT_ACTIV_LOW | ADXL_RANGE_2G);
-	if(IS_ERROR(result)){
-		state = stError;
-		return (errorCode(result, INIT, 2));
-	}
-
-	//clear the FIFO
-	result = ADXL345writeRegister(FIFO_CONTROL, ADXL_MODE_BYPASS);
-	if(IS_ERROR(result)){
-		state = stError;
-		return (errorCode(result, INIT, 3)); 		// @suppress("Avoid magic numbers")
-	}
-
-	//set the FIFO mode and set 16 samples
-	result = ADXL345writeRegister(FIFO_CONTROL, ADXL_MODE_FIFO | ADXL_TRIGGER_INT1 | ADXL_SAMPLES_16);
-	if(IS_ERROR(result)){
-		state = stError;
-		return (errorCode(result, INIT, 4)); 		// @suppress("Avoid magic numbers")
-	}
-
-	//trigger an interrupt when 16 measurements reached
-	result = ADXL345writeRegister(INTERRUPT_ENABLE, ADXL_INT_WATERMARK);
-	if(IS_ERROR(result)){
-		state = stError;
-		return (errorCode(result, INIT, 5)); 		// @suppress("Avoid magic numbers")
-	}
-
-	//set the ADXL as in measurement mode (to be done last)
-	result = ADXL345writeRegister(POWER_CONTROL, ADXL_MEASURE_MODE);
-	if(IS_ERROR(result)){
-		state = stError;
-		return (errorCode(result, INIT, 6)); 		// @suppress("Avoid magic numbers")
+	//write all registers values from the initialisation array
+	for(uint8_t i = 0 ; i < ADXL_NB_REG_INIT ; i++){
+		result = ADXL345writeRegister(initialisationArray[i][0], initialisationArray[i][1]);
+		if(IS_ERROR(result)){
+			state = stError;
+			return (errorCode(result, INIT, 1));
+		}
 	}
 
 	state = stMeasuring;
