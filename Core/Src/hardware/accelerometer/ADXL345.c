@@ -55,7 +55,7 @@ typedef errorCode_u (*adxlState)();
 
 //machine state
 static errorCode_u stStartup();
-static errorCode_u stConfiguration();
+static errorCode_u stConfiguring();
 static errorCode_u stMeasuring();
 static errorCode_u stError();
 
@@ -309,7 +309,7 @@ errorCode_u stStartup(){
 		return (errorCode(result, STARTUP, 2));
 	}
 
-	state = stConfiguration;
+	state = stConfiguring;
 	return (ERR_SUCCESS);
 }
 
@@ -319,7 +319,7 @@ errorCode_u stStartup(){
  * @retval 0 Success
  * @retval 1 Error while writing a register
  */
-errorCode_u stConfiguration(){
+errorCode_u stConfiguring(){
 	errorCode_u result;
 
 	//write all registers values from the initialisation array
