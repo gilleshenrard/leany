@@ -311,33 +311,45 @@ errorCode_u stConfiguration(){
 
 	//configure bandwidth and power mode
 	result = ADXL345writeRegister(BANDWIDTH_POWERMODE, ADXL_POWER_NORMAL | ADXL_RATE_100HZ);
-	if(IS_ERROR(result))
+	if(IS_ERROR(result)){
+		state = stError;
 		return (errorCode(result, INIT, 1));
+	}
 
 	//configure data format
 	result = ADXL345writeRegister(DATA_FORMAT, ADXL_SPI_4WIRE | ADXL_INT_ACTIV_LOW | ADXL_RANGE_2G);
-	if(IS_ERROR(result))
+	if(IS_ERROR(result)){
+		state = stError;
 		return (errorCode(result, INIT, 2));
+	}
 
 	//clear the FIFO
 	result = ADXL345writeRegister(FIFO_CONTROL, ADXL_MODE_BYPASS);
-	if(IS_ERROR(result))
-		return (errorCode(result, INIT, 3)); 	// @suppress("Avoid magic numbers")
+	if(IS_ERROR(result)){
+		state = stError;
+		return (errorCode(result, INIT, 3)); 		// @suppress("Avoid magic numbers")
+	}
 
 	//set the FIFO mode and set 16 samples
 	result = ADXL345writeRegister(FIFO_CONTROL, ADXL_MODE_FIFO | ADXL_TRIGGER_INT1 | ADXL_SAMPLES_16);
-	if(IS_ERROR(result))
-		return (errorCode(result, INIT, 4)); 	// @suppress("Avoid magic numbers")
+	if(IS_ERROR(result)){
+		state = stError;
+		return (errorCode(result, INIT, 4)); 		// @suppress("Avoid magic numbers")
+	}
 
 	//trigger an interrupt when 16 measurements reached
 	result = ADXL345writeRegister(INTERRUPT_ENABLE, ADXL_INT_WATERMARK);
-	if(IS_ERROR(result))
-		return (errorCode(result, INIT, 5)); 	// @suppress("Avoid magic numbers")
+	if(IS_ERROR(result)){
+		state = stError;
+		return (errorCode(result, INIT, 5)); 		// @suppress("Avoid magic numbers")
+	}
 
 	//set the ADXL as in measurement mode (to be done last)
 	result = ADXL345writeRegister(POWER_CONTROL, ADXL_MEASURE_MODE);
-	if(IS_ERROR(result))
-		return (errorCode(result, INIT, 6)); 	// @suppress("Avoid magic numbers")
+	if(IS_ERROR(result)){
+		state = stError;
+		return (errorCode(result, INIT, 6)); 		// @suppress("Avoid magic numbers")
+	}
 
 	state = stMeasuring;
 	return (result);
