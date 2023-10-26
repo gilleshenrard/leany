@@ -4,12 +4,22 @@
 
 //definitions
 #define ERR_LAYER_NBBITS	4U	///< Amount of bits in a return code layer field
-#define ERR_ID_NBBITS		6U	///< Amount of bits in function ID and module ID fields
-#define ERR_UNUSED_NBBITS	4U	///< Amount of unused bits
+#define ERR_ID_NBBITS		7U	///< Amount of bits in function ID and module ID fields
+#define ERR_LEVEL_NBBITS	2U	///< Amount of level bits
 
 //macros
 #define IS_SUCCESS(value)	(value.fields.layer0 == 0)	///< Macro used to know if a code means success
 #define IS_ERROR(value)		(value.fields.layer0 != 0)	///< Macro used to know if a code means error
+
+/**
+ * @brief Error levels possible
+ */
+typedef enum{
+	ERR_INFO = 0,	///< Simple information
+	ERR_WARNING, 	///< Warning
+	ERR_ERROR,   	///< Non-critical error
+	ERR_CRITICAL 	///< Critical error
+}errorLevel_e;
 
 /**
  * @brief Union implementing the error codes structure
@@ -25,10 +35,10 @@ typedef union{
 		uint32_t layer0		: ERR_LAYER_NBBITS;		///< Layer 0 return code (highest layer)
 		uint32_t functionID	: ERR_ID_NBBITS;		///< ID of the highest function which returns the code
 		uint32_t moduleID	: ERR_ID_NBBITS;		///< ID of the module returning the code
-		uint32_t unused		: ERR_UNUSED_NBBITS;	///< Unused bits (padding to 32 bits)
+		uint32_t level		: ERR_LEVEL_NBBITS;		///< Error level
 	}fields;
 
-	uint32_t dword;	///< All 32 bits of the code at once
+	uint32_t dword;									///< All 32 bits of the code at once
 }errorCode_u;
 
 //global variables
