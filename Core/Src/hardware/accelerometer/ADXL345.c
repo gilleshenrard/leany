@@ -1,7 +1,7 @@
 /**
  * @brief Implement the ADXL345 accelerometer communication
  * @author Gilles Henrard
- * @date 25/10/2023
+ * @date 26/10/2023
  *
  * @note Additional information can be found in :
  *   - ADXL345 datasheet : https://www.analog.com/media/en/technical-documentation/data-sheets/ADXL345.pdf
@@ -141,20 +141,19 @@ uint8_t ADXL345hasNewMeasurements(){
  */
 errorCode_u ADXL345readRegister(adxl345Registers_e registerNumber, uint8_t* value){
 	HAL_StatusTypeDef HALresult;
-	errorCode_u result = { .dword = 0};
 	uint8_t instruction = ADXL_READ | ADXL_SINGLE | registerNumber;
 
 	//if handle not set, error
 	if(ADXL_spiHandle == NULL)
-		return (errorCode(result, READ_REGISTER, 1));
+		return (errorCode(ERR_SUCCESS, READ_REGISTER, 1));
 
 	//if register number above known, error
 	if(registerNumber > ADXL_NB_REGISTERS)
-		return (errorCode(result, READ_REGISTER, 2));
+		return (errorCode(ERR_SUCCESS, READ_REGISTER, 2));
 
 	//if register number between 0x01 and 0x1C included, error
 	if((uint8_t)(registerNumber - 1) < ADXL_HIGH_RESERVED_REG)
-		return (errorCode(result, READ_REGISTER, 3)); 	// @suppress("Avoid magic numbers")
+		return (errorCode(ERR_SUCCESS, READ_REGISTER, 3)); 	// @suppress("Avoid magic numbers")
 
 	ENABLE_SPI
 
@@ -172,7 +171,7 @@ errorCode_u ADXL345readRegister(adxl345Registers_e registerNumber, uint8_t* valu
 
 	DISABLE_SPI
 
-	return (result);
+	return (ERR_SUCCESS);
 }
 
 /**
@@ -189,20 +188,20 @@ errorCode_u ADXL345readRegister(adxl345Registers_e registerNumber, uint8_t* valu
  */
 errorCode_u ADXL345writeRegister(adxl345Registers_e registerNumber, uint8_t value){
 	HAL_StatusTypeDef HALresult;
-	errorCode_u result = { .dword = 0};
+	errorCode_u result = ERR_SUCCESS;
 	uint8_t instruction = ADXL_WRITE | ADXL_SINGLE | registerNumber;
 
 	//if handle not set, error
 	if(ADXL_spiHandle == NULL)
-		return (errorCode(result, WRITE_REGISTER, 1));
+		return (errorCode(ERR_SUCCESS, WRITE_REGISTER, 1));
 
 	//if register number above known, error
 	if(registerNumber > ADXL_NB_REGISTERS)
-		return (errorCode(result, WRITE_REGISTER, 2));
+		return (errorCode(ERR_SUCCESS, WRITE_REGISTER, 2));
 
 	//if register number between 0x01 and 0x1C included, error
 	if((uint8_t)(registerNumber - 1) < ADXL_HIGH_RESERVED_REG)
-		return (errorCode(result, WRITE_REGISTER, 3)); 	// @suppress("Avoid magic numbers")
+		return (errorCode(ERR_SUCCESS, WRITE_REGISTER, 3)); 	// @suppress("Avoid magic numbers")
 
 	ENABLE_SPI
 
@@ -236,16 +235,16 @@ errorCode_u ADXL345writeRegister(adxl345Registers_e registerNumber, uint8_t valu
  */
 errorCode_u ADXL345readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint8_t size){
 	HAL_StatusTypeDef HALresult;
-	errorCode_u result = { .dword = 0};
+	errorCode_u result = ERR_SUCCESS;
 	uint8_t instruction = ADXL_READ | ADXL_MULTIPLE | firstRegister;
 
 	//if handle not set, error
 	if(ADXL_spiHandle == NULL)
-		return (errorCode(result, READ_REGISTERS, 1));
+		return (errorCode(ERR_SUCCESS, READ_REGISTERS, 1));
 
 	//if register numbers above known, error
 	if(firstRegister > ADXL_NB_REGISTERS)
-		return (errorCode(result, READ_REGISTERS, 2));
+		return (errorCode(ERR_SUCCESS, READ_REGISTERS, 2));
 
 	ENABLE_SPI
 
@@ -302,7 +301,7 @@ errorCode_u stStartup(){
 	//if no handle specified, go error
 	if(ADXL_spiHandle == NULL){
 		state = stError;
-		return (errorCode(result, STARTUP, 1));
+		return (errorCode(ERR_SUCCESS, STARTUP, 1));
 	}
 
 	//if invalid device ID read, go error
@@ -358,12 +357,12 @@ static errorCode_u stSelfTesting(){
  * @retval 2 Error occurred while reading the axis values registers
  */
 static errorCode_u stMeasuring(){
-	errorCode_u result = { .dword = 0};
+	errorCode_u result = ERR_SUCCESS;
 
 	//if timeout, go error
 	if(!adxlTimer_ms){
 		state = stError;
-		return (errorCode(result, MEASURE, 1));
+		return (errorCode(ERR_SUCCESS, MEASURE, 1));
 	}
 
 	//if watermark interrupt not fired, exit
