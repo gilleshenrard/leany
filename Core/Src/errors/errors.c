@@ -2,7 +2,7 @@
  * @file errors.c
  * @brief Implement a structure to create a crude error codes stack trace.
  * @author Gilles Henrard
- * @date 24/10/2023
+ * @date 26/10/2023
  *
  * @details
  * This library allows users to trace an error through several function calls back to its source.
@@ -12,12 +12,13 @@
  *
  * The error codes structure is as follows :
  *
- * | Module ID  | Function ID |  Layer 0   |  Layer 1  | Layer 2  | Layer 3  |
- * |------------|-------------|------------|-----------|----------|----------|
- * | Up to 64   | Up to 64    | Up to 16   | Up to 16  | Up to 16 | Up to 16 |
- * |------------|-------------|------------|-----------|----------|----------|
- * | bits 22-27 | bits 16-21  | bits 12-15 | bits 8-11 | bits 4-7 | bits 0-3 |
+ * |   Level    | Module ID  | Function ID |  Layer 0   |  Layer 1  | Layer 2  | Layer 3  |
+ * |------------|------------|-------------|------------|-----------|----------|----------|
+ * |  Up to 4   | Up to 128  |  Up to 128  |  Up to 16  | Up to 16  | Up to 16 | Up to 16 |
+ * |------------|------------|-------------|------------|-----------|----------|----------|
+ * | bits 30-31 | bits 23-29 | bits 16-22  | bits 12-15 | bits 8-11 | bits 4-7 | bits 0-3 |
  *
+ * - Level : Level of the error (info, warning, error, critical)
  * - Module ID : The entity using all modules (e.g. main()) assigns an ID to each module
  * - Function ID : A module assigns an ID to all of its functions and states
  * - Layers : Each function receiving an error code stacks it above all else to allow for a chaining
@@ -26,22 +27,23 @@
  *
  * Example :
  * A function A calls a function B, which in turn calls a function C. Let's imagine C returns an error.
+ * The error is a warning (level 1)
  *
- * - C sets its function ID and an error code at layer 0. (function 4, code 1)
+ * - C sets the error level, its function ID and an error code at layer 0. (function 4, code 2)
  *
- * | 0  | 4 |  1   |  0  | 0  | 0  |
+ * | 1  | 0  | 4 |  2   |  0  | 0  | 0  |
  *
- * - B receives said code, updates the function ID and pushes its own error code in layer 0. (function 6, code 3)
+ * - B receives said code, updates the function ID and pushes its own error code in layer 0. (function 6, code 4)
  *
- * | 0  | 6 |  3   |  1  | 0  | 0  |
+ * | 1  | 0  | 6 |  4   |  2  | 0  | 0  |
  *
- * - A receives the code, updates the function ID and pushes its own error code in layer 0. (function 8, code 2)
+ * - A receives the code, updates the function ID and pushes its own error code in layer 0. (function 8, code 6)
  *
- * | 0  | 8 |  2   |  3  | 1  | 0  |
+ * | 1  | 0  | 8 |  6   |  4  | 2  | 0  |
  *
  * - main() receives the final code, applies a module ID and logs the error (module ID 4)
  *
- * | 4  | 8 |  2   |  3  | 1  | 0  |
+ * | 1  | 4  | 8 |  6   |  4  | 2  | 0  |
  *
  * @note When pushing a code in the stack. Any code already stored in layer 3 is lost.
  */
