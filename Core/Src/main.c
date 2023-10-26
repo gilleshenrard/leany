@@ -75,7 +75,7 @@ int main(void)
 	float newXaxis = 0.0f;
 	float oldYaxis = 0.0f;
 	float newYaxis = 0.0f;
-	errorCode_u result = ERR_SUCCESS;
+	errorCode_u result;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -106,7 +106,6 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  SSD1306_printAngle(-43.1f, 0, 0);
   while (1)
   {
 	  //update modules
