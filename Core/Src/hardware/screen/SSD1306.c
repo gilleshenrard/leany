@@ -2,7 +2,7 @@
  * @file SSD1306.c
  * @brief Implement the functioning of the SSD1306 OLED screen via SPI and DMA
  * @author Gilles Henrard
- * @date 24/10/2023
+ * @date 26/10/2023
  *
  * @note Datasheet : https://cdn-shop.adafruit.com/datasheets/SSD1306.pdf
  */
@@ -143,7 +143,7 @@ errorCode_u SSD1306initialise(SPI_HandleTypeDef* handle){
  */
 errorCode_u SSD1306sendCommand(SSD1306register_e regNumber, const uint8_t parameters[], uint8_t nbParameters){
 	HAL_StatusTypeDef HALresult;
-	errorCode_u result = { .dword = 0 };
+	errorCode_u result = ERR_SUCCESS;
 
 	//if too many parameters, error
 	if(nbParameters > SSD1306_MAX_PARAMETERS)
@@ -182,7 +182,7 @@ errorCode_u SSD1306sendCommand(SSD1306register_e regNumber, const uint8_t parame
  * @retval 2 Error while sending data
  */
 errorCode_u SSD1306sendData(const uint8_t values[], uint16_t size){
-	errorCode_u result = { .dword = 0 };
+	errorCode_u result = ERR_SUCCESS;
 	HAL_StatusTypeDef HALresult;
 
 	//if nothing to send, exit
@@ -257,11 +257,11 @@ errorCode_u SSD1306_printAngle(float angle, uint8_t page, uint8_t column){
 	const uint8_t limitColumns[2] = {column, column + (VERDANA_CHAR_WIDTH * 6) - 1};
 	const uint8_t limitPages[2] = {page, page + 1};
 	uint8_t* iterator = screenBuffer;
-	errorCode_u result = { .dword = 0 };
+	errorCode_u result = ERR_SUCCESS;
 
 	//if angle out of bounds, return error
 	if((angle < SSD1306_MIN_ANGLE_DEG) || (angle > SSD1306_MAX_ANGLE_DEG))
-		return (errorCode(result, PRT_ANGLE, 1));
+		return (errorCode(ERR_SUCCESS, PRT_ANGLE, 1));
 
 	//if angle negative, replace plus sign with minus sign
 	if(angle < SSD1306_NEG_THRESHOLD){
