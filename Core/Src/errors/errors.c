@@ -29,19 +29,19 @@
  * A function A() calls a function B(), which in turn calls a function C(). Let's imagine C() returns an error.
  * The error is a warning (level 1)
  *
- * - C() sets the error level, its function ID and an error code at layer 0. (function 4, code 2)
+ * - C() sets the error level, its function ID and an error code at layer 0. (e.g. function 4, code 2)
  *
  * | 1  | 0  | 4 |  2   |  0  | 0  | 0  |
  *
- * - B() receives said code, updates the function ID and pushes its own error code in layer 0. (function 6, code 4)
+ * - B() receives said code, updates the function ID and pushes its own error code in layer 0. (e.g. function 6, code 4)
  *
  * | 1  | 0  | 6 |  4   |  2  | 0  | 0  |
  *
- * - A() receives the code, updates the function ID and pushes its own error code in layer 0. (function 8, code 6)
+ * - A() receives the code, updates the function ID and pushes its own error code in layer 0. (e.g. function 8, code 6)
  *
  * | 1  | 0  | 8 |  6   |  4  | 2  | 0  |
  *
- * - main() receives the final code, applies a module ID and logs the error (module ID 4)
+ * - main() receives the final code, applies a module ID and logs the error (e.g. module ID 4)
  *
  * | 1  | 4  | 8 |  6   |  4  | 2  | 0  |
  *
