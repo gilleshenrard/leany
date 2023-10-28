@@ -2,7 +2,7 @@
  * @file errors.c
  * @brief Implement a structure to create a crude error codes stack trace.
  * @author Gilles Henrard
- * @date 26/10/2023
+ * @date 28/10/2023
  *
  * @details
  * This library allows users to trace an error through several function calls back to its source.
@@ -16,7 +16,7 @@
  * |------------|------------|-------------|------------|-----------|----------|----------|
  * |  Up to 4   | Up to 128  |  Up to 128  |  Up to 16  | Up to 16  | Up to 16 | Up to 16 |
  * |------------|------------|-------------|------------|-----------|----------|----------|
- * | bits 30-31 | bits 23-29 | bits 16-22  | bits 12-15 | bits 8-11 | bits 4-7 | bits 0-3 |
+ * | bits 31-30 | bits 29-23 | bits 22-16  | bits 15-12 | bits 11-8 | bits 7-4 | bits 3-0 |
  *
  * - Level : Level of the error (info, warning, error, critical)
  * - Module ID : The entity using all modules (e.g. main()) assigns an ID to each module
