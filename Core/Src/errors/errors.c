@@ -52,8 +52,8 @@
 //definitions
 #define ERR_LEVEL_MASK		0x3FFFFFFFU		///< Value used to erase the error level
 #define ERR_STACK_MASK		0xFFFF0000U		///< Value used to erase the codes stack
-#define ERR_IDS_MASK		0x0000FFFFU		///< Value used to erase the IDs fields
-#define ERR_FUNCTION_MASK	0xFFC0FFFFU		///< Value used to erase the function ID
+#define ERR_IDS_MASK		0xC000FFFFU		///< Value used to erase the IDs fields
+#define ERR_FUNCTION_MASK	0xFF80FFFFU		///< Value used to erase the function ID
 #define SUCCESS_VALUE		0x00000000U		///< Value assigned to successes
 #define ERR_LAYER0_OFFSET	12U				///< Number of bits to shift a code to reach the layer 0
 #define ERR_LAYER1_OFFSET	8U				///< Number of bits to shift a code to reach the layer 1
