@@ -50,6 +50,7 @@
 #include "errors.h"
 
 //definitions
+#define ERR_LEVEL_MASK		0x3FFFFFFFU		///< Value used to erase the error level
 #define ERR_IDS_MASK		0xFFFF0000U		///< Value used to erase the codes stack
 #define ERR_STACK_MASK		0x0000FFFFU		///< Value used to erase the IDs fields
 #define ERR_FUNCTION_MASK	0xFFC0FFFFU		///< Value used to erase the function ID
@@ -57,6 +58,7 @@
 #define ERR_LAYER0_OFFSET	12U				///< Number of bits to shift a code to reach the layer 0
 #define ERR_LAYER1_OFFSET	8U				///< Number of bits to shift a code to reach the layer 1
 #define ERR_FUNCTION_OFFSET	16U				///< Number of bits to shift an ID to reach the function ID
+#define ERR_LEVEL_OFFSET	30U				///< Number of bits to shift an level to reach the level field
 
 //global variables
 const errorCode_u ERR_SUCCESS = { .dword = SUCCESS_VALUE };	///< Variable used as a success code
@@ -67,9 +69,10 @@ const errorCode_u ERR_SUCCESS = { .dword = SUCCESS_VALUE };	///< Variable used a
  * @param received Error code to update
  * @param functionID Function ID to replace with
  * @param newCode Return code to push in the stack
+ * @param level Error level
  * @return Formatted code
  */
-errorCode_u errorCode(errorCode_u received, uint32_t functionID, uint32_t newCode){
+errorCode_u errorCode(errorCode_u received, uint32_t functionID, uint32_t newCode/*, errorLevel_e level*/){
 	uint32_t code;
 
 	//if code means success, return success
@@ -83,7 +86,13 @@ errorCode_u errorCode(errorCode_u received, uint32_t functionID, uint32_t newCod
 	//if error code too large, do nothing
 	if(newCode >= (1 << ERR_LAYER_NBBITS))
 		return (received);
-
+/*
+	//if no level set yet, update it
+	if(!(received.dword && ~ERR_LEVEL_MASK)){
+		received.dword &= ERR_LEVEL_MASK;
+		received.dword |= (level << ERR_LEVEL_OFFSET);
+	}
+*/
 	//erase and replace the function ID
 	received.dword &= ERR_FUNCTION_MASK;
 	received.dword |= (functionID << ERR_FUNCTION_OFFSET);
@@ -109,9 +118,10 @@ errorCode_u errorCode(errorCode_u received, uint32_t functionID, uint32_t newCod
  * @param functionID Function ID to replace with
  * @param newCode Return code to set at layer 1
  * @param layer0Code Return code to set at layer 0
+ * @param level Error level
  * @return New code
  */
-errorCode_u errorCodeLayer0(uint32_t functionID, uint32_t newCode, uint32_t layer0Code){
+errorCode_u errorCodeLayer0(uint32_t functionID, uint32_t newCode, uint32_t layer0Code/*, errorLevel_e level*/){
 	errorCode_u code = ERR_SUCCESS;
 
 	//if code means success, return success
@@ -129,7 +139,11 @@ errorCode_u errorCodeLayer0(uint32_t functionID, uint32_t newCode, uint32_t laye
 	//if error code too large, do nothing
 	if(layer0Code >= (1 << ERR_LAYER_NBBITS))
 		return (ERR_SUCCESS);
-
+/*
+	//set the error level
+	code.dword &= ERR_LEVEL_MASK;
+	code.dword |= (level << ERR_LEVEL_OFFSET);
+*/
 	//update with the codes received
 	code.dword |= (functionID << ERR_FUNCTION_OFFSET);
 	code.dword |= (newCode << ERR_LAYER1_OFFSET);
