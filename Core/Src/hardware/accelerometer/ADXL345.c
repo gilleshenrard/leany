@@ -188,7 +188,7 @@ errorCode_u ADXL345readRegister(adxl345Registers_e registerNumber, uint8_t* valu
  */
 errorCode_u ADXL345writeRegister(adxl345Registers_e registerNumber, uint8_t value){
 	HAL_StatusTypeDef HALresult;
-	errorCode_u result;
+	errorCode_u result = ERR_SUCCESS;
 	uint8_t instruction = ADXL_WRITE | ADXL_SINGLE | registerNumber;
 
 	//if handle not set, error
@@ -235,7 +235,7 @@ errorCode_u ADXL345writeRegister(adxl345Registers_e registerNumber, uint8_t valu
  */
 errorCode_u ADXL345readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint8_t size){
 	HAL_StatusTypeDef HALresult;
-	errorCode_u result;
+	errorCode_u result = ERR_SUCCESS;
 	uint8_t instruction = ADXL_READ | ADXL_MULTIPLE | firstRegister;
 
 	//if handle not set, error

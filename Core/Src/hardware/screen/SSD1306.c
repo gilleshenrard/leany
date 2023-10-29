@@ -143,7 +143,7 @@ errorCode_u SSD1306initialise(SPI_HandleTypeDef* handle){
  */
 errorCode_u SSD1306sendCommand(SSD1306register_e regNumber, const uint8_t parameters[], uint8_t nbParameters){
 	HAL_StatusTypeDef HALresult;
-	errorCode_u result;
+	errorCode_u result = ERR_SUCCESS;
 
 	//if too many parameters, error
 	if(nbParameters > SSD1306_MAX_PARAMETERS)
@@ -182,7 +182,7 @@ errorCode_u SSD1306sendCommand(SSD1306register_e regNumber, const uint8_t parame
  * @retval 2 Error while sending data
  */
 errorCode_u SSD1306sendData(const uint8_t values[], uint16_t size){
-	errorCode_u result;
+	errorCode_u result = ERR_SUCCESS;
 	HAL_StatusTypeDef HALresult;
 
 	//if nothing to send, exit
