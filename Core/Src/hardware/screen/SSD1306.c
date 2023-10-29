@@ -2,7 +2,7 @@
  * @file SSD1306.c
  * @brief Implement the functioning of the SSD1306 OLED screen via SPI and DMA
  * @author Gilles Henrard
- * @date 26/10/2023
+ * @date 29/10/2023
  *
  * @note Datasheet : https://cdn-shop.adafruit.com/datasheets/SSD1306.pdf
  */
@@ -157,14 +157,14 @@ errorCode_u SSD1306sendCommand(SSD1306register_e regNumber, const uint8_t parame
 	HALresult = HAL_SPI_Transmit(SSD_SPIhandle, &regNumber, 1, SSD1306_SPI_TIMEOUT_MS);
 	if(HALresult != HAL_OK){
 		SSD1306_DISABLE_SPI
-		return (errorCodeLayer0(SEND_CMD, 2, HALresult));
+		return (createErrorCode(SEND_CMD, 2, HALresult));
 	}
 
 	//if command send OK, send all parameters
 	if(parameters && nbParameters){
 		HALresult = HAL_SPI_Transmit(SSD_SPIhandle, (uint8_t*)parameters, nbParameters, SSD1306_SPI_TIMEOUT_MS);
 		if(HALresult != HAL_OK)
-			result = errorCodeLayer0(SEND_CMD, 3, HALresult); 		// @suppress("Avoid magic numbers")
+			result = createErrorCode(SEND_CMD, 3, HALresult); 		// @suppress("Avoid magic numbers")
 	}
 
 	//disable SPI and return status
@@ -200,7 +200,7 @@ errorCode_u SSD1306sendData(const uint8_t values[], uint16_t size){
 	//transmit the buffer all at once
 	HALresult = HAL_SPI_Transmit(SSD_SPIhandle, (uint8_t*)values, size, SSD1306_SPI_TIMEOUT_MS);
 	if(HALresult != HAL_OK)
-		result = errorCodeLayer0(SEND_DATA, 2, HALresult);
+		result = createErrorCode(SEND_DATA, 2, HALresult);
 
 	//disable SPI and return status
 	SSD1306_DISABLE_SPI
