@@ -292,7 +292,8 @@ float ADXL345getYangleDegrees(){
  *
  * @retval 0 Success
  * @retval 1 No SPI handle has been specified
- * @retval 2 Unable to read device ID or device ID invalid
+ * @retval 2 Unable to read device ID
+ * @retval 3 Device ID invalid
  */
 errorCode_u stStartup(){
 	errorCode_u result;
@@ -304,12 +305,16 @@ errorCode_u stStartup(){
 		return (createErrorCode(STARTUP, 1, ERR_CRITICAL));
 	}
 
-	//if invalid device ID read, go error
+	//if unable to read device ID, go error
 	result = ADXL345readRegister(DEVICE_ID, &deviceID);
-	if(IS_ERROR(result) || (deviceID != ADXL_DEVICE_ID)){
+	if(IS_ERROR(result)){
 		state = stError;
 		return (pushErrorCode(result, STARTUP, 2));
 	}
+
+	//if invalid device ID, go error
+	if(deviceID != ADXL_DEVICE_ID)
+		return (createErrorCode(STARTUP, 3, ERR_CRITICAL)); 	// @suppress("Avoid magic numbers")
 
 	state = stConfiguring;
 	return (ERR_SUCCESS);
