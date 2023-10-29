@@ -68,6 +68,7 @@ static errorCode_u ADXL345readRegisters(adxl345Registers_e firstRegister, uint8_
 
 /**
  * @brief Array of all the registers/values to write at initialisation
+ * @note Two values are written in FIFO_CONTROL to clear the FIFO at startup
  */
 static const uint8_t initialisationArray[ADXL_NB_REG_INIT][2] = {
 	{BANDWIDTH_POWERMODE,	ADXL_POWER_NORMAL | ADXL_RATE_100HZ},
