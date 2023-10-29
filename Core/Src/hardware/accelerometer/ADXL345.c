@@ -1,7 +1,7 @@
 /**
  * @brief Implement the ADXL345 accelerometer communication
  * @author Gilles Henrard
- * @date 26/10/2023
+ * @date 29/10/2023
  *
  * @note Additional information can be found in :
  *   - ADXL345 datasheet : https://www.analog.com/media/en/technical-documentation/data-sheets/ADXL345.pdf
@@ -161,13 +161,13 @@ errorCode_u ADXL345readRegister(adxl345Registers_e registerNumber, uint8_t* valu
 	HALresult = HAL_SPI_Transmit(ADXL_spiHandle, &instruction, 1, ADXL_SPI_TIMEOUT_MS);
 	if(HALresult != HAL_OK){
 		DISABLE_SPI
-		return (errorCodeLayer0(READ_REGISTER, 4, HALresult)); 	// @suppress("Avoid magic numbers")
+		return (createErrorCode(READ_REGISTER, 4, HALresult)); 	// @suppress("Avoid magic numbers")
 	}
 
 	//receive the reply
 	HALresult = HAL_SPI_Receive(ADXL_spiHandle, value, 1, ADXL_SPI_TIMEOUT_MS);
 	if(HALresult != HAL_OK)
-		return (errorCodeLayer0(READ_REGISTER, 5, HALresult)); 	// @suppress("Avoid magic numbers")
+		return (createErrorCode(READ_REGISTER, 5, HALresult)); 	// @suppress("Avoid magic numbers")
 
 	DISABLE_SPI
 
@@ -209,13 +209,13 @@ errorCode_u ADXL345writeRegister(adxl345Registers_e registerNumber, uint8_t valu
 	HALresult = HAL_SPI_Transmit(ADXL_spiHandle, &instruction, 1, ADXL_SPI_TIMEOUT_MS);
 	if(HALresult != HAL_OK){
 		DISABLE_SPI
-		return (errorCodeLayer0(WRITE_REGISTER, 4, HALresult)); 	// @suppress("Avoid magic numbers")
+		return (createErrorCode(WRITE_REGISTER, 4, HALresult)); 	// @suppress("Avoid magic numbers")
 	}
 
 	//receive the reply
 	HALresult = HAL_SPI_Transmit(ADXL_spiHandle, &value, 1, ADXL_SPI_TIMEOUT_MS);
 	if(HALresult != HAL_OK)
-		result = errorCodeLayer0(WRITE_REGISTER, 5, HALresult); 	// @suppress("Avoid magic numbers")
+		result = createErrorCode(WRITE_REGISTER, 5, HALresult); 	// @suppress("Avoid magic numbers")
 
 	DISABLE_SPI
 	return (result);
@@ -252,13 +252,13 @@ errorCode_u ADXL345readRegisters(adxl345Registers_e firstRegister, uint8_t* valu
 	HALresult = HAL_SPI_Transmit(ADXL_spiHandle, &instruction, 1, ADXL_SPI_TIMEOUT_MS);
 	if(HALresult != HAL_OK){
 		DISABLE_SPI
-		return (errorCodeLayer0(READ_REGISTERS, 3, HALresult)); 	// @suppress("Avoid magic numbers")
+		return (createErrorCode(READ_REGISTERS, 3, HALresult)); 	// @suppress("Avoid magic numbers")
 	}
 
 	//receive the reply
 	HALresult = HAL_SPI_Receive(ADXL_spiHandle, value, size, ADXL_SPI_TIMEOUT_MS);
 	if(HALresult != HAL_OK)
-		result = errorCodeLayer0(READ_REGISTERS, 4, HALresult); 	// @suppress("Avoid magic numbers")
+		result = createErrorCode(READ_REGISTERS, 4, HALresult); 	// @suppress("Avoid magic numbers")
 
 	DISABLE_SPI
 	return (result);
