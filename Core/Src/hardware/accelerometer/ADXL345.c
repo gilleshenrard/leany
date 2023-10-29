@@ -69,7 +69,7 @@ static errorCode_u ADXL345readRegisters(adxl345Registers_e firstRegister, uint8_
 /**
  * @brief Array of all the registers/values to write at initialisation
  */
-const uint8_t initialisationArray[ADXL_NB_REG_INIT][2] = {
+static const uint8_t initialisationArray[ADXL_NB_REG_INIT][2] = {
 	{BANDWIDTH_POWERMODE,	ADXL_POWER_NORMAL | ADXL_RATE_100HZ},
 	{DATA_FORMAT,			ADXL_SPI_4WIRE | ADXL_INT_ACTIV_LOW | ADXL_RANGE_2G},
 	{FIFO_CONTROL,			ADXL_MODE_BYPASS},
@@ -79,15 +79,15 @@ const uint8_t initialisationArray[ADXL_NB_REG_INIT][2] = {
 };
 
 //global variables
-SPI_HandleTypeDef*	ADXL_spiHandle = NULL;			///< SPI handle used with the ADXL345
-adxlState			state = stStartup;				///< State machine current state
-volatile uint8_t	adxlINT1occurred = 0;			///< Flag used to indicate the ADXL triggered an interrupt
-volatile uint16_t	adxlTimer_ms = 0;				///< Timer used in various states of the ADXL (in ms)
-uint8_t				adxlMeasurementsUpdated = 0;	///< Flag used to indicate new integrated measurements are ready within the ADXL345
-uint8_t				buffer[ADXL_NB_DATA_REGISTERS];	///< Buffer used to pop 1 measurement from each ADXL FIFO
-int16_t				finalX;							///< X value obtained after integration
-int16_t				finalY;							///< Y value obtained after integration
-int16_t				finalZ;							///< Z value obtained after integration
+static SPI_HandleTypeDef*	ADXL_spiHandle = NULL;			///< SPI handle used with the ADXL345
+static adxlState			state = stStartup;				///< State machine current state
+volatile uint8_t			adxlINT1occurred = 0;			///< Flag used to indicate the ADXL triggered an interrupt
+volatile uint16_t			adxlTimer_ms = 0;				///< Timer used in various states of the ADXL (in ms)
+static uint8_t				adxlMeasurementsUpdated = 0;	///< Flag used to indicate new integrated measurements are ready within the ADXL345
+static uint8_t				buffer[ADXL_NB_DATA_REGISTERS];	///< Buffer used to pop 1 measurement from each ADXL FIFO
+static int16_t				finalX;							///< X value obtained after integration
+static int16_t				finalY;							///< Y value obtained after integration
+static int16_t				finalZ;							///< Z value obtained after integration
 
 
 /********************************************************************************************************************************************/
