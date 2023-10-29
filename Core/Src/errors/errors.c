@@ -2,7 +2,7 @@
  * @file errors.c
  * @brief Implement a structure to create a crude error codes stack trace.
  * @author Gilles Henrard
- * @date 28/10/2023
+ * @date 29/10/2023
  *
  * @details
  * This library allows users to trace an error through several function calls back to its source.
