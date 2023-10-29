@@ -93,39 +93,39 @@ errorCode_u SSD1306initialise(SPI_HandleTypeDef* handle){
 
 	result = SSD1306sendCommand(SCAN_DIRECTION_N1_0, NULL, 0);
 	if(IS_ERROR(result))
-		return (errorCode(result, INIT, 1));
+		return (pushErrorCode(result, INIT, 1));
 
 	result = SSD1306sendCommand(HARDWARE_CONFIG, &hardwareConfigInit, 1);
 	if(IS_ERROR(result))
-		return (errorCode(result, INIT, 2));
+		return (pushErrorCode(result, INIT, 2));
 
 	result = SSD1306sendCommand(SEGMENT_REMAP_127, NULL, 0);
 	if(IS_ERROR(result))
-		return (errorCode(result, INIT, 3));		// @suppress("Avoid magic numbers")
+		return (pushErrorCode(result, INIT, 3));		// @suppress("Avoid magic numbers")
 
 	result = SSD1306sendCommand(MEMORY_ADDR_MODE, &addressingModeInit, 1);
 	if(IS_ERROR(result))
-		return (errorCode(result, INIT, 4));		// @suppress("Avoid magic numbers")
+		return (pushErrorCode(result, INIT, 4));		// @suppress("Avoid magic numbers")
 
 	result = SSD1306sendCommand(CONTRAST_CONTROL, &contrastInit, 1);
 	if(IS_ERROR(result))
-		return (errorCode(result, INIT, 5));		// @suppress("Avoid magic numbers")
+		return (pushErrorCode(result, INIT, 5));		// @suppress("Avoid magic numbers")
 
 	result = SSD1306sendCommand(CLOCK_DIVIDE_RATIO, &clockInit, 1);
 	if(IS_ERROR(result))
-		return (errorCode(result, INIT, 6));		// @suppress("Avoid magic numbers")
+		return (pushErrorCode(result, INIT, 6));		// @suppress("Avoid magic numbers")
 
 	result = SSD1306sendCommand(CHG_PUMP_REGULATOR, &chargePumpInit, 1);
 	if(IS_ERROR(result))
-		return (errorCode(result, INIT, 7));		// @suppress("Avoid magic numbers")
+		return (pushErrorCode(result, INIT, 7));		// @suppress("Avoid magic numbers")
 
 	result = SSD1306sendCommand(DISPLAY_ON, NULL, 0);
 	if(IS_ERROR(result))
-		return (errorCode(result, INIT, 8));		// @suppress("Avoid magic numbers")
+		return (pushErrorCode(result, INIT, 8));		// @suppress("Avoid magic numbers")
 
 	result = SSD1306clearScreen();
 	if(IS_ERROR(result))
-		return (errorCode(result, INIT, 9));		// @suppress("Avoid magic numbers")
+		return (pushErrorCode(result, INIT, 9));		// @suppress("Avoid magic numbers")
 
 	return (ERR_SUCCESS);
 }
@@ -147,7 +147,7 @@ errorCode_u SSD1306sendCommand(SSD1306register_e regNumber, const uint8_t parame
 
 	//if too many parameters, error
 	if(nbParameters > SSD1306_MAX_PARAMETERS)
-		return(errorCode(result, SEND_CMD, 1));
+		return(pushErrorCode(result, SEND_CMD, 1));
 
 	//set command pin and enable SPI
 	SSD1306_SET_COMMAND
@@ -191,7 +191,7 @@ errorCode_u SSD1306sendData(const uint8_t values[], uint16_t size){
 
 	//if more bytes than sectors in the GDDRAM, error
 	if(size > SSD1306_MAX_DATA_SIZE)
-		return(errorCode(result, SEND_DATA, 1));
+		return(pushErrorCode(result, SEND_DATA, 1));
 
 	//set command pin and enable SPI
 	SSD1306_SET_DATA
@@ -224,17 +224,17 @@ errorCode_u SSD1306clearScreen(){
 	//set the start and end columns
 	result = SSD1306sendCommand(COLUMN_ADDRESS, limitColumns, 2);
 	if(IS_ERROR(result))
-		return (errorCode(result, CLR_SCREEN, 1));
+		return (pushErrorCode(result, CLR_SCREEN, 1));
 
 	//set the start and end pages
 	result = SSD1306sendCommand(PAGE_ADDRESS, limitPages, 2);
 	if(IS_ERROR(result))
-		return (errorCode(result, CLR_SCREEN, 2));
+		return (pushErrorCode(result, CLR_SCREEN, 2));
 
 	//send the buffer data
 	result = SSD1306sendData(screenBuffer, SSD1306_MAX_DATA_SIZE);
 	if(IS_ERROR(result))
-		return (errorCode(result, CLR_SCREEN, 3)); 		// @suppress("Avoid magic numbers")
+		return (pushErrorCode(result, CLR_SCREEN, 3)); 		// @suppress("Avoid magic numbers")
 
 	return (ERR_SUCCESS);
 }
@@ -261,7 +261,7 @@ errorCode_u SSD1306_printAngle(float angle, uint8_t page, uint8_t column){
 
 	//if angle out of bounds, return error
 	if((angle < SSD1306_MIN_ANGLE_DEG) || (angle > SSD1306_MAX_ANGLE_DEG))
-		return (errorCode(ERR_SUCCESS, PRT_ANGLE, 1));
+		return (pushErrorCode(ERR_SUCCESS, PRT_ANGLE, 1));
 
 	//if angle negative, replace plus sign with minus sign
 	if(angle < SSD1306_NEG_THRESHOLD){
@@ -277,12 +277,12 @@ errorCode_u SSD1306_printAngle(float angle, uint8_t page, uint8_t column){
 	//send the set start and end column addresses
 	result = SSD1306sendCommand(COLUMN_ADDRESS, limitColumns, 2);
 	if(IS_ERROR(result))
-		return (errorCode(result, PRT_ANGLE, 2));
+		return (pushErrorCode(result, PRT_ANGLE, 2));
 
 	//send the set start and end page addresses
 	/*result = */SSD1306sendCommand(PAGE_ADDRESS, limitPages, 2);
 	if(IS_ERROR(result))
-		return (errorCode(result, PRT_ANGLE, 3));		// @suppress("Avoid magic numbers")
+		return (pushErrorCode(result, PRT_ANGLE, 3));		// @suppress("Avoid magic numbers")
 
 	//fill the buffer with all the required bitmaps bytes (column by column, then character by character, then page by page)
 	for(page = 0 ; page < 2 ; page++){
@@ -297,7 +297,7 @@ errorCode_u SSD1306_printAngle(float angle, uint8_t page, uint8_t column){
 	//send the buffer
 	result = SSD1306sendData(screenBuffer, VERDANA_NB_BYTES_CHAR * SSD1306_ANGLE_NB_CHARS);
 	if(IS_ERROR(result))
-		return (errorCode(result, PRT_ANGLE, 4)); 		// @suppress("Avoid magic numbers")
+		return (pushErrorCode(result, PRT_ANGLE, 4)); 		// @suppress("Avoid magic numbers")
 
 	return (ERR_SUCCESS);
 }

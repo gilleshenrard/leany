@@ -145,15 +145,15 @@ errorCode_u ADXL345readRegister(adxl345Registers_e registerNumber, uint8_t* valu
 
 	//if handle not set, error
 	if(ADXL_spiHandle == NULL)
-		return (errorCode(ERR_SUCCESS, READ_REGISTER, 1));
+		return (pushErrorCode(ERR_SUCCESS, READ_REGISTER, 1));
 
 	//if register number above known, error
 	if(registerNumber > ADXL_NB_REGISTERS)
-		return (errorCode(ERR_SUCCESS, READ_REGISTER, 2));
+		return (pushErrorCode(ERR_SUCCESS, READ_REGISTER, 2));
 
 	//if register number between 0x01 and 0x1C included, error
 	if((uint8_t)(registerNumber - 1) < ADXL_HIGH_RESERVED_REG)
-		return (errorCode(ERR_SUCCESS, READ_REGISTER, 3)); 	// @suppress("Avoid magic numbers")
+		return (pushErrorCode(ERR_SUCCESS, READ_REGISTER, 3)); 	// @suppress("Avoid magic numbers")
 
 	ENABLE_SPI
 
@@ -193,15 +193,15 @@ errorCode_u ADXL345writeRegister(adxl345Registers_e registerNumber, uint8_t valu
 
 	//if handle not set, error
 	if(ADXL_spiHandle == NULL)
-		return (errorCode(ERR_SUCCESS, WRITE_REGISTER, 1));
+		return (pushErrorCode(ERR_SUCCESS, WRITE_REGISTER, 1));
 
 	//if register number above known, error
 	if(registerNumber > ADXL_NB_REGISTERS)
-		return (errorCode(ERR_SUCCESS, WRITE_REGISTER, 2));
+		return (pushErrorCode(ERR_SUCCESS, WRITE_REGISTER, 2));
 
 	//if register number between 0x01 and 0x1C included, error
 	if((uint8_t)(registerNumber - 1) < ADXL_HIGH_RESERVED_REG)
-		return (errorCode(ERR_SUCCESS, WRITE_REGISTER, 3)); 	// @suppress("Avoid magic numbers")
+		return (pushErrorCode(ERR_SUCCESS, WRITE_REGISTER, 3)); 	// @suppress("Avoid magic numbers")
 
 	ENABLE_SPI
 
@@ -240,11 +240,11 @@ errorCode_u ADXL345readRegisters(adxl345Registers_e firstRegister, uint8_t* valu
 
 	//if handle not set, error
 	if(ADXL_spiHandle == NULL)
-		return (errorCode(ERR_SUCCESS, READ_REGISTERS, 1));
+		return (pushErrorCode(ERR_SUCCESS, READ_REGISTERS, 1));
 
 	//if register numbers above known, error
 	if(firstRegister > ADXL_NB_REGISTERS)
-		return (errorCode(ERR_SUCCESS, READ_REGISTERS, 2));
+		return (pushErrorCode(ERR_SUCCESS, READ_REGISTERS, 2));
 
 	ENABLE_SPI
 
@@ -301,14 +301,14 @@ errorCode_u stStartup(){
 	//if no handle specified, go error
 	if(ADXL_spiHandle == NULL){
 		state = stError;
-		return (errorCode(ERR_SUCCESS, STARTUP, 1));
+		return (pushErrorCode(ERR_SUCCESS, STARTUP, 1));
 	}
 
 	//if invalid device ID read, go error
 	result = ADXL345readRegister(DEVICE_ID, &deviceID);
 	if(IS_ERROR(result) || (deviceID != ADXL_DEVICE_ID)){
 		state = stError;
-		return (errorCode(result, STARTUP, 2));
+		return (pushErrorCode(result, STARTUP, 2));
 	}
 
 	state = stConfiguring;
@@ -329,7 +329,7 @@ errorCode_u stConfiguring(){
 		result = ADXL345writeRegister(initialisationArray[i][0], initialisationArray[i][1]);
 		if(IS_ERROR(result)){
 			state = stError;
-			return (errorCode(result, INIT, 1));
+			return (pushErrorCode(result, INIT, 1));
 		}
 	}
 
@@ -362,7 +362,7 @@ static errorCode_u stMeasuring(){
 	//if timeout, go error
 	if(!adxlTimer_ms){
 		state = stError;
-		return (errorCode(ERR_SUCCESS, MEASURE, 1));
+		return (pushErrorCode(ERR_SUCCESS, MEASURE, 1));
 	}
 
 	//if watermark interrupt not fired, exit
@@ -379,7 +379,7 @@ static errorCode_u stMeasuring(){
 		result = ADXL345readRegisters(DATA_X0, buffer, ADXL_NB_DATA_REGISTERS);
 		if(IS_ERROR(result)){
 			state = stError;
-			return (errorCode(result, MEASURE, 2));
+			return (pushErrorCode(result, MEASURE, 2));
 		}
 
 		//add the measurements (formatted from a two's complement) to their final value buffer
