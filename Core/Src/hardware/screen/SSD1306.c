@@ -157,14 +157,14 @@ errorCode_u SSD1306sendCommand(SSD1306register_e regNumber, const uint8_t parame
 	HALresult = HAL_SPI_Transmit(SSD_SPIhandle, &regNumber, 1, SSD1306_SPI_TIMEOUT_MS);
 	if(HALresult != HAL_OK){
 		SSD1306_DISABLE_SPI
-		return (createErrorCode(SEND_CMD, 2, HALresult));
+		return (createErrorCode(SEND_CMD, 2, HALresult, ERR_ERROR));
 	}
 
 	//if command send OK, send all parameters
 	if(parameters && nbParameters){
 		HALresult = HAL_SPI_Transmit(SSD_SPIhandle, (uint8_t*)parameters, nbParameters, SSD1306_SPI_TIMEOUT_MS);
 		if(HALresult != HAL_OK)
-			result = createErrorCode(SEND_CMD, 3, HALresult); 		// @suppress("Avoid magic numbers")
+			result = createErrorCode(SEND_CMD, 3, HALresult, ERR_ERROR); 		// @suppress("Avoid magic numbers")
 	}
 
 	//disable SPI and return status
@@ -200,7 +200,7 @@ errorCode_u SSD1306sendData(const uint8_t values[], uint16_t size){
 	//transmit the buffer all at once
 	HALresult = HAL_SPI_Transmit(SSD_SPIhandle, (uint8_t*)values, size, SSD1306_SPI_TIMEOUT_MS);
 	if(HALresult != HAL_OK)
-		result = createErrorCode(SEND_DATA, 2, HALresult);
+		result = createErrorCode(SEND_DATA, 2, HALresult, ERR_ERROR);
 
 	//disable SPI and return status
 	SSD1306_DISABLE_SPI
