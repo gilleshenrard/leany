@@ -72,7 +72,7 @@ const errorCode_u ERR_SUCCESS = { .dword = SUCCESS_VALUE };	///< Variable used a
  * @param level Error level
  * @return Formatted code
  */
-errorCode_u errorCode(errorCode_u received, uint32_t functionID, uint32_t newCode/*, errorLevel_e level*/){
+errorCode_u pushErrorCode(errorCode_u received, uint32_t functionID, uint32_t newCode/*, errorLevel_e level*/){
 	uint32_t code;
 
 	//if code means success, return success
