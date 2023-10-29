@@ -116,16 +116,16 @@ errorCode_u errorCode(errorCode_u received, uint32_t functionID, uint32_t newCod
  * @note This is to be used when receiving a code from a lower level library (such as HAL)
  *
  * @param functionID Function ID to replace with
- * @param newCode Return code to set at layer 1
- * @param layer0Code Return code to set at layer 0
+ * @param newCode Return code to set at layer 0
+ * @param layer1Code Return code to set at layer 1
  * @param level Error level
  * @return New code
  */
-errorCode_u errorCodeLayer0(uint32_t functionID, uint32_t newCode, uint32_t layer0Code/*, errorLevel_e level*/){
+errorCode_u createErrorCode(uint32_t functionID, uint32_t newCode, uint32_t layer1Code/*, errorLevel_e level*/){
 	errorCode_u code = ERR_SUCCESS;
 
 	//if code means success, return success
-	if(layer0Code == SUCCESS_VALUE)
+	if(newCode == SUCCESS_VALUE)
 		return (ERR_SUCCESS);
 
 	//if function ID too large, do nothing
@@ -137,7 +137,7 @@ errorCode_u errorCodeLayer0(uint32_t functionID, uint32_t newCode, uint32_t laye
 		return (ERR_SUCCESS);
 
 	//if error code too large, do nothing
-	if(layer0Code >= (1 << ERR_LAYER_NBBITS))
+	if(layer1Code >= (1 << ERR_LAYER_NBBITS))
 		return (ERR_SUCCESS);
 /*
 	//set the error level
@@ -146,8 +146,8 @@ errorCode_u errorCodeLayer0(uint32_t functionID, uint32_t newCode, uint32_t laye
 */
 	//update with the codes received
 	code.dword |= (functionID << ERR_FUNCTION_OFFSET);
-	code.dword |= (newCode << ERR_LAYER1_OFFSET);
-	code.dword |= (layer0Code << ERR_LAYER0_OFFSET);
+	code.dword |= (newCode << ERR_LAYER0_OFFSET);
+	code.dword |= (layer1Code << ERR_LAYER1_OFFSET);
 
 	return (code);
 }
