@@ -43,7 +43,7 @@ typedef enum _SSD1306functionCodes_e{
 }_SSD1306functionCodes_e;
 
 //SPI handle
-SPI_HandleTypeDef* SSD_SPIhandle = NULL;	///< SPI handle used with the SSD1306
+static SPI_HandleTypeDef* SSD_SPIhandle = NULL;	///< SPI handle used with the SSD1306
 
 //pre-configured values
 const uint8_t hardwareConfigInit = SSD_PIN_CONFIG_ALT | SSD_COM_REMAP_DISABLE;	///< Default hardware config value
@@ -53,7 +53,7 @@ const uint8_t clockInit = SSD_CLOCK_FREQ_MID | SSD_CLOCK_DIVIDER_1;				///< Defa
 const uint8_t chargePumpInit = SSD_ENABLE_CHG_PUMP;								///< Default charge pump value
 
 //state variables
-uint8_t screenBuffer[SSD1306_MAX_DATA_SIZE] = {0};	///< Buffer used to send data to the screen
+static uint8_t screenBuffer[SSD1306_MAX_DATA_SIZE] = {0};	///< Buffer used to send data to the screen
 
 //communication functions with the SSD1306
 static errorCode_u SSD1306sendCommand(SSD1306register_e regNumber, const uint8_t parameters[], uint8_t nbParameters);
