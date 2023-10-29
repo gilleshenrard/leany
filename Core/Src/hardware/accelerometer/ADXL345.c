@@ -145,15 +145,15 @@ errorCode_u ADXL345readRegister(adxl345Registers_e registerNumber, uint8_t* valu
 
 	//if handle not set, error
 	if(ADXL_spiHandle == NULL)
-		return (pushErrorCode(ERR_SUCCESS, READ_REGISTER, 1));
+		return (createErrorCode(READ_REGISTER, 1, ERR_CRITICAL));
 
 	//if register number above known, error
 	if(registerNumber > ADXL_NB_REGISTERS)
-		return (pushErrorCode(ERR_SUCCESS, READ_REGISTER, 2));
+		return (createErrorCode(READ_REGISTER, 2, ERR_WARNING));
 
 	//if register number between 0x01 and 0x1C included, error
 	if((uint8_t)(registerNumber - 1) < ADXL_HIGH_RESERVED_REG)
-		return (pushErrorCode(ERR_SUCCESS, READ_REGISTER, 3)); 	// @suppress("Avoid magic numbers")
+		return (createErrorCode(READ_REGISTER, 3, ERR_WARNING)); 	// @suppress("Avoid magic numbers")
 
 	ENABLE_SPI
 
@@ -161,13 +161,13 @@ errorCode_u ADXL345readRegister(adxl345Registers_e registerNumber, uint8_t* valu
 	HALresult = HAL_SPI_Transmit(ADXL_spiHandle, &instruction, 1, ADXL_SPI_TIMEOUT_MS);
 	if(HALresult != HAL_OK){
 		DISABLE_SPI
-		return (createErrorCode(READ_REGISTER, 4, HALresult, ERR_ERROR)); 	// @suppress("Avoid magic numbers")
+		return (createErrorCodeLayer1(READ_REGISTER, 4, HALresult, ERR_ERROR)); 	// @suppress("Avoid magic numbers")
 	}
 
 	//receive the reply
 	HALresult = HAL_SPI_Receive(ADXL_spiHandle, value, 1, ADXL_SPI_TIMEOUT_MS);
 	if(HALresult != HAL_OK)
-		return (createErrorCode(READ_REGISTER, 5, HALresult, ERR_ERROR)); 	// @suppress("Avoid magic numbers")
+		return (createErrorCodeLayer1(READ_REGISTER, 5, HALresult, ERR_ERROR)); 	// @suppress("Avoid magic numbers")
 
 	DISABLE_SPI
 
@@ -188,20 +188,20 @@ errorCode_u ADXL345readRegister(adxl345Registers_e registerNumber, uint8_t* valu
  */
 errorCode_u ADXL345writeRegister(adxl345Registers_e registerNumber, uint8_t value){
 	HAL_StatusTypeDef HALresult;
-	errorCode_u result = ERR_SUCCESS;
+	errorCode_u result;
 	uint8_t instruction = ADXL_WRITE | ADXL_SINGLE | registerNumber;
 
 	//if handle not set, error
 	if(ADXL_spiHandle == NULL)
-		return (pushErrorCode(ERR_SUCCESS, WRITE_REGISTER, 1));
+		return (createErrorCode(WRITE_REGISTER, 1, ERR_CRITICAL));
 
 	//if register number above known, error
 	if(registerNumber > ADXL_NB_REGISTERS)
-		return (pushErrorCode(ERR_SUCCESS, WRITE_REGISTER, 2));
+		return (createErrorCode(WRITE_REGISTER, 2, ERR_WARNING));
 
 	//if register number between 0x01 and 0x1C included, error
 	if((uint8_t)(registerNumber - 1) < ADXL_HIGH_RESERVED_REG)
-		return (pushErrorCode(ERR_SUCCESS, WRITE_REGISTER, 3)); 	// @suppress("Avoid magic numbers")
+		return (createErrorCode(WRITE_REGISTER, 3, ERR_WARNING)); 	// @suppress("Avoid magic numbers")
 
 	ENABLE_SPI
 
@@ -209,13 +209,13 @@ errorCode_u ADXL345writeRegister(adxl345Registers_e registerNumber, uint8_t valu
 	HALresult = HAL_SPI_Transmit(ADXL_spiHandle, &instruction, 1, ADXL_SPI_TIMEOUT_MS);
 	if(HALresult != HAL_OK){
 		DISABLE_SPI
-		return (createErrorCode(WRITE_REGISTER, 4, HALresult, ERR_ERROR)); 	// @suppress("Avoid magic numbers")
+		return (createErrorCodeLayer1(WRITE_REGISTER, 4, HALresult, ERR_ERROR)); 	// @suppress("Avoid magic numbers")
 	}
 
 	//receive the reply
 	HALresult = HAL_SPI_Transmit(ADXL_spiHandle, &value, 1, ADXL_SPI_TIMEOUT_MS);
 	if(HALresult != HAL_OK)
-		result = createErrorCode(WRITE_REGISTER, 5, HALresult, ERR_ERROR); 	// @suppress("Avoid magic numbers")
+		result = createErrorCodeLayer1(WRITE_REGISTER, 5, HALresult, ERR_ERROR); 	// @suppress("Avoid magic numbers")
 
 	DISABLE_SPI
 	return (result);
@@ -235,16 +235,16 @@ errorCode_u ADXL345writeRegister(adxl345Registers_e registerNumber, uint8_t valu
  */
 errorCode_u ADXL345readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint8_t size){
 	HAL_StatusTypeDef HALresult;
-	errorCode_u result = ERR_SUCCESS;
+	errorCode_u result;
 	uint8_t instruction = ADXL_READ | ADXL_MULTIPLE | firstRegister;
 
 	//if handle not set, error
 	if(ADXL_spiHandle == NULL)
-		return (pushErrorCode(ERR_SUCCESS, READ_REGISTERS, 1));
+		return (createErrorCode(READ_REGISTERS, 1, ERR_CRITICAL));
 
 	//if register numbers above known, error
 	if(firstRegister > ADXL_NB_REGISTERS)
-		return (pushErrorCode(ERR_SUCCESS, READ_REGISTERS, 2));
+		return (createErrorCode(READ_REGISTERS, 2, ERR_WARNING));
 
 	ENABLE_SPI
 
@@ -252,13 +252,13 @@ errorCode_u ADXL345readRegisters(adxl345Registers_e firstRegister, uint8_t* valu
 	HALresult = HAL_SPI_Transmit(ADXL_spiHandle, &instruction, 1, ADXL_SPI_TIMEOUT_MS);
 	if(HALresult != HAL_OK){
 		DISABLE_SPI
-		return (createErrorCode(READ_REGISTERS, 3, HALresult, ERR_ERROR)); 	// @suppress("Avoid magic numbers")
+		return (createErrorCodeLayer1(READ_REGISTERS, 3, HALresult, ERR_ERROR)); 	// @suppress("Avoid magic numbers")
 	}
 
 	//receive the reply
 	HALresult = HAL_SPI_Receive(ADXL_spiHandle, value, size, ADXL_SPI_TIMEOUT_MS);
 	if(HALresult != HAL_OK)
-		result = createErrorCode(READ_REGISTERS, 4, HALresult, ERR_ERROR); 	// @suppress("Avoid magic numbers")
+		result = createErrorCodeLayer1(READ_REGISTERS, 4, HALresult, ERR_ERROR); 	// @suppress("Avoid magic numbers")
 
 	DISABLE_SPI
 	return (result);
@@ -295,13 +295,13 @@ float ADXL345getYangleDegrees(){
  * @retval 2 Unable to read device ID or device ID invalid
  */
 errorCode_u stStartup(){
-	errorCode_u result = ERR_SUCCESS;
+	errorCode_u result;
 	uint8_t deviceID = 0;
 
 	//if no handle specified, go error
 	if(ADXL_spiHandle == NULL){
 		state = stError;
-		return (pushErrorCode(ERR_SUCCESS, STARTUP, 1));
+		return (createErrorCode(STARTUP, 1, ERR_CRITICAL));
 	}
 
 	//if invalid device ID read, go error
@@ -357,12 +357,12 @@ static errorCode_u stSelfTesting(){
  * @retval 2 Error occurred while reading the axis values registers
  */
 static errorCode_u stMeasuring(){
-	errorCode_u result = ERR_SUCCESS;
+	errorCode_u result;
 
 	//if timeout, go error
 	if(!adxlTimer_ms){
 		state = stError;
-		return (pushErrorCode(ERR_SUCCESS, MEASURE, 1));
+		return (createErrorCode(MEASURE, 1, ERR_ERROR));
 	}
 
 	//if watermark interrupt not fired, exit

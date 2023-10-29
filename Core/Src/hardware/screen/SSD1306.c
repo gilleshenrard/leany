@@ -143,11 +143,11 @@ errorCode_u SSD1306initialise(SPI_HandleTypeDef* handle){
  */
 errorCode_u SSD1306sendCommand(SSD1306register_e regNumber, const uint8_t parameters[], uint8_t nbParameters){
 	HAL_StatusTypeDef HALresult;
-	errorCode_u result = ERR_SUCCESS;
+	errorCode_u result;
 
 	//if too many parameters, error
 	if(nbParameters > SSD1306_MAX_PARAMETERS)
-		return(pushErrorCode(result, SEND_CMD, 1));
+		return(createErrorCode(SEND_CMD, 1, ERR_WARNING));
 
 	//set command pin and enable SPI
 	SSD1306_SET_COMMAND
@@ -157,14 +157,14 @@ errorCode_u SSD1306sendCommand(SSD1306register_e regNumber, const uint8_t parame
 	HALresult = HAL_SPI_Transmit(SSD_SPIhandle, &regNumber, 1, SSD1306_SPI_TIMEOUT_MS);
 	if(HALresult != HAL_OK){
 		SSD1306_DISABLE_SPI
-		return (createErrorCode(SEND_CMD, 2, HALresult, ERR_ERROR));
+		return (createErrorCodeLayer1(SEND_CMD, 2, HALresult, ERR_ERROR));
 	}
 
 	//if command send OK, send all parameters
 	if(parameters && nbParameters){
 		HALresult = HAL_SPI_Transmit(SSD_SPIhandle, (uint8_t*)parameters, nbParameters, SSD1306_SPI_TIMEOUT_MS);
 		if(HALresult != HAL_OK)
-			result = createErrorCode(SEND_CMD, 3, HALresult, ERR_ERROR); 		// @suppress("Avoid magic numbers")
+			result = createErrorCodeLayer1(SEND_CMD, 3, HALresult, ERR_ERROR); 		// @suppress("Avoid magic numbers")
 	}
 
 	//disable SPI and return status
@@ -182,7 +182,7 @@ errorCode_u SSD1306sendCommand(SSD1306register_e regNumber, const uint8_t parame
  * @retval 2 Error while sending data
  */
 errorCode_u SSD1306sendData(const uint8_t values[], uint16_t size){
-	errorCode_u result = ERR_SUCCESS;
+	errorCode_u result;
 	HAL_StatusTypeDef HALresult;
 
 	//if nothing to send, exit
@@ -191,7 +191,7 @@ errorCode_u SSD1306sendData(const uint8_t values[], uint16_t size){
 
 	//if more bytes than sectors in the GDDRAM, error
 	if(size > SSD1306_MAX_DATA_SIZE)
-		return(pushErrorCode(result, SEND_DATA, 1));
+		return(createErrorCode(SEND_DATA, 1, ERR_WARNING));
 
 	//set command pin and enable SPI
 	SSD1306_SET_DATA
@@ -200,7 +200,7 @@ errorCode_u SSD1306sendData(const uint8_t values[], uint16_t size){
 	//transmit the buffer all at once
 	HALresult = HAL_SPI_Transmit(SSD_SPIhandle, (uint8_t*)values, size, SSD1306_SPI_TIMEOUT_MS);
 	if(HALresult != HAL_OK)
-		result = createErrorCode(SEND_DATA, 2, HALresult, ERR_ERROR);
+		result = createErrorCodeLayer1(SEND_DATA, 2, HALresult, ERR_ERROR);
 
 	//disable SPI and return status
 	SSD1306_DISABLE_SPI
@@ -257,11 +257,11 @@ errorCode_u SSD1306_printAngle(float angle, uint8_t page, uint8_t column){
 	const uint8_t limitColumns[2] = {column, column + (VERDANA_CHAR_WIDTH * 6) - 1};
 	const uint8_t limitPages[2] = {page, page + 1};
 	uint8_t* iterator = screenBuffer;
-	errorCode_u result = ERR_SUCCESS;
+	errorCode_u result;
 
 	//if angle out of bounds, return error
 	if((angle < SSD1306_MIN_ANGLE_DEG) || (angle > SSD1306_MAX_ANGLE_DEG))
-		return (pushErrorCode(ERR_SUCCESS, PRT_ANGLE, 1));
+		return (createErrorCode(PRT_ANGLE, 1, ERR_WARNING));
 
 	//if angle negative, replace plus sign with minus sign
 	if(angle < SSD1306_NEG_THRESHOLD){

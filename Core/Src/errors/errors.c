@@ -64,6 +64,40 @@
 const errorCode_u ERR_SUCCESS = { .dword = SUCCESS_VALUE };	///< Variable used as a success code
 
 /**
+ * @brief Create a code with a layer 0
+ *
+ * @param functionID Function ID to replace with
+ * @param newCode Return code to set at layer 0
+ * @param level Error level
+ * @return New code
+ */
+errorCode_u createErrorCode(uint32_t functionID, uint32_t newCode, errorLevel_e level){
+	errorCode_u code = ERR_SUCCESS;
+
+	//if code means success, return success
+	if(newCode == SUCCESS_VALUE)
+		return (ERR_SUCCESS);
+
+	//if function ID too large, do nothing
+	if(functionID >= (1 << ERR_ID_NBBITS))
+		return (ERR_SUCCESS);
+
+	//if error code too large, do nothing
+	if(newCode >= (1 << ERR_LAYER_NBBITS))
+		return (ERR_SUCCESS);
+
+	//set the error level
+	code.dword &= ERR_LEVEL_MASK;
+	code.dword |= (level << ERR_LEVEL_OFFSET);
+
+	//update with the codes received
+	code.dword |= (functionID << ERR_FUNCTION_OFFSET);
+	code.dword |= (newCode << ERR_LAYER0_OFFSET);
+
+	return (code);
+}
+
+/**
  * @brief Create a code with a layer 0 and a layer 1
  * @note The layer 1 code can be an external library error code (such as HAL's HAL_ERROR)
  *
@@ -73,7 +107,7 @@ const errorCode_u ERR_SUCCESS = { .dword = SUCCESS_VALUE };	///< Variable used a
  * @param level Error level
  * @return New code
  */
-errorCode_u createErrorCode(uint32_t functionID, uint32_t newCode, uint32_t layer1Code, errorLevel_e level){
+errorCode_u createErrorCodeLayer1(uint32_t functionID, uint32_t newCode, uint32_t layer1Code, errorLevel_e level){
 	errorCode_u code = ERR_SUCCESS;
 
 	//if code means success, return success
