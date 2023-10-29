@@ -64,56 +64,8 @@
 const errorCode_u ERR_SUCCESS = { .dword = SUCCESS_VALUE };	///< Variable used as a success code
 
 /**
- * @brief Update an error code from a lower layer function
- *
- * @param received Error code to update
- * @param functionID Function ID to replace with
- * @param newCode Return code to push in the stack
- * @param level Error level
- * @return Formatted code
- */
-errorCode_u pushErrorCode(errorCode_u received, uint32_t functionID, uint32_t newCode/*, errorLevel_e level*/){
-	uint32_t code;
-
-	//if code means success, return success
-	if(newCode == SUCCESS_VALUE)
-		return (ERR_SUCCESS);
-
-	//if function ID too large, do nothing
-	if(functionID >= (1 << ERR_ID_NBBITS))
-		return (received);
-
-	//if error code too large, do nothing
-	if(newCode >= (1 << ERR_LAYER_NBBITS))
-		return (received);
-/*
-	//if no level set yet, update it
-	if(!(received.dword && ~ERR_LEVEL_MASK)){
-		received.dword &= ERR_LEVEL_MASK;
-		received.dword |= (level << ERR_LEVEL_OFFSET);
-	}
-*/
-	//erase and replace the function ID
-	received.dword &= ERR_FUNCTION_MASK;
-	received.dword |= (functionID << ERR_FUNCTION_OFFSET);
-
-	//isolate the codes stack, shift it and push a new code
-	//	(code already in layer 3 is lost)
-	code = (received.dword & ERR_IDS_MASK);
-	code >>= ERR_LAYER_NBBITS;
-	code |= (newCode << ERR_LAYER0_OFFSET);
-
-	//erase the codes stack and replace it
-	received.dword &= ERR_STACK_MASK;
-	received.dword |= code;
-
-	//return the final code
-	return (received);
-}
-
-/**
  * @brief Create a code with a layer 0 and a layer 1
- * @note This is to be used when receiving a code from a lower level library (such as HAL)
+ * @note The layer 1 code can be an external library error code (such as HAL's HAL_ERROR)
  *
  * @param functionID Function ID to replace with
  * @param newCode Return code to set at layer 0
@@ -121,7 +73,7 @@ errorCode_u pushErrorCode(errorCode_u received, uint32_t functionID, uint32_t ne
  * @param level Error level
  * @return New code
  */
-errorCode_u createErrorCode(uint32_t functionID, uint32_t newCode, uint32_t layer1Code/*, errorLevel_e level*/){
+errorCode_u createErrorCode(uint32_t functionID, uint32_t newCode, uint32_t layer1Code, errorLevel_e level){
 	errorCode_u code = ERR_SUCCESS;
 
 	//if code means success, return success
@@ -139,15 +91,56 @@ errorCode_u createErrorCode(uint32_t functionID, uint32_t newCode, uint32_t laye
 	//if error code too large, do nothing
 	if(layer1Code >= (1 << ERR_LAYER_NBBITS))
 		return (ERR_SUCCESS);
-/*
+
 	//set the error level
 	code.dword &= ERR_LEVEL_MASK;
 	code.dword |= (level << ERR_LEVEL_OFFSET);
-*/
+
 	//update with the codes received
 	code.dword |= (functionID << ERR_FUNCTION_OFFSET);
 	code.dword |= (newCode << ERR_LAYER0_OFFSET);
 	code.dword |= (layer1Code << ERR_LAYER1_OFFSET);
 
 	return (code);
+}
+
+/**
+ * @brief Push a new layer upon an error code
+ *
+ * @param received Error code to update
+ * @param functionID Function ID to replace with
+ * @param newCode Return code to push in the stack
+ * @return Formatted code
+ */
+errorCode_u pushErrorCode(errorCode_u received, uint32_t functionID, uint32_t newCode){
+	uint32_t code;
+
+	//if code means success, return success
+	if(newCode == SUCCESS_VALUE)
+		return (ERR_SUCCESS);
+
+	//if function ID too large, do nothing
+	if(functionID >= (1 << ERR_ID_NBBITS))
+		return (received);
+
+	//if error code too large, do nothing
+	if(newCode >= (1 << ERR_LAYER_NBBITS))
+		return (received);
+
+	//erase and replace the function ID
+	received.dword &= ERR_FUNCTION_MASK;
+	received.dword |= (functionID << ERR_FUNCTION_OFFSET);
+
+	//isolate the codes stack, shift it and push a new code
+	//	(code already in layer 3 is lost)
+	code = (received.dword & ERR_IDS_MASK);
+	code >>= ERR_LAYER_NBBITS;
+	code |= (newCode << ERR_LAYER0_OFFSET);
+
+	//erase the codes stack and replace it
+	received.dword &= ERR_STACK_MASK;
+	received.dword |= code;
+
+	//return the final code
+	return (received);
 }
