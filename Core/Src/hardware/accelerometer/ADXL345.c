@@ -85,7 +85,6 @@ static adxlState			state = stStartup;				///< State machine current state
 volatile uint8_t			adxlINT1occurred = 0;			///< Flag used to indicate the ADXL triggered an interrupt
 volatile uint16_t			adxlTimer_ms = 0;				///< Timer used in various states of the ADXL (in ms)
 static uint8_t				adxlMeasurementsUpdated = 0;	///< Flag used to indicate new integrated measurements are ready within the ADXL345
-static uint8_t				buffer[ADXL_NB_DATA_REGISTERS];	///< Buffer used to pop 1 measurement from each ADXL FIFO
 static int16_t				finalX;							///< X value obtained after integration
 static int16_t				finalY;							///< Y value obtained after integration
 static int16_t				finalZ;							///< Z value obtained after integration
@@ -363,6 +362,7 @@ static errorCode_u stSelfTesting(){
  * @retval 2 Error occurred while reading the axis values registers
  */
 static errorCode_u stMeasuring(){
+	static uint8_t buffer[ADXL_NB_DATA_REGISTERS];	//buffer available only within the function, and maintains its values
 	errorCode_u result;
 
 	//if timeout, go error
