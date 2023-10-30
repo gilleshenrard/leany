@@ -80,10 +80,12 @@ static const uint8_t initialisationArray[ADXL_NB_REG_INIT][2] = {
 };
 
 //global variables
-static SPI_HandleTypeDef*	ADXL_spiHandle = NULL;			///< SPI handle used with the ADXL345
-static adxlState			state = stStartup;				///< State machine current state
 volatile uint8_t			adxlINT1occurred = 0;			///< Flag used to indicate the ADXL triggered an interrupt
 volatile uint16_t			adxlTimer_ms = 0;				///< Timer used in various states of the ADXL (in ms)
+
+//state variables
+static SPI_HandleTypeDef*	ADXL_spiHandle = NULL;			///< SPI handle used with the ADXL345
+static adxlState			state = stStartup;				///< State machine current state
 static uint8_t				adxlMeasurementsUpdated = 0;	///< Flag used to indicate new integrated measurements are ready within the ADXL345
 static int16_t				finalX = 0;						///< X value obtained after integration
 static int16_t				finalY = 0;						///< Y value obtained after integration
