@@ -2,7 +2,7 @@
  * @file SSD1306.c
  * @brief Implement the functioning of the SSD1306 OLED screen via SPI and DMA
  * @author Gilles Henrard
- * @date 29/10/2023
+ * @date 30/10/2023
  *
  * @note Datasheet : https://cdn-shop.adafruit.com/datasheets/SSD1306.pdf
  */
@@ -46,11 +46,11 @@ typedef enum _SSD1306functionCodes_e{
 static SPI_HandleTypeDef* SSD_SPIhandle = NULL;	///< SPI handle used with the SSD1306
 
 //pre-configured values
-const uint8_t hardwareConfigInit = SSD_PIN_CONFIG_ALT | SSD_COM_REMAP_DISABLE;	///< Default hardware config value
-const uint8_t addressingModeInit = SSD_HORIZONTAL_ADDR;							///< Default addressing mode value
-const uint8_t contrastInit = SSD_CONTRAST_HIGHEST;								///< Default contrast value
-const uint8_t clockInit = SSD_CLOCK_FREQ_MID | SSD_CLOCK_DIVIDER_1;				///< Default clock initialisation value
-const uint8_t chargePumpInit = SSD_ENABLE_CHG_PUMP;								///< Default charge pump value
+static const uint8_t hardwareConfigInit = SSD_PIN_CONFIG_ALT | SSD_COM_REMAP_DISABLE;	///< Default hardware config value
+static const uint8_t addressingModeInit = SSD_HORIZONTAL_ADDR;							///< Default addressing mode value
+static const uint8_t contrastInit = SSD_CONTRAST_HIGHEST;								///< Default contrast value
+static const uint8_t clockInit = SSD_CLOCK_FREQ_MID | SSD_CLOCK_DIVIDER_1;				///< Default clock initialisation value
+static const uint8_t chargePumpInit = SSD_ENABLE_CHG_PUMP;								///< Default charge pump value
 
 //state variables
 static uint8_t screenBuffer[SSD1306_MAX_DATA_SIZE] = {0};	///< Buffer used to send data to the screen
