@@ -1,7 +1,7 @@
 /**
  * @brief Implement the ADXL345 accelerometer communication
  * @author Gilles Henrard
- * @date 30/10/2023
+ * @date 31/10/2023
  *
  * @note Additional information can be found in :
  *   - ADXL345 datasheet : https://www.analog.com/media/en/technical-documentation/data-sheets/ADXL345.pdf
@@ -364,7 +364,7 @@ static errorCode_u stSelfTesting(){
  * @retval 2 Error occurred while reading the axis values registers
  */
 static errorCode_u stMeasuring(){
-	static uint8_t buffer[ADXL_NB_DATA_REGISTERS];	//buffer available only within the function, and maintains its values
+	static uint8_t buffer[ADXL_NB_DATA_REGISTERS];	//declared as static to avoid re-declaring every turn
 	errorCode_u result;
 
 	//if timeout, go error
