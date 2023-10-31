@@ -101,6 +101,9 @@ int main(void)
   /* USER CODE BEGIN 2 */
   ADXL345initialise(&hspi1);
   SSD1306initialise(&hspi2);
+
+  SSD1306_printAngle(0.0f, SSD1306_LINE1_PAGE, SSD1306_LINE1_COLUMN);
+  SSD1306_printAngle(0.0f, SSD1306_LINE2_PAGE, SSD1306_LINE2_COLUMN);
   /* USER CODE END 2 */
 
   /* Infinite loop */
