@@ -68,7 +68,6 @@ static errorCode_u stMeasuring();
 static errorCode_u stError();
 
 //manipulation functions
-static errorCode_u ADXL345readRegister(adxl345Registers_e registerNumber, uint8_t* value);
 static errorCode_u ADXL345writeRegister(adxl345Registers_e registerNumber, uint8_t value);
 static errorCode_u ADXL345readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint8_t size);
 
@@ -137,53 +136,6 @@ uint8_t ADXL345hasNewMeasurements(){
 	adxlMeasurementsUpdated = 0;
 
 	return (tmp);
-}
-
-/**
- * @brief Read a single register on the ADXL345
- *
- * @param registerNumber Register number
- * @param[out] value Register value
- * @retval 0 Success
- * @retval 1 No SPI handle set
- * @retval 2 Register number out of range
- * @retval 3 Attempted to access a reserved register
- * @retval 4 Error while writing the command
- * @retval 5 Error while reading the value
- */
-errorCode_u ADXL345readRegister(adxl345Registers_e registerNumber, uint8_t* value){
-	HAL_StatusTypeDef HALresult;
-	uint8_t instruction = ADXL_READ | ADXL_SINGLE | registerNumber;
-
-	//if handle not set, error
-	if(ADXL_spiHandle == NULL)
-		return (createErrorCode(READ_REGISTER, 1, ERR_CRITICAL));
-
-	//if register number above known, error
-	if(registerNumber > ADXL_NB_REGISTERS)
-		return (createErrorCode(READ_REGISTER, 2, ERR_WARNING));
-
-	//if register number between 0x01 and 0x1C included, error
-	if((uint8_t)(registerNumber - 1) < ADXL_HIGH_RESERVED_REG)
-		return (createErrorCode(READ_REGISTER, 3, ERR_WARNING)); 	// @suppress("Avoid magic numbers")
-
-	ENABLE_SPI
-
-	//transmit the read instruction
-	HALresult = HAL_SPI_Transmit(ADXL_spiHandle, &instruction, 1, ADXL_SPI_TIMEOUT_MS);
-	if(HALresult != HAL_OK){
-		DISABLE_SPI
-		return (createErrorCodeLayer1(READ_REGISTER, 4, HALresult, ERR_ERROR)); 	// @suppress("Avoid magic numbers")
-	}
-
-	//receive the reply
-	HALresult = HAL_SPI_Receive(ADXL_spiHandle, value, 1, ADXL_SPI_TIMEOUT_MS);
-	if(HALresult != HAL_OK)
-		return (createErrorCodeLayer1(READ_REGISTER, 5, HALresult, ERR_ERROR)); 	// @suppress("Avoid magic numbers")
-
-	DISABLE_SPI
-
-	return (ERR_SUCCESS);
 }
 
 /**
@@ -338,7 +290,7 @@ errorCode_u stStartup(){
 	}
 
 	//if unable to read device ID, go error
-	result = ADXL345readRegister(DEVICE_ID, &deviceID);
+	result = ADXL345readRegisters(DEVICE_ID, &deviceID, 1);
 	if(IS_ERROR(result)){
 		state = stError;
 		return (pushErrorCode(result, STARTUP, 2));
