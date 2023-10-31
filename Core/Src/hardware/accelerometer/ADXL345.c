@@ -45,7 +45,8 @@
 typedef enum _ADXLfunctionCodes_e{
 	INIT = 0,      		///< ADXL345initialise()
 	SELF_TESTING_OFF,	///< stSelfTestingOFF()
-	SELF_TEST_WAIT,		///< stWaitingForSTchange()
+	SELF_TEST_ENABLE,	///< stEnablingST()
+	SELF_TEST_WAIT,		///< stWaitingForSTenabled()
 	SELF_TESTING_ON,	///< stSelfTestingON()
 	MEASURE,        	///< stMeasuring()
 	CHK_MEASURES,  		///< ADXL345hasNewMeasurements()
@@ -53,6 +54,7 @@ typedef enum _ADXLfunctionCodes_e{
 	READ_REGISTERS,		///< ADXL345readRegisters()
 	GET_X_ANGLE,		///< ADXL345getXangleDegrees()
 	GET_Y_ANGLE,		///< ADXL345getYangleDegrees()
+	INTEGRATE,			///< integrateFIFO()
 	STARTUP				///< stStartup()
 }ADXLfunctionCodes_e;
 
@@ -93,7 +95,7 @@ static const uint8_t initialisationArray[ADXL_NB_REG_INIT][2] = {
 	{POWER_CONTROL,			ADXL_MEASURE_MODE},
 };
 
-static const uint8_t dataFormatDefault = ADXL_NO_SELF_TEST | ADXL_SPI_4WIRE | ADXL_INT_ACTIV_LOW | ADXL_RANGE_16G;
+static const uint8_t dataFormatDefault = ADXL_NO_SELF_TEST | ADXL_SPI_4WIRE | ADXL_INT_ACTIV_LOW | ADXL_RANGE_16G;	///< Default data format (register 0x31) value
 
 //global variables
 volatile uint8_t			adxlINT1occurred = 0;			///< Flag used to indicate the ADXL triggered an interrupt
@@ -109,6 +111,7 @@ static int16_t				finalZ = 0;						///< Z value obtained after integration
 static int16_t				finalXSTon = 0;					///< X value obtained after integration
 static int16_t				finalYSTon = 0;					///< Y value obtained after integration
 static int16_t				finalZSTon = 0;					///< Z value obtained after integration
+static errorCode_u 			result;
 
 
 /********************************************************************************************************************************************/
@@ -162,7 +165,7 @@ uint8_t ADXL345hasNewMeasurements(){
  */
 errorCode_u ADXL345writeRegister(adxl345Registers_e registerNumber, uint8_t value){
 	HAL_StatusTypeDef HALresult;
-	errorCode_u result = ERR_SUCCESS;
+	errorCode_u ret = ERR_SUCCESS;
 	uint8_t instruction = ADXL_WRITE | ADXL_SINGLE | registerNumber;
 
 	//if handle not set, error
@@ -189,10 +192,10 @@ errorCode_u ADXL345writeRegister(adxl345Registers_e registerNumber, uint8_t valu
 	//receive the reply
 	HALresult = HAL_SPI_Transmit(ADXL_spiHandle, &value, 1, ADXL_SPI_TIMEOUT_MS);
 	if(HALresult != HAL_OK)
-		result = createErrorCodeLayer1(WRITE_REGISTER, 5, HALresult, ERR_ERROR); 	// @suppress("Avoid magic numbers")
+		ret = createErrorCodeLayer1(WRITE_REGISTER, 5, HALresult, ERR_ERROR); 	// @suppress("Avoid magic numbers")
 
 	DISABLE_SPI
-	return (result);
+	return (ret);
 }
 
 /**
@@ -209,7 +212,7 @@ errorCode_u ADXL345writeRegister(adxl345Registers_e registerNumber, uint8_t valu
  */
 errorCode_u ADXL345readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint8_t size){
 	HAL_StatusTypeDef HALresult;
-	errorCode_u result = ERR_SUCCESS;
+	errorCode_u ret = ERR_SUCCESS;
 	uint8_t instruction = ADXL_READ | ADXL_MULTIPLE | firstRegister;
 
 	//if handle not set, error
@@ -232,10 +235,10 @@ errorCode_u ADXL345readRegisters(adxl345Registers_e firstRegister, uint8_t* valu
 	//receive the reply
 	HALresult = HAL_SPI_Receive(ADXL_spiHandle, value, size, ADXL_SPI_TIMEOUT_MS);
 	if(HALresult != HAL_OK)
-		result = createErrorCodeLayer1(READ_REGISTERS, 4, HALresult, ERR_ERROR); 	// @suppress("Avoid magic numbers")
+		ret = createErrorCodeLayer1(READ_REGISTERS, 4, HALresult, ERR_ERROR); 	// @suppress("Avoid magic numbers")
 
 	DISABLE_SPI
-	return (result);
+	return (ret);
 }
 
 /**
@@ -267,9 +270,17 @@ float atanDegrees(int16_t direction, int16_t axisZ){
 	return ((atanf((float)direction / (float)axisZ) * ADXL_180_DEG) / (float)M_PI);
 }
 
+/**
+ * @brief Retrieve and average the values held in the ADXL FIFOs
+ *
+ * @param[out] xValue Integrated X axis value
+ * @param[out] yValue Integrated Y axis value
+ * @param[out] zValue Integrated Z axis value
+ * @retval 0 Success
+ * @retval 1 Error while retrieving values from the FIFO
+ */
 errorCode_u integrateFIFO(int16_t* xValue, int16_t* yValue, int16_t* zValue){
 	static uint8_t buffer[ADXL_NB_DATA_REGISTERS];
-	errorCode_u result;
 
 	*xValue = *yValue = *zValue = 0;
 
@@ -279,7 +290,7 @@ errorCode_u integrateFIFO(int16_t* xValue, int16_t* yValue, int16_t* zValue){
 		result = ADXL345readRegisters(DATA_X0, buffer, ADXL_NB_DATA_REGISTERS);
 		if(IS_ERROR(result)){
 			state = stError;
-			return (pushErrorCode(result, MEASURE, 2));
+			return (pushErrorCode(result, INTEGRATE, 1));
 		}
 
 		//add the measurements (formatted from a two's complement) to their final value buffer
@@ -310,7 +321,6 @@ errorCode_u integrateFIFO(int16_t* xValue, int16_t* yValue, int16_t* zValue){
  * @retval 3 Device ID invalid
  */
 errorCode_u stStartup(){
-	errorCode_u result;
 	uint8_t deviceID = 0;
 
 	//if no handle specified, go error
@@ -341,8 +351,7 @@ errorCode_u stStartup(){
  * @retval 1 Error while writing a register
  */
 errorCode_u stConfiguring(){
-	errorCode_u result;
-
+	//write the default data format
 	result = ADXL345writeRegister(DATA_FORMAT, dataFormatDefault);
 	if(IS_ERROR(result)){
 		state = stError;
@@ -358,20 +367,21 @@ errorCode_u stConfiguring(){
 		}
 	}
 
+	//reset the timer and get to next state
 	adxlTimer_ms = ADXL_INT_TIMEOUT_MS;
 	state = stSelfTestingOFF;
 	return (result);
 }
 
 /**
- * @brief State in which the ADXL goes into self-testing mode
- * @note p. 22 of the datasheet
+ * @brief State in which the ADXL does some measurements with self-test OFF
+ * @note p. 22, 31 and 32 of the datasheet
  *
- * @return Success
+ * @retval 0 Success
+ * @retval 1 Timeout while waiting for measurements
+ * @retval 2 Error while integrating the FIFOs
  */
 static errorCode_u stSelfTestingOFF(){
-	errorCode_u result;
-
 	//if timeout, go error
 	if(!adxlTimer_ms){
 		state = stError;
@@ -382,42 +392,57 @@ static errorCode_u stSelfTestingOFF(){
 	if(!adxlINT1occurred)
 		return (ERR_SUCCESS);
 
+	//retrieve the integrated measurements
 	result = integrateFIFO(&finalX, &finalY, &finalZ);
 	if(IS_ERROR(result)){
 		state = stError;
 		return (pushErrorCode(result, SELF_TESTING_OFF, 2));
 	}
 
+	//get to next state
 	state = stEnablingST;
 	return (ERR_SUCCESS);
 }
 
+/**
+ * @brief State in which the self-test mode is enabled
+ *
+ * @return 0 Success
+ * @return 1 Error while enabling self-test
+ * @return 2 Error while clearing the FIFO
+ */
 static errorCode_u stEnablingST(){
-	errorCode_u result;
-
+	//Enable the self-test
 	result = ADXL345writeRegister(DATA_FORMAT, dataFormatDefault | ADXL_SELF_TEST);
 	if(IS_ERROR(result)){
 		state = stError;
-		return (pushErrorCode(result, SELF_TESTING_OFF, 3)); 	// @suppress("Avoid magic numbers")
+		return (pushErrorCode(result, SELF_TEST_ENABLE, 1)); 	// @suppress("Avoid magic numbers")
 	}
 
+	//clear the FIFOs
 	result = ADXL345writeRegister(FIFO_CONTROL, ADXL_MODE_BYPASS);
 	if(IS_ERROR(result)){
 		state = stError;
-		return (pushErrorCode(result, SELF_TESTING_OFF, 4)); 	// @suppress("Avoid magic numbers")
+		return (pushErrorCode(result, SELF_TEST_ENABLE, 2)); 	// @suppress("Avoid magic numbers")
 	}
 
+	//reset timer and get to next state
 	adxlTimer_ms = ADXL_ST_WAIT_MS;
 	state = stWaitingForSTenabled;
 	return (ERR_SUCCESS);
 }
 
+/**
+ * @brief State in which the ADXL waits for a while before restarting measurements
+ *
+ * @return 0 Success
+ * @return 1 Error while re-enabling FIFOs
+ */
 static errorCode_u stWaitingForSTenabled(){
-	errorCode_u result;
-
 	if(!adxlTimer_ms)
 		return (ERR_SUCCESS);
 
+	//enable FIFOs
 	adxlINT1occurred = 0;
 	result = ADXL345writeRegister(FIFO_CONTROL, ADXL_MODE_FIFO | ADXL_TRIGGER_INT1 | (ADXL_AVG_SAMPLES - 1));
 	if(IS_ERROR(result)){
@@ -425,20 +450,22 @@ static errorCode_u stWaitingForSTenabled(){
 		return (pushErrorCode(result, SELF_TEST_WAIT, 1)); 	// @suppress("Avoid magic numbers")
 	}
 
+	//reset timer and get to next state
 	adxlTimer_ms = ADXL_INT_TIMEOUT_MS;
 	state = stSelfTestingON;
 	return (ERR_SUCCESS);
 }
 
 /**
- * @brief State in which the ADXL goes into self-testing mode
- * @note p. 22 of the datasheet
+ * @brief State in which the ADXL measures while in self-test mode
  *
- * @return Success
+ * @retval 0 Success
+ * @retval 1 Timeout while waiting for measurements
+ * @retval 2 Error while integrating the FIFOs
+ * @retval 3 Error while resetting the data format
+ * @retval 4 Self-test values out of range
  */
 static errorCode_u stSelfTestingON(){
-	errorCode_u result;
-
 	//if timeout, go error
 	if(!adxlTimer_ms){
 		state = stError;
@@ -449,24 +476,27 @@ static errorCode_u stSelfTestingON(){
 	if(!adxlINT1occurred)
 		return (ERR_SUCCESS);
 
+	//integrate the FIFOs
 	adxlINT1occurred = 0;
-
 	result = integrateFIFO(&finalXSTon, &finalYSTon, &finalZSTon);
 	if(IS_ERROR(result)){
 		state = stError;
 		return (pushErrorCode(result, SELF_TESTING_ON, 2));
 	}
 
+	//restore the default data format
 	result = ADXL345writeRegister(DATA_FORMAT, dataFormatDefault);
 	if(IS_ERROR(result)){
 		state = stError;
 		return (pushErrorCode(result, SELF_TESTING_ON, 3)); 	// @suppress("Avoid magic numbers")
 	}
 
+	//compute the self-test deltas
 	finalXSTon -= finalX;
 	finalYSTon -= finalY;
 	finalZSTon -= finalZ;
 
+	//if self-test values out of range, error
 	if((finalXSTon <= ADXL_ST_MINX_33_16G) || (finalXSTon >= ADXL_ST_MAXX_33_16G)
 		|| (finalYSTon <= ADXL_ST_MINY_33_16G) || (finalYSTon >= ADXL_ST_MAXY_33_16G)
 		|| (finalZSTon <= ADXL_ST_MINZ_33_16G) || (finalZSTon >= ADXL_ST_MAXZ_33_16G))
@@ -475,6 +505,7 @@ static errorCode_u stSelfTestingON(){
 		return (pushErrorCode(result, SELF_TESTING_ON, 4)); 	// @suppress("Avoid magic numbers")
 	}
 
+	//reset timer and get to next state
 	adxlTimer_ms = ADXL_INT_TIMEOUT_MS;
 	state = stMeasuring;
 	return (ERR_SUCCESS);
@@ -485,11 +516,9 @@ static errorCode_u stSelfTestingON(){
  *
  * @retval 0 Success
  * @retval 1 Timeout occurred while waiting for watermark interrupt
- * @retval 2 Error occurred while reading the axis values registers
+ * @retval 2 Error occurred while integrating the FIFOs
  */
 static errorCode_u stMeasuring(){
-	errorCode_u result;
-
 	//if timeout, go error
 	if(!adxlTimer_ms){
 		state = stError;
@@ -500,9 +529,11 @@ static errorCode_u stMeasuring(){
 	if(!adxlINT1occurred)
 		return (ERR_SUCCESS);
 
+	//reset flags
 	adxlTimer_ms = ADXL_INT_TIMEOUT_MS;
 	adxlINT1occurred = 0;
 
+	//integrate the FIFOs
 	result = integrateFIFO(&finalX, &finalY, &finalZ);
 	if(IS_ERROR(result)){
 		state = stError;
