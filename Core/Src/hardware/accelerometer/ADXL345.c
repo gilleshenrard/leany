@@ -24,12 +24,18 @@
 #define ADXL_Z_INDEX_MSB	5U		///< Index of the Z MSB in the measurements
 #define ADXL_Z_INDEX_LSB	4U		///< Index of the Z LSB in the measurements
 #define ADXL_NB_REG_INIT	6U		///< Number of registers configured at initialisation
+#define ADXL_180_DEG		180.0f	///< Value representing a flat angle
+
+//integration sampling
+#define ADXL_AVG_NB			ADXL_SAMPLES_16
+#define ADXL_AVG_SHIFT		4U
+#if (ADXL_AVG_NB >> ADXL_AVG_SHIFT) != 1
+#error TADXL_AVG_SHIFT does not divide all the samples configured with ADXL_AVG_NB
+#endif
 
 //macros
 #define ENABLE_SPI		HAL_GPIO_WritePin(ADXL_CS_GPIO_Port, ADXL_CS_Pin, GPIO_PIN_RESET);	///< Macro used to enable the SPI communication towards the accelerometer
 #define DISABLE_SPI		HAL_GPIO_WritePin(ADXL_CS_GPIO_Port, ADXL_CS_Pin, GPIO_PIN_SET);	///< Macro used to disable the SPI communication towards the accelerometer
-#define DIVIDE_16(val)	val >>= 4;															///< Macro used to divide a number by 16 and store it
-#define RAD_TO_DEG(val)	(val * 180.0f) / (float)M_PI										///< Macro used to transform angles from radians to degrees
 
 //type definitions
 /**
@@ -66,6 +72,10 @@ static errorCode_u ADXL345readRegister(adxl345Registers_e registerNumber, uint8_
 static errorCode_u ADXL345writeRegister(adxl345Registers_e registerNumber, uint8_t value);
 static errorCode_u ADXL345readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint8_t size);
 
+//tool functions
+static inline void divideBy16(int16_t* sum);
+static inline float atanDegrees(int16_t direction, int16_t axisZ);
+
 /**
  * @brief Array of all the registers/values to write at initialisation
  * @note Two values are written in FIFO_CONTROL to clear the FIFO at startup
@@ -74,7 +84,7 @@ static const uint8_t initialisationArray[ADXL_NB_REG_INIT][2] = {
 	{BANDWIDTH_POWERMODE,	ADXL_POWER_NORMAL | ADXL_RATE_100HZ},
 	{DATA_FORMAT,			ADXL_SPI_4WIRE | ADXL_INT_ACTIV_LOW | ADXL_RANGE_2G},
 	{FIFO_CONTROL,			ADXL_MODE_BYPASS},
-	{FIFO_CONTROL,			ADXL_MODE_FIFO | ADXL_TRIGGER_INT1 | ADXL_SAMPLES_16},
+	{FIFO_CONTROL,			ADXL_MODE_FIFO | ADXL_TRIGGER_INT1 | ADXL_AVG_NB},
 	{INTERRUPT_ENABLE,		ADXL_INT_WATERMARK},
 	{POWER_CONTROL,			ADXL_MEASURE_MODE},
 };
@@ -272,7 +282,7 @@ errorCode_u ADXL345readRegisters(adxl345Registers_e firstRegister, uint8_t* valu
  * @return Angle in degrees
  */
 float ADXL345getXangleDegrees(){
-	return (RAD_TO_DEG(atanf((float)finalX / (float)finalZ)));
+	return (atanDegrees(finalX, finalZ));
 }
 
 /**
@@ -281,7 +291,27 @@ float ADXL345getXangleDegrees(){
  * @return Angle in degrees
  */
 float ADXL345getYangleDegrees(){
-	return (RAD_TO_DEG(atanf((float)finalY / (float)finalZ)));
+	return (atanDegrees(finalY, finalZ));
+}
+
+/**
+ * @brief Divide a sum of values to compute an average
+ *
+ * @param[out} value Value to divide
+ */
+void divideBy16(int16_t* sum){
+	*sum >>= ADXL_AVG_SHIFT;
+}
+
+/**
+ * @brief Compute the angle (in degrees) between any axis and the Z axis
+ *
+ * @param direction Value (in G) of an axis
+ * @param axisZ Value (in G) of the Z axis
+ * @return Angle between direction and the Z axis
+ */
+float atanDegrees(int16_t direction, int16_t axisZ){
+	return ((atanf((float)direction / (float)axisZ) * ADXL_180_DEG) / (float)M_PI);
 }
 
 
@@ -397,9 +427,9 @@ static errorCode_u stMeasuring(){
 	}
 
 	//divide the buffers by 16
-	DIVIDE_16(finalX);
-	DIVIDE_16(finalY);
-	DIVIDE_16(finalZ);
+	divideBy16(&finalX);
+	divideBy16(&finalY);
+	divideBy16(&finalZ);
 
 	adxlMeasurementsUpdated = 1;
 	return (ERR_SUCCESS);
