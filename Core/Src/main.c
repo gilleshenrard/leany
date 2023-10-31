@@ -46,7 +46,7 @@ SPI_HandleTypeDef hspi2;
 DMA_HandleTypeDef hdma_spi2_tx;
 
 /* USER CODE BEGIN PV */
-
+errorCode_u result;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -75,7 +75,6 @@ int main(void)
 	float newXaxis = 0.0f;
 	float oldYaxis = 0.0f;
 	float newYaxis = 0.0f;
-	errorCode_u result;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
