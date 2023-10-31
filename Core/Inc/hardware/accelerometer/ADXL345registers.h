@@ -45,6 +45,7 @@
 
 #define ADXL_POWER_NORMAL	0x00
 #define ADXL_POWER_LOW		0x10
+#define ADXL_RATE_200HZ		0x0B
 #define ADXL_RATE_100HZ		0x0A
 #define ADXL_RATE_50HZ		0x09
 
