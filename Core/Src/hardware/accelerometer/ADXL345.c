@@ -82,7 +82,7 @@ static const uint8_t initialisationArray[ADXL_NB_REG_INIT][2] = {
 	{BANDWIDTH_POWERMODE,	ADXL_POWER_NORMAL | ADXL_RATE_100HZ},
 	{DATA_FORMAT,			ADXL_SPI_4WIRE | ADXL_INT_ACTIV_LOW | ADXL_RANGE_2G},
 	{FIFO_CONTROL,			ADXL_MODE_BYPASS},
-	{FIFO_CONTROL,			ADXL_MODE_FIFO | ADXL_TRIGGER_INT1 | ADXL_AVG_SAMPLES},
+	{FIFO_CONTROL,			ADXL_MODE_FIFO | ADXL_TRIGGER_INT1 | (ADXL_AVG_SAMPLES - 1)},
 	{INTERRUPT_ENABLE,		ADXL_INT_WATERMARK},
 	{POWER_CONTROL,			ADXL_MEASURE_MODE},
 };
@@ -363,7 +363,7 @@ static errorCode_u stMeasuring(){
 	finalX = finalY = finalZ = 0;
 
 	//for eatch of the 16 samples to read
-	for(uint8_t i = 0 ; i < ADXL_SAMPLES_16 ; i++){
+	for(uint8_t i = 0 ; i < ADXL_AVG_SAMPLES ; i++){
 		//read all data registers for 1 sample
 		result = ADXL345readRegisters(DATA_X0, buffer, ADXL_NB_DATA_REGISTERS);
 		if(IS_ERROR(result)){
