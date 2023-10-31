@@ -67,7 +67,8 @@ typedef errorCode_u (*adxlState)();
 static errorCode_u stStartup();
 static errorCode_u stConfiguring();
 static errorCode_u stSelfTestingOFF();
-static errorCode_u stWaitingForSTchange();
+static errorCode_u stEnablingST();
+static errorCode_u stWaitingForSTenabled();
 static errorCode_u stSelfTestingON();
 static errorCode_u stMeasuring();
 static errorCode_u stError();
@@ -75,9 +76,9 @@ static errorCode_u stError();
 //manipulation functions
 static errorCode_u ADXL345writeRegister(adxl345Registers_e registerNumber, uint8_t value);
 static errorCode_u ADXL345readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint8_t size);
+static errorCode_u integrateFIFO(int16_t* xValue, int16_t* yValue, int16_t* zValue);
 
 //tool functions
-static inline void divideBy16(int16_t* sum);
 static inline float atanDegrees(int16_t direction, int16_t axisZ);
 
 /**
@@ -102,7 +103,6 @@ volatile uint16_t			adxlTimer_ms = 0;				///< Timer used in various states of th
 static SPI_HandleTypeDef*	ADXL_spiHandle = NULL;			///< SPI handle used with the ADXL345
 static adxlState			state = stStartup;				///< State machine current state
 static uint8_t				adxlMeasurementsUpdated = 0;	///< Flag used to indicate new integrated measurements are ready within the ADXL345
-static uint8_t 				buffer[ADXL_NB_DATA_REGISTERS];
 static int16_t				finalX = 0;						///< X value obtained after integration
 static int16_t				finalY = 0;						///< Y value obtained after integration
 static int16_t				finalZ = 0;						///< Z value obtained after integration
@@ -257,15 +257,6 @@ float ADXL345getYangleDegrees(){
 }
 
 /**
- * @brief Divide a sum of values to compute an average
- *
- * @param[out} value Value to divide
- */
-void divideBy16(int16_t* sum){
-	*sum >>= ADXL_AVG_SHIFT;
-}
-
-/**
  * @brief Compute the angle (in degrees) between any axis and the Z axis
  *
  * @param direction Value (in G) of an axis
@@ -274,6 +265,35 @@ void divideBy16(int16_t* sum){
  */
 float atanDegrees(int16_t direction, int16_t axisZ){
 	return ((atanf((float)direction / (float)axisZ) * ADXL_180_DEG) / (float)M_PI);
+}
+
+errorCode_u integrateFIFO(int16_t* xValue, int16_t* yValue, int16_t* zValue){
+	static uint8_t buffer[ADXL_NB_DATA_REGISTERS];
+	errorCode_u result;
+
+	*xValue = *yValue = *zValue = 0;
+
+	//for eatch of the 16 samples to read
+	for(uint8_t i = 0 ; i < ADXL_AVG_SAMPLES ; i++){
+		//read all data registers for 1 sample
+		result = ADXL345readRegisters(DATA_X0, buffer, ADXL_NB_DATA_REGISTERS);
+		if(IS_ERROR(result)){
+			state = stError;
+			return (pushErrorCode(result, MEASURE, 2));
+		}
+
+		//add the measurements (formatted from a two's complement) to their final value buffer
+		*xValue += (int16_t)(((uint16_t)(buffer[ADXL_X_INDEX_MSB]) << ADXL_BYTE_OFFSET) | (uint16_t)(buffer[ADXL_X_INDEX_LSB]));
+		*yValue += (int16_t)(((uint16_t)(buffer[ADXL_Y_INDEX_MSB]) << ADXL_BYTE_OFFSET) | (uint16_t)(buffer[ADXL_Y_INDEX_LSB]));
+		*zValue += (int16_t)(((uint16_t)(buffer[ADXL_Z_INDEX_MSB]) << ADXL_BYTE_OFFSET) | (uint16_t)(buffer[ADXL_Z_INDEX_LSB]));
+	}
+
+	//divide the buffers to average out
+	*xValue >>= ADXL_AVG_SHIFT;
+	*yValue >>= ADXL_AVG_SHIFT;
+	*zValue >>= ADXL_AVG_SHIFT;
+
+	return (ERR_SUCCESS);
 }
 
 
@@ -362,27 +382,18 @@ static errorCode_u stSelfTestingOFF(){
 	if(!adxlINT1occurred)
 		return (ERR_SUCCESS);
 
-	finalX = finalY = finalZ = 0;
-
-	//for eatch of the 16 samples to read
-	for(uint8_t i = 0 ; i < ADXL_AVG_SAMPLES ; i++){
-		//read all data registers for 1 sample
-		result = ADXL345readRegisters(DATA_X0, buffer, ADXL_NB_DATA_REGISTERS);
-		if(IS_ERROR(result)){
-			state = stError;
-			return (pushErrorCode(result, SELF_TESTING_OFF, 2));
-		}
-
-		//add the measurements (formatted from a two's complement) to their final value buffer
-		finalX += (int16_t)(((uint16_t)(buffer[ADXL_X_INDEX_MSB]) << ADXL_BYTE_OFFSET) | (uint16_t)(buffer[ADXL_X_INDEX_LSB]));
-		finalY += (int16_t)(((uint16_t)(buffer[ADXL_Y_INDEX_MSB]) << ADXL_BYTE_OFFSET) | (uint16_t)(buffer[ADXL_Y_INDEX_LSB]));
-		finalZ += (int16_t)(((uint16_t)(buffer[ADXL_Z_INDEX_MSB]) << ADXL_BYTE_OFFSET) | (uint16_t)(buffer[ADXL_Z_INDEX_LSB]));
+	result = integrateFIFO(&finalX, &finalY, &finalZ);
+	if(IS_ERROR(result)){
+		state = stError;
+		return (pushErrorCode(result, SELF_TESTING_OFF, 2));
 	}
 
-	//divide the buffers by 16
-	divideBy16(&finalX);
-	divideBy16(&finalY);
-	divideBy16(&finalZ);
+	state = stEnablingST;
+	return (ERR_SUCCESS);
+}
+
+static errorCode_u stEnablingST(){
+	errorCode_u result;
 
 	result = ADXL345writeRegister(DATA_FORMAT, dataFormatDefault | ADXL_SELF_TEST);
 	if(IS_ERROR(result)){
@@ -397,11 +408,11 @@ static errorCode_u stSelfTestingOFF(){
 	}
 
 	adxlTimer_ms = ADXL_ST_WAIT_MS;
-	state = stWaitingForSTchange;
+	state = stWaitingForSTenabled;
 	return (ERR_SUCCESS);
 }
 
-static errorCode_u stWaitingForSTchange(){
+static errorCode_u stWaitingForSTenabled(){
 	errorCode_u result;
 
 	if(!adxlTimer_ms)
@@ -439,27 +450,12 @@ static errorCode_u stSelfTestingON(){
 		return (ERR_SUCCESS);
 
 	adxlINT1occurred = 0;
-	finalXSTon = finalYSTon = finalZSTon = 0;
 
-	//for eatch of the 16 samples to read
-	for(uint8_t i = 0 ; i < ADXL_AVG_SAMPLES ; i++){
-		//read all data registers for 1 sample
-		result = ADXL345readRegisters(DATA_X0, buffer, ADXL_NB_DATA_REGISTERS);
-		if(IS_ERROR(result)){
-			state = stError;
-			return (pushErrorCode(result, SELF_TESTING_ON, 2));
-		}
-
-		//add the measurements (formatted from a two's complement) to their final value buffer
-		finalXSTon += (int16_t)(((uint16_t)(buffer[ADXL_X_INDEX_MSB]) << ADXL_BYTE_OFFSET) | (uint16_t)(buffer[ADXL_X_INDEX_LSB]));
-		finalYSTon += (int16_t)(((uint16_t)(buffer[ADXL_Y_INDEX_MSB]) << ADXL_BYTE_OFFSET) | (uint16_t)(buffer[ADXL_Y_INDEX_LSB]));
-		finalZSTon += (int16_t)(((uint16_t)(buffer[ADXL_Z_INDEX_MSB]) << ADXL_BYTE_OFFSET) | (uint16_t)(buffer[ADXL_Z_INDEX_LSB]));
+	result = integrateFIFO(&finalXSTon, &finalYSTon, &finalZSTon);
+	if(IS_ERROR(result)){
+		state = stError;
+		return (pushErrorCode(result, SELF_TESTING_ON, 2));
 	}
-
-	//divide the buffers by 16
-	divideBy16(&finalXSTon);
-	divideBy16(&finalYSTon);
-	divideBy16(&finalZSTon);
 
 	result = ADXL345writeRegister(DATA_FORMAT, dataFormatDefault);
 	if(IS_ERROR(result)){
@@ -478,8 +474,6 @@ static errorCode_u stSelfTestingON(){
 		state = stError;
 		return (pushErrorCode(result, SELF_TESTING_ON, 4)); 	// @suppress("Avoid magic numbers")
 	}
-
-
 
 	adxlTimer_ms = ADXL_INT_TIMEOUT_MS;
 	state = stMeasuring;
@@ -508,27 +502,12 @@ static errorCode_u stMeasuring(){
 
 	adxlTimer_ms = ADXL_INT_TIMEOUT_MS;
 	adxlINT1occurred = 0;
-	finalX = finalY = finalZ = 0;
 
-	//for eatch of the 16 samples to read
-	for(uint8_t i = 0 ; i < ADXL_AVG_SAMPLES ; i++){
-		//read all data registers for 1 sample
-		result = ADXL345readRegisters(DATA_X0, buffer, ADXL_NB_DATA_REGISTERS);
-		if(IS_ERROR(result)){
-			state = stError;
-			return (pushErrorCode(result, MEASURE, 2));
-		}
-
-		//add the measurements (formatted from a two's complement) to their final value buffer
-		finalX += (int16_t)(((uint16_t)(buffer[ADXL_X_INDEX_MSB]) << ADXL_BYTE_OFFSET) | (uint16_t)(buffer[ADXL_X_INDEX_LSB]));
-		finalY += (int16_t)(((uint16_t)(buffer[ADXL_Y_INDEX_MSB]) << ADXL_BYTE_OFFSET) | (uint16_t)(buffer[ADXL_Y_INDEX_LSB]));
-		finalZ += (int16_t)(((uint16_t)(buffer[ADXL_Z_INDEX_MSB]) << ADXL_BYTE_OFFSET) | (uint16_t)(buffer[ADXL_Z_INDEX_LSB]));
+	result = integrateFIFO(&finalX, &finalY, &finalZ);
+	if(IS_ERROR(result)){
+		state = stError;
+		return (pushErrorCode(result, MEASURE, 2));
 	}
-
-	//divide the buffers by 16
-	divideBy16(&finalX);
-	divideBy16(&finalY);
-	divideBy16(&finalZ);
 
 	adxlMeasurementsUpdated = 1;
 	return (ERR_SUCCESS);
