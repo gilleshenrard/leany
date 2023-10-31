@@ -45,7 +45,6 @@ typedef enum _ADXLfunctionCodes_e{
 	INIT = 0,      		///< ADXL345initialise()
 	MEASURE,        	///< stMeasuring()
 	CHK_MEASURES,  		///< ADXL345hasNewMeasurements()
-	READ_REGISTER,		///< ADXL345readRegister()
 	WRITE_REGISTER,		///< ADXL345writeRegister()
 	READ_REGISTERS,		///< ADXL345readRegisters()
 	GET_X_ANGLE,		///< ADXL345getXangleDegrees()
