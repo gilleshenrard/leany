@@ -45,8 +45,8 @@ typedef union{
 extern const errorCode_u ERR_SUCCESS;
 
 //error management functions
-errorCode_u createErrorCode(uint32_t functionID, uint32_t newCode, errorLevel_e level);
-errorCode_u createErrorCodeLayer1(uint32_t functionID, uint32_t newCode, uint32_t layer1Code, errorLevel_e level);
-errorCode_u pushErrorCode(errorCode_u received, uint32_t functionID, uint32_t newCode);
+errorCode_u createErrorCode(uint8_t functionID, uint8_t newCode, errorLevel_e level);
+errorCode_u createErrorCodeLayer1(uint8_t functionID, uint8_t newCode, uint8_t layer1Code, errorLevel_e level);
+errorCode_u pushErrorCode(errorCode_u received, uint8_t functionID, uint8_t newCode);
 
 #endif /* INC_ERRORS_ERRORS_H_ */
