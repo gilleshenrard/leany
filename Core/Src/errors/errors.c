@@ -58,8 +58,8 @@
 #define ERR_LAYER1_OFFSET	8U				///< Number of bits to shift a code to reach the layer 1
 #define ERR_FUNCTION_OFFSET	16U				///< Number of bits to shift an ID to reach the function ID
 #define ERR_LEVEL_OFFSET	30U				///< Number of bits to shift an level to reach the level field
-#define ERR_FUNCTION_CLAMP	0x7F
-#define ERR_CODE_CLAMP		0x0F
+#define ERR_FUNCTION_CLAMP	0x7F			///< Value used to clamp function ID arguments to the proper number of bits
+#define ERR_CODE_CLAMP		0x0F			///< Value used to clamp error code arguments to the proper number of bits
 
 //global variables
 const errorCode_u ERR_SUCCESS = { .dword = SUCCESS_VALUE };	///< Variable used as a success code
