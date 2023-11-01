@@ -69,21 +69,21 @@ const errorCode_u ERR_SUCCESS = { .dword = SUCCESS_VALUE };	///< Variable used a
  * @note Input values will be clamped not to overflow their respective fields
  *
  * @param functionID Function ID to replace with
- * @param newCode Return code to set at layer 0
+ * @param newError Return code to set at layer 0
  * @param level Error level
  * @return New code
  */
-errorCode_u createErrorCode(uint8_t functionID, uint8_t newCode, errorLevel_e level){
+errorCode_u createErrorCode(uint8_t functionID, uint8_t newError, errorLevel_e level){
 	errorCode_u code = ERR_SUCCESS;
 
 	//if code means success, return success
-	if(newCode == SUCCESS_VALUE)
+	if(newError == SUCCESS_VALUE)
 		return (ERR_SUCCESS);
 
 	//set the fields values (clamped if necessary)
 	code.dword |= (level << ERR_LEVEL_OFFSET);
 	code.dword |= ((functionID & ERR_FUNCTION_CLAMP) << ERR_FUNCTION_OFFSET);
-	code.dword |= ((newCode & ERR_CODE_CLAMP) << ERR_LAYER0_OFFSET);
+	code.dword |= ((newError & ERR_CODE_CLAMP) << ERR_LAYER0_OFFSET);
 
 	return (code);
 }
@@ -94,22 +94,22 @@ errorCode_u createErrorCode(uint8_t functionID, uint8_t newCode, errorLevel_e le
  * @note The layer 1 code can be an external library error code (such as HAL's HAL_ERROR)
  *
  * @param functionID Function ID to replace with
- * @param newCode Return code to set at layer 0
+ * @param newError Return code to set at layer 0
  * @param layer1Code Return code to set at layer 1
  * @param level Error level
  * @return New code
  */
-errorCode_u createErrorCodeLayer1(uint8_t functionID, uint8_t newCode, uint8_t layer1Code, errorLevel_e level){
+errorCode_u createErrorCodeLayer1(uint8_t functionID, uint8_t newError, uint8_t layer1Code, errorLevel_e level){
 	errorCode_u code = ERR_SUCCESS;
 
 	//if code means success, return success
-	if(newCode == SUCCESS_VALUE)
+	if(newError == SUCCESS_VALUE)
 		return (ERR_SUCCESS);
 
 	//set the fields values (clamped if necessary)
 	code.dword |= (level << ERR_LEVEL_OFFSET);
 	code.dword |= ((functionID & ERR_FUNCTION_CLAMP) << ERR_FUNCTION_OFFSET);
-	code.dword |= ((newCode & ERR_CODE_CLAMP) << ERR_LAYER0_OFFSET);
+	code.dword |= ((newError & ERR_CODE_CLAMP) << ERR_LAYER0_OFFSET);
 	code.dword |= ((layer1Code & ERR_CODE_CLAMP) << ERR_LAYER1_OFFSET);
 
 	return (code);
@@ -119,32 +119,32 @@ errorCode_u createErrorCodeLayer1(uint8_t functionID, uint8_t newCode, uint8_t l
  * @brief Push a new layer upon an error code
  * @note Input values will be clamped not to overflow their respective fields
  *
- * @param received Error code to update
+ * @param oldCode Error code to update
  * @param functionID Function ID to replace with
- * @param newCode Return code to push in the stack
+ * @param newError Return code to push in the stack
  * @return Formatted code
  */
-errorCode_u pushErrorCode(errorCode_u received, uint8_t functionID, uint8_t newCode){
-	uint32_t code;
+errorCode_u pushErrorCode(errorCode_u oldCode, uint8_t functionID, uint8_t newError){
+	uint32_t errorStack;
 
 	//if code means success, return success
-	if(newCode == SUCCESS_VALUE)
+	if(newError == SUCCESS_VALUE)
 		return (ERR_SUCCESS);
 
 	//erase and replace the function ID
-	received.dword &= ERR_FUNCTION_MASK;
-	received.dword |= ((functionID & ERR_FUNCTION_CLAMP) << ERR_FUNCTION_OFFSET);
+	oldCode.dword &= ERR_FUNCTION_MASK;
+	oldCode.dword |= ((functionID & ERR_FUNCTION_CLAMP) << ERR_FUNCTION_OFFSET);
 
 	//isolate the codes stack, shift it and push a new code
 	//	(code already in layer 3 is lost)
-	code = (received.dword & ERR_IDS_MASK);
-	code >>= ERR_LAYER_NBBITS;
-	code |= ((newCode & ERR_CODE_CLAMP) << ERR_LAYER0_OFFSET);
+	errorStack = (oldCode.dword & ERR_IDS_MASK);
+	errorStack >>= ERR_LAYER_NBBITS;
+	errorStack |= ((newError & ERR_CODE_CLAMP) << ERR_LAYER0_OFFSET);
 
 	//erase the codes stack and replace it with the new one
-	received.dword &= ERR_STACK_MASK;
-	received.dword |= code;
+	oldCode.dword &= ERR_STACK_MASK;
+	oldCode.dword |= errorStack;
 
 	//return the final code
-	return (received);
+	return (oldCode);
 }
