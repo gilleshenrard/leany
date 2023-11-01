@@ -381,7 +381,7 @@ errorCode_u stConfiguring(){
  * @retval 1 Timeout while waiting for measurements
  * @retval 2 Error while integrating the FIFOs
  */
-static errorCode_u stSelfTestingOFF(){
+errorCode_u stSelfTestingOFF(){
 	//if timeout, go error
 	if(!adxlTimer_ms){
 		state = stError;
@@ -411,7 +411,7 @@ static errorCode_u stSelfTestingOFF(){
  * @return 1 Error while enabling self-test
  * @return 2 Error while clearing the FIFO
  */
-static errorCode_u stEnablingST(){
+errorCode_u stEnablingST(){
 	//Enable the self-test
 	result = ADXL345writeRegister(DATA_FORMAT, dataFormatDefault | ADXL_SELF_TEST);
 	if(IS_ERROR(result)){
@@ -438,7 +438,7 @@ static errorCode_u stEnablingST(){
  * @return 0 Success
  * @return 1 Error while re-enabling FIFOs
  */
-static errorCode_u stWaitingForSTenabled(){
+errorCode_u stWaitingForSTenabled(){
 	if(!adxlTimer_ms)
 		return (ERR_SUCCESS);
 
@@ -465,7 +465,7 @@ static errorCode_u stWaitingForSTenabled(){
  * @retval 3 Error while resetting the data format
  * @retval 4 Self-test values out of range
  */
-static errorCode_u stSelfTestingON(){
+errorCode_u stSelfTestingON(){
 	//if timeout, go error
 	if(!adxlTimer_ms){
 		state = stError;
@@ -518,7 +518,7 @@ static errorCode_u stSelfTestingON(){
  * @retval 1 Timeout occurred while waiting for watermark interrupt
  * @retval 2 Error occurred while integrating the FIFOs
  */
-static errorCode_u stMeasuring(){
+errorCode_u stMeasuring(){
 	//if timeout, go error
 	if(!adxlTimer_ms){
 		state = stError;
