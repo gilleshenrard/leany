@@ -110,10 +110,15 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  //update modules
+	  //update the accelerometer state machine
 	  result = ADXL345update();
 	  if(IS_ERROR(result))
 		  result.fields.moduleID = 1;
+
+	  //update the screen state machine
+	  result = SSD1306update();
+	  if(IS_ERROR(result))
+		  result.fields.moduleID = 2;
 
 	  //if values have been updated
 	  if(ADXL345hasNewMeasurements()){
