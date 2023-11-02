@@ -68,10 +68,12 @@ static errorCode_u SSD1306clearScreen();
 //state machine
 static errorCode_u stIdle();
 static errorCode_u stPrintingAngle();
+static errorCode_u stWaitingForDMAtx();
 
 //state variables
 static screenState	state = stIdle;								///< State machine current state
 static uint8_t		screenBuffer[SSD1306_MAX_DATA_SIZE] = {0};	///< Buffer used to send data to the screen
+volatile uint8_t	isScreenDMAdoneTX = 0;						///< Flag indicating whether a DMA transmission is done
 static float		nextAngle;									///< Buffer used to store an angle to print
 static uint8_t		nextPage;									///< Buffer used to store a page at which to print
 static uint8_t		nextColumn;									///< Buffer used to store a column at which to print
@@ -331,6 +333,7 @@ errorCode_u stPrintingAngle(){
 	const uint8_t limitPages[2] = {nextPage, nextPage + 1};
 	uint8_t* iterator = screenBuffer;
 	errorCode_u result;
+	HAL_StatusTypeDef HALresult;
 
 	//if angle negative, replace plus sign with minus sign
 	if(nextAngle < SSD1306_NEG_THRESHOLD){
@@ -363,10 +366,31 @@ errorCode_u stPrintingAngle(){
 	if(IS_ERROR(result))
 		return (pushErrorCode(result, PRINTING_ANGLE, 2));
 
-	//send the buffer
-	result = SSD1306sendData(screenBuffer, VERDANA_NB_BYTES_CHAR * SSD1306_ANGLE_NB_CHARS);
-	if(IS_ERROR(result))
-		return (pushErrorCode(result, PRINTING_ANGLE, 3)); 		// @suppress("Avoid magic numbers")
+
+	SSD1306_SET_DATA
+	SSD1306_ENABLE_SPI
+
+	HALresult = HAL_SPI_Transmit_DMA(SSD_SPIhandle, screenBuffer, SSD1306_ANGLE_NB_CHARS * VERDANA_NB_BYTES_CHAR);
+	if(HALresult != HAL_OK)
+		return (createErrorCodeLayer1(PRINTING_ANGLE, 3, HALresult, ERR_ERROR)); 	// @suppress("Avoid magic numbers")
+
+	state = stWaitingForDMAtx;
+	return (ERR_SUCCESS);
+}
+
+/**
+ * @brief State in which the machine waits for a DMA transmission to end
+ *
+ * @return Success
+ */
+errorCode_u stWaitingForDMAtx(){
+	//if TX not done yet, exit
+	if(!isScreenDMAdoneTX)
+		return (ERR_SUCCESS);
+
+	//close SPI transmission and reset flag
+	SSD1306_DISABLE_SPI
+	isScreenDMAdoneTX = 0;
 
 	state = stIdle;
 	return (ERR_SUCCESS);

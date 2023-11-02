@@ -10,6 +10,8 @@
 #define SSD1306_LINE2_PAGE		3U		///< Page number of the second screen line
 #define SSD1306_LINE2_COLUMN	0U		///< Column number of the second screen line
 
+extern volatile uint8_t isScreenDMAdoneTX;
+
 errorCode_u SSD1306initialise(SPI_HandleTypeDef* handle);
 errorCode_u SSD1306update();
 uint8_t isScreenReady();
