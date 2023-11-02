@@ -255,21 +255,31 @@ errorCode_u ADXL345readRegisters(adxl345Registers_e firstRegister, uint8_t* valu
 }
 
 /**
- * @brief Get the latest measured angle between the X axis and the Z axis
+ * @brief Get the last known integrated measurements for the X axis
  *
- * @return Angle in degrees
+ * @return Last known integrated measurement
  */
-float ADXL345getXangleDegrees(){
-	return (atanDegrees(finalX, finalZ));
+int16_t ADXL345getXmeasurement(){
+	return (finalX);
 }
 
 /**
- * @brief Get the latest measured angle between the Y axis and the Z axis
+ * @brief Get the last known integrated measurements for the Y axis
  *
- * @return Angle in degrees
+ * @return Last known integrated measurement
  */
-float ADXL345getYangleDegrees(){
-	return (atanDegrees(finalY, finalZ));
+int16_t ADXL345getYmeasurement(){
+	return (finalY);
+}
+
+/**
+ * @brief Transpose a measurement to an angle in degrees with the Z axis
+ *
+ * @param axisValue Measurement to transpose
+ * @return Angle with the Z axis
+ */
+float measureToAngleDegrees(int16_t axisValue){
+	return (atanDegrees(axisValue, finalZ));
 }
 
 /**
