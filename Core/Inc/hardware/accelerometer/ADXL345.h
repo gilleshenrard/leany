@@ -11,7 +11,8 @@ extern uint8_t anglesDifferent(float angleA, float angleB);
 errorCode_u ADXL345initialise(const SPI_HandleTypeDef* handle);
 errorCode_u ADXL345update();
 uint8_t ADXL345hasNewMeasurements();
-float ADXL345getXangleDegrees();
-float ADXL345getYangleDegrees();
+int16_t ADXL345getXmeasurement();
+int16_t ADXL345getYmeasurement();
+float measureToAngleDegrees(int16_t axisValue);
 
 #endif /* INC_ADXL345_H_ */
