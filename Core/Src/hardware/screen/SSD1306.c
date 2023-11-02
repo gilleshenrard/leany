@@ -397,6 +397,7 @@ errorCode_u stPrintingAngle(){
 errorCode_u stWaitingForDMAtx(){
 	if(!screenTimer_ms){
 		SSD1306_DISABLE_SPI
+		HAL_SPI_Abort(SSD_SPIhandle);
 		state = stIdle;
 		return (createErrorCode(WAITING_DMA, 1, ERR_ERROR));
 	}
