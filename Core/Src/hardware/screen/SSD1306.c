@@ -35,11 +35,12 @@
  * @brief Enumeration of the function IDs of the SSD1306
  */
 typedef enum _SSD1306functionCodes_e{
-	INIT = 0,	///< SSD1306initialise()
-	SEND_CMD,	///< SSD1306sendCommand()
-	SEND_DATA,	///< SSD1306sendData()
-	CLR_SCREEN,	///< SSD1306clearScreen()
-	PRT_ANGLE	///< SSD1306_printAngle()
+	INIT = 0,		///< SSD1306initialise()
+	SEND_CMD,		///< SSD1306sendCommand()
+	SEND_DATA,		///< SSD1306sendData()
+	CLR_SCREEN,		///< SSD1306clearScreen()
+	PRT_ANGLE,		///< SSD1306_printAngle()
+	PRINTING_ANGLE	///< stPrintingAngle()
 }_SSD1306functionCodes_e;
 
 /**
@@ -66,10 +67,14 @@ static errorCode_u SSD1306clearScreen();
 
 //state machine
 static errorCode_u stIdle();
+static errorCode_u stPrintingAngle();
 
 //state variables
 static screenState	state = stIdle;								///< State machine current state
 static uint8_t		screenBuffer[SSD1306_MAX_DATA_SIZE] = {0};	///< Buffer used to send data to the screen
+static float		nextAngle;									///< Buffer used to store an angle to print
+static uint8_t		nextPage;									///< Buffer used to store a page at which to print
+static uint8_t		nextColumn;									///< Buffer used to store a column at which to print
 
 
 /********************************************************************************************************************************************/
@@ -256,6 +261,15 @@ errorCode_u SSD1306clearScreen(){
 }
 
 /**
+ * @brief Check if the screen is ready to accept new commands
+ *
+ * @return 1 if ready
+ */
+uint8_t isScreenReady(){
+	return (state == stIdle);
+}
+
+/**
  * @brief Print an angle (in degrees, with sign) on the screen
  *
  * @param angle	Angle to print
@@ -264,57 +278,19 @@ errorCode_u SSD1306clearScreen(){
  *
  * @retval 0 Success
  * @retval 1 Angle above maximum amplitude
- * @retval 2 Error while sending the start/end columns
- * @retval 3 Error while sending the start/end pages
- * @retval 3 Error while sending the screen buffer
  */
 errorCode_u SSD1306_printAngle(float angle, uint8_t page, uint8_t column){
-	uint8_t charIndexes[SSD1306_ANGLE_NB_CHARS] = {INDEX_PLUS, 0, 0, INDEX_DOT, 0, INDEX_DEG};
-	const uint8_t limitColumns[2] = {column, column + (VERDANA_CHAR_WIDTH * 6) - 1};
-	const uint8_t limitPages[2] = {page, page + 1};
-	uint8_t* iterator = screenBuffer;
-	errorCode_u result;
-
 	//if angle out of bounds, return error
 	if((angle < SSD1306_MIN_ANGLE_DEG) || (angle > SSD1306_MAX_ANGLE_DEG))
 		return (createErrorCode(PRT_ANGLE, 1, ERR_WARNING));
 
-	//if angle negative, replace plus sign with minus sign
-	if(angle < SSD1306_NEG_THRESHOLD){
-		charIndexes[0] = INDEX_MINUS;
-		angle = -angle;
-	}
+	//store the values
+	nextAngle = angle;
+	nextPage = page;
+	nextColumn = column;
 
-	//fill the angle characters indexes array with the float values (tens, units, tenths)
-	charIndexes[SSD1306_INDEX_TENS] = (uint8_t)(angle / SSD1306_FLOAT_FACTOR_10);
-	charIndexes[SSD1306_INDEX_UNITS] = ((uint8_t)angle) % SSD1306_INT_FACTOR_10;
-	charIndexes[SSD1306_INDEX_TENTHS] = (uint8_t)((uint16_t)(angle * SSD1306_FLOAT_FACTOR_10) % SSD1306_INT_FACTOR_10);
-
-	//send the set start and end column addresses
-	result = SSD1306sendCommand(COLUMN_ADDRESS, limitColumns, 2);
-	if(IS_ERROR(result))
-		return (pushErrorCode(result, PRT_ANGLE, 2));
-
-	//send the set start and end page addresses
-	/*result = */SSD1306sendCommand(PAGE_ADDRESS, limitPages, 2);
-	if(IS_ERROR(result))
-		return (pushErrorCode(result, PRT_ANGLE, 3));		// @suppress("Avoid magic numbers")
-
-	//fill the buffer with all the required bitmaps bytes (column by column, then character by character, then page by page)
-	for(page = 0 ; page < 2 ; page++){
-		for(uint8_t character = 0 ; character < SSD1306_ANGLE_NB_CHARS ; character++){
-			for(column = 0 ; column < VERDANA_CHAR_WIDTH ; column++){
-				*iterator = verdana_16ptNumbers[charIndexes[character]][(VERDANA_CHAR_WIDTH * page) + column];
-				iterator++;
-			}
-		}
-	}
-
-	//send the buffer
-	result = SSD1306sendData(screenBuffer, VERDANA_NB_BYTES_CHAR * SSD1306_ANGLE_NB_CHARS);
-	if(IS_ERROR(result))
-		return (pushErrorCode(result, PRT_ANGLE, 4)); 		// @suppress("Avoid magic numbers")
-
+	//get to printing state
+	state = stPrintingAngle;
 	return (ERR_SUCCESS);
 }
 
@@ -338,5 +314,60 @@ errorCode_u SSD1306update(){
  * @return Success
  */
 errorCode_u stIdle(){
+	return (ERR_SUCCESS);
+}
+
+/**
+ * @brief State in which the screen is printing an angle label
+ *
+ * @retval 0 Success
+ * @retval 1 Error occurred while sending the column address command
+ * @retval 1 Error occurred while sending the page address command
+ * @retval 1 Error occurred while sending the data
+ */
+errorCode_u stPrintingAngle(){
+	uint8_t charIndexes[SSD1306_ANGLE_NB_CHARS] = {INDEX_PLUS, 0, 0, INDEX_DOT, 0, INDEX_DEG};
+	const uint8_t limitColumns[2] = {nextColumn, nextColumn + (VERDANA_CHAR_WIDTH * 6) - 1};
+	const uint8_t limitPages[2] = {nextPage, nextPage + 1};
+	uint8_t* iterator = screenBuffer;
+	errorCode_u result;
+
+	//if angle negative, replace plus sign with minus sign
+	if(nextAngle < SSD1306_NEG_THRESHOLD){
+		charIndexes[0] = INDEX_MINUS;
+		nextAngle = -nextAngle;
+	}
+
+	//fill the angle characters indexes array with the float values (tens, units, tenths)
+	charIndexes[SSD1306_INDEX_TENS] = (uint8_t)(nextAngle / SSD1306_FLOAT_FACTOR_10);
+	charIndexes[SSD1306_INDEX_UNITS] = ((uint8_t)nextAngle) % SSD1306_INT_FACTOR_10;
+	charIndexes[SSD1306_INDEX_TENTHS] = (uint8_t)((uint16_t)(nextAngle * SSD1306_FLOAT_FACTOR_10) % SSD1306_INT_FACTOR_10);
+
+	//fill the buffer with all the required bitmaps bytes (column by column, then character by character, then page by page)
+	for(nextPage = 0 ; nextPage < 2 ; nextPage++){
+		for(uint8_t character = 0 ; character < SSD1306_ANGLE_NB_CHARS ; character++){
+			for(nextColumn = 0 ; nextColumn < VERDANA_CHAR_WIDTH ; nextColumn++){
+				*iterator = verdana_16ptNumbers[charIndexes[character]][(VERDANA_CHAR_WIDTH * nextPage) + nextColumn];
+				iterator++;
+			}
+		}
+	}
+
+	//send the set start and end column addresses
+	result = SSD1306sendCommand(COLUMN_ADDRESS, limitColumns, 2);
+	if(IS_ERROR(result))
+		return (pushErrorCode(result, PRINTING_ANGLE, 1));
+
+	//send the set start and end page addresses
+	/*result = */SSD1306sendCommand(PAGE_ADDRESS, limitPages, 2);
+	if(IS_ERROR(result))
+		return (pushErrorCode(result, PRINTING_ANGLE, 2));
+
+	//send the buffer
+	result = SSD1306sendData(screenBuffer, VERDANA_NB_BYTES_CHAR * SSD1306_ANGLE_NB_CHARS);
+	if(IS_ERROR(result))
+		return (pushErrorCode(result, PRINTING_ANGLE, 3)); 		// @suppress("Avoid magic numbers")
+
+	state = stIdle;
 	return (ERR_SUCCESS);
 }

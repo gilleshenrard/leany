@@ -71,9 +71,9 @@ static void MX_SPI2_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	float oldXaxis = 0.0f;
+	float oldXaxis = 359.0f;
 	float newXaxis = 0.0f;
-	float oldYaxis = 0.0f;
+	float oldYaxis = 359.0f;
 	float newYaxis = 0.0f;
   /* USER CODE END 1 */
 
@@ -101,9 +101,6 @@ int main(void)
   /* USER CODE BEGIN 2 */
   ADXL345initialise(&hspi1);
   SSD1306initialise(&hspi2);
-
-  SSD1306_printAngle(0.0f, SSD1306_LINE1_PAGE, SSD1306_LINE1_COLUMN);
-  SSD1306_printAngle(0.0f, SSD1306_LINE2_PAGE, SSD1306_LINE2_COLUMN);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -127,13 +124,13 @@ int main(void)
 	  }
 
 	  //if X axis angle changed, update the screen
-	  if(anglesDifferent(newXaxis, oldXaxis)){
+	  if(isScreenReady() && anglesDifferent(newXaxis, oldXaxis)){
 		  oldXaxis = newXaxis;
 		  SSD1306_printAngle(newXaxis, SSD1306_LINE1_PAGE, SSD1306_LINE1_COLUMN);
 	  }
 
 	  //if Y axis angle changed, update the screen
-	  if(anglesDifferent(newYaxis, oldYaxis)){
+	  if(isScreenReady() && anglesDifferent(newYaxis, oldYaxis)){
 		  oldYaxis = newYaxis;
 		  SSD1306_printAngle(newYaxis, SSD1306_LINE2_PAGE, SSD1306_LINE2_COLUMN);
 	  }
