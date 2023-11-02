@@ -360,13 +360,17 @@ errorCode_u stPrintingAngle(){
 
 	//send the set start and end column addresses
 	result = SSD1306sendCommand(COLUMN_ADDRESS, limitColumns, 2);
-	if(IS_ERROR(result))
+	if(IS_ERROR(result)){
+		state = stIdle;
 		return (pushErrorCode(result, PRINTING_ANGLE, 1));
+	}
 
 	//send the set start and end page addresses
 	/*result = */SSD1306sendCommand(PAGE_ADDRESS, limitPages, 2);
-	if(IS_ERROR(result))
+	if(IS_ERROR(result)){
+		state = stIdle;
 		return (pushErrorCode(result, PRINTING_ANGLE, 2));
+	}
 
 
 	SSD1306_SET_DATA
@@ -375,8 +379,10 @@ errorCode_u stPrintingAngle(){
 	isScreenDMAdoneTX = 0;
 	screenTimer_ms = SSD1306_SPI_TIMEOUT_MS;
 	HALresult = HAL_SPI_Transmit_DMA(SSD_SPIhandle, screenBuffer, SSD1306_ANGLE_NB_CHARS * VERDANA_NB_BYTES_CHAR);
-	if(HALresult != HAL_OK)
+	if(HALresult != HAL_OK){
+		state = stIdle;
 		return (createErrorCodeLayer1(PRINTING_ANGLE, 3, HALresult, ERR_ERROR)); 	// @suppress("Avoid magic numbers")
+	}
 
 	state = stWaitingForDMAtx;
 	return (ERR_SUCCESS);
