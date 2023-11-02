@@ -124,14 +124,14 @@ int main(void)
 	  if(ADXL345hasNewMeasurements()){
 		  //if X has changed, update the screen
 		  newXaxis = ADXL345getXangleDegrees();
-		  if(newXaxis != oldXaxis){
+		  if(anglesDifferent(newXaxis, oldXaxis)){
 			  oldXaxis = newXaxis;
 			  SSD1306_printAngle(newXaxis, SSD1306_LINE1_PAGE, SSD1306_LINE1_COLUMN);
 		  }
 
 		  //if Y has changed, update the screen
 		  newYaxis = ADXL345getYangleDegrees();
-		  if(newYaxis != oldYaxis){
+		  if(anglesDifferent(newYaxis, oldYaxis)){
 			  oldYaxis = newYaxis;
 			  SSD1306_printAngle(newYaxis, SSD1306_LINE2_PAGE, SSD1306_LINE2_COLUMN);
 		  }
