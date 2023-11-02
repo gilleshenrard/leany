@@ -120,21 +120,23 @@ int main(void)
 	  if(IS_ERROR(result))
 		  result.fields.moduleID = 2;
 
-	  //if values have been updated
+	  //if new measurements available, get them
 	  if(ADXL345hasNewMeasurements()){
-		  //if X has changed, update the screen
 		  newXaxis = ADXL345getXangleDegrees();
-		  if(anglesDifferent(newXaxis, oldXaxis)){
-			  oldXaxis = newXaxis;
-			  SSD1306_printAngle(newXaxis, SSD1306_LINE1_PAGE, SSD1306_LINE1_COLUMN);
-		  }
-
-		  //if Y has changed, update the screen
 		  newYaxis = ADXL345getYangleDegrees();
-		  if(anglesDifferent(newYaxis, oldYaxis)){
-			  oldYaxis = newYaxis;
-			  SSD1306_printAngle(newYaxis, SSD1306_LINE2_PAGE, SSD1306_LINE2_COLUMN);
-		  }
+	  }
+
+	  //if X axis angle changed, update the screen
+	  if(anglesDifferent(newXaxis, oldXaxis)){
+		  oldXaxis = newXaxis;
+		  SSD1306_printAngle(newXaxis, SSD1306_LINE1_PAGE, SSD1306_LINE1_COLUMN);
+	  }
+
+	  //if Y axis angle changed, update the screen
+	  newYaxis = ADXL345getYangleDegrees();
+	  if(anglesDifferent(newYaxis, oldYaxis)){
+		  oldYaxis = newYaxis;
+		  SSD1306_printAngle(newYaxis, SSD1306_LINE2_PAGE, SSD1306_LINE2_COLUMN);
 	  }
     /* USER CODE END WHILE */
 
