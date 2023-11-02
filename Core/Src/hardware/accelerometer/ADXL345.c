@@ -26,7 +26,7 @@
 #define ADXL_Z_INDEX_LSB	4U		///< Index of the Z LSB in the measurements
 #define ADXL_NB_REG_INIT	5U		///< Number of registers configured at initialisation
 #define ADXL_180_DEG		180.0f	///< Value representing a flat angle
-#define ADXL_ANGLE_EPSILON	0.05f	///< Minimum difference between two angles for them to be considered as differnt
+#define ADXL_ANGLE_EPSILON	0.1f	///< Minimum difference between two angles for them to be considered as differnt
 
 //integration sampling
 #define ADXL_AVG_SAMPLES	ADXL_SAMPLES_32
