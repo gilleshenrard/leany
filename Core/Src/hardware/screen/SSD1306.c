@@ -24,6 +24,7 @@
 #define SSD1306_INDEX_UNITS			2U		///< Index of the units in the angle indexes array
 #define SSD1306_INDEX_TENTHS		4U		///< Index of the tenths in the angle indexes array
 #define SSD1306_ANGLE_NB_CHARS		6U		///< Number of characters in the angle array
+#define SSD1306_NB_INIT_REGISERS	8U		///< Number of registers set at initialisation
 
 //macros
 #define SSD1306_ENABLE_SPI HAL_GPIO_WritePin(SSD1306_CS_GPIO_Port, SSD1306_CS_Pin, GPIO_PIN_RESET);
@@ -51,15 +52,14 @@ typedef enum _SSD1306functionCodes_e{
  */
 typedef errorCode_u (*screenState)();
 
-//SPI handle
-static SPI_HandleTypeDef* SSD_SPIhandle = NULL;	///< SPI handle used with the SSD1306
-
-//pre-configured values
-static const uint8_t hardwareConfigInit = SSD_PIN_CONFIG_ALT | SSD_COM_REMAP_DISABLE;	///< Default hardware config value
-static const uint8_t addressingModeInit = SSD_HORIZONTAL_ADDR;							///< Default addressing mode value
-static const uint8_t contrastInit = SSD_CONTRAST_HIGHEST;								///< Default contrast value
-static const uint8_t clockInit = SSD_CLOCK_FREQ_MID | SSD_CLOCK_DIVIDER_1;				///< Default clock initialisation value
-static const uint8_t chargePumpInit = SSD_ENABLE_CHG_PUMP;								///< Default charge pump value
+/**
+ * @brief Structure used to initialise the registers
+ */
+typedef struct{
+	SSD1306register_e	reg;			///< Register to initialise
+	uint8_t				nbParameters;	///< Number of parameters provided to initialise
+	uint8_t				value;			///< Value of the parameters
+}SSD1306init_t;
 
 //communication functions with the SSD1306
 static errorCode_u SSD1306sendCommand(SSD1306register_e regNumber, const uint8_t parameters[], uint8_t nbParameters);
@@ -71,14 +71,26 @@ static errorCode_u stIdle();
 static errorCode_u stPrintingAngle();
 static errorCode_u stWaitingForDMAtx();
 
+static const SSD1306init_t initCommands[SSD1306_NB_INIT_REGISERS] = {			///< Array used to initialise the registers
+		{SCAN_DIRECTION_N1_0,	0,	0x00},
+		{HARDWARE_CONFIG,		1,	SSD_PIN_CONFIG_ALT | SSD_COM_REMAP_DISABLE},
+		{SEGMENT_REMAP_127,		0,	0x00},
+		{MEMORY_ADDR_MODE,		1,	SSD_HORIZONTAL_ADDR},
+		{CONTRAST_CONTROL,		1,	SSD_CONTRAST_HIGHEST},
+		{CLOCK_DIVIDE_RATIO,	1,	SSD_CLOCK_FREQ_MID | SSD_CLOCK_DIVIDER_1},
+		{CHG_PUMP_REGULATOR,	1,	SSD_ENABLE_CHG_PUMP},
+		{DISPLAY_ON,			0,	0x00},
+};
+
 //state variables
-static screenState	state = stIdle;								///< State machine current state
-static uint8_t		screenBuffer[SSD1306_MAX_DATA_SIZE] = {0};	///< Buffer used to send data to the screen
-volatile uint8_t	isScreenDMAdoneTX = 0;						///< Flag indicating whether a DMA transmission is done
-volatile uint16_t	screenTimer_ms = 0;							///< Timer used with screen SPI transmissions
-static float		nextAngle;									///< Buffer used to store an angle to print
-static uint8_t		nextPage;									///< Buffer used to store a page at which to print
-static uint8_t		nextColumn;									///< Buffer used to store a column at which to print
+static SPI_HandleTypeDef*	SSD_SPIhandle = NULL;						///< SPI handle used with the SSD1306
+static screenState			state = stIdle;								///< State machine current state
+static uint8_t				screenBuffer[SSD1306_MAX_DATA_SIZE] = {0};	///< Buffer used to send data to the screen
+volatile uint8_t			isScreenDMAdoneTX = 0;						///< Flag indicating whether a DMA transmission is done
+volatile uint16_t			screenTimer_ms = 0;							///< Timer used with screen SPI transmissions
+static float				nextAngle;									///< Buffer used to store an angle to print
+static uint8_t				nextPage;									///< Buffer used to store a page at which to print
+static uint8_t				nextColumn;									///< Buffer used to store a column at which to print
 
 
 /********************************************************************************************************************************************/
@@ -90,15 +102,8 @@ static uint8_t		nextColumn;									///< Buffer used to store a column at which 
  *
  * @param handle SPI handle used
  * @retval 0 Success
- * @retval 1 Error while setting the scanning direction
- * @retval 2 Error while setting the hardware config
- * @retval 3 Error while setting the segment remapping
- * @retval 4 Error while setting the memory addressing mode
- * @retval 5 Error while setting the contrast control
- * @retval 6 Error while setting the clock divider ratio
- * @retval 7 Error while setting the charge pump regulation
- * @retval 8 Error while turning the display on
- * @retval 9 Error while clearing the screen
+ * @retval 1 Error while initialising the registers
+ * @retval 2 Error while clearing the screen
  */
 errorCode_u SSD1306initialise(SPI_HandleTypeDef* handle){
 	errorCode_u result;
@@ -113,44 +118,16 @@ errorCode_u SSD1306initialise(SPI_HandleTypeDef* handle){
 
 	//initialisation taken from PDF p. 64 (Application Example)
 	//	values which don't change from reset values aren't modified
-	//TODO check for pins hardware config (0xDA)
 	//TODO test for max oscillator frequency
-
-	result = SSD1306sendCommand(SCAN_DIRECTION_N1_0, NULL, 0);
-	if(IS_ERROR(result))
-		return (pushErrorCode(result, INIT, 1));
-
-	result = SSD1306sendCommand(HARDWARE_CONFIG, &hardwareConfigInit, 1);
-	if(IS_ERROR(result))
-		return (pushErrorCode(result, INIT, 2));
-
-	result = SSD1306sendCommand(SEGMENT_REMAP_127, NULL, 0);
-	if(IS_ERROR(result))
-		return (pushErrorCode(result, INIT, 3));		// @suppress("Avoid magic numbers")
-
-	result = SSD1306sendCommand(MEMORY_ADDR_MODE, &addressingModeInit, 1);
-	if(IS_ERROR(result))
-		return (pushErrorCode(result, INIT, 4));		// @suppress("Avoid magic numbers")
-
-	result = SSD1306sendCommand(CONTRAST_CONTROL, &contrastInit, 1);
-	if(IS_ERROR(result))
-		return (pushErrorCode(result, INIT, 5));		// @suppress("Avoid magic numbers")
-
-	result = SSD1306sendCommand(CLOCK_DIVIDE_RATIO, &clockInit, 1);
-	if(IS_ERROR(result))
-		return (pushErrorCode(result, INIT, 6));		// @suppress("Avoid magic numbers")
-
-	result = SSD1306sendCommand(CHG_PUMP_REGULATOR, &chargePumpInit, 1);
-	if(IS_ERROR(result))
-		return (pushErrorCode(result, INIT, 7));		// @suppress("Avoid magic numbers")
-
-	result = SSD1306sendCommand(DISPLAY_ON, NULL, 0);
-	if(IS_ERROR(result))
-		return (pushErrorCode(result, INIT, 8));		// @suppress("Avoid magic numbers")
+	for(uint8_t i = 0 ; i < SSD1306_NB_INIT_REGISERS ; i++){
+		result = SSD1306sendCommand(initCommands[i].reg, &initCommands[i].value, initCommands[i].nbParameters);
+		if(IS_ERROR(result))
+			return (pushErrorCode(result, INIT, 1));
+	}
 
 	result = SSD1306clearScreen();
 	if(IS_ERROR(result))
-		return (pushErrorCode(result, INIT, 9));		// @suppress("Avoid magic numbers")
+		return (pushErrorCode(result, INIT, 2));		// @suppress("Avoid magic numbers")
 
 	return (ERR_SUCCESS);
 }
