@@ -40,7 +40,8 @@ typedef enum _SSD1306functionCodes_e{
 	SEND_DATA,		///< SSD1306sendData()
 	CLR_SCREEN,		///< SSD1306clearScreen()
 	PRT_ANGLE,		///< SSD1306_printAngle()
-	PRINTING_ANGLE	///< stPrintingAngle()
+	PRINTING_ANGLE,	///< stPrintingAngle()
+	WAITING_DMA		///< stWaitingForDMAtx()
 }_SSD1306functionCodes_e;
 
 /**
@@ -74,6 +75,7 @@ static errorCode_u stWaitingForDMAtx();
 static screenState	state = stIdle;								///< State machine current state
 static uint8_t		screenBuffer[SSD1306_MAX_DATA_SIZE] = {0};	///< Buffer used to send data to the screen
 volatile uint8_t	isScreenDMAdoneTX = 0;						///< Flag indicating whether a DMA transmission is done
+volatile uint16_t	screenTimer_ms = 0;							///< Timer used with screen SPI transmissions
 static float		nextAngle;									///< Buffer used to store an angle to print
 static uint8_t		nextPage;									///< Buffer used to store a page at which to print
 static uint8_t		nextColumn;									///< Buffer used to store a column at which to print
@@ -371,6 +373,7 @@ errorCode_u stPrintingAngle(){
 	SSD1306_ENABLE_SPI
 
 	isScreenDMAdoneTX = 0;
+	screenTimer_ms = SSD1306_SPI_TIMEOUT_MS;
 	HALresult = HAL_SPI_Transmit_DMA(SSD_SPIhandle, screenBuffer, SSD1306_ANGLE_NB_CHARS * VERDANA_NB_BYTES_CHAR);
 	if(HALresult != HAL_OK)
 		return (createErrorCodeLayer1(PRINTING_ANGLE, 3, HALresult, ERR_ERROR)); 	// @suppress("Avoid magic numbers")
@@ -382,14 +385,20 @@ errorCode_u stPrintingAngle(){
 /**
  * @brief State in which the machine waits for a DMA transmission to end
  *
- * @return Success
+ * @retval 0 Success
+ * @retval 1 Timeout while waiting for transmission to end
  */
 errorCode_u stWaitingForDMAtx(){
+	if(!screenTimer_ms){
+		SSD1306_DISABLE_SPI
+		state = stIdle;
+		return (createErrorCode(WAITING_DMA, 1, ERR_ERROR));
+	}
+
 	//if TX not done yet, exit
 	if(!isScreenDMAdoneTX)
 		return (ERR_SUCCESS);
 
-	//close SPI transmission and reset flag
 	SSD1306_DISABLE_SPI
 
 	state = stIdle;
