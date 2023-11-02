@@ -26,6 +26,7 @@
 #define ADXL_Z_INDEX_LSB	4U		///< Index of the Z LSB in the measurements
 #define ADXL_NB_REG_INIT	5U		///< Number of registers configured at initialisation
 #define ADXL_180_DEG		180.0f	///< Value representing a flat angle
+#define ADXL_ANGLE_EPSILON	0.05f	///< Minimum difference between two angles for them to be considered as differnt
 
 //integration sampling
 #define ADXL_AVG_SAMPLES	ADXL_SAMPLES_32
@@ -117,6 +118,18 @@ static errorCode_u 			result;
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
 
+
+/**
+ * @brief Check if two angles are different
+ *
+ * @param angleA First angle
+ * @param angleB Second angle
+ * @return 1 if the angles are different, 0 otherwise
+ */
+inline uint8_t anglesDifferent(float angleA, float angleB)
+{
+	return (fabsf(angleA - angleB) > ADXL_ANGLE_EPSILON);
+}
 
 /**
  * @brief Initialise the ADXL345
