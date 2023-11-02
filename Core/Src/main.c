@@ -133,7 +133,6 @@ int main(void)
 	  }
 
 	  //if Y axis angle changed, update the screen
-	  newYaxis = ADXL345getYangleDegrees();
 	  if(anglesDifferent(newYaxis, oldYaxis)){
 		  oldYaxis = newYaxis;
 		  SSD1306_printAngle(newYaxis, SSD1306_LINE2_PAGE, SSD1306_LINE2_COLUMN);
