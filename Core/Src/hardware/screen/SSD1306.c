@@ -370,6 +370,7 @@ errorCode_u stPrintingAngle(){
 	SSD1306_SET_DATA
 	SSD1306_ENABLE_SPI
 
+	isScreenDMAdoneTX = 0;
 	HALresult = HAL_SPI_Transmit_DMA(SSD_SPIhandle, screenBuffer, SSD1306_ANGLE_NB_CHARS * VERDANA_NB_BYTES_CHAR);
 	if(HALresult != HAL_OK)
 		return (createErrorCodeLayer1(PRINTING_ANGLE, 3, HALresult, ERR_ERROR)); 	// @suppress("Avoid magic numbers")
@@ -390,7 +391,6 @@ errorCode_u stWaitingForDMAtx(){
 
 	//close SPI transmission and reset flag
 	SSD1306_DISABLE_SPI
-	isScreenDMAdoneTX = 0;
 
 	state = stIdle;
 	return (ERR_SUCCESS);
