@@ -1,7 +1,7 @@
 /**
  * @brief Implement the ADXL345 accelerometer communication
  * @author Gilles Henrard
- * @date 01/11/2023
+ * @date 02/11/2023
  *
  * @note Additional information can be found in :
  *   - ADXL345 datasheet : https://www.analog.com/media/en/technical-documentation/data-sheets/ADXL345.pdf
@@ -498,7 +498,7 @@ errorCode_u stSelfTestingON(){
 	}
 
 	//restore the default data format
-	result = ADXL345writeRegister(DATA_FORMAT, dataFormatDefault);
+	result = ADXL345writeRegister(DATA_FORMAT, dataFormatDefault | ADXL_FULL_RESOL);
 	if(IS_ERROR(result)){
 		state = stError;
 		return (pushErrorCode(result, SELF_TESTING_ON, 3)); 	// @suppress("Avoid magic numbers")
