@@ -2,7 +2,7 @@
  * @file SSD1306.c
  * @brief Implement the functioning of the SSD1306 OLED screen via SPI and DMA
  * @author Gilles Henrard
- * @date 30/10/2023
+ * @date 02/11/2023
  *
  * @note Datasheet : https://cdn-shop.adafruit.com/datasheets/SSD1306.pdf
  */
@@ -42,6 +42,13 @@ typedef enum _SSD1306functionCodes_e{
 	PRT_ANGLE	///< SSD1306_printAngle()
 }_SSD1306functionCodes_e;
 
+/**
+ * @brief Screen state machine state prototype
+ *
+ * @return Return code of the state
+ */
+typedef errorCode_u (*screenState)();
+
 //SPI handle
 static SPI_HandleTypeDef* SSD_SPIhandle = NULL;	///< SPI handle used with the SSD1306
 
@@ -52,13 +59,22 @@ static const uint8_t contrastInit = SSD_CONTRAST_HIGHEST;								///< Default co
 static const uint8_t clockInit = SSD_CLOCK_FREQ_MID | SSD_CLOCK_DIVIDER_1;				///< Default clock initialisation value
 static const uint8_t chargePumpInit = SSD_ENABLE_CHG_PUMP;								///< Default charge pump value
 
-//state variables
-static uint8_t screenBuffer[SSD1306_MAX_DATA_SIZE] = {0};	///< Buffer used to send data to the screen
-
 //communication functions with the SSD1306
 static errorCode_u SSD1306sendCommand(SSD1306register_e regNumber, const uint8_t parameters[], uint8_t nbParameters);
 static errorCode_u SSD1306sendData(const uint8_t values[], uint16_t size);
 static errorCode_u SSD1306clearScreen();
+
+//state machine
+static errorCode_u stIdle();
+
+//state variables
+static screenState	state = stIdle;								///< State machine current state
+static uint8_t		screenBuffer[SSD1306_MAX_DATA_SIZE] = {0};	///< Buffer used to send data to the screen
+
+
+/********************************************************************************************************************************************/
+/********************************************************************************************************************************************/
+
 
 /**
  * @brief Initialise the SSD1306
@@ -299,5 +315,28 @@ errorCode_u SSD1306_printAngle(float angle, uint8_t page, uint8_t column){
 	if(IS_ERROR(result))
 		return (pushErrorCode(result, PRT_ANGLE, 4)); 		// @suppress("Avoid magic numbers")
 
+	return (ERR_SUCCESS);
+}
+
+/**
+ * @brief Run the state machine
+ *
+ * @return Return code of the current state
+ */
+errorCode_u SSD1306update(){
+	return ((*state)());
+}
+
+
+/********************************************************************************************************************************************/
+/********************************************************************************************************************************************/
+
+
+/**
+ * @brief State in which the screen awaits for commands
+ *
+ * @return Success
+ */
+errorCode_u stIdle(){
 	return (ERR_SUCCESS);
 }
