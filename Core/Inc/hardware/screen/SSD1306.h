@@ -12,6 +12,7 @@
 
 errorCode_u SSD1306initialise(SPI_HandleTypeDef* handle);
 errorCode_u SSD1306update();
+uint8_t isScreenReady();
 errorCode_u SSD1306_printAngle(float angle, uint8_t page, uint8_t column);
 
 #endif /* INC_HARDWARE_SCREEN_SSD1306_H_ */
