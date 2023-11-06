@@ -4,6 +4,7 @@
 
 #define VERDANA_NB_BYTES_CHAR	22U	///< Number of bytes per character
 #define VERDANA_CHAR_WIDTH		11U	///< Width of a character in pixels
+#define VERDANA_NB_PAGES		2U	///< Number of SSD pages used by a character
 
 /**
  * @brief Enumeration of all the characters available in Verdana 16
