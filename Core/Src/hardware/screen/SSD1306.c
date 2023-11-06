@@ -42,8 +42,8 @@ typedef enum _SSD1306functionCodes_e{
 	CLR_SCREEN,		///< SSD1306clearScreen()
 	PRT_ANGLE,		///< SSD1306_printAngle()
 	PRINTING_ANGLE,	///< stPrintingAngle()
-	WAITING_DMA_TX,	///< stWaitingForSending()
-	WAITING_DMA_RDY	///< stWaitingForDMAtx()
+	WAITING_DMA_TX,	///< stWaitingForTXstart()
+	WAITING_DMA_RDY	///< stWaitingForTXdone()
 }_SSD1306functionCodes_e;
 
 /**
@@ -70,8 +70,8 @@ static errorCode_u SSD1306clearScreen();
 //state machine
 static errorCode_u stIdle();
 static errorCode_u stPrintingAngle();
-static errorCode_u stWaitingForSending();
-static errorCode_u stWaitingForDMAtx();
+static errorCode_u stWaitingForTXstart();
+static errorCode_u stWaitingForTXdone();
 
 static const SSD1306init_t initCommands[SSD1306_NB_INIT_REGISERS] = {			///< Array used to initialise the registers
 		{SCAN_DIRECTION_N1_0,	0,	0x00},
@@ -361,7 +361,7 @@ errorCode_u stPrintingAngle(){
 		return (createErrorCodeLayer1(PRINTING_ANGLE, 3, HALresult, ERR_ERROR)); 	// @suppress("Avoid magic numbers")
 	}
 
-	state = stWaitingForSending;
+	state = stWaitingForTXstart;
 	return (ERR_SUCCESS);
 }
 
@@ -371,7 +371,7 @@ errorCode_u stPrintingAngle(){
  * @retval 0 Success
  * @retval 1 Timeout occurred while waiting for status to change
  */
-errorCode_u stWaitingForSending(){
+errorCode_u stWaitingForTXstart(){
 	//if timer elapsed, stop DMA and error
 	if(!screenTimer_ms){
 		SSD1306_DISABLE_SPI
@@ -386,7 +386,7 @@ errorCode_u stWaitingForSending(){
 
 	//get to next state
 	screenTimer_ms = SSD1306_SPI_TIMEOUT_MS;
-	state = stWaitingForDMAtx;
+	state = stWaitingForTXdone;
 	return (ERR_SUCCESS);
 }
 
@@ -396,7 +396,7 @@ errorCode_u stWaitingForSending(){
  * @retval 0 Success
  * @retval 1 Timeout while waiting for transmission to end
  */
-errorCode_u stWaitingForDMAtx(){
+errorCode_u stWaitingForTXdone(){
 	//if timer elapsed, stop DMA and error
 	if(!screenTimer_ms){
 		SSD1306_DISABLE_SPI
