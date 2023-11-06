@@ -2,7 +2,7 @@
  * @file SSD1306.c
  * @brief Implement the functioning of the SSD1306 OLED screen via SPI and DMA
  * @author Gilles Henrard
- * @date 02/11/2023
+ * @date 06/11/2023
  *
  * @note Datasheet : https://cdn-shop.adafruit.com/datasheets/SSD1306.pdf
  */
@@ -42,7 +42,8 @@ typedef enum _SSD1306functionCodes_e{
 	CLR_SCREEN,		///< SSD1306clearScreen()
 	PRT_ANGLE,		///< SSD1306_printAngle()
 	PRINTING_ANGLE,	///< stPrintingAngle()
-	WAITING_DMA		///< stWaitingForDMAtx()
+	WAITING_DMA_TX,	///< stWaitingForSending()
+	WAITING_DMA_RDY	///< stWaitingForDMAtx()
 }_SSD1306functionCodes_e;
 
 /**
@@ -69,6 +70,7 @@ static errorCode_u SSD1306clearScreen();
 //state machine
 static errorCode_u stIdle();
 static errorCode_u stPrintingAngle();
+static errorCode_u stWaitingForSending();
 static errorCode_u stWaitingForDMAtx();
 
 static const SSD1306init_t initCommands[SSD1306_NB_INIT_REGISERS] = {			///< Array used to initialise the registers
@@ -86,7 +88,6 @@ static const SSD1306init_t initCommands[SSD1306_NB_INIT_REGISERS] = {			///< Arr
 static SPI_HandleTypeDef*	SSD_SPIhandle = NULL;						///< SPI handle used with the SSD1306
 static screenState			state = stIdle;								///< State machine current state
 static uint8_t				screenBuffer[SSD1306_MAX_DATA_SIZE] = {0};	///< Buffer used to send data to the screen
-volatile uint8_t			isScreenDMAdoneTX = 0;						///< Flag indicating whether a DMA transmission is done
 volatile uint16_t			screenTimer_ms = 0;							///< Timer used with screen SPI transmissions
 static float				nextAngle;									///< Buffer used to store an angle to print
 static uint8_t				nextPage;									///< Buffer used to store a page at which to print
@@ -353,7 +354,6 @@ errorCode_u stPrintingAngle(){
 	SSD1306_SET_DATA
 	SSD1306_ENABLE_SPI
 
-	isScreenDMAdoneTX = 0;
 	screenTimer_ms = SSD1306_SPI_TIMEOUT_MS;
 	HALresult = HAL_SPI_Transmit_DMA(SSD_SPIhandle, screenBuffer, SSD1306_ANGLE_NB_CHARS * VERDANA_NB_BYTES_CHAR);
 	if(HALresult != HAL_OK){
@@ -361,6 +361,31 @@ errorCode_u stPrintingAngle(){
 		return (createErrorCodeLayer1(PRINTING_ANGLE, 3, HALresult, ERR_ERROR)); 	// @suppress("Avoid magic numbers")
 	}
 
+	state = stWaitingForSending;
+	return (ERR_SUCCESS);
+}
+
+/**
+ * @brief State in which the screen waits for the SPI status to change to TX
+ *
+ * @retval 0 Success
+ * @retval 1 Timeout occurred while waiting for status to change
+ */
+errorCode_u stWaitingForSending(){
+	//if timer elapsed, stop DMA and error
+	if(!screenTimer_ms){
+		SSD1306_DISABLE_SPI
+		HAL_SPI_DMAStop(SSD_SPIhandle);
+		state = stIdle;
+		return (createErrorCode(WAITING_DMA_TX, 1, ERR_ERROR));
+	}
+
+	//if status not changed yet, exit
+	if(HAL_SPI_GetState(SSD_SPIhandle) != HAL_SPI_STATE_BUSY_TX)
+		return (ERR_SUCCESS);
+
+	//get to next state
+	screenTimer_ms = SSD1306_SPI_TIMEOUT_MS;
 	state = stWaitingForDMAtx;
 	return (ERR_SUCCESS);
 }
@@ -372,19 +397,20 @@ errorCode_u stPrintingAngle(){
  * @retval 1 Timeout while waiting for transmission to end
  */
 errorCode_u stWaitingForDMAtx(){
+	//if timer elapsed, stop DMA and error
 	if(!screenTimer_ms){
 		SSD1306_DISABLE_SPI
-		HAL_SPI_Abort(SSD_SPIhandle);
+		HAL_SPI_DMAStop(SSD_SPIhandle);
 		state = stIdle;
-		return (createErrorCode(WAITING_DMA, 1, ERR_ERROR));
+		return (createErrorCode(WAITING_DMA_RDY, 1, ERR_ERROR));
 	}
 
 	//if TX not done yet, exit
-	if(!isScreenDMAdoneTX)
+	if(HAL_SPI_GetState(SSD_SPIhandle) != HAL_SPI_STATE_READY)
 		return (ERR_SUCCESS);
 
+	//disable SPI and get to idle state
 	SSD1306_DISABLE_SPI
-
 	state = stIdle;
 	return (ERR_SUCCESS);
 }

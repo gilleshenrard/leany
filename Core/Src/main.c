@@ -314,19 +314,6 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
-/**
- * @brief Handle an SPI transmission ending event
- *
- * @param hspi SPI communication handle
- */
-void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi){
-	//if sender not the screen, exit
-	if(hspi->Instance != SPI2)
-		return;
-
-	//update screen DMA finished flag
-	isScreenDMAdoneTX = 1;
-}
 /* USER CODE END 4 */
 
 /**
