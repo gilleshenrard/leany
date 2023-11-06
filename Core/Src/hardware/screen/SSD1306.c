@@ -20,6 +20,7 @@
 #define SSD1306_FLOAT_FACTOR_10		10.0f	///< Factor of 10 used in float calculations
 #define SSD1306_INT_FACTOR_10		10U		///< Factor of 10 used in integer calculations
 #define SSD1306_NEG_THRESHOLD		-0.05f	///< Threshold above which an angle is considered positive (circumvents float incaccuracies)
+#define SSD1306_INDEX_SIGN			0		///< Index of the sign in the angle indexes array
 #define SSD1306_INDEX_TENS			1U		///< Index of the tens in the angle indexes array
 #define SSD1306_INDEX_UNITS			2U		///< Index of the units in the angle indexes array
 #define SSD1306_INDEX_TENTHS		4U		///< Index of the tenths in the angle indexes array
@@ -317,7 +318,7 @@ errorCode_u stPrintingAngle(){
 
 	//if angle negative, replace plus sign with minus sign
 	if(nextAngle < SSD1306_NEG_THRESHOLD){
-		charIndexes[0] = INDEX_MINUS;
+		charIndexes[SSD1306_INDEX_SIGN] = INDEX_MINUS;
 		nextAngle = -nextAngle;
 	}
 
@@ -327,7 +328,7 @@ errorCode_u stPrintingAngle(){
 	charIndexes[SSD1306_INDEX_TENTHS] = (uint8_t)((uint16_t)(nextAngle * SSD1306_FLOAT_FACTOR_10) % SSD1306_INT_FACTOR_10);
 
 	//fill the buffer with all the required bitmaps bytes (column by column, then character by character, then page by page)
-	for(nextPage = 0 ; nextPage < 2 ; nextPage++){
+	for(nextPage = 0 ; nextPage < VERDANA_NB_PAGES ; nextPage++){
 		for(uint8_t character = 0 ; character < SSD1306_ANGLE_NB_CHARS ; character++){
 			for(nextColumn = 0 ; nextColumn < VERDANA_CHAR_WIDTH ; nextColumn++){
 				*iterator = verdana_16ptNumbers[charIndexes[character]][(VERDANA_CHAR_WIDTH * nextPage) + nextColumn];
