@@ -12,20 +12,20 @@
 #include "main.h"
 
 //definitions
-#define SSD1306_SPI_TIMEOUT_MS		10U		///< Maximum number of milliseconds SPI traffic should last before timeout
-#define SSD1306_MAX_PARAMETERS		6U		///< Maximum number of parameters a command can have
-#define SSD1306_MAX_DATA_SIZE		1024U	///< Maximum data size (128 * 64 bits / 8 bits per bytes)
-#define SSD1306_MIN_ANGLE_DEG		-90.0f	///< Minimum angle allowed (in degrees)
-#define SSD1306_MAX_ANGLE_DEG		90.0f	///< Maximum angle allowed (in degrees)
-#define SSD1306_FLOAT_FACTOR_10		10.0f	///< Factor of 10 used in float calculations
-#define SSD1306_INT_FACTOR_10		10U		///< Factor of 10 used in integer calculations
-#define SSD1306_NEG_THRESHOLD		-0.05f	///< Threshold above which an angle is considered positive (circumvents float incaccuracies)
-#define SSD1306_INDEX_SIGN			0		///< Index of the sign in the angle indexes array
-#define SSD1306_INDEX_TENS			1U		///< Index of the tens in the angle indexes array
-#define SSD1306_INDEX_UNITS			2U		///< Index of the units in the angle indexes array
-#define SSD1306_INDEX_TENTHS		4U		///< Index of the tenths in the angle indexes array
-#define SSD1306_ANGLE_NB_CHARS		6U		///< Number of characters in the angle array
-#define SSD1306_NB_INIT_REGISERS	8U		///< Number of registers set at initialisation
+#define SPI_TIMEOUT_MS		10U		///< Maximum number of milliseconds SPI traffic should last before timeout
+#define MAX_PARAMETERS		6U		///< Maximum number of parameters a command can have
+#define MAX_DATA_SIZE		1024U	///< Maximum data size (128 * 64 bits / 8 bits per bytes)
+#define MIN_ANGLE_DEG		-90.0f	///< Minimum angle allowed (in degrees)
+#define MAX_ANGLE_DEG		90.0f	///< Maximum angle allowed (in degrees)
+#define FLOAT_FACTOR_10		10.0f	///< Factor of 10 used in float calculations
+#define INT_FACTOR_10		10U		///< Factor of 10 used in integer calculations
+#define NEG_THRESHOLD		-0.05f	///< Threshold above which an angle is considered positive (circumvents float incaccuracies)
+#define INDEX_SIGN			0		///< Index of the sign in the angle indexes array
+#define INDEX_TENS			1U		///< Index of the tens in the angle indexes array
+#define INDEX_UNITS			2U		///< Index of the units in the angle indexes array
+#define INDEX_TENTHS		4U		///< Index of the tenths in the angle indexes array
+#define ANGLE_NB_CHARS		6U		///< Number of characters in the angle array
+#define NB_INIT_REGISERS	8U		///< Number of registers set at initialisation
 
 //macros
 #define SSD1306_ENABLE_SPI	HAL_GPIO_WritePin(SSD1306_CS_GPIO_Port, SSD1306_CS_Pin, GPIO_PIN_RESET);
@@ -72,7 +72,7 @@ static errorCode_u stIdle();
 static errorCode_u stPrintingAngle();
 static errorCode_u stWaitingForTXdone();
 
-static const SSD1306init_t initCommands[SSD1306_NB_INIT_REGISERS] = {			///< Array used to initialise the registers
+static const SSD1306init_t initCommands[NB_INIT_REGISERS] = {			///< Array used to initialise the registers
 		{SCAN_DIRECTION_N1_0,	0,	0x00},
 		{HARDWARE_CONFIG,		1,	SSD_PIN_CONFIG_ALT | SSD_COM_REMAP_DISABLE},
 		{SEGMENT_REMAP_127,		0,	0x00},
@@ -84,13 +84,13 @@ static const SSD1306init_t initCommands[SSD1306_NB_INIT_REGISERS] = {			///< Arr
 };
 
 //state variables
-volatile uint16_t			screenTimer_ms = 0;						///< Timer used with screen SPI transmissions
-static SPI_HandleTypeDef*	_SSD_SPIhandle = NULL;					///< SPI handle used with the SSD1306
-static screenState			_state = stIdle;						///< State machine current state
-static uint8_t				_screenBuffer[SSD1306_MAX_DATA_SIZE];	///< Buffer used to send data to the screen
-static float				_nextAngle;								///< Buffer used to store an angle to print
-static uint8_t				_nextPage;								///< Buffer used to store a page at which to print
-static uint8_t				_nextColumn;							///< Buffer used to store a column at which to print
+volatile uint16_t			screenTimer_ms = 0;				///< Timer used with screen SPI transmissions
+static SPI_HandleTypeDef*	_SSD_SPIhandle = NULL;			///< SPI handle used with the SSD1306
+static screenState			_state = stIdle;				///< State machine current state
+static uint8_t				_screenBuffer[MAX_DATA_SIZE];	///< Buffer used to send data to the screen
+static float				_nextAngle;						///< Buffer used to store an angle to print
+static uint8_t				_nextPage;						///< Buffer used to store a page at which to print
+static uint8_t				_nextColumn;					///< Buffer used to store a column at which to print
 
 
 /********************************************************************************************************************************************/
@@ -119,7 +119,7 @@ errorCode_u SSD1306initialise(SPI_HandleTypeDef* handle){
 	//initialisation taken from PDF p. 64 (Application Example)
 	//	values which don't change from reset values aren't modified
 	//TODO test for max oscillator frequency
-	for(uint8_t i = 0 ; i < SSD1306_NB_INIT_REGISERS ; i++){
+	for(uint8_t i = 0 ; i < NB_INIT_REGISERS ; i++){
 		result = SSD1306sendCommand(initCommands[i].reg, &initCommands[i].value, initCommands[i].nbParameters);
 		if(IS_ERROR(result))
 			return (pushErrorCode(result, INIT, 1));
@@ -148,7 +148,7 @@ errorCode_u SSD1306sendCommand(SSD1306register_e regNumber, const uint8_t parame
 	errorCode_u result = ERR_SUCCESS;
 
 	//if too many parameters, error
-	if(nbParameters > SSD1306_MAX_PARAMETERS)
+	if(nbParameters > MAX_PARAMETERS)
 		return(createErrorCode(SEND_CMD, 1, ERR_WARNING));
 
 	//set command pin and enable SPI
@@ -156,7 +156,7 @@ errorCode_u SSD1306sendCommand(SSD1306register_e regNumber, const uint8_t parame
 	SSD1306_ENABLE_SPI
 
 	//send the command byte
-	HALresult = HAL_SPI_Transmit(_SSD_SPIhandle, &regNumber, 1, SSD1306_SPI_TIMEOUT_MS);
+	HALresult = HAL_SPI_Transmit(_SSD_SPIhandle, &regNumber, 1, SPI_TIMEOUT_MS);
 	if(HALresult != HAL_OK){
 		SSD1306_DISABLE_SPI
 		return (createErrorCodeLayer1(SEND_CMD, 2, HALresult, ERR_ERROR));
@@ -164,7 +164,7 @@ errorCode_u SSD1306sendCommand(SSD1306register_e regNumber, const uint8_t parame
 
 	//if command send OK, send all parameters
 	if(parameters && nbParameters){
-		HALresult = HAL_SPI_Transmit(_SSD_SPIhandle, (uint8_t*)parameters, nbParameters, SSD1306_SPI_TIMEOUT_MS);
+		HALresult = HAL_SPI_Transmit(_SSD_SPIhandle, (uint8_t*)parameters, nbParameters, SPI_TIMEOUT_MS);
 		if(HALresult != HAL_OK)
 			result = createErrorCodeLayer1(SEND_CMD, 3, HALresult, ERR_ERROR); 		// @suppress("Avoid magic numbers")
 	}
@@ -192,7 +192,7 @@ errorCode_u SSD1306sendData(const uint8_t values[], uint16_t size){
 		return(ERR_SUCCESS);
 
 	//if more bytes than sectors in the GDDRAM, error
-	if(size > SSD1306_MAX_DATA_SIZE)
+	if(size > MAX_DATA_SIZE)
 		return(createErrorCode(SEND_DATA, 1, ERR_WARNING));
 
 	//set command pin and enable SPI
@@ -200,7 +200,7 @@ errorCode_u SSD1306sendData(const uint8_t values[], uint16_t size){
 	SSD1306_ENABLE_SPI
 
 	//transmit the buffer all at once
-	HALresult = HAL_SPI_Transmit(_SSD_SPIhandle, (uint8_t*)values, size, SSD1306_SPI_TIMEOUT_MS);
+	HALresult = HAL_SPI_Transmit(_SSD_SPIhandle, (uint8_t*)values, size, SPI_TIMEOUT_MS);
 	if(HALresult != HAL_OK)
 		result = createErrorCodeLayer1(SEND_DATA, 2, HALresult, ERR_ERROR);
 
@@ -234,7 +234,7 @@ errorCode_u SSD1306clearScreen(){
 		return (pushErrorCode(result, CLR_SCREEN, 2));
 
 	//send the buffer data
-	result = SSD1306sendData(_screenBuffer, SSD1306_MAX_DATA_SIZE);
+	result = SSD1306sendData(_screenBuffer, MAX_DATA_SIZE);
 	if(IS_ERROR(result))
 		return (pushErrorCode(result, CLR_SCREEN, 3)); 		// @suppress("Avoid magic numbers")
 
@@ -262,7 +262,7 @@ uint8_t isScreenReady(){
  */
 errorCode_u SSD1306_printAngle(float angle, uint8_t page, uint8_t column){
 	//if angle out of bounds, return error
-	if((angle < SSD1306_MIN_ANGLE_DEG) || (angle > SSD1306_MAX_ANGLE_DEG))
+	if((angle < MIN_ANGLE_DEG) || (angle > MAX_ANGLE_DEG))
 		return (createErrorCode(PRT_ANGLE, 1, ERR_WARNING));
 
 	//store the values
@@ -307,7 +307,7 @@ errorCode_u stIdle(){
  * @retval 1 Error occurred while sending the data
  */
 errorCode_u stPrintingAngle(){
-	uint8_t charIndexes[SSD1306_ANGLE_NB_CHARS] = {INDEX_PLUS, 0, 0, INDEX_DOT, 0, INDEX_DEG};
+	uint8_t charIndexes[ANGLE_NB_CHARS] = {INDEX_PLUS, 0, 0, INDEX_DOT, 0, INDEX_DEG};
 	const uint8_t limitColumns[2] = {_nextColumn, _nextColumn + (VERDANA_CHAR_WIDTH * 6) - 1};
 	const uint8_t limitPages[2] = {_nextPage, _nextPage + 1};
 	uint8_t* iterator = _screenBuffer;
@@ -315,19 +315,19 @@ errorCode_u stPrintingAngle(){
 	HAL_StatusTypeDef HALresult;
 
 	//if angle negative, replace plus sign with minus sign
-	if(_nextAngle < SSD1306_NEG_THRESHOLD){
-		charIndexes[SSD1306_INDEX_SIGN] = INDEX_MINUS;
+	if(_nextAngle < NEG_THRESHOLD){
+		charIndexes[INDEX_SIGN] = INDEX_MINUS;
 		_nextAngle = -_nextAngle;
 	}
 
 	//fill the angle characters indexes array with the float values (tens, units, tenths)
-	charIndexes[SSD1306_INDEX_TENS] = (uint8_t)(_nextAngle / SSD1306_FLOAT_FACTOR_10);
-	charIndexes[SSD1306_INDEX_UNITS] = ((uint8_t)_nextAngle) % SSD1306_INT_FACTOR_10;
-	charIndexes[SSD1306_INDEX_TENTHS] = (uint8_t)((uint16_t)(_nextAngle * SSD1306_FLOAT_FACTOR_10) % SSD1306_INT_FACTOR_10);
+	charIndexes[INDEX_TENS] = (uint8_t)(_nextAngle / FLOAT_FACTOR_10);
+	charIndexes[INDEX_UNITS] = ((uint8_t)_nextAngle) % INT_FACTOR_10;
+	charIndexes[INDEX_TENTHS] = (uint8_t)((uint16_t)(_nextAngle * FLOAT_FACTOR_10) % INT_FACTOR_10);
 
 	//fill the buffer with all the required bitmaps bytes (column by column, then character by character, then page by page)
 	for(_nextPage = 0 ; _nextPage < VERDANA_NB_PAGES ; _nextPage++){
-		for(uint8_t character = 0 ; character < SSD1306_ANGLE_NB_CHARS ; character++){
+		for(uint8_t character = 0 ; character < ANGLE_NB_CHARS ; character++){
 			for(_nextColumn = 0 ; _nextColumn < VERDANA_CHAR_WIDTH ; _nextColumn++){
 				*iterator = verdana_16ptNumbers[charIndexes[character]][(VERDANA_CHAR_WIDTH * _nextPage) + _nextColumn];
 				iterator++;
@@ -354,8 +354,8 @@ errorCode_u stPrintingAngle(){
 	SSD1306_ENABLE_SPI
 
 	//send the data
-	screenTimer_ms = SSD1306_SPI_TIMEOUT_MS;
-	HALresult = HAL_SPI_Transmit_DMA(_SSD_SPIhandle, _screenBuffer, SSD1306_ANGLE_NB_CHARS * VERDANA_NB_BYTES_CHAR);
+	screenTimer_ms = SPI_TIMEOUT_MS;
+	HALresult = HAL_SPI_Transmit_DMA(_SSD_SPIhandle, _screenBuffer, ANGLE_NB_CHARS * VERDANA_NB_BYTES_CHAR);
 	if(HALresult != HAL_OK){
 		_state = stIdle;
 		return (createErrorCodeLayer1(PRINTING_ANGLE, 3, HALresult, ERR_ERROR)); 	// @suppress("Avoid magic numbers")
