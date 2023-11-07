@@ -307,7 +307,7 @@ errorCode_u stIdle(){
  * @retval 1 Error occurred while sending the data
  */
 errorCode_u stPrintingAngle(){
-	static uint8_t charIndexes[SSD1306_ANGLE_NB_CHARS] = {INDEX_PLUS, 0, 0, INDEX_DOT, 0, INDEX_DEG};
+	uint8_t charIndexes[SSD1306_ANGLE_NB_CHARS] = {INDEX_PLUS, 0, 0, INDEX_DOT, 0, INDEX_DEG};
 	const uint8_t limitColumns[2] = {nextColumn, nextColumn + (VERDANA_CHAR_WIDTH * 6) - 1};
 	const uint8_t limitPages[2] = {nextPage, nextPage + 1};
 	uint8_t* iterator = screenBuffer;
