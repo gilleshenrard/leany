@@ -2,7 +2,7 @@
  * @file SSD1306.c
  * @brief Implement the functioning of the SSD1306 OLED screen via SPI and DMA
  * @author Gilles Henrard
- * @date 06/11/2023
+ * @date 07/11/2023
  *
  * @note Datasheet : https://cdn-shop.adafruit.com/datasheets/SSD1306.pdf
  */
@@ -43,7 +43,6 @@ typedef enum _SSD1306functionCodes_e{
 	CLR_SCREEN,		///< SSD1306clearScreen()
 	PRT_ANGLE,		///< SSD1306_printAngle()
 	PRINTING_ANGLE,	///< stPrintingAngle()
-	WAITING_DMA_TX,	///< stWaitingForTXstart()
 	WAITING_DMA_RDY	///< stWaitingForTXdone()
 }_SSD1306functionCodes_e;
 
@@ -71,7 +70,6 @@ static errorCode_u SSD1306clearScreen();
 //state machine
 static errorCode_u stIdle();
 static errorCode_u stPrintingAngle();
-static errorCode_u stWaitingForTXstart();
 static errorCode_u stWaitingForTXdone();
 
 static const SSD1306init_t initCommands[SSD1306_NB_INIT_REGISERS] = {			///< Array used to initialise the registers
@@ -362,31 +360,6 @@ errorCode_u stPrintingAngle(){
 		return (createErrorCodeLayer1(PRINTING_ANGLE, 3, HALresult, ERR_ERROR)); 	// @suppress("Avoid magic numbers")
 	}
 
-	state = stWaitingForTXstart;
-	return (ERR_SUCCESS);
-}
-
-/**
- * @brief State in which the screen waits for the SPI status to change to TX
- *
- * @retval 0 Success
- * @retval 1 Timeout occurred while waiting for status to change
- */
-errorCode_u stWaitingForTXstart(){
-	//if timer elapsed, stop DMA and error
-	if(!screenTimer_ms){
-		SSD1306_DISABLE_SPI
-		HAL_SPI_DMAStop(SSD_SPIhandle);
-		state = stIdle;
-		return (createErrorCode(WAITING_DMA_TX, 1, ERR_ERROR));
-	}
-
-	//if status not changed yet, exit
-	if(HAL_SPI_GetState(SSD_SPIhandle) != HAL_SPI_STATE_BUSY_TX)
-		return (ERR_SUCCESS);
-
-	//get to next state
-	screenTimer_ms = SSD1306_SPI_TIMEOUT_MS;
 	state = stWaitingForTXdone;
 	return (ERR_SUCCESS);
 }
