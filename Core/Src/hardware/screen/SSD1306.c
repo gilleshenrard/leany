@@ -219,8 +219,8 @@ errorCode_u SSD1306sendData(const uint8_t values[], uint16_t size){
  * @retval 3 Error while sending the screen buffer
  */
 errorCode_u SSD1306clearScreen(){
-	const uint8_t limitColumns[2] = {0, 127};
-	const uint8_t limitPages[2] = {0, 31};
+	static const uint8_t limitColumns[2] = {0, 127};
+	static const uint8_t limitPages[2] = {0, 31};
 	errorCode_u result;
 
 	//set the start and end columns
