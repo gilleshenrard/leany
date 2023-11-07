@@ -28,10 +28,10 @@
 #define SSD1306_NB_INIT_REGISERS	8U		///< Number of registers set at initialisation
 
 //macros
-#define SSD1306_ENABLE_SPI HAL_GPIO_WritePin(SSD1306_CS_GPIO_Port, SSD1306_CS_Pin, GPIO_PIN_RESET);
-#define SSD1306_DISABLE_SPI HAL_GPIO_WritePin(SSD1306_CS_GPIO_Port, SSD1306_CS_Pin, GPIO_PIN_SET);
-#define SSD1306_SET_COMMAND HAL_GPIO_WritePin(SSD1306_DC_GPIO_Port, SSD1306_DC_Pin, GPIO_PIN_RESET);
-#define SSD1306_SET_DATA HAL_GPIO_WritePin(SSD1306_DC_GPIO_Port, SSD1306_DC_Pin, GPIO_PIN_SET);
+#define SSD1306_ENABLE_SPI	HAL_GPIO_WritePin(SSD1306_CS_GPIO_Port, SSD1306_CS_Pin, GPIO_PIN_RESET);
+#define SSD1306_DISABLE_SPI	HAL_GPIO_WritePin(SSD1306_CS_GPIO_Port, SSD1306_CS_Pin, GPIO_PIN_SET);
+#define SSD1306_SET_COMMAND	HAL_GPIO_WritePin(SSD1306_DC_GPIO_Port, SSD1306_DC_Pin, GPIO_PIN_RESET);
+#define SSD1306_SET_DATA	HAL_GPIO_WritePin(SSD1306_DC_GPIO_Port, SSD1306_DC_Pin, GPIO_PIN_SET);
 
 /**
  * @brief Enumeration of the function IDs of the SSD1306
@@ -349,10 +349,11 @@ errorCode_u stPrintingAngle(){
 		return (pushErrorCode(result, PRINTING_ANGLE, 2));
 	}
 
-
+	//set GPIOs
 	SSD1306_SET_DATA
 	SSD1306_ENABLE_SPI
 
+	//send the data
 	screenTimer_ms = SSD1306_SPI_TIMEOUT_MS;
 	HALresult = HAL_SPI_Transmit_DMA(SSD_SPIhandle, screenBuffer, SSD1306_ANGLE_NB_CHARS * VERDANA_NB_BYTES_CHAR);
 	if(HALresult != HAL_OK){
@@ -360,6 +361,7 @@ errorCode_u stPrintingAngle(){
 		return (createErrorCodeLayer1(PRINTING_ANGLE, 3, HALresult, ERR_ERROR)); 	// @suppress("Avoid magic numbers")
 	}
 
+	//get to next
 	state = stWaitingForTXdone;
 	return (ERR_SUCCESS);
 }
