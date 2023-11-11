@@ -26,6 +26,8 @@
 #define INDEX_TENTHS		4U		///< Index of the tenths in the angle indexes array
 #define ANGLE_NB_CHARS		6U		///< Number of characters in the angle array
 #define NB_INIT_REGISERS	8U		///< Number of registers set at initialisation
+#define SSD_LAST_COLUMN		127U	///< Index of the highest column
+#define SSD_LAST_PAGE		31U		///< Index of the highest page
 
 //macros
 #define SSD1306_ENABLE_SPI	HAL_GPIO_WritePin(SSD1306_CS_GPIO_Port, SSD1306_CS_Pin, GPIO_PIN_RESET);
@@ -87,9 +89,9 @@ volatile uint16_t			screenTimer_ms = 0;				///< Timer used with screen SPI trans
 static SPI_HandleTypeDef*	_SSD_SPIhandle = NULL;			///< SPI handle used with the SSD1306
 static screenState			_state = stIdle;				///< State machine current state
 static uint8_t				_screenBuffer[MAX_DATA_SIZE];	///< Buffer used to send data to the screen
-static uint8_t 				_limitColumns[2];
-static uint8_t				_limitPages[2];
-static uint16_t				_size;
+static uint8_t 				_limitColumns[2];				///< Buffer used to set the first and last column to send
+static uint8_t				_limitPages[2];					///< Buffer used to set the first and last page to send
+static uint16_t				_size;							///< Number of bytes to send
 
 
 /********************************************************************************************************************************************/
@@ -186,9 +188,9 @@ errorCode_u SSD1306clearScreen(){
 	uint8_t* iterator = _screenBuffer;
 
 	_limitColumns[0] = 0;
-	_limitColumns[1] = 127;
+	_limitColumns[1] = SSD_LAST_COLUMN;
 	_limitPages[0] = 0;
-	_limitPages[1] = 31;
+	_limitPages[1] = SSD_LAST_PAGE;
 	_size = MAX_DATA_SIZE;
 
 	for(uint16_t i = 0 ; i < MAX_DATA_SIZE ; i++)
@@ -227,7 +229,7 @@ errorCode_u SSD1306_printAngle(float angle, uint8_t page, uint8_t column){
 
 	//store the values
 	_limitColumns[0] = column;
-	_limitColumns[1] = column + (VERDANA_CHAR_WIDTH * 6) - 1;
+	_limitColumns[1] = column + (VERDANA_CHAR_WIDTH * ANGLE_NB_CHARS) - 1;
 	_limitPages[0] = page;
 	_limitPages[1] = page + 1;
 	_size = ANGLE_NB_CHARS * VERDANA_NB_BYTES_CHAR;
