@@ -1,7 +1,7 @@
 /**
  * @brief Implement the ADXL345 accelerometer communication
  * @author Gilles Henrard
- * @date 02/11/2023
+ * @date 11/11/2023
  *
  * @note Additional information can be found in :
  *   - ADXL345 datasheet : https://www.analog.com/media/en/technical-documentation/data-sheets/ADXL345.pdf
@@ -99,20 +99,20 @@ static const uint8_t initialisationArray[ADXL_NB_REG_INIT][2] = {
 static const uint8_t dataFormatDefault = ADXL_NO_SELF_TEST | ADXL_SPI_4WIRE | ADXL_INT_ACTIV_LOW | ADXL_RANGE_16G;	///< Default data format (register 0x31) value
 
 //global variables
-volatile uint8_t			adxlINT1occurred = 0;			///< Flag used to indicate the ADXL triggered an interrupt
-volatile uint16_t			adxlTimer_ms = 0;				///< Timer used in various states of the ADXL (in ms)
+volatile uint8_t			adxlINT1occurred = 0;		///< Flag used to indicate the ADXL triggered an interrupt
+volatile uint16_t			adxlTimer_ms = 0;			///< Timer used in various states of the ADXL (in ms)
 
 //state variables
-static SPI_HandleTypeDef*	ADXL_spiHandle = NULL;			///< SPI handle used with the ADXL345
-static adxlState			state = stStartup;				///< State machine current state
-static uint8_t				adxlMeasurementsUpdated = 0;	///< Flag used to indicate new integrated measurements are ready within the ADXL345
-static int16_t				finalX = 0;						///< X value obtained after integration
-static int16_t				finalY = 0;						///< Y value obtained after integration
-static int16_t				finalZ = 0;						///< Z value obtained after integration
-static int16_t				finalXSTon = 0;					///< X value obtained after integration
-static int16_t				finalYSTon = 0;					///< Y value obtained after integration
-static int16_t				finalZSTon = 0;					///< Z value obtained after integration
-static errorCode_u 			result;
+static SPI_HandleTypeDef*	_spiHandle = NULL;			///< SPI handle used with the ADXL345
+static adxlState			_state = stStartup;			///< State machine current state
+static uint8_t				_measurementsUpdated = 0;	///< Flag used to indicate new integrated measurements are ready within the ADXL345
+static int16_t				_finalX = 0;				///< X value obtained after integration
+static int16_t				_finalY = 0;				///< Y value obtained after integration
+static int16_t				_finalZ = 0;				///< Z value obtained after integration
+static int16_t				_finalXSTon = 0;			///< X value obtained after integration
+static int16_t				_finalYSTon = 0;			///< Y value obtained after integration
+static int16_t				_finalZSTon = 0;			///< Z value obtained after integration
+static errorCode_u 			_result;
 
 
 /********************************************************************************************************************************************/
@@ -138,7 +138,7 @@ inline uint8_t anglesDifferent(float angleA, float angleB)
  * @retval 0 Success
  */
 errorCode_u ADXL345initialise(const SPI_HandleTypeDef* handle){
-	ADXL_spiHandle = (SPI_HandleTypeDef*)handle;
+	_spiHandle = (SPI_HandleTypeDef*)handle;
 	return (ERR_SUCCESS);
 }
 
@@ -148,7 +148,7 @@ errorCode_u ADXL345initialise(const SPI_HandleTypeDef* handle){
  * @return Current machine state return value
  */
 errorCode_u ADXL345update(){
-	return ( (*state)() );
+	return ( (*_state)() );
 }
 
 /**
@@ -158,8 +158,8 @@ errorCode_u ADXL345update(){
  * @retval 1 New values are available
  */
 uint8_t ADXL345hasNewMeasurements(){
-	uint8_t tmp = adxlMeasurementsUpdated;
-	adxlMeasurementsUpdated = 0;
+	uint8_t tmp = _measurementsUpdated;
+	_measurementsUpdated = 0;
 
 	return (tmp);
 }
@@ -182,7 +182,7 @@ errorCode_u ADXL345writeRegister(adxl345Registers_e registerNumber, uint8_t valu
 	uint8_t instruction = ADXL_WRITE | ADXL_SINGLE | registerNumber;
 
 	//if handle not set, error
-	if(ADXL_spiHandle == NULL)
+	if(_spiHandle == NULL)
 		return (createErrorCode(WRITE_REGISTER, 1, ERR_CRITICAL));
 
 	//if register number above known, error
@@ -196,14 +196,14 @@ errorCode_u ADXL345writeRegister(adxl345Registers_e registerNumber, uint8_t valu
 	ENABLE_SPI
 
 	//transmit the read instruction
-	HALresult = HAL_SPI_Transmit(ADXL_spiHandle, &instruction, 1, ADXL_SPI_TIMEOUT_MS);
+	HALresult = HAL_SPI_Transmit(_spiHandle, &instruction, 1, ADXL_SPI_TIMEOUT_MS);
 	if(HALresult != HAL_OK){
 		DISABLE_SPI
 		return (createErrorCodeLayer1(WRITE_REGISTER, 4, HALresult, ERR_ERROR)); 	// @suppress("Avoid magic numbers")
 	}
 
 	//receive the reply
-	HALresult = HAL_SPI_Transmit(ADXL_spiHandle, &value, 1, ADXL_SPI_TIMEOUT_MS);
+	HALresult = HAL_SPI_Transmit(_spiHandle, &value, 1, ADXL_SPI_TIMEOUT_MS);
 	if(HALresult != HAL_OK)
 		ret = createErrorCodeLayer1(WRITE_REGISTER, 5, HALresult, ERR_ERROR); 	// @suppress("Avoid magic numbers")
 
@@ -229,7 +229,7 @@ errorCode_u ADXL345readRegisters(adxl345Registers_e firstRegister, uint8_t* valu
 	uint8_t instruction = ADXL_READ | ADXL_MULTIPLE | firstRegister;
 
 	//if handle not set, error
-	if(ADXL_spiHandle == NULL)
+	if(_spiHandle == NULL)
 		return (createErrorCode(READ_REGISTERS, 1, ERR_CRITICAL));
 
 	//if register numbers above known, error
@@ -239,14 +239,14 @@ errorCode_u ADXL345readRegisters(adxl345Registers_e firstRegister, uint8_t* valu
 	ENABLE_SPI
 
 	//transmit the read instruction
-	HALresult = HAL_SPI_Transmit(ADXL_spiHandle, &instruction, 1, ADXL_SPI_TIMEOUT_MS);
+	HALresult = HAL_SPI_Transmit(_spiHandle, &instruction, 1, ADXL_SPI_TIMEOUT_MS);
 	if(HALresult != HAL_OK){
 		DISABLE_SPI
 		return (createErrorCodeLayer1(READ_REGISTERS, 3, HALresult, ERR_ERROR)); 	// @suppress("Avoid magic numbers")
 	}
 
 	//receive the reply
-	HALresult = HAL_SPI_Receive(ADXL_spiHandle, value, size, ADXL_SPI_TIMEOUT_MS);
+	HALresult = HAL_SPI_Receive(_spiHandle, value, size, ADXL_SPI_TIMEOUT_MS);
 	if(HALresult != HAL_OK)
 		ret = createErrorCodeLayer1(READ_REGISTERS, 4, HALresult, ERR_ERROR); 	// @suppress("Avoid magic numbers")
 
@@ -260,7 +260,7 @@ errorCode_u ADXL345readRegisters(adxl345Registers_e firstRegister, uint8_t* valu
  * @return Last known integrated measurement
  */
 int16_t ADXL345getXmeasurement(){
-	return (finalX);
+	return (_finalX);
 }
 
 /**
@@ -269,7 +269,7 @@ int16_t ADXL345getXmeasurement(){
  * @return Last known integrated measurement
  */
 int16_t ADXL345getYmeasurement(){
-	return (finalY);
+	return (_finalY);
 }
 
 /**
@@ -279,7 +279,7 @@ int16_t ADXL345getYmeasurement(){
  * @return Angle with the Z axis
  */
 float measureToAngleDegrees(int16_t axisValue){
-	return (atanDegrees(axisValue, finalZ));
+	return (atanDegrees(axisValue, _finalZ));
 }
 
 /**
@@ -310,10 +310,10 @@ errorCode_u integrateFIFO(int16_t* xValue, int16_t* yValue, int16_t* zValue){
 	//for eatch of the 16 samples to read
 	for(uint8_t i = 0 ; i < ADXL_AVG_SAMPLES ; i++){
 		//read all data registers for 1 sample
-		result = ADXL345readRegisters(DATA_X0, buffer, ADXL_NB_DATA_REGISTERS);
-		if(IS_ERROR(result)){
-			state = stError;
-			return (pushErrorCode(result, INTEGRATE, 1));
+		_result = ADXL345readRegisters(DATA_X0, buffer, ADXL_NB_DATA_REGISTERS);
+		if(IS_ERROR(_result)){
+			_state = stError;
+			return (pushErrorCode(_result, INTEGRATE, 1));
 		}
 
 		//add the measurements (formatted from a two's complement) to their final value buffer
@@ -347,23 +347,23 @@ errorCode_u stStartup(){
 	uint8_t deviceID = 0;
 
 	//if no handle specified, go error
-	if(ADXL_spiHandle == NULL){
-		state = stError;
+	if(_spiHandle == NULL){
+		_state = stError;
 		return (createErrorCode(STARTUP, 1, ERR_CRITICAL));
 	}
 
 	//if unable to read device ID, go error
-	result = ADXL345readRegisters(DEVICE_ID, &deviceID, 1);
-	if(IS_ERROR(result)){
-		state = stError;
-		return (pushErrorCode(result, STARTUP, 2));
+	_result = ADXL345readRegisters(DEVICE_ID, &deviceID, 1);
+	if(IS_ERROR(_result)){
+		_state = stError;
+		return (pushErrorCode(_result, STARTUP, 2));
 	}
 
 	//if invalid device ID, go error
 	if(deviceID != ADXL_DEVICE_ID)
 		return (createErrorCode(STARTUP, 3, ERR_CRITICAL)); 	// @suppress("Avoid magic numbers")
 
-	state = stConfiguring;
+	_state = stConfiguring;
 	return (ERR_SUCCESS);
 }
 
@@ -375,25 +375,25 @@ errorCode_u stStartup(){
  */
 errorCode_u stConfiguring(){
 	//write the default data format
-	result = ADXL345writeRegister(DATA_FORMAT, dataFormatDefault);
-	if(IS_ERROR(result)){
-		state = stError;
-		return (pushErrorCode(result, INIT, 1));
+	_result = ADXL345writeRegister(DATA_FORMAT, dataFormatDefault);
+	if(IS_ERROR(_result)){
+		_state = stError;
+		return (pushErrorCode(_result, INIT, 1));
 	}
 
 	//write all registers values from the initialisation array
 	for(uint8_t i = 0 ; i < ADXL_NB_REG_INIT ; i++){
-		result = ADXL345writeRegister(initialisationArray[i][0], initialisationArray[i][1]);
-		if(IS_ERROR(result)){
-			state = stError;
-			return (pushErrorCode(result, INIT, 1));
+		_result = ADXL345writeRegister(initialisationArray[i][0], initialisationArray[i][1]);
+		if(IS_ERROR(_result)){
+			_state = stError;
+			return (pushErrorCode(_result, INIT, 1));
 		}
 	}
 
 	//reset the timer and get to next state
 	adxlTimer_ms = ADXL_INT_TIMEOUT_MS;
-	state = stSelfTestingOFF;
-	return (result);
+	_state = stSelfTestingOFF;
+	return (_result);
 }
 
 /**
@@ -407,7 +407,7 @@ errorCode_u stConfiguring(){
 errorCode_u stSelfTestingOFF(){
 	//if timeout, go error
 	if(!adxlTimer_ms){
-		state = stError;
+		_state = stError;
 		return (createErrorCode(SELF_TESTING_OFF, 1, ERR_ERROR));
 	}
 
@@ -416,14 +416,14 @@ errorCode_u stSelfTestingOFF(){
 		return (ERR_SUCCESS);
 
 	//retrieve the integrated measurements
-	result = integrateFIFO(&finalX, &finalY, &finalZ);
-	if(IS_ERROR(result)){
-		state = stError;
-		return (pushErrorCode(result, SELF_TESTING_OFF, 2));
+	_result = integrateFIFO(&_finalX, &_finalY, &_finalZ);
+	if(IS_ERROR(_result)){
+		_state = stError;
+		return (pushErrorCode(_result, SELF_TESTING_OFF, 2));
 	}
 
 	//get to next state
-	state = stEnablingST;
+	_state = stEnablingST;
 	return (ERR_SUCCESS);
 }
 
@@ -436,22 +436,22 @@ errorCode_u stSelfTestingOFF(){
  */
 errorCode_u stEnablingST(){
 	//Enable the self-test
-	result = ADXL345writeRegister(DATA_FORMAT, dataFormatDefault | ADXL_SELF_TEST);
-	if(IS_ERROR(result)){
-		state = stError;
-		return (pushErrorCode(result, SELF_TEST_ENABLE, 1)); 	// @suppress("Avoid magic numbers")
+	_result = ADXL345writeRegister(DATA_FORMAT, dataFormatDefault | ADXL_SELF_TEST);
+	if(IS_ERROR(_result)){
+		_state = stError;
+		return (pushErrorCode(_result, SELF_TEST_ENABLE, 1)); 	// @suppress("Avoid magic numbers")
 	}
 
 	//clear the FIFOs
-	result = ADXL345writeRegister(FIFO_CONTROL, ADXL_MODE_BYPASS);
-	if(IS_ERROR(result)){
-		state = stError;
-		return (pushErrorCode(result, SELF_TEST_ENABLE, 2)); 	// @suppress("Avoid magic numbers")
+	_result = ADXL345writeRegister(FIFO_CONTROL, ADXL_MODE_BYPASS);
+	if(IS_ERROR(_result)){
+		_state = stError;
+		return (pushErrorCode(_result, SELF_TEST_ENABLE, 2)); 	// @suppress("Avoid magic numbers")
 	}
 
 	//reset timer and get to next state
 	adxlTimer_ms = ADXL_ST_WAIT_MS;
-	state = stWaitingForSTenabled;
+	_state = stWaitingForSTenabled;
 	return (ERR_SUCCESS);
 }
 
@@ -467,15 +467,15 @@ errorCode_u stWaitingForSTenabled(){
 
 	//enable FIFOs
 	adxlINT1occurred = 0;
-	result = ADXL345writeRegister(FIFO_CONTROL, ADXL_MODE_FIFO | ADXL_TRIGGER_INT1 | (ADXL_AVG_SAMPLES - 1));
-	if(IS_ERROR(result)){
-		state = stError;
-		return (pushErrorCode(result, SELF_TEST_WAIT, 1)); 	// @suppress("Avoid magic numbers")
+	_result = ADXL345writeRegister(FIFO_CONTROL, ADXL_MODE_FIFO | ADXL_TRIGGER_INT1 | (ADXL_AVG_SAMPLES - 1));
+	if(IS_ERROR(_result)){
+		_state = stError;
+		return (pushErrorCode(_result, SELF_TEST_WAIT, 1)); 	// @suppress("Avoid magic numbers")
 	}
 
 	//reset timer and get to next state
 	adxlTimer_ms = ADXL_INT_TIMEOUT_MS;
-	state = stSelfTestingON;
+	_state = stSelfTestingON;
 	return (ERR_SUCCESS);
 }
 
@@ -491,7 +491,7 @@ errorCode_u stWaitingForSTenabled(){
 errorCode_u stSelfTestingON(){
 	//if timeout, go error
 	if(!adxlTimer_ms){
-		state = stError;
+		_state = stError;
 		return (createErrorCode(SELF_TESTING_ON, 1, ERR_ERROR));
 	}
 
@@ -501,36 +501,36 @@ errorCode_u stSelfTestingON(){
 
 	//integrate the FIFOs
 	adxlINT1occurred = 0;
-	result = integrateFIFO(&finalXSTon, &finalYSTon, &finalZSTon);
-	if(IS_ERROR(result)){
-		state = stError;
-		return (pushErrorCode(result, SELF_TESTING_ON, 2));
+	_result = integrateFIFO(&_finalXSTon, &_finalYSTon, &_finalZSTon);
+	if(IS_ERROR(_result)){
+		_state = stError;
+		return (pushErrorCode(_result, SELF_TESTING_ON, 2));
 	}
 
 	//restore the default data format
-	result = ADXL345writeRegister(DATA_FORMAT, dataFormatDefault | ADXL_FULL_RESOL);
-	if(IS_ERROR(result)){
-		state = stError;
-		return (pushErrorCode(result, SELF_TESTING_ON, 3)); 	// @suppress("Avoid magic numbers")
+	_result = ADXL345writeRegister(DATA_FORMAT, dataFormatDefault | ADXL_FULL_RESOL);
+	if(IS_ERROR(_result)){
+		_state = stError;
+		return (pushErrorCode(_result, SELF_TESTING_ON, 3)); 	// @suppress("Avoid magic numbers")
 	}
 
 	//compute the self-test deltas
-	finalXSTon -= finalX;
-	finalYSTon -= finalY;
-	finalZSTon -= finalZ;
+	_finalXSTon -= _finalX;
+	_finalYSTon -= _finalY;
+	_finalZSTon -= _finalZ;
 
 	//if self-test values out of range, error
-	if((finalXSTon <= ADXL_ST_MINX_33_16G) || (finalXSTon >= ADXL_ST_MAXX_33_16G)
-		|| (finalYSTon <= ADXL_ST_MINY_33_16G) || (finalYSTon >= ADXL_ST_MAXY_33_16G)
-		|| (finalZSTon <= ADXL_ST_MINZ_33_16G) || (finalZSTon >= ADXL_ST_MAXZ_33_16G))
+	if((_finalXSTon <= ADXL_ST_MINX_33_16G) || (_finalXSTon >= ADXL_ST_MAXX_33_16G)
+		|| (_finalYSTon <= ADXL_ST_MINY_33_16G) || (_finalYSTon >= ADXL_ST_MAXY_33_16G)
+		|| (_finalZSTon <= ADXL_ST_MINZ_33_16G) || (_finalZSTon >= ADXL_ST_MAXZ_33_16G))
 	{
-		state = stError;
-		return (pushErrorCode(result, SELF_TESTING_ON, 4)); 	// @suppress("Avoid magic numbers")
+		_state = stError;
+		return (pushErrorCode(_result, SELF_TESTING_ON, 4)); 	// @suppress("Avoid magic numbers")
 	}
 
 	//reset timer and get to next state
 	adxlTimer_ms = ADXL_INT_TIMEOUT_MS;
-	state = stMeasuring;
+	_state = stMeasuring;
 	return (ERR_SUCCESS);
 }
 
@@ -544,7 +544,7 @@ errorCode_u stSelfTestingON(){
 errorCode_u stMeasuring(){
 	//if timeout, go error
 	if(!adxlTimer_ms){
-		state = stError;
+		_state = stError;
 		return (createErrorCode(MEASURE, 1, ERR_ERROR));
 	}
 
@@ -557,13 +557,13 @@ errorCode_u stMeasuring(){
 	adxlINT1occurred = 0;
 
 	//integrate the FIFOs
-	result = integrateFIFO(&finalX, &finalY, &finalZ);
-	if(IS_ERROR(result)){
-		state = stError;
-		return (pushErrorCode(result, MEASURE, 2));
+	_result = integrateFIFO(&_finalX, &_finalY, &_finalZ);
+	if(IS_ERROR(_result)){
+		_state = stError;
+		return (pushErrorCode(_result, MEASURE, 2));
 	}
 
-	adxlMeasurementsUpdated = 1;
+	_measurementsUpdated = 1;
 	return (ERR_SUCCESS);
 }
 
