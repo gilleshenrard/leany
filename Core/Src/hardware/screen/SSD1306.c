@@ -2,7 +2,7 @@
  * @file SSD1306.c
  * @brief Implement the functioning of the SSD1306 OLED screen via SPI and DMA
  * @author Gilles Henrard
- * @date 07/11/2023
+ * @date 11/11/2023
  *
  * @note Datasheet : https://cdn-shop.adafruit.com/datasheets/SSD1306.pdf
  */
@@ -88,7 +88,6 @@ volatile uint16_t			screenTimer_ms = 0;				///< Timer used with screen SPI trans
 static SPI_HandleTypeDef*	_SSD_SPIhandle = NULL;			///< SPI handle used with the SSD1306
 static screenState			_state = stIdle;				///< State machine current state
 static uint8_t				_screenBuffer[MAX_DATA_SIZE];	///< Buffer used to send data to the screen
-static float				_nextAngle;						///< Buffer used to store an angle to print
 static uint8_t				_nextPage;						///< Buffer used to store a page at which to print
 static uint8_t				_nextColumn;					///< Buffer used to store a column at which to print
 
@@ -261,14 +260,37 @@ uint8_t isScreenReady(){
  * @retval 1 Angle above maximum amplitude
  */
 errorCode_u SSD1306_printAngle(float angle, uint8_t page, uint8_t column){
+	uint8_t charIndexes[ANGLE_NB_CHARS] = {INDEX_PLUS, 0, 0, INDEX_DOT, 0, INDEX_DEG};
+	uint8_t* iterator = _screenBuffer;
+
 	//if angle out of bounds, return error
 	if((angle < MIN_ANGLE_DEG) || (angle > MAX_ANGLE_DEG))
 		return (createErrorCode(PRT_ANGLE, 1, ERR_WARNING));
 
 	//store the values
-	_nextAngle = angle;
 	_nextPage = page;
 	_nextColumn = column;
+
+	//if angle negative, replace plus sign with minus sign
+	if(angle < NEG_THRESHOLD){
+		charIndexes[INDEX_SIGN] = INDEX_MINUS;
+		angle = -angle;
+	}
+
+	//fill the angle characters indexes array with the float values (tens, units, tenths)
+	charIndexes[INDEX_TENS] = (uint8_t)(angle / FLOAT_FACTOR_10);
+	charIndexes[INDEX_UNITS] = ((uint8_t)angle) % INT_FACTOR_10;
+	charIndexes[INDEX_TENTHS] = (uint8_t)((uint16_t)(angle * FLOAT_FACTOR_10) % INT_FACTOR_10);
+
+	//fill the buffer with all the required bitmaps bytes (column by column, then character by character, then page by page)
+	for(page = 0 ; page < VERDANA_NB_PAGES ; page++){
+		for(uint8_t character = 0 ; character < ANGLE_NB_CHARS ; character++){
+			for(column = 0 ; column < VERDANA_CHAR_WIDTH ; column++){
+				*iterator = verdana_16ptNumbers[charIndexes[character]][(VERDANA_CHAR_WIDTH * page) + column];
+				iterator++;
+			}
+		}
+	}
 
 	//get to printing state
 	_state = stPrintingAngle;
@@ -307,33 +329,10 @@ errorCode_u stIdle(){
  * @retval 1 Error occurred while sending the data
  */
 errorCode_u stPrintingAngle(){
-	uint8_t charIndexes[ANGLE_NB_CHARS] = {INDEX_PLUS, 0, 0, INDEX_DOT, 0, INDEX_DEG};
 	const uint8_t limitColumns[2] = {_nextColumn, _nextColumn + (VERDANA_CHAR_WIDTH * 6) - 1};
 	const uint8_t limitPages[2] = {_nextPage, _nextPage + 1};
-	uint8_t* iterator = _screenBuffer;
 	errorCode_u result;
 	HAL_StatusTypeDef HALresult;
-
-	//if angle negative, replace plus sign with minus sign
-	if(_nextAngle < NEG_THRESHOLD){
-		charIndexes[INDEX_SIGN] = INDEX_MINUS;
-		_nextAngle = -_nextAngle;
-	}
-
-	//fill the angle characters indexes array with the float values (tens, units, tenths)
-	charIndexes[INDEX_TENS] = (uint8_t)(_nextAngle / FLOAT_FACTOR_10);
-	charIndexes[INDEX_UNITS] = ((uint8_t)_nextAngle) % INT_FACTOR_10;
-	charIndexes[INDEX_TENTHS] = (uint8_t)((uint16_t)(_nextAngle * FLOAT_FACTOR_10) % INT_FACTOR_10);
-
-	//fill the buffer with all the required bitmaps bytes (column by column, then character by character, then page by page)
-	for(_nextPage = 0 ; _nextPage < VERDANA_NB_PAGES ; _nextPage++){
-		for(uint8_t character = 0 ; character < ANGLE_NB_CHARS ; character++){
-			for(_nextColumn = 0 ; _nextColumn < VERDANA_CHAR_WIDTH ; _nextColumn++){
-				*iterator = verdana_16ptNumbers[charIndexes[character]][(VERDANA_CHAR_WIDTH * _nextPage) + _nextColumn];
-				iterator++;
-			}
-		}
-	}
 
 	//send the set start and end column addresses
 	result = SSD1306sendCommand(COLUMN_ADDRESS, limitColumns, 2);
