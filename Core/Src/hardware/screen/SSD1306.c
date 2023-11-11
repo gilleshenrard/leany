@@ -64,7 +64,6 @@ typedef struct{
 
 //communication functions with the SSD1306
 static errorCode_u SSD1306sendCommand(SSD1306register_e regNumber, const uint8_t parameters[], uint8_t nbParameters);
-static errorCode_u SSD1306sendData(const uint8_t values[], uint16_t size);
 static errorCode_u SSD1306clearScreen();
 
 //state machine
@@ -88,8 +87,9 @@ volatile uint16_t			screenTimer_ms = 0;				///< Timer used with screen SPI trans
 static SPI_HandleTypeDef*	_SSD_SPIhandle = NULL;			///< SPI handle used with the SSD1306
 static screenState			_state = stIdle;				///< State machine current state
 static uint8_t				_screenBuffer[MAX_DATA_SIZE];	///< Buffer used to send data to the screen
-static uint8_t				_nextPage;						///< Buffer used to store a page at which to print
-static uint8_t				_nextColumn;					///< Buffer used to store a column at which to print
+static uint8_t 				_limitColumns[2];
+static uint8_t				_limitPages[2];
+static uint16_t				_size;
 
 
 /********************************************************************************************************************************************/
@@ -174,41 +174,6 @@ errorCode_u SSD1306sendCommand(SSD1306register_e regNumber, const uint8_t parame
 }
 
 /**
- * @brief Send data to the screen GDDRAM to be displayed
- *
- * @param values Data bytes to display
- * @param size Number of bytes to display
- * @retval 0 Success
- * @retval 1 Size above maximum
- * @retval 2 Error while sending data
- */
-errorCode_u SSD1306sendData(const uint8_t values[], uint16_t size){
-	errorCode_u result = ERR_SUCCESS;
-	HAL_StatusTypeDef HALresult;
-
-	//if nothing to send, exit
-	if(!values || !size)
-		return(ERR_SUCCESS);
-
-	//if more bytes than sectors in the GDDRAM, error
-	if(size > MAX_DATA_SIZE)
-		return(createErrorCode(SEND_DATA, 1, ERR_WARNING));
-
-	//set command pin and enable SPI
-	SSD1306_SET_DATA
-	SSD1306_ENABLE_SPI
-
-	//transmit the buffer all at once
-	HALresult = HAL_SPI_Transmit(_SSD_SPIhandle, (uint8_t*)values, size, SPI_TIMEOUT_MS);
-	if(HALresult != HAL_OK)
-		result = createErrorCodeLayer1(SEND_DATA, 2, HALresult, ERR_ERROR);
-
-	//disable SPI and return status
-	SSD1306_DISABLE_SPI
-	return (result);
-}
-
-/**
  * @brief Send the whole screen buffer to wipe it
  * @warning To use after initialisation so the buffer is clean
  *
@@ -218,25 +183,18 @@ errorCode_u SSD1306sendData(const uint8_t values[], uint16_t size){
  * @retval 3 Error while sending the screen buffer
  */
 errorCode_u SSD1306clearScreen(){
-	static const uint8_t limitColumns[2] = {0, 127};
-	static const uint8_t limitPages[2] = {0, 31};
-	errorCode_u result;
+	uint8_t* iterator = _screenBuffer;
 
-	//set the start and end columns
-	result = SSD1306sendCommand(COLUMN_ADDRESS, limitColumns, 2);
-	if(IS_ERROR(result))
-		return (pushErrorCode(result, CLR_SCREEN, 1));
+	_limitColumns[0] = 0;
+	_limitColumns[1] = 127;
+	_limitPages[0] = 0;
+	_limitPages[1] = 31;
+	_size = MAX_DATA_SIZE;
 
-	//set the start and end pages
-	result = SSD1306sendCommand(PAGE_ADDRESS, limitPages, 2);
-	if(IS_ERROR(result))
-		return (pushErrorCode(result, CLR_SCREEN, 2));
+	for(uint16_t i = 0 ; i < MAX_DATA_SIZE ; i++)
+		*(iterator++) = 0x00U;
 
-	//send the buffer data
-	result = SSD1306sendData(_screenBuffer, MAX_DATA_SIZE);
-	if(IS_ERROR(result))
-		return (pushErrorCode(result, CLR_SCREEN, 3)); 		// @suppress("Avoid magic numbers")
-
+	_state = stPrintingAngle;
 	return (ERR_SUCCESS);
 }
 
@@ -268,8 +226,11 @@ errorCode_u SSD1306_printAngle(float angle, uint8_t page, uint8_t column){
 		return (createErrorCode(PRT_ANGLE, 1, ERR_WARNING));
 
 	//store the values
-	_nextPage = page;
-	_nextColumn = column;
+	_limitColumns[0] = column;
+	_limitColumns[1] = column + (VERDANA_CHAR_WIDTH * 6) - 1;
+	_limitPages[0] = page;
+	_limitPages[1] = page + 1;
+	_size = ANGLE_NB_CHARS * VERDANA_NB_BYTES_CHAR;
 
 	//if angle negative, replace plus sign with minus sign
 	if(angle < NEG_THRESHOLD){
@@ -329,20 +290,18 @@ errorCode_u stIdle(){
  * @retval 1 Error occurred while sending the data
  */
 errorCode_u stPrintingAngle(){
-	const uint8_t limitColumns[2] = {_nextColumn, _nextColumn + (VERDANA_CHAR_WIDTH * 6) - 1};
-	const uint8_t limitPages[2] = {_nextPage, _nextPage + 1};
 	errorCode_u result;
 	HAL_StatusTypeDef HALresult;
 
 	//send the set start and end column addresses
-	result = SSD1306sendCommand(COLUMN_ADDRESS, limitColumns, 2);
+	result = SSD1306sendCommand(COLUMN_ADDRESS, _limitColumns, 2);
 	if(IS_ERROR(result)){
 		_state = stIdle;
 		return (pushErrorCode(result, PRINTING_ANGLE, 1));
 	}
 
 	//send the set start and end page addresses
-	/*result = */SSD1306sendCommand(PAGE_ADDRESS, limitPages, 2);
+	/*result = */SSD1306sendCommand(PAGE_ADDRESS, _limitPages, 2);
 	if(IS_ERROR(result)){
 		_state = stIdle;
 		return (pushErrorCode(result, PRINTING_ANGLE, 2));
@@ -354,7 +313,7 @@ errorCode_u stPrintingAngle(){
 
 	//send the data
 	screenTimer_ms = SPI_TIMEOUT_MS;
-	HALresult = HAL_SPI_Transmit_DMA(_SSD_SPIhandle, _screenBuffer, ANGLE_NB_CHARS * VERDANA_NB_BYTES_CHAR);
+	HALresult = HAL_SPI_Transmit_DMA(_SSD_SPIhandle, _screenBuffer, _size);
 	if(HALresult != HAL_OK){
 		_state = stIdle;
 		return (createErrorCodeLayer1(PRINTING_ANGLE, 3, HALresult, ERR_ERROR)); 	// @suppress("Avoid magic numbers")
