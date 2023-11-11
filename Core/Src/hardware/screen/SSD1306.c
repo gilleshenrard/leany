@@ -177,12 +177,8 @@ errorCode_u SSD1306sendCommand(SSD1306register_e regNumber, const uint8_t parame
 
 /**
  * @brief Send the whole screen buffer to wipe it
- * @warning To use after initialisation so the buffer is clean
  *
- * @retval 0 Success
- * @retval 1 Error while sending the start/end columns
- * @retval 2 Error while sending the start/end pages
- * @retval 3 Error while sending the screen buffer
+ * @return Success
  */
 errorCode_u SSD1306clearScreen(){
 	uint8_t* iterator = _screenBuffer;
@@ -284,7 +280,7 @@ errorCode_u stIdle(){
 }
 
 /**
- * @brief State in which the screen is printing an angle label
+ * @brief State in which data is sent to the screen
  *
  * @retval 0 Success
  * @retval 1 Error occurred while sending the column address command
