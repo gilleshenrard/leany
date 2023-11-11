@@ -41,10 +41,8 @@
 typedef enum _SSD1306functionCodes_e{
 	INIT = 0,		///< SSD1306initialise()
 	SEND_CMD,		///< SSD1306sendCommand()
-	SEND_DATA,		///< SSD1306sendData()
-	CLR_SCREEN,		///< SSD1306clearScreen()
 	PRT_ANGLE,		///< SSD1306_printAngle()
-	PRINTING_ANGLE,	///< stPrintingAngle()
+	SENDING_DATA,	///< stSendingData()
 	WAITING_DMA_RDY	///< stWaitingForTXdone()
 }_SSD1306functionCodes_e;
 
@@ -295,14 +293,14 @@ errorCode_u stSendingData(){
 	result = SSD1306sendCommand(COLUMN_ADDRESS, _limitColumns, 2);
 	if(IS_ERROR(result)){
 		_state = stIdle;
-		return (pushErrorCode(result, PRINTING_ANGLE, 1));
+		return (pushErrorCode(result, SENDING_DATA, 1));
 	}
 
 	//send the set start and end page addresses
 	/*result = */SSD1306sendCommand(PAGE_ADDRESS, _limitPages, 2);
 	if(IS_ERROR(result)){
 		_state = stIdle;
-		return (pushErrorCode(result, PRINTING_ANGLE, 2));
+		return (pushErrorCode(result, SENDING_DATA, 2));
 	}
 
 	//set GPIOs
@@ -314,7 +312,7 @@ errorCode_u stSendingData(){
 	HALresult = HAL_SPI_Transmit_DMA(_SSD_SPIhandle, _screenBuffer, _size);
 	if(HALresult != HAL_OK){
 		_state = stIdle;
-		return (createErrorCodeLayer1(PRINTING_ANGLE, 3, HALresult, ERR_ERROR)); 	// @suppress("Avoid magic numbers")
+		return (createErrorCodeLayer1(SENDING_DATA, 3, HALresult, ERR_ERROR)); 	// @suppress("Avoid magic numbers")
 	}
 
 	//get to next
