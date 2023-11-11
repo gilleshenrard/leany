@@ -68,7 +68,7 @@ static errorCode_u SSD1306clearScreen();
 
 //state machine
 static errorCode_u stIdle();
-static errorCode_u stPrintingAngle();
+static errorCode_u stSendingData();
 static errorCode_u stWaitingForTXdone();
 
 static const SSD1306init_t initCommands[NB_INIT_REGISERS] = {			///< Array used to initialise the registers
@@ -194,7 +194,7 @@ errorCode_u SSD1306clearScreen(){
 	for(uint16_t i = 0 ; i < MAX_DATA_SIZE ; i++)
 		*(iterator++) = 0x00U;
 
-	_state = stPrintingAngle;
+	_state = stSendingData;
 	return (ERR_SUCCESS);
 }
 
@@ -254,7 +254,7 @@ errorCode_u SSD1306_printAngle(float angle, uint8_t page, uint8_t column){
 	}
 
 	//get to printing state
-	_state = stPrintingAngle;
+	_state = stSendingData;
 	return (ERR_SUCCESS);
 }
 
@@ -289,7 +289,7 @@ errorCode_u stIdle(){
  * @retval 1 Error occurred while sending the page address command
  * @retval 1 Error occurred while sending the data
  */
-errorCode_u stPrintingAngle(){
+errorCode_u stSendingData(){
 	errorCode_u result;
 	HAL_StatusTypeDef HALresult;
 
