@@ -2,7 +2,7 @@
  * @file SSD1306.c
  * @brief Implement the functioning of the SSD1306 OLED screen via SPI and DMA
  * @author Gilles Henrard
- * @date 11/11/2023
+ * @date 12/11/2023
  *
  * @note Datasheet : https://cdn-shop.adafruit.com/datasheets/SSD1306.pdf
  */
@@ -29,12 +29,6 @@
 #define SSD_LAST_COLUMN		127U	///< Index of the highest column
 #define SSD_LAST_PAGE		31U		///< Index of the highest page
 
-//macros
-#define SSD1306_ENABLE_SPI	HAL_GPIO_WritePin(SSD1306_CS_GPIO_Port, SSD1306_CS_Pin, GPIO_PIN_RESET);
-#define SSD1306_DISABLE_SPI	HAL_GPIO_WritePin(SSD1306_CS_GPIO_Port, SSD1306_CS_Pin, GPIO_PIN_SET);
-#define SSD1306_SET_COMMAND	HAL_GPIO_WritePin(SSD1306_DC_GPIO_Port, SSD1306_DC_Pin, GPIO_PIN_RESET);
-#define SSD1306_SET_DATA	HAL_GPIO_WritePin(SSD1306_DC_GPIO_Port, SSD1306_DC_Pin, GPIO_PIN_SET);
-
 /**
  * @brief Enumeration of the function IDs of the SSD1306
  */
@@ -45,6 +39,22 @@ typedef enum _SSD1306functionCodes_e{
 	SENDING_DATA,	///< stSendingData()
 	WAITING_DMA_RDY	///< stWaitingForTXdone()
 }_SSD1306functionCodes_e;
+
+/**
+ * @brief SPI CS pin status enumeration
+ */
+typedef enum{
+	DISABLED = 0,
+	ENABLED,
+}spiStatus_e;
+
+/**
+ * @brief SPI Data/command pin status enumeration
+ */
+typedef enum{
+	COMMAND = 0,
+	DATA,
+}dataStatus_e;
 
 /**
  * @brief Screen state machine state prototype
@@ -63,6 +73,8 @@ typedef struct{
 }SSD1306init_t;
 
 //communication functions with the SSD1306
+static inline void setSPIstatus(spiStatus_e value);
+static inline void setDataStatus(dataStatus_e value);
 static errorCode_u sendCommand(SSD1306register_e regNumber, const uint8_t parameters[], uint8_t nbParameters);
 
 //state machine
@@ -108,7 +120,7 @@ errorCode_u SSD1306initialise(SPI_HandleTypeDef* handle){
 	_SSD_SPIhandle = handle;
 
 	//make sure to disable SSD1306 SPI communication
-	SSD1306_DISABLE_SPI
+	setSPIstatus(DISABLED);
 
 	//reset the chip
 	HAL_GPIO_WritePin(SSD1306_RST_GPIO_Port, SSD1306_RST_Pin, GPIO_PIN_RESET);
@@ -131,6 +143,24 @@ errorCode_u SSD1306initialise(SPI_HandleTypeDef* handle){
 }
 
 /**
+ * brief Set the SPI CS pin to enable/disable a SPI transmission
+ *
+ * @param value New CS pin status
+ */
+void setSPIstatus(spiStatus_e value){
+	HAL_GPIO_WritePin(SSD1306_CS_GPIO_Port, SSD1306_CS_Pin, (value == ENABLED ? GPIO_PIN_RESET : GPIO_PIN_SET));
+}
+
+/**
+ * brief Set the Data/Command pin
+ *
+ * @param value Value of the data/command pin
+ */
+void setDataStatus(dataStatus_e value){
+	HAL_GPIO_WritePin(SSD1306_DC_GPIO_Port, SSD1306_DC_Pin, (value == COMMAND ? GPIO_PIN_RESET : GPIO_PIN_SET));
+}
+
+/**
  * @brief Send a command with parameters
  *
  * @param regNumber Register number
@@ -150,13 +180,13 @@ errorCode_u sendCommand(SSD1306register_e regNumber, const uint8_t parameters[],
 		return(createErrorCode(SEND_CMD, 1, ERR_WARNING));
 
 	//set command pin and enable SPI
-	SSD1306_SET_COMMAND
-	SSD1306_ENABLE_SPI
+	setDataStatus(COMMAND);
+	setSPIstatus(ENABLED);
 
 	//send the command byte
 	HALresult = HAL_SPI_Transmit(_SSD_SPIhandle, &regNumber, 1, SPI_TIMEOUT_MS);
 	if(HALresult != HAL_OK){
-		SSD1306_DISABLE_SPI
+		setSPIstatus(DISABLED);
 		return (createErrorCodeLayer1(SEND_CMD, 2, HALresult, ERR_ERROR));
 	}
 
@@ -168,7 +198,7 @@ errorCode_u sendCommand(SSD1306register_e regNumber, const uint8_t parameters[],
 	}
 
 	//disable SPI and return status
-	SSD1306_DISABLE_SPI
+	setSPIstatus(DISABLED);
 	return (result);
 }
 
@@ -303,8 +333,8 @@ errorCode_u stSendingData(){
 	}
 
 	//set GPIOs
-	SSD1306_SET_DATA
-	SSD1306_ENABLE_SPI
+	setDataStatus(DATA);
+	setSPIstatus(ENABLED);
 
 	//send the data
 	screenTimer_ms = SPI_TIMEOUT_MS;
@@ -328,7 +358,7 @@ errorCode_u stSendingData(){
 errorCode_u stWaitingForTXdone(){
 	//if timer elapsed, stop DMA and error
 	if(!screenTimer_ms){
-		SSD1306_DISABLE_SPI
+		setSPIstatus(DISABLED);
 		HAL_SPI_DMAStop(_SSD_SPIhandle);
 		_state = stIdle;
 		return (createErrorCode(WAITING_DMA_RDY, 1, ERR_ERROR));
@@ -339,7 +369,7 @@ errorCode_u stWaitingForTXdone(){
 		return (ERR_SUCCESS);
 
 	//disable SPI and get to idle state
-	SSD1306_DISABLE_SPI
+	setSPIstatus(DISABLED);
 	_state = stIdle;
 	return (ERR_SUCCESS);
 }
