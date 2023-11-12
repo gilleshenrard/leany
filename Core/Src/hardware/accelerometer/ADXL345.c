@@ -287,6 +287,9 @@ float measureToAngleDegrees(int16_t axisValue){
  * @return Angle between direction and the Z axis
  */
 float atanDegrees(int16_t direction, int16_t axisZ){
+	if(!axisZ)
+		return (0.0f);
+
 	return ((atanf((float)direction / (float)axisZ) * ADXL_180_DEG) / (float)M_PI);
 }
 
