@@ -34,10 +34,6 @@
 #error TADXL_AVG_SHIFT does not divide all the samples configured with ADXL_AVG_NB
 #endif
 
-//macros
-#define ENABLE_SPI		HAL_GPIO_WritePin(ADXL_CS_GPIO_Port, ADXL_CS_Pin, GPIO_PIN_RESET);	///< Macro used to enable the SPI communication towards the accelerometer
-#define DISABLE_SPI		HAL_GPIO_WritePin(ADXL_CS_GPIO_Port, ADXL_CS_Pin, GPIO_PIN_SET);	///< Macro used to disable the SPI communication towards the accelerometer
-
 //type definitions
 /**
  * @brief Enumeration of the function IDs of the ADXL345
@@ -57,6 +53,14 @@ typedef enum _ADXLfunctionCodes_e{
 	INTEGRATE,			///< integrateFIFO()
 	STARTUP				///< stStartup()
 }ADXLfunctionCodes_e;
+
+/**
+ * @brief SPI CS pin status enumeration
+ */
+typedef enum{
+	DISABLED = 0,
+	ENABLED,
+}spiStatus_e;
 
 /**
  * @brief State machine state prototype
@@ -81,6 +85,7 @@ static errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t* valu
 static errorCode_u integrateFIFO(int16_t* xValue, int16_t* yValue, int16_t* zValue);
 
 //tool functions
+static inline void setSPIstatus(spiStatus_e value);
 static inline float atanDegrees(int16_t direction, int16_t axisZ);
 
 /**
@@ -177,12 +182,12 @@ errorCode_u writeRegister(adxl345Registers_e registerNumber, uint8_t value){
 	if((uint8_t)(registerNumber - 1) < ADXL_HIGH_RESERVED_REG)
 		return (createErrorCode(WRITE_REGISTER, 3, ERR_WARNING)); 	// @suppress("Avoid magic numbers")
 
-	ENABLE_SPI
+	setSPIstatus(ENABLED);
 
 	//transmit the read instruction
 	HALresult = HAL_SPI_Transmit(_spiHandle, &instruction, 1, SPI_TIMEOUT_MS);
 	if(HALresult != HAL_OK){
-		DISABLE_SPI
+		setSPIstatus(DISABLED);
 		return (createErrorCodeLayer1(WRITE_REGISTER, 4, HALresult, ERR_ERROR)); 	// @suppress("Avoid magic numbers")
 	}
 
@@ -191,7 +196,7 @@ errorCode_u writeRegister(adxl345Registers_e registerNumber, uint8_t value){
 	if(HALresult != HAL_OK)
 		ret = createErrorCodeLayer1(WRITE_REGISTER, 5, HALresult, ERR_ERROR); 	// @suppress("Avoid magic numbers")
 
-	DISABLE_SPI
+	setSPIstatus(DISABLED);
 	return (ret);
 }
 
@@ -220,12 +225,12 @@ errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint
 	if(firstRegister > ADXL_NB_REGISTERS)
 		return (createErrorCode(READ_REGISTERS, 2, ERR_WARNING));
 
-	ENABLE_SPI
+	setSPIstatus(ENABLED);
 
 	//transmit the read instruction
 	HALresult = HAL_SPI_Transmit(_spiHandle, &instruction, 1, SPI_TIMEOUT_MS);
 	if(HALresult != HAL_OK){
-		DISABLE_SPI
+		setSPIstatus(DISABLED);
 		return (createErrorCodeLayer1(READ_REGISTERS, 3, HALresult, ERR_ERROR)); 	// @suppress("Avoid magic numbers")
 	}
 
@@ -234,7 +239,7 @@ errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint
 	if(HALresult != HAL_OK)
 		ret = createErrorCodeLayer1(READ_REGISTERS, 4, HALresult, ERR_ERROR); 	// @suppress("Avoid magic numbers")
 
-	DISABLE_SPI
+	setSPIstatus(DISABLED);
 	return (ret);
 }
 
@@ -279,6 +284,15 @@ float atanDegrees(int16_t direction, int16_t axisZ){
 		return (0.0f);
 
 	return ((atanf((float)direction / (float)axisZ) * DEGREES_180) / (float)M_PI);
+}
+
+/**
+ * brief Set the SPI CS pin to enable/disable a SPI transmission
+ *
+ * @param value New CS pin status
+ */
+void setSPIstatus(spiStatus_e value){
+	HAL_GPIO_WritePin(ADXL_CS_GPIO_Port, ADXL_CS_Pin, (value == ENABLED ? GPIO_PIN_RESET : GPIO_PIN_SET));
 }
 
 /**
