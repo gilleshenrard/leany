@@ -1,7 +1,7 @@
 /**
  * @brief Implement the ADXL345 accelerometer communication
  * @author Gilles Henrard
- * @date 11/11/2023
+ * @date 12/11/2023
  *
  * @note Additional information can be found in :
  *   - ADXL345 datasheet : https://www.analog.com/media/en/technical-documentation/data-sheets/ADXL345.pdf
@@ -115,18 +115,6 @@ static errorCode_u 			_result;					///< Variables used to store error codes
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
 
-
-/**
- * @brief Check if two angles are different
- *
- * @param angleA First angle
- * @param angleB Second angle
- * @return 1 if the angles are different, 0 otherwise
- */
-inline uint8_t anglesDifferent(float angleA, float angleB)
-{
-	return (fabsf(angleA - angleB) > ANGLE_EPSILON);
-}
 
 /**
  * @brief Initialise the ADXL345

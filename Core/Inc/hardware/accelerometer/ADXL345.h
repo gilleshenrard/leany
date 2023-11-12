@@ -14,8 +14,6 @@ typedef enum{
 	Y_AXIS
 }axis_e;
 
-extern uint8_t anglesDifferent(float angleA, float angleB);
-
 errorCode_u ADXL345initialise(const SPI_HandleTypeDef* handle);
 errorCode_u ADXL345update();
 uint8_t ADXL345hasNewMeasurements();
