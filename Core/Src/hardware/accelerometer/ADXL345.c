@@ -26,7 +26,6 @@
 #define Z_INDEX_LSB	4U		///< Index of the Z LSB in the measurements
 #define NB_REG_INIT	5U		///< Number of registers configured at initialisation
 #define DEGREES_180		180.0f	///< Value representing a flat angle
-#define ANGLE_EPSILON	0.1f	///< Minimum difference between two angles for them to be considered as differnt
 
 //integration sampling
 #define ADXL_AVG_SAMPLES	ADXL_SAMPLES_32
