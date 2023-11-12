@@ -17,14 +17,14 @@
 #define SPI_TIMEOUT_MS	10U		///< SPI direct transmission timeout span in milliseconds
 #define INT_TIMEOUT_MS	1000U	///< Maximum number of milliseconds before watermark int. timeout
 #define ST_WAIT_MS		25U		///< Maximum number of milliseconds before watermark int. timeout
-#define BYTE_OFFSET	8U		///< Number of bits to offset a byte
-#define X_INDEX_MSB	1U		///< Index of the X MSB in the measurements
-#define X_INDEX_LSB	0U		///< Index of the X LSB in the measurements
-#define Y_INDEX_MSB	3U		///< Index of the Y MSB in the measurements
-#define Y_INDEX_LSB	2U		///< Index of the Y LSB in the measurements
-#define Z_INDEX_MSB	5U		///< Index of the Z MSB in the measurements
-#define Z_INDEX_LSB	4U		///< Index of the Z LSB in the measurements
-#define NB_REG_INIT	5U		///< Number of registers configured at initialisation
+#define BYTE_OFFSET		8U		///< Number of bits to offset a byte
+#define X_INDEX_MSB		1U		///< Index of the X MSB in the measurements
+#define X_INDEX_LSB		0U		///< Index of the X LSB in the measurements
+#define Y_INDEX_MSB		3U		///< Index of the Y MSB in the measurements
+#define Y_INDEX_LSB		2U		///< Index of the Y LSB in the measurements
+#define Z_INDEX_MSB		5U		///< Index of the Z MSB in the measurements
+#define Z_INDEX_LSB		4U		///< Index of the Z LSB in the measurements
+#define NB_REG_INIT		5U		///< Number of registers configured at initialisation
 #define DEGREES_180		180.0f	///< Value representing a flat angle
 
 //integration sampling
