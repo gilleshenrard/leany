@@ -119,8 +119,8 @@ int main(void)
 
 	  //if new measurements available, get them
 	  if(ADXL345hasNewMeasurements()){
-		  newX = ADXL345getXmeasurement();
-		  newY = ADXL345getYmeasurement();
+		  newX = ADXL345getmeasurement(X_AXIS);
+		  newY = ADXL345getmeasurement(Y_AXIS);
 	  }
 
 	  //if X axis angle changed, update the screen

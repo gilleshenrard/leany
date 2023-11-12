@@ -252,21 +252,22 @@ errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint
 }
 
 /**
- * @brief Get the last known integrated measurements for the X axis
+ * @brief Get the last known integrated measurements for an axis
  *
+ * @param axis Axis of which get the measurement
  * @return Last known integrated measurement
  */
-int16_t ADXL345getXmeasurement(){
-	return (_finalX);
-}
+int16_t ADXL345getmeasurement(axis_e axis){
+	switch(axis){
+		case Y_AXIS:
+			return (_finalY);
+			break;
 
-/**
- * @brief Get the last known integrated measurements for the Y axis
- *
- * @return Last known integrated measurement
- */
-int16_t ADXL345getYmeasurement(){
-	return (_finalY);
+		case X_AXIS:
+		default:
+			return (_finalX);
+			break;
+	};
 }
 
 /**
