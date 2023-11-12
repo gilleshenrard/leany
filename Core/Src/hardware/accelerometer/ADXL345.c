@@ -109,9 +109,6 @@ static uint8_t				_measurementsUpdated = 0;	///< Flag used to indicate new integ
 static int16_t				_finalX = 0;				///< X value obtained after integration
 static int16_t				_finalY = 0;				///< Y value obtained after integration
 static int16_t				_finalZ = 0;				///< Z value obtained after integration
-static int16_t				_finalXSTon = 0;			///< X value obtained after integration
-static int16_t				_finalYSTon = 0;			///< Y value obtained after integration
-static int16_t				_finalZSTon = 0;			///< Z value obtained after integration
 static errorCode_u 			_result;
 
 
@@ -489,6 +486,10 @@ errorCode_u stWaitingForSTenabled(){
  * @retval 4 Self-test values out of range
  */
 errorCode_u stSelfTestingON(){
+	int16_t _finalXSTon = 0;
+	int16_t _finalYSTon = 0;
+	int16_t _finalZSTon = 0;
+
 	//if timeout, go error
 	if(!adxlTimer_ms){
 		_state = stError;
