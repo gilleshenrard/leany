@@ -63,8 +63,7 @@ typedef struct{
 }SSD1306init_t;
 
 //communication functions with the SSD1306
-static errorCode_u SSD1306sendCommand(SSD1306register_e regNumber, const uint8_t parameters[], uint8_t nbParameters);
-static errorCode_u SSD1306clearScreen();
+static errorCode_u sendCommand(SSD1306register_e regNumber, const uint8_t parameters[], uint8_t nbParameters);
 
 //state machine
 static errorCode_u stIdle();
@@ -119,7 +118,7 @@ errorCode_u SSD1306initialise(SPI_HandleTypeDef* handle){
 	//	values which don't change from reset values aren't modified
 	//TODO test for max oscillator frequency
 	for(uint8_t i = 0 ; i < NB_INIT_REGISERS ; i++){
-		result = SSD1306sendCommand(initCommands[i].reg, &initCommands[i].value, initCommands[i].nbParameters);
+		result = sendCommand(initCommands[i].reg, &initCommands[i].value, initCommands[i].nbParameters);
 		if(IS_ERROR(result))
 			return (pushErrorCode(result, INIT, 1));
 	}
@@ -142,7 +141,7 @@ errorCode_u SSD1306initialise(SPI_HandleTypeDef* handle){
  * @retval 2 Error while sending the command
  * @retval 3 Error while sending the data
  */
-errorCode_u SSD1306sendCommand(SSD1306register_e regNumber, const uint8_t parameters[], uint8_t nbParameters){
+errorCode_u sendCommand(SSD1306register_e regNumber, const uint8_t parameters[], uint8_t nbParameters){
 	HAL_StatusTypeDef HALresult;
 	errorCode_u result = ERR_SUCCESS;
 
@@ -290,14 +289,14 @@ errorCode_u stSendingData(){
 	HAL_StatusTypeDef HALresult;
 
 	//send the set start and end column addresses
-	result = SSD1306sendCommand(COLUMN_ADDRESS, _limitColumns, 2);
+	result = sendCommand(COLUMN_ADDRESS, _limitColumns, 2);
 	if(IS_ERROR(result)){
 		_state = stIdle;
 		return (pushErrorCode(result, SENDING_DATA, 1));
 	}
 
 	//send the set start and end page addresses
-	/*result = */SSD1306sendCommand(PAGE_ADDRESS, _limitPages, 2);
+	/*result = */sendCommand(PAGE_ADDRESS, _limitPages, 2);
 	if(IS_ERROR(result)){
 		_state = stIdle;
 		return (pushErrorCode(result, SENDING_DATA, 2));
