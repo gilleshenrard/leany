@@ -77,8 +77,8 @@ static errorCode_u stMeasuring();
 static errorCode_u stError();
 
 //manipulation functions
-static errorCode_u ADXL345writeRegister(adxl345Registers_e registerNumber, uint8_t value);
-static errorCode_u ADXL345readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint8_t size);
+static errorCode_u writeRegister(adxl345Registers_e registerNumber, uint8_t value);
+static errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint8_t size);
 static errorCode_u integrateFIFO(int16_t* xValue, int16_t* yValue, int16_t* zValue);
 
 //tool functions
@@ -109,7 +109,7 @@ static uint8_t				_measurementsUpdated = 0;	///< Flag used to indicate new integ
 static int16_t				_finalX = 0;				///< X value obtained after integration
 static int16_t				_finalY = 0;				///< Y value obtained after integration
 static int16_t				_finalZ = 0;				///< Z value obtained after integration
-static errorCode_u 			_result;
+static errorCode_u 			_result;					///< Variables used to store error codes
 
 
 /********************************************************************************************************************************************/
@@ -173,7 +173,7 @@ uint8_t ADXL345hasNewMeasurements(){
  * @retval 4 Error while writing the command
  * @retval 5 Error while writing the value
  */
-errorCode_u ADXL345writeRegister(adxl345Registers_e registerNumber, uint8_t value){
+errorCode_u writeRegister(adxl345Registers_e registerNumber, uint8_t value){
 	HAL_StatusTypeDef HALresult;
 	errorCode_u ret = ERR_SUCCESS;
 	uint8_t instruction = ADXL_WRITE | ADXL_SINGLE | registerNumber;
@@ -220,7 +220,7 @@ errorCode_u ADXL345writeRegister(adxl345Registers_e registerNumber, uint8_t valu
  * @retval 3 Error while writing the command
  * @retval 4 Error while reading the values
  */
-errorCode_u ADXL345readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint8_t size){
+errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint8_t size){
 	HAL_StatusTypeDef HALresult;
 	errorCode_u ret = ERR_SUCCESS;
 	uint8_t instruction = ADXL_READ | ADXL_MULTIPLE | firstRegister;
@@ -307,7 +307,7 @@ errorCode_u integrateFIFO(int16_t* xValue, int16_t* yValue, int16_t* zValue){
 	//for eatch of the 16 samples to read
 	for(uint8_t i = 0 ; i < ADXL_AVG_SAMPLES ; i++){
 		//read all data registers for 1 sample
-		_result = ADXL345readRegisters(DATA_X0, buffer, ADXL_NB_DATA_REGISTERS);
+		_result = readRegisters(DATA_X0, buffer, ADXL_NB_DATA_REGISTERS);
 		if(IS_ERROR(_result)){
 			_state = stError;
 			return (pushErrorCode(_result, INTEGRATE, 1));
@@ -350,7 +350,7 @@ errorCode_u stStartup(){
 	}
 
 	//if unable to read device ID, go error
-	_result = ADXL345readRegisters(DEVICE_ID, &deviceID, 1);
+	_result = readRegisters(DEVICE_ID, &deviceID, 1);
 	if(IS_ERROR(_result)){
 		_state = stError;
 		return (pushErrorCode(_result, STARTUP, 2));
@@ -372,7 +372,7 @@ errorCode_u stStartup(){
  */
 errorCode_u stConfiguring(){
 	//write the default data format
-	_result = ADXL345writeRegister(DATA_FORMAT, dataFormatDefault);
+	_result = writeRegister(DATA_FORMAT, dataFormatDefault);
 	if(IS_ERROR(_result)){
 		_state = stError;
 		return (pushErrorCode(_result, INIT, 1));
@@ -380,7 +380,7 @@ errorCode_u stConfiguring(){
 
 	//write all registers values from the initialisation array
 	for(uint8_t i = 0 ; i < ADXL_NB_REG_INIT ; i++){
-		_result = ADXL345writeRegister(initialisationArray[i][0], initialisationArray[i][1]);
+		_result = writeRegister(initialisationArray[i][0], initialisationArray[i][1]);
 		if(IS_ERROR(_result)){
 			_state = stError;
 			return (pushErrorCode(_result, INIT, 1));
@@ -433,14 +433,14 @@ errorCode_u stSelfTestingOFF(){
  */
 errorCode_u stEnablingST(){
 	//Enable the self-test
-	_result = ADXL345writeRegister(DATA_FORMAT, dataFormatDefault | ADXL_SELF_TEST);
+	_result = writeRegister(DATA_FORMAT, dataFormatDefault | ADXL_SELF_TEST);
 	if(IS_ERROR(_result)){
 		_state = stError;
 		return (pushErrorCode(_result, SELF_TEST_ENABLE, 1)); 	// @suppress("Avoid magic numbers")
 	}
 
 	//clear the FIFOs
-	_result = ADXL345writeRegister(FIFO_CONTROL, ADXL_MODE_BYPASS);
+	_result = writeRegister(FIFO_CONTROL, ADXL_MODE_BYPASS);
 	if(IS_ERROR(_result)){
 		_state = stError;
 		return (pushErrorCode(_result, SELF_TEST_ENABLE, 2)); 	// @suppress("Avoid magic numbers")
@@ -464,7 +464,7 @@ errorCode_u stWaitingForSTenabled(){
 
 	//enable FIFOs
 	adxlINT1occurred = 0;
-	_result = ADXL345writeRegister(FIFO_CONTROL, ADXL_MODE_FIFO | ADXL_TRIGGER_INT1 | (ADXL_AVG_SAMPLES - 1));
+	_result = writeRegister(FIFO_CONTROL, ADXL_MODE_FIFO | ADXL_TRIGGER_INT1 | (ADXL_AVG_SAMPLES - 1));
 	if(IS_ERROR(_result)){
 		_state = stError;
 		return (pushErrorCode(_result, SELF_TEST_WAIT, 1)); 	// @suppress("Avoid magic numbers")
@@ -509,7 +509,7 @@ errorCode_u stSelfTestingON(){
 	}
 
 	//restore the default data format
-	_result = ADXL345writeRegister(DATA_FORMAT, dataFormatDefault | ADXL_FULL_RESOL);
+	_result = writeRegister(DATA_FORMAT, dataFormatDefault | ADXL_FULL_RESOL);
 	if(IS_ERROR(_result)){
 		_state = stError;
 		return (pushErrorCode(_result, SELF_TESTING_ON, 3)); 	// @suppress("Avoid magic numbers")
