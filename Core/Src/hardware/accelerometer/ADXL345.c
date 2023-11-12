@@ -14,19 +14,19 @@
 #include <math.h>
 
 //definitions
-#define ADXL_SPI_TIMEOUT_MS	10U		///< SPI direct transmission timeout span in milliseconds
-#define ADXL_INT_TIMEOUT_MS	1000U	///< Maximum number of milliseconds before watermark int. timeout
-#define ADXL_ST_WAIT_MS		25U		///< Maximum number of milliseconds before watermark int. timeout
-#define ADXL_BYTE_OFFSET	8U		///< Number of bits to offset a byte
-#define ADXL_X_INDEX_MSB	1U		///< Index of the X MSB in the measurements
-#define ADXL_X_INDEX_LSB	0U		///< Index of the X LSB in the measurements
-#define ADXL_Y_INDEX_MSB	3U		///< Index of the Y MSB in the measurements
-#define ADXL_Y_INDEX_LSB	2U		///< Index of the Y LSB in the measurements
-#define ADXL_Z_INDEX_MSB	5U		///< Index of the Z MSB in the measurements
-#define ADXL_Z_INDEX_LSB	4U		///< Index of the Z LSB in the measurements
-#define ADXL_NB_REG_INIT	5U		///< Number of registers configured at initialisation
-#define ADXL_180_DEG		180.0f	///< Value representing a flat angle
-#define ADXL_ANGLE_EPSILON	0.1f	///< Minimum difference between two angles for them to be considered as differnt
+#define SPI_TIMEOUT_MS	10U		///< SPI direct transmission timeout span in milliseconds
+#define INT_TIMEOUT_MS	1000U	///< Maximum number of milliseconds before watermark int. timeout
+#define ST_WAIT_MS		25U		///< Maximum number of milliseconds before watermark int. timeout
+#define BYTE_OFFSET	8U		///< Number of bits to offset a byte
+#define X_INDEX_MSB	1U		///< Index of the X MSB in the measurements
+#define X_INDEX_LSB	0U		///< Index of the X LSB in the measurements
+#define Y_INDEX_MSB	3U		///< Index of the Y MSB in the measurements
+#define Y_INDEX_LSB	2U		///< Index of the Y LSB in the measurements
+#define Z_INDEX_MSB	5U		///< Index of the Z MSB in the measurements
+#define Z_INDEX_LSB	4U		///< Index of the Z LSB in the measurements
+#define NB_REG_INIT	5U		///< Number of registers configured at initialisation
+#define DEGREES_180		180.0f	///< Value representing a flat angle
+#define ANGLE_EPSILON	0.1f	///< Minimum difference between two angles for them to be considered as differnt
 
 //integration sampling
 #define ADXL_AVG_SAMPLES	ADXL_SAMPLES_32
@@ -88,7 +88,7 @@ static inline float atanDegrees(int16_t direction, int16_t axisZ);
  * @brief Array of all the registers/values to write at initialisation
  * @note Two values are written in FIFO_CONTROL to clear the FIFO at startup
  */
-static const uint8_t initialisationArray[ADXL_NB_REG_INIT][2] = {
+static const uint8_t initialisationArray[NB_REG_INIT][2] = {
 	{BANDWIDTH_POWERMODE,	ADXL_POWER_NORMAL | ADXL_RATE_200HZ},
 	{FIFO_CONTROL,			ADXL_MODE_BYPASS},
 	{FIFO_CONTROL,			ADXL_MODE_FIFO | ADXL_TRIGGER_INT1 | (ADXL_AVG_SAMPLES - 1)},
@@ -125,7 +125,7 @@ static errorCode_u 			_result;					///< Variables used to store error codes
  */
 inline uint8_t anglesDifferent(float angleA, float angleB)
 {
-	return (fabsf(angleA - angleB) > ADXL_ANGLE_EPSILON);
+	return (fabsf(angleA - angleB) > ANGLE_EPSILON);
 }
 
 /**
@@ -193,14 +193,14 @@ errorCode_u writeRegister(adxl345Registers_e registerNumber, uint8_t value){
 	ENABLE_SPI
 
 	//transmit the read instruction
-	HALresult = HAL_SPI_Transmit(_spiHandle, &instruction, 1, ADXL_SPI_TIMEOUT_MS);
+	HALresult = HAL_SPI_Transmit(_spiHandle, &instruction, 1, SPI_TIMEOUT_MS);
 	if(HALresult != HAL_OK){
 		DISABLE_SPI
 		return (createErrorCodeLayer1(WRITE_REGISTER, 4, HALresult, ERR_ERROR)); 	// @suppress("Avoid magic numbers")
 	}
 
 	//receive the reply
-	HALresult = HAL_SPI_Transmit(_spiHandle, &value, 1, ADXL_SPI_TIMEOUT_MS);
+	HALresult = HAL_SPI_Transmit(_spiHandle, &value, 1, SPI_TIMEOUT_MS);
 	if(HALresult != HAL_OK)
 		ret = createErrorCodeLayer1(WRITE_REGISTER, 5, HALresult, ERR_ERROR); 	// @suppress("Avoid magic numbers")
 
@@ -236,14 +236,14 @@ errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint
 	ENABLE_SPI
 
 	//transmit the read instruction
-	HALresult = HAL_SPI_Transmit(_spiHandle, &instruction, 1, ADXL_SPI_TIMEOUT_MS);
+	HALresult = HAL_SPI_Transmit(_spiHandle, &instruction, 1, SPI_TIMEOUT_MS);
 	if(HALresult != HAL_OK){
 		DISABLE_SPI
 		return (createErrorCodeLayer1(READ_REGISTERS, 3, HALresult, ERR_ERROR)); 	// @suppress("Avoid magic numbers")
 	}
 
 	//receive the reply
-	HALresult = HAL_SPI_Receive(_spiHandle, value, size, ADXL_SPI_TIMEOUT_MS);
+	HALresult = HAL_SPI_Receive(_spiHandle, value, size, SPI_TIMEOUT_MS);
 	if(HALresult != HAL_OK)
 		ret = createErrorCodeLayer1(READ_REGISTERS, 4, HALresult, ERR_ERROR); 	// @suppress("Avoid magic numbers")
 
@@ -290,7 +290,7 @@ float atanDegrees(int16_t direction, int16_t axisZ){
 	if(!axisZ)
 		return (0.0f);
 
-	return ((atanf((float)direction / (float)axisZ) * ADXL_180_DEG) / (float)M_PI);
+	return ((atanf((float)direction / (float)axisZ) * DEGREES_180) / (float)M_PI);
 }
 
 /**
@@ -317,9 +317,9 @@ errorCode_u integrateFIFO(int16_t* xValue, int16_t* yValue, int16_t* zValue){
 		}
 
 		//add the measurements (formatted from a two's complement) to their final value buffer
-		*xValue += (int16_t)(((uint16_t)(buffer[ADXL_X_INDEX_MSB]) << ADXL_BYTE_OFFSET) | (uint16_t)(buffer[ADXL_X_INDEX_LSB]));
-		*yValue += (int16_t)(((uint16_t)(buffer[ADXL_Y_INDEX_MSB]) << ADXL_BYTE_OFFSET) | (uint16_t)(buffer[ADXL_Y_INDEX_LSB]));
-		*zValue += (int16_t)(((uint16_t)(buffer[ADXL_Z_INDEX_MSB]) << ADXL_BYTE_OFFSET) | (uint16_t)(buffer[ADXL_Z_INDEX_LSB]));
+		*xValue += (int16_t)(((uint16_t)(buffer[X_INDEX_MSB]) << BYTE_OFFSET) | (uint16_t)(buffer[X_INDEX_LSB]));
+		*yValue += (int16_t)(((uint16_t)(buffer[Y_INDEX_MSB]) << BYTE_OFFSET) | (uint16_t)(buffer[Y_INDEX_LSB]));
+		*zValue += (int16_t)(((uint16_t)(buffer[Z_INDEX_MSB]) << BYTE_OFFSET) | (uint16_t)(buffer[Z_INDEX_LSB]));
 	}
 
 	//divide the buffers to average out
@@ -382,7 +382,7 @@ errorCode_u stConfiguring(){
 	}
 
 	//write all registers values from the initialisation array
-	for(uint8_t i = 0 ; i < ADXL_NB_REG_INIT ; i++){
+	for(uint8_t i = 0 ; i < NB_REG_INIT ; i++){
 		_result = writeRegister(initialisationArray[i][0], initialisationArray[i][1]);
 		if(IS_ERROR(_result)){
 			_state = stError;
@@ -391,7 +391,7 @@ errorCode_u stConfiguring(){
 	}
 
 	//reset the timer and get to next state
-	adxlTimer_ms = ADXL_INT_TIMEOUT_MS;
+	adxlTimer_ms = INT_TIMEOUT_MS;
 	_state = stSelfTestingOFF;
 	return (_result);
 }
@@ -450,7 +450,7 @@ errorCode_u stEnablingST(){
 	}
 
 	//reset timer and get to next state
-	adxlTimer_ms = ADXL_ST_WAIT_MS;
+	adxlTimer_ms = ST_WAIT_MS;
 	_state = stWaitingForSTenabled;
 	return (ERR_SUCCESS);
 }
@@ -474,7 +474,7 @@ errorCode_u stWaitingForSTenabled(){
 	}
 
 	//reset timer and get to next state
-	adxlTimer_ms = ADXL_INT_TIMEOUT_MS;
+	adxlTimer_ms = INT_TIMEOUT_MS;
 	_state = stSelfTestingON;
 	return (ERR_SUCCESS);
 }
@@ -533,7 +533,7 @@ errorCode_u stSelfTestingON(){
 	}
 
 	//reset timer and get to next state
-	adxlTimer_ms = ADXL_INT_TIMEOUT_MS;
+	adxlTimer_ms = INT_TIMEOUT_MS;
 	_state = stMeasuring;
 	return (ERR_SUCCESS);
 }
@@ -557,7 +557,7 @@ errorCode_u stMeasuring(){
 		return (ERR_SUCCESS);
 
 	//reset flags
-	adxlTimer_ms = ADXL_INT_TIMEOUT_MS;
+	adxlTimer_ms = INT_TIMEOUT_MS;
 	adxlINT1occurred = 0;
 
 	//integrate the FIFOs
