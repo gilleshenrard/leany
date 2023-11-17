@@ -2,7 +2,7 @@
  * @file SSD1306.c
  * @brief Implement the functioning of the SSD1306 OLED screen via SPI and DMA
  * @author Gilles Henrard
- * @date 12/11/2023
+ * @date 17/11/2023
  *
  * @note Datasheet : https://cdn-shop.adafruit.com/datasheets/SSD1306.pdf
  */
@@ -147,7 +147,7 @@ errorCode_u SSD1306initialise(SPI_HandleTypeDef* handle){
  *
  * @param value New CS pin status
  */
-void setSPIstatus(spiStatus_e value){
+static inline void setSPIstatus(spiStatus_e value){
 	HAL_GPIO_WritePin(SSD1306_CS_GPIO_Port, SSD1306_CS_Pin, (value == ENABLED ? GPIO_PIN_RESET : GPIO_PIN_SET));
 }
 
@@ -156,7 +156,7 @@ void setSPIstatus(spiStatus_e value){
  *
  * @param value Value of the data/command pin
  */
-void setDataStatus(dataStatus_e value){
+static inline void setDataStatus(dataStatus_e value){
 	HAL_GPIO_WritePin(SSD1306_DC_GPIO_Port, SSD1306_DC_Pin, (value == COMMAND ? GPIO_PIN_RESET : GPIO_PIN_SET));
 }
 

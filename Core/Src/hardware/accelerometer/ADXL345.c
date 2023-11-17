@@ -1,7 +1,7 @@
 /**
  * @brief Implement the ADXL345 accelerometer communication
  * @author Gilles Henrard
- * @date 12/11/2023
+ * @date 17/11/2023
  *
  * @note Additional information can be found in :
  *   - ADXL345 datasheet : https://www.analog.com/media/en/technical-documentation/data-sheets/ADXL345.pdf
@@ -279,7 +279,7 @@ float measureToAngleDegrees(int16_t axisValue){
  * @param axisZ Value (in G) of the Z axis
  * @return Angle between direction and the Z axis
  */
-float atanDegrees(int16_t direction, int16_t axisZ){
+static inline float atanDegrees(int16_t direction, int16_t axisZ){
 	if(!axisZ)
 		return (0.0f);
 
@@ -291,7 +291,7 @@ float atanDegrees(int16_t direction, int16_t axisZ){
  *
  * @param value New CS pin status
  */
-void setSPIstatus(spiStatus_e value){
+static inline void setSPIstatus(spiStatus_e value){
 	HAL_GPIO_WritePin(ADXL_CS_GPIO_Port, ADXL_CS_Pin, (value == ENABLED ? GPIO_PIN_RESET : GPIO_PIN_SET));
 }
 
