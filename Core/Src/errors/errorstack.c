@@ -47,7 +47,7 @@
  *
  * @note When pushing a code in the stack. Any code already stored in layer 3 is lost.
  */
-#include "errors.h"
+#include "errorstack.h"
 
 //definitions
 #define ERR_STACK_MASK		0xFFFF0000U		///< Value used to erase the codes stack
@@ -74,18 +74,18 @@ const errorCode_u ERR_SUCCESS = { .dword = SUCCESS_VALUE };	///< Variable used a
  * @return New code
  */
 errorCode_u createErrorCode(uint8_t functionID, uint8_t newError, errorLevel_e level){
-	errorCode_u code = ERR_SUCCESS;
+    errorCode_u code = ERR_SUCCESS;
 
-	//if code means success, return success
-	if(newError == SUCCESS_VALUE)
-		return (ERR_SUCCESS);
+    //if code means success, return success
+    if(newError == SUCCESS_VALUE)
+        return (ERR_SUCCESS);
 
-	//set the fields values (clamped if necessary)
-	code.dword |= (level << ERR_LEVEL_OFFSET);
-	code.dword |= ((functionID & ERR_FUNCTION_CLAMP) << ERR_FUNCTION_OFFSET);
-	code.dword |= ((newError & ERR_CODE_CLAMP) << ERR_LAYER0_OFFSET);
+    //set the fields values (clamped if necessary)
+    code.dword |= (level << ERR_LEVEL_OFFSET);
+    code.dword |= ((functionID & ERR_FUNCTION_CLAMP) << ERR_FUNCTION_OFFSET);
+    code.dword |= ((newError & ERR_CODE_CLAMP) << ERR_LAYER0_OFFSET);
 
-	return (code);
+    return (code);
 }
 
 /**
@@ -100,19 +100,19 @@ errorCode_u createErrorCode(uint8_t functionID, uint8_t newError, errorLevel_e l
  * @return New code
  */
 errorCode_u createErrorCodeLayer1(uint8_t functionID, uint8_t newError, uint8_t layer1Code, errorLevel_e level){
-	errorCode_u code = ERR_SUCCESS;
+    errorCode_u code = ERR_SUCCESS;
 
-	//if code means success, return success
-	if(newError == SUCCESS_VALUE)
-		return (ERR_SUCCESS);
+    //if code means success, return success
+    if(newError == SUCCESS_VALUE)
+        return (ERR_SUCCESS);
 
-	//set the fields values (clamped if necessary)
-	code.dword |= (level << ERR_LEVEL_OFFSET);
-	code.dword |= ((functionID & ERR_FUNCTION_CLAMP) << ERR_FUNCTION_OFFSET);
-	code.dword |= ((newError & ERR_CODE_CLAMP) << ERR_LAYER0_OFFSET);
-	code.dword |= ((layer1Code & ERR_CODE_CLAMP) << ERR_LAYER1_OFFSET);
+    //set the fields values (clamped if necessary)
+    code.dword |= (level << ERR_LEVEL_OFFSET);
+    code.dword |= ((functionID & ERR_FUNCTION_CLAMP) << ERR_FUNCTION_OFFSET);
+    code.dword |= ((newError & ERR_CODE_CLAMP) << ERR_LAYER0_OFFSET);
+    code.dword |= ((layer1Code & ERR_CODE_CLAMP) << ERR_LAYER1_OFFSET);
 
-	return (code);
+    return (code);
 }
 
 /**
@@ -125,26 +125,26 @@ errorCode_u createErrorCodeLayer1(uint8_t functionID, uint8_t newError, uint8_t 
  * @return Formatted code
  */
 errorCode_u pushErrorCode(errorCode_u oldCode, uint8_t functionID, uint8_t newError){
-	uint32_t errorStack;
+    uint32_t errorStack;
 
-	//if code means success, return success
-	if(newError == SUCCESS_VALUE)
-		return (ERR_SUCCESS);
+    //if code means success, return success
+    if(newError == SUCCESS_VALUE)
+        return (ERR_SUCCESS);
 
-	//erase and replace the function ID
-	oldCode.dword &= ERR_FUNCTION_MASK;
-	oldCode.dword |= ((functionID & ERR_FUNCTION_CLAMP) << ERR_FUNCTION_OFFSET);
+    //erase and replace the function ID
+    oldCode.dword &= ERR_FUNCTION_MASK;
+    oldCode.dword |= ((functionID & ERR_FUNCTION_CLAMP) << ERR_FUNCTION_OFFSET);
 
-	//isolate the codes stack, shift it and push a new code
-	//	(code already in layer 3 is lost)
-	errorStack = (oldCode.dword & ERR_IDS_MASK);
-	errorStack >>= ERR_LAYER_NBBITS;
-	errorStack |= ((newError & ERR_CODE_CLAMP) << ERR_LAYER0_OFFSET);
+    //isolate the codes stack, shift it and push a new code
+    //	(code already in layer 3 is lost)
+    errorStack = (oldCode.dword & ERR_IDS_MASK);
+    errorStack >>= ERR_LAYER_NBBITS;
+    errorStack |= ((newError & ERR_CODE_CLAMP) << ERR_LAYER0_OFFSET);
 
-	//erase the codes stack and replace it with the new one
-	oldCode.dword &= ERR_STACK_MASK;
-	oldCode.dword |= errorStack;
+    //erase the codes stack and replace it with the new one
+    oldCode.dword &= ERR_STACK_MASK;
+    oldCode.dword |= errorStack;
 
-	//return the final code
-	return (oldCode);
+    //return the final code
+    return (oldCode);
 }
