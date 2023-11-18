@@ -71,10 +71,7 @@ static void MX_SPI2_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	int16_t newX = 0;
-	int16_t oldX = INT16_MAX;
-	int16_t newY = 0;
-	int16_t oldY = INT16_MAX;
+
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -117,23 +114,13 @@ int main(void)
 	  if(IS_ERROR(result))
 		  result.fields.moduleID = 2;
 
-	  //if new measurements available, get them
-	  if(ADXL345hasChanged()){
-		  newX = ADXL345getValue(X_AXIS);
-		  newY = ADXL345getValue(Y_AXIS);
-	  }
-
 	  //if X axis angle changed, update the screen
-	  if(isScreenReady() && (oldX != newX)){
-		  oldX = newX;
-		  SSD1306_printAngle(measureToAngleDegrees(newX), SSD1306_LINE1_PAGE, SSD1306_LINE1_COLUMN);
-	  }
+	  if(isScreenReady() && ADXL345hasChanged(X_AXIS))
+		  SSD1306_printAngle(measureToAngleDegrees(ADXL345getValue(X_AXIS)), SSD1306_LINE1_PAGE, SSD1306_LINE1_COLUMN);
 
 	  //if Y axis angle changed, update the screen
-	  if(isScreenReady() && (oldY != newY)){
-		  oldY = newY;
-		  SSD1306_printAngle(measureToAngleDegrees(newY), SSD1306_LINE2_PAGE, SSD1306_LINE2_COLUMN);
-	  }
+	  if(isScreenReady() && ADXL345hasChanged(Y_AXIS))
+		  SSD1306_printAngle(measureToAngleDegrees(ADXL345getValue(Y_AXIS)), SSD1306_LINE2_PAGE, SSD1306_LINE2_COLUMN);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
