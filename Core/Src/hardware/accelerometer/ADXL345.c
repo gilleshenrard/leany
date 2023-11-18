@@ -1,7 +1,7 @@
 /**
  * @brief Implement the ADXL345 accelerometer communication
  * @author Gilles Henrard
- * @date 17/11/2023
+ * @date 18/11/2023
  *
  * @note Additional information can be found in :
  *   - ADXL345 datasheet : https://www.analog.com/media/en/technical-documentation/data-sheets/ADXL345.pdf
@@ -146,7 +146,7 @@ errorCode_u ADXL345update(){
  * @retval 0 No new values available
  * @retval 1 New values are available
  */
-uint8_t ADXL345hasNewMeasurements(){
+uint8_t ADXL345hasChanged(){
 	uint8_t tmp = _measurementsUpdated;
 	_measurementsUpdated = 0;
 
@@ -249,7 +249,7 @@ errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint
  * @param axis Axis of which get the measurement
  * @return Last known integrated measurement
  */
-int16_t ADXL345getmeasurement(axis_e axis){
+int16_t ADXL345getValue(axis_e axis){
 	switch(axis){
 		case Y_AXIS:
 			return (_finalY);
