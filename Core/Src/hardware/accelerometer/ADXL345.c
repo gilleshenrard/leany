@@ -62,9 +62,12 @@ typedef enum{
 	ENABLED,
 }spiStatus_e;
 
+/**
+ * @brief Structure used to hold axis measurement values
+ */
 typedef struct{
-	int16_t current;
-	int16_t previous;
+	int16_t current;	///< Last known value
+	int16_t previous;	///< Value held last time an update was checked on an axis
 }adxlValues_t;
 
 /**
@@ -105,7 +108,8 @@ static const uint8_t initialisationArray[NB_REG_INIT][2] = {
 	{POWER_CONTROL,			ADXL_MEASURE_MODE},
 };
 
-static const uint8_t dataFormatDefault = ADXL_NO_SELF_TEST | ADXL_SPI_4WIRE | ADXL_INT_ACTIV_LOW | ADXL_RANGE_16G;	///< Default data format (register 0x31) value
+// Default data format (register 0x31) value
+static const uint8_t dataFormatDefault = (ADXL_NO_SELF_TEST | ADXL_SPI_4WIRE | ADXL_INT_ACTIV_LOW | ADXL_RANGE_16G);
 
 //global variables
 volatile uint8_t			adxlINT1occurred = 0;		///< Flag used to indicate the ADXL triggered an interrupt
@@ -115,7 +119,7 @@ volatile uint16_t			adxlTimer_ms = 0;			///< Timer used in various states of the
 static SPI_HandleTypeDef*	_spiHandle = NULL;			///< SPI handle used with the ADXL345
 static adxlState			_state = stStartup;			///< State machine current state
 static uint8_t				_measurementsUpdated = 0;	///< Flag used to indicate new integrated measurements are ready within the ADXL345
-static adxlValues_t			_finalValues[NB_AXIS];
+static adxlValues_t			_finalValues[NB_AXIS];		///< Array of axis values
 static errorCode_u 			_result;					///< Variables used to store error codes
 
 
