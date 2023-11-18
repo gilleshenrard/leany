@@ -110,9 +110,7 @@ volatile uint16_t			adxlTimer_ms = 0;			///< Timer used in various states of the
 static SPI_HandleTypeDef*	_spiHandle = NULL;			///< SPI handle used with the ADXL345
 static adxlState			_state = stStartup;			///< State machine current state
 static uint8_t				_measurementsUpdated = 0;	///< Flag used to indicate new integrated measurements are ready within the ADXL345
-static int16_t				_finalX = 0;				///< X value obtained after integration
-static int16_t				_finalY = 0;				///< Y value obtained after integration
-static int16_t				_finalZ = 0;				///< Z value obtained after integration
+static int16_t				_finalValues[NB_AXIS];
 static errorCode_u 			_result;					///< Variables used to store error codes
 
 
@@ -250,16 +248,10 @@ errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint
  * @return Last known integrated measurement
  */
 int16_t ADXL345getValue(axis_e axis){
-	switch(axis){
-		case Y_AXIS:
-			return (_finalY);
-			break;
+	if(axis >= NB_AXIS)
+		axis = X_AXIS;
 
-		case X_AXIS:
-		default:
-			return (_finalX);
-			break;
-	};
+	return (_finalValues[axis]);
 }
 
 /**
@@ -269,7 +261,7 @@ int16_t ADXL345getValue(axis_e axis){
  * @return Angle with the Z axis
  */
 float measureToAngleDegrees(int16_t axisValue){
-	return (atanDegrees(axisValue, _finalZ));
+	return (atanDegrees(axisValue, _finalValues[Z_AXIS]));
 }
 
 /**
@@ -418,7 +410,7 @@ errorCode_u stSelfTestingOFF(){
 		return (ERR_SUCCESS);
 
 	//retrieve the integrated measurements
-	_result = integrateFIFO(&_finalX, &_finalY, &_finalZ);
+	_result = integrateFIFO(&_finalValues[X_AXIS], &_finalValues[Y_AXIS], &_finalValues[Z_AXIS]);
 	if(IS_ERROR(_result)){
 		_state = stError;
 		return (pushErrorCode(_result, SELF_TESTING_OFF, 2));
@@ -521,9 +513,9 @@ errorCode_u stSelfTestingON(){
 	}
 
 	//compute the self-test deltas
-	_finalXSTon -= _finalX;
-	_finalYSTon -= _finalY;
-	_finalZSTon -= _finalZ;
+	_finalXSTon -= _finalValues[X_AXIS];
+	_finalYSTon -= _finalValues[Y_AXIS];
+	_finalZSTon -= _finalValues[Z_AXIS];
 
 	//if self-test values out of range, error
 	if((_finalXSTon <= ADXL_ST_MINX_33_16G) || (_finalXSTon >= ADXL_ST_MAXX_33_16G)
@@ -563,7 +555,7 @@ errorCode_u stMeasuring(){
 	adxlINT1occurred = 0;
 
 	//integrate the FIFOs
-	_result = integrateFIFO(&_finalX, &_finalY, &_finalZ);
+	_result = integrateFIFO(&_finalValues[X_AXIS], &_finalValues[Y_AXIS], &_finalValues[Z_AXIS]);
 	if(IS_ERROR(_result)){
 		_state = stError;
 		return (pushErrorCode(_result, MEASURE, 2));

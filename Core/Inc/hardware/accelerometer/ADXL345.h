@@ -10,8 +10,10 @@ extern volatile uint16_t	adxlTimer_ms;
  * @brief Enumeration of the axis of which to get measurements
  */
 typedef enum{
-	X_AXIS,
-	Y_AXIS
+	X_AXIS = 0,
+	Y_AXIS,
+	Z_AXIS,
+	NB_AXIS
 }axis_e;
 
 errorCode_u ADXL345initialise(const SPI_HandleTypeDef* handle);
