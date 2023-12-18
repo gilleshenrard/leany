@@ -1,7 +1,7 @@
 #ifndef INC_ADXL345_H_
 #define INC_ADXL345_H_
 #include <stm32f1xx.h>
-#include "errors.h"
+#include "errorstack.h"
 
 extern volatile uint8_t		adxlINT1occurred;
 extern volatile uint16_t	adxlTimer_ms;
