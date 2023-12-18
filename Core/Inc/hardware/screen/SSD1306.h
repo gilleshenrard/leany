@@ -2,7 +2,7 @@
 #define INC_HARDWARE_SCREEN_SSD1306_H_
 #include <stdint.h>
 #include <stm32f1xx.h>
-#include "errors.h"
+#include "errorstack.h"
 
 //screen defaults
 #define SSD1306_LINE1_PAGE		0U		///< Page number of the first screen line
