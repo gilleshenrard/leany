@@ -1,4 +1,8 @@
-# CMake toolchain definition for STM32CubeIDE
+#############################################################################################################################
+# file:  gcc-arm-none-eabi.cmake
+# date:  04/01/2023
+# brief: GNU Arm Embedded Toolchain declaration file
+#############################################################################################################################
 
 set (CMAKE_SYSTEM_PROCESSOR "arm" CACHE STRING "")
 set (CMAKE_SYSTEM_NAME "Generic" CACHE STRING "")
