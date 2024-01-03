@@ -3,8 +3,14 @@
 # date:  04/01/2023
 # brief: Root CMakeLists file
 #
-# usage: This repository includes a CMakePresets.json file to ease up the CMake use.
-#        cmake --preset Debug
+# Prerequisites:
+#        - GNU Arm Embedded Toolchain (gcc-arm-none-eabi) is installed
+#        - CMake is installed
+#
+# note:  This repository includes a CMakePresets.json file to ease up the CMake use.
+#        This file uses the toolchain file cmake/gcc-arm-none-eabi.cmake
+#
+# usage: cmake --preset Debug
 #        cmake --build build/Debug
 #
 #        cmake --preset Release
