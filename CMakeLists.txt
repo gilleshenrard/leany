@@ -5,7 +5,10 @@
 #
 # usage: This repository includes a CMakePresets.json file to ease up the CMake use.
 #        cmake --preset Debug
+#        cmake --build build/Debug
+#
 #        cmake --preset Release
+#        cmake --build build/Release
 #############################################################################################################################
 cmake_minimum_required(VERSION 3.20)
 
