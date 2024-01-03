@@ -65,3 +65,5 @@ Drivers/
 # Doxygen files
 doxygen/
 
+# VSCode
+.vscode
