@@ -1,14 +1,11 @@
 #############################################################################################################################
 # file:  CMakeLists.txt
-# brief: Template "CMakeLists.txt" for building of executables and static libraries.
+# date:  04/01/2023
+# brief: Root CMakeLists file
 #
-# usage: Edit "VARIABLES"-section to suit project requirements.
-#        For debug build:
-#          cmake -DCMAKE_TOOLCHAIN_FILE=cubeide-gcc.cmake  -S ./ -B Debug -G"Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug
-#          make -C Debug VERBOSE=1
-#        For release build:
-#          cmake -DCMAKE_TOOLCHAIN_FILE=cubeide-gcc.cmake  -S ./ -B Release -G"Unix Makefiles" -DCMAKE_BUILD_TYPE=Release
-#          make -C Release VERBOSE=1
+# usage: This repository includes a CMakePresets.json file to ease up the CMake use.
+#        cmake --preset Debug
+#        cmake --preset Release
 #############################################################################################################################
 cmake_minimum_required(VERSION 3.20)
 
@@ -42,10 +39,12 @@ set (MFLOAT_ABI               ${MFLOAT_ABI_SOFTWARE})
 set (RUNTIME_LIBRARY          ${RUNTIME_LIBRARY_REDUCED_C})
 set (RUNTIME_LIBRARY_SYSCALLS ${RUNTIME_LIBRARY_SYSCALLS_MINIMAL})
 
+#define the C standard used
 set(CMAKE_C_STANDARD                23)
 set(CMAKE_C_STANDARD_REQUIRED       ON)
 set(CMAKE_C_EXTENSIONS              ON)
 
+#define the source files list
 set (PROJECT_SOURCES
 	Core/Startup/startup_stm32f103c8tx.s
 	Core/Src/main.c
@@ -73,11 +72,13 @@ set (PROJECT_SOURCES
 	Core/Src/hardware/screen/SSD1306.c
 )
 
+#define the definitions used when compiling (-D)
 set (PROJECT_DEFINES
 	USE_HAL_DRIVER
 	STM32F103xB
 )
 
+#define the included directories list
 set (PROJECT_INCLUDES
 	Drivers/STM32F1xx_HAL_Driver/Inc
 	Drivers/STM32F1xx_HAL_Driver/Inc/Legacy
@@ -90,6 +91,7 @@ set (PROJECT_INCLUDES
 	Core/Inc/hardware/screen
 )
 
+#define the CPU-specific arguments used when compiling
 set (CPU_OPTIONS
 	${MCPU}
 	${MFPU}
@@ -102,31 +104,34 @@ set (CPU_OPTIONS
 	-mthumb
 )
 
+#define C++ arguments (unused)
 set(CPP_FLAGS
 	-fno-rtti
 	-fno-exceptions
 	-fno-threadsafe-statics
 )
 
-############ MODIFY ACCORDING TO REQUIREMENTS) ########################
-
-#######################################################################
-
 ################## PROJECT SETUP ######################################
+#declare the project name, languages used and executable name
 project(${PROJECT_NAME})
 enable_language(ASM C)
-
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCES})
 
+#add compilation definitions and included directories
 target_compile_definitions (${PROJECT_NAME} PRIVATE ${PROJECT_DEFINES})
 target_include_directories (${PROJECT_NAME} PRIVATE ${PROJECT_INCLUDES})
 
+#declare Assembly compilation arguments
+set (CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS} -x assembler-with-cpp")
+
+#declare the compilation arguments
 target_compile_options(${PROJECT_NAME} PRIVATE
 	${CPU_OPTIONS}
 	-Og
-	$<$<CONFIG:Debug>:-g3 -ggdb>
+	$<$<CONFIG:Debug>:-g3 -ggdb>	#add flags to compile when Debug
 )
 
+#declare linking arguments
 target_link_options(${PROJECT_NAME} PRIVATE
 	-T${LINKER_SCRIPT}
 	${CPU_OPTIONS}
@@ -141,10 +146,11 @@ target_link_options(${PROJECT_NAME} PRIVATE
 	-Wl,--end-group
 )
 
+#set the executables extension
 set (CMAKE_EXECUTABLE_SUFFIX ".elf")
 set (CMAKE_STATIC_LIBRARY_SUFFIX ".a")
-set (CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS} -x assembler-with-cpp")
 
+#add a post-build command to create a *.hex file
 add_custom_command(TARGET ${CMAKE_PROJECT_NAME}
 	POST_BUILD
 	COMMAND ${CMAKE_OBJCOPY} -O ihex ${CMAKE_PROJECT_NAME}${CMAKE_EXECUTABLE_SUFFIX} ${PROJECT_NAME}.hex
