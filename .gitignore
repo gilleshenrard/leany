@@ -66,4 +66,7 @@ Drivers/
 doxygen/
 
 # VSCode
-.vscode
+.vscode/
+
+# CMake
+build/
