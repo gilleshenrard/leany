@@ -18,35 +18,10 @@
 #############################################################################################################################
 cmake_minimum_required(VERSION 3.20)
 
-###################### CONSTANTS ######################################
-set (PROJECT_TYPE_EXECUTABLE          "exe")
-set (PROJECT_TYPE_STATIC_LIBRARY      "static-lib")
-set (MCPU_CORTEX_M0				      "-mcpu=cortex-m0")
-set (MCPU_CORTEX_M0PLUS				  "-mcpu=cortex-m0plus")
-set (MCPU_CORTEX_M3				      "-mcpu=cortex-m3")
-set (MCPU_CORTEX_M4				      "-mcpu=cortex-m4")
-set (MCPU_CORTEX_M7				      "-mcpu=cortex-m7")
-set (MCPU_CORTEX_M33				  "-mcpu=cortex-m33")
-set (MFPU_FPV4_SP_D16                 "-mfpu=fpv4-sp-d16")
-set (MFPU_FPV5_D16                    "-mfpu=fpv5-d16")
-set (RUNTIME_LIBRARY_REDUCED_C        "--specs=nano.specs")
-set (RUNTIME_LIBRARY_STD_C            "")
-set (RUNTIME_LIBRARY_SYSCALLS_MINIMAL "--specs=nosys.specs")
-set (RUNTIME_LIBRARY_SYSCALLS_NONE    "")
-set (MFLOAT_ABI_SOFTWARE              "-mfloat-abi=soft")
-set (MFLOAT_ABI_HARDWARE              "-mfloat-abi=hard")
-set (MFLOAT_ABI_MIX                   "-mfloat-abi=softfp")
-#######################################################################
-
-###################### VARIABLES ######################################
-set (PROJECT_NAME             "stm32-leveler")
-set (PROJECT_TYPE             "exe")
-set (LINKER_SCRIPT            ${CMAKE_CURRENT_SOURCE_DIR}/STM32F103C8TX_FLASH.ld)
-set (MCPU                     ${MCPU_CORTEX_M3})
-set (MFPU                     "")
-set (MFLOAT_ABI               ${MFLOAT_ABI_SOFTWARE})
-set (RUNTIME_LIBRARY          ${RUNTIME_LIBRARY_REDUCED_C})
-set (RUNTIME_LIBRARY_SYSCALLS ${RUNTIME_LIBRARY_SYSCALLS_MINIMAL})
+#declare the project and languages used
+set (PROJECT_NAME "stm32-leveler")
+project(${PROJECT_NAME})
+enable_language(ASM C)
 
 #define the C standard used
 set(CMAKE_C_STANDARD                23)
@@ -74,22 +49,14 @@ set (PROJECT_INCLUDES
 
 #define the CPU-specific arguments used when compiling
 set (CPU_OPTIONS
-	${MCPU}
-	${MFPU}
-	${MFLOAT_ABI}
-	${RUNTIME_LIBRARY}
-	${RUNTIME_LIBRARY_SYSCALLS}
+	-mcpu=cortex-m3
+	-mfloat-abi=soft
+	--specs=nano.specs
+	--specs=nosys.specs
 	-fdata-sections
 	-ffunction-sections
 	-Wl,--gc-sections
 	-mthumb
-)
-
-#define C++ arguments (unused)
-set(CPP_FLAGS
-	-fno-rtti
-	-fno-exceptions
-	-fno-threadsafe-statics
 )
 
 #declare the compilation options
@@ -106,9 +73,8 @@ set(CUSTOM_COMPILE_OPTIONS
 
 #declare the linker options
 set(CUSTOM_LINK_OPTIONS
-	-T${LINKER_SCRIPT}
+	-T${CMAKE_SOURCE_DIR}/STM32F103C8TX_FLASH.ld
 	${CPU_OPTIONS}
-	${RUNTIME_LIBRARY_SYSCALLS}
 	-Wl,-Map=${PROJECT_NAME}.map
 	-Wl,--gc-sections
 	-Wl,--print-memory-usage
@@ -120,9 +86,7 @@ set(CUSTOM_LINK_OPTIONS
 )
 
 ################## PROJECT SETUP ######################################
-#declare the project name, languages used and executable name
-project(${PROJECT_NAME})
-enable_language(ASM C)
+#declare final executable
 add_executable(${PROJECT_NAME}
 	Core/Startup/startup_stm32f103c8tx.s
 	Core/Src/main.c
