@@ -87,7 +87,12 @@ set(CUSTOM_LINK_OPTIONS
 )
 
 ################## PROJECT SETUP ######################################
-#declare final executable
+#add directories in which find other CMakeLists.txt files
+add_subdirectory(Drivers)
+add_subdirectory(Core)
+
+#declare final executable and link to libraries
+#	(compilation and linking attributes inherited from drivers library)
 add_executable(${PROJECT_NAME}
 	Core/Startup/startup_stm32f103c8tx.s
 	Core/Src/main.c
@@ -97,16 +102,6 @@ add_executable(${PROJECT_NAME}
 	Core/Src/sysmem.c
 	Core/Src/system_stm32f1xx.c
 )
-
-#add directories in which find other CMakeLists.txt files
-add_subdirectory(Drivers)
-add_subdirectory(Core)
-
-#use all previous declarartions
-target_compile_definitions (${PROJECT_NAME} PRIVATE ${PROJECT_DEFINES})
-target_include_directories (${PROJECT_NAME} PRIVATE ${PROJECT_INCLUDES})
-target_compile_options(${PROJECT_NAME} PRIVATE ${CUSTOM_COMPILE_OPTIONS})
-target_link_options(${PROJECT_NAME} PRIVATE ${CUSTOM_LINK_OPTIONS})
 target_link_libraries(${PROJECT_NAME} PRIVATE
 						CubeMXgenerated
 						adxl345

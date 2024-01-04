@@ -19,7 +19,7 @@ add_library(CubeMXgenerated OBJECT
 	STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_rcc_ex.c
 	STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_spi.c
 )
-target_compile_definitions (CubeMXgenerated PRIVATE ${PROJECT_DEFINES})
-target_include_directories(CubeMXgenerated PRIVATE ${PROJECT_INCLUDES})
-target_compile_options(CubeMXgenerated PRIVATE ${CUSTOM_COMPILE_OPTIONS})
-target_link_options(CubeMXgenerated PRIVATE ${CUSTOM_LINK_OPTIONS})
+target_compile_definitions (CubeMXgenerated PUBLIC ${PROJECT_DEFINES})
+target_include_directories(CubeMXgenerated PUBLIC ${PROJECT_INCLUDES})
+target_compile_options(CubeMXgenerated PUBLIC ${CUSTOM_COMPILE_OPTIONS})
+target_link_options(CubeMXgenerated PUBLIC ${CUSTOM_LINK_OPTIONS})
