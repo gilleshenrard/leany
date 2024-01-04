@@ -53,14 +53,6 @@ set(CMAKE_C_STANDARD                23)
 set(CMAKE_C_STANDARD_REQUIRED       ON)
 set(CMAKE_C_EXTENSIONS              ON)
 
-#define the source files list
-set (PROJECT_SOURCES
-	Core/Src/errors/errorstack.c
-	Core/Src/hardware/accelerometer/ADXL345.c
-	Core/Src/hardware/screen/numbersVerdana16.c
-	Core/Src/hardware/screen/SSD1306.c
-)
-
 #define the definitions used when compiling (-D)
 set (PROJECT_DEFINES
 	USE_HAL_DRIVER
@@ -70,14 +62,14 @@ set (PROJECT_DEFINES
 
 #define the included directories list
 set (PROJECT_INCLUDES
-	Drivers/STM32F1xx_HAL_Driver/Inc
-	Drivers/CMSIS/Include
-	Drivers/CMSIS/Device/ST/STM32F1xx/Include
-	Core/Inc
+	${CMAKE_SOURCE_DIR}/Drivers/STM32F1xx_HAL_Driver/Inc
+	${CMAKE_SOURCE_DIR}/Drivers/CMSIS/Include
+	${CMAKE_SOURCE_DIR}/Drivers/CMSIS/Device/ST/STM32F1xx/Include
+	${CMAKE_SOURCE_DIR}/Core/Inc
 
-	Core/Inc/errors
-	Core/Inc/hardware/accelerometer
-	Core/Inc/hardware/screen
+	${CMAKE_SOURCE_DIR}/Core/Inc/errors
+	${CMAKE_SOURCE_DIR}/Core/Inc/hardware/accelerometer
+	${CMAKE_SOURCE_DIR}/Core/Inc/hardware/screen
 )
 
 #define the CPU-specific arguments used when compiling
@@ -112,20 +104,6 @@ set(CUSTOM_COMPILE_OPTIONS
 	>
 )
 
-#declare warning flags
-set(WARNING_FLAGS
-	-Wall
-	-Wextra
-	-Werror
-	-pedantic
-	-pedantic-errors
-	-Wmissing-include-dirs
-	-Wswitch-default
-	-Wswitch-enum
-	-Wconversion
-	$<$<CONFIG:Debug>:-fanalyzer>
-)
-
 #declare the linker options
 set(CUSTOM_LINK_OPTIONS
 	-T${LINKER_SCRIPT}
@@ -153,18 +131,23 @@ add_executable(${PROJECT_NAME}
 	Core/Src/syscalls.c
 	Core/Src/sysmem.c
 	Core/Src/system_stm32f1xx.c
-	${PROJECT_SOURCES}
 )
 
 #add directories in which find other CMakeLists.txt files
 add_subdirectory(Drivers)
+add_subdirectory(Core)
 
 #use all previous declarartions
 target_compile_definitions (${PROJECT_NAME} PRIVATE ${PROJECT_DEFINES})
 target_include_directories (${PROJECT_NAME} PRIVATE Core/Inc ${PROJECT_INCLUDES})
 target_compile_options(${PROJECT_NAME} PRIVATE ${CUSTOM_COMPILE_OPTIONS})
 target_link_options(${PROJECT_NAME} PRIVATE ${CUSTOM_LINK_OPTIONS})
-target_link_libraries(${PROJECT_NAME} PRIVATE CubeMXgenerated)
+target_link_libraries(${PROJECT_NAME} PRIVATE
+						CubeMXgenerated
+						errorStack
+						adxl345
+						ssd1306
+)
 
 #declare Assembly compilation arguments
 set (CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS} -x assembler-with-cpp")
