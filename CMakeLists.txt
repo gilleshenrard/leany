@@ -85,6 +85,7 @@ set (PROJECT_SOURCES
 set (PROJECT_DEFINES
 	USE_HAL_DRIVER
 	STM32F103xB
+	$<$<CONFIG:Debug>:DEBUG>
 )
 
 #define the included directories list
@@ -136,8 +137,23 @@ set (CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS} -x assembler-with-cpp")
 #declare the compilation arguments
 target_compile_options(${PROJECT_NAME} PRIVATE
 	${CPU_OPTIONS}
-	-Og
-	$<$<CONFIG:Debug>:-g3 -ggdb>	#add flags to compile when Debug
+	-Wall
+	-Wextra
+	-Werror
+	-pedantic
+	-pedantic-errors
+	-Wmissing-include-dirs
+	-Wswitch-default
+#	-Wswitch-enum
+#	-Wconversion
+	$<$<CONFIG:Release>:-O1>			#add flags to compile when Release
+	$<$<CONFIG:Debug>:	-Og				#add flags to compile when Debug
+						-g3
+						-ggdb
+#						-fanalyzer
+						-fstack-usage
+						-fcyclomatic-complexity
+	>
 )
 
 #declare linking arguments
@@ -145,7 +161,7 @@ target_link_options(${PROJECT_NAME} PRIVATE
 	-T${LINKER_SCRIPT}
 	${CPU_OPTIONS}
 	${RUNTIME_LIBRARY_SYSCALLS}
-	-Wl,-Map=${PROJECT_NAME}.map,--cref
+	-Wl,-Map=${PROJECT_NAME}.map
 	-Wl,--gc-sections
 	-Wl,--print-memory-usage
 	-static
