@@ -139,7 +139,7 @@ add_subdirectory(Core)
 
 #use all previous declarartions
 target_compile_definitions (${PROJECT_NAME} PRIVATE ${PROJECT_DEFINES})
-target_include_directories (${PROJECT_NAME} PRIVATE Core/Inc ${PROJECT_INCLUDES})
+target_include_directories (${PROJECT_NAME} PRIVATE ${PROJECT_INCLUDES})
 target_compile_options(${PROJECT_NAME} PRIVATE ${CUSTOM_COMPILE_OPTIONS})
 target_link_options(${PROJECT_NAME} PRIVATE ${CUSTOM_LINK_OPTIONS})
 target_link_libraries(${PROJECT_NAME} PRIVATE
