@@ -55,26 +55,6 @@ set(CMAKE_C_EXTENSIONS              ON)
 
 #define the source files list
 set (PROJECT_SOURCES
-	Core/Startup/startup_stm32f103c8tx.s
-	Core/Src/main.c
-	Core/Src/stm32f1xx_hal_msp.c
-	Core/Src/stm32f1xx_it.c
-	Core/Src/syscalls.c
-	Core/Src/sysmem.c
-	Core/Src/system_stm32f1xx.c
-	Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal.c
-	Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_cortex.c
-	Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_dma.c
-	Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_exti.c
-	Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_flash.c
-	Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_flash_ex.c
-	Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_gpio.c
-	Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_gpio_ex.c
-	Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_pwr.c
-	Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_rcc.c
-	Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_rcc_ex.c
-	Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_spi.c
-
 	Core/Src/errors/errorstack.c
 	Core/Src/hardware/accelerometer/ADXL345.c
 	Core/Src/hardware/screen/numbersVerdana16.c
@@ -121,21 +101,8 @@ set(CPP_FLAGS
 	-fno-threadsafe-statics
 )
 
-################## PROJECT SETUP ######################################
-#declare the project name, languages used and executable name
-project(${PROJECT_NAME})
-enable_language(ASM C)
-add_executable(${PROJECT_NAME} ${PROJECT_SOURCES})
-
-#add compilation definitions and included directories
-target_compile_definitions (${PROJECT_NAME} PRIVATE ${PROJECT_DEFINES})
-target_include_directories (${PROJECT_NAME} PRIVATE ${PROJECT_INCLUDES})
-
-#declare Assembly compilation arguments
-set (CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS} -x assembler-with-cpp")
-
-#declare the compilation arguments
-target_compile_options(${PROJECT_NAME} PRIVATE
+#declare the compilation options
+set(CUSTOM_COMPILE_OPTIONS
 	${CPU_OPTIONS}
 	-Wall
 	-Wextra
@@ -144,20 +111,20 @@ target_compile_options(${PROJECT_NAME} PRIVATE
 	-pedantic-errors
 	-Wmissing-include-dirs
 	-Wswitch-default
-#	-Wswitch-enum
-#	-Wconversion
+	#	-Wswitch-enum
+	#	-Wconversion
 	$<$<CONFIG:Release>:-O1>			#add flags to compile when Release
 	$<$<CONFIG:Debug>:	-Og				#add flags to compile when Debug
 						-g3
 						-ggdb
-#						-fanalyzer
+	#						-fanalyzer
 						-fstack-usage
 						-fcyclomatic-complexity
 	>
 )
 
-#declare linking arguments
-target_link_options(${PROJECT_NAME} PRIVATE
+#declare the linker options
+set(CUSTOM_LINK_OPTIONS
 	-T${LINKER_SCRIPT}
 	${CPU_OPTIONS}
 	${RUNTIME_LIBRARY_SYSCALLS}
@@ -170,6 +137,51 @@ target_link_options(${PROJECT_NAME} PRIVATE
 	-lm
 	-Wl,--end-group
 )
+
+#create an object library with the CubeMX-generated files
+#	note : object library required to avoid weak functions declarations issues
+#	(will be used as a system library to avoid warnings)
+add_library(CubeMXgenerated OBJECT
+	Core/Startup/startup_stm32f103c8tx.s
+	Core/Src/main.c
+	Core/Src/stm32f1xx_hal_msp.c
+	Core/Src/stm32f1xx_it.c
+	Core/Src/syscalls.c
+	Core/Src/sysmem.c
+	Core/Src/system_stm32f1xx.c
+	Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal.c
+	Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_cortex.c
+	Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_dma.c
+	Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_exti.c
+	Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_flash.c
+	Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_flash_ex.c
+	Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_gpio.c
+	Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_gpio_ex.c
+	Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_pwr.c
+	Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_rcc.c
+	Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_rcc_ex.c
+	Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_spi.c
+)
+target_compile_definitions (CubeMXgenerated PRIVATE ${PROJECT_DEFINES})
+target_include_directories(CubeMXgenerated PRIVATE ${PROJECT_INCLUDES})
+target_compile_options(CubeMXgenerated PRIVATE ${CUSTOM_COMPILE_OPTIONS})
+target_link_options(CubeMXgenerated PRIVATE ${CUSTOM_LINK_OPTIONS})
+
+################## PROJECT SETUP ######################################
+#declare the project name, languages used and executable name
+project(${PROJECT_NAME})
+enable_language(ASM C)
+add_executable(${PROJECT_NAME} ${PROJECT_SOURCES})
+
+#use all previous declarartions
+target_compile_definitions (${PROJECT_NAME} PRIVATE ${PROJECT_DEFINES})
+target_include_directories (${PROJECT_NAME} PRIVATE ${PROJECT_INCLUDES})
+target_compile_options(${PROJECT_NAME} PRIVATE ${CUSTOM_COMPILE_OPTIONS})
+target_link_options(${PROJECT_NAME} PRIVATE ${CUSTOM_LINK_OPTIONS})
+target_link_libraries(${PROJECT_NAME} CubeMXgenerated)
+
+#declare Assembly compilation arguments
+set (CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS} -x assembler-with-cpp")
 
 #set the executables extension
 set (CMAKE_EXECUTABLE_SUFFIX ".elf")
