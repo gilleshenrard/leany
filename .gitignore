@@ -60,7 +60,8 @@ Debug/
 
 # STM32 git ignore
 *.mxproject
-Drivers/
+Drivers/CMSIS
+Drivers/STM32F1xx_HAL_Driver
 
 # Doxygen files
 doxygen/

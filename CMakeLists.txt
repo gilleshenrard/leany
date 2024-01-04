@@ -71,7 +71,6 @@ set (PROJECT_DEFINES
 #define the included directories list
 set (PROJECT_INCLUDES
 	Drivers/STM32F1xx_HAL_Driver/Inc
-	Drivers/STM32F1xx_HAL_Driver/Inc/Legacy
 	Drivers/CMSIS/Include
 	Drivers/CMSIS/Device/ST/STM32F1xx/Include
 	Core/Inc
@@ -142,10 +141,11 @@ set(CUSTOM_LINK_OPTIONS
 	-Wl,--end-group
 )
 
-#create an object library with the CubeMX-generated files
-#	note : object library required to avoid weak functions declarations issues
-#	(will be used as a system library to avoid warnings)
-add_library(CubeMXgenerated OBJECT
+################## PROJECT SETUP ######################################
+#declare the project name, languages used and executable name
+project(${PROJECT_NAME})
+enable_language(ASM C)
+add_executable(${PROJECT_NAME}
 	Core/Startup/startup_stm32f103c8tx.s
 	Core/Src/main.c
 	Core/Src/stm32f1xx_hal_msp.c
@@ -153,34 +153,16 @@ add_library(CubeMXgenerated OBJECT
 	Core/Src/syscalls.c
 	Core/Src/sysmem.c
 	Core/Src/system_stm32f1xx.c
-	Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal.c
-	Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_cortex.c
-	Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_dma.c
-	Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_exti.c
-	Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_flash.c
-	Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_flash_ex.c
-	Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_gpio.c
-	Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_gpio_ex.c
-	Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_pwr.c
-	Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_rcc.c
-	Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_rcc_ex.c
-	Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_spi.c
+	${PROJECT_SOURCES}
 )
-target_compile_definitions (CubeMXgenerated PRIVATE ${PROJECT_DEFINES})
-target_include_directories(CubeMXgenerated PRIVATE ${PROJECT_INCLUDES})
-target_compile_options(CubeMXgenerated PRIVATE ${CUSTOM_COMPILE_OPTIONS})
-target_link_options(CubeMXgenerated PRIVATE ${CUSTOM_LINK_OPTIONS})
 
-################## PROJECT SETUP ######################################
-#declare the project name, languages used and executable name
-project(${PROJECT_NAME})
-enable_language(ASM C)
-add_executable(${PROJECT_NAME} ${PROJECT_SOURCES})
+#add directories in which find other CMakeLists.txt files
+add_subdirectory(Drivers)
 
 #use all previous declarartions
 target_compile_definitions (${PROJECT_NAME} PRIVATE ${PROJECT_DEFINES})
-target_include_directories (${PROJECT_NAME} PRIVATE ${PROJECT_INCLUDES})
-target_compile_options(${PROJECT_NAME} PRIVATE ${CUSTOM_COMPILE_OPTIONS} ${WARNING_FLAGS})
+target_include_directories (${PROJECT_NAME} PRIVATE Core/Inc ${PROJECT_INCLUDES})
+target_compile_options(${PROJECT_NAME} PRIVATE ${CUSTOM_COMPILE_OPTIONS})
 target_link_options(${PROJECT_NAME} PRIVATE ${CUSTOM_LINK_OPTIONS})
 target_link_libraries(${PROJECT_NAME} PRIVATE CubeMXgenerated)
 
