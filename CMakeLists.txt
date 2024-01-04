@@ -108,7 +108,6 @@ target_compile_options(${PROJECT_NAME} PRIVATE ${CUSTOM_COMPILE_OPTIONS})
 target_link_options(${PROJECT_NAME} PRIVATE ${CUSTOM_LINK_OPTIONS})
 target_link_libraries(${PROJECT_NAME} PRIVATE
 						CubeMXgenerated
-						errorStack
 						adxl345
 						ssd1306
 )
