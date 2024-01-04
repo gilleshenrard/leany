@@ -104,6 +104,17 @@ set(CPP_FLAGS
 #declare the compilation options
 set(CUSTOM_COMPILE_OPTIONS
 	${CPU_OPTIONS}
+	$<$<CONFIG:Release>:-O1>			#add flags to compile when Release
+	$<$<CONFIG:Debug>:	-Og				#add flags to compile when Debug
+						-g3
+						-ggdb
+						-fstack-usage
+						-fcyclomatic-complexity
+	>
+)
+
+#declare warning flags
+set(WARNING_FLAGS
 	-Wall
 	-Wextra
 	-Werror
@@ -111,16 +122,9 @@ set(CUSTOM_COMPILE_OPTIONS
 	-pedantic-errors
 	-Wmissing-include-dirs
 	-Wswitch-default
-	#	-Wswitch-enum
-	#	-Wconversion
-	$<$<CONFIG:Release>:-O1>			#add flags to compile when Release
-	$<$<CONFIG:Debug>:	-Og				#add flags to compile when Debug
-						-g3
-						-ggdb
-	#						-fanalyzer
-						-fstack-usage
-						-fcyclomatic-complexity
-	>
+	-Wswitch-enum
+	-Wconversion
+	$<$<CONFIG:Debug>:-fanalyzer>
 )
 
 #declare the linker options
@@ -176,9 +180,9 @@ add_executable(${PROJECT_NAME} ${PROJECT_SOURCES})
 #use all previous declarartions
 target_compile_definitions (${PROJECT_NAME} PRIVATE ${PROJECT_DEFINES})
 target_include_directories (${PROJECT_NAME} PRIVATE ${PROJECT_INCLUDES})
-target_compile_options(${PROJECT_NAME} PRIVATE ${CUSTOM_COMPILE_OPTIONS})
+target_compile_options(${PROJECT_NAME} PRIVATE ${CUSTOM_COMPILE_OPTIONS} ${WARNING_FLAGS})
 target_link_options(${PROJECT_NAME} PRIVATE ${CUSTOM_LINK_OPTIONS})
-target_link_libraries(${PROJECT_NAME} CubeMXgenerated)
+target_link_libraries(${PROJECT_NAME} PRIVATE CubeMXgenerated)
 
 #declare Assembly compilation arguments
 set (CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS} -x assembler-with-cpp")
