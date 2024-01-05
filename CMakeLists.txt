@@ -44,8 +44,6 @@ set (PROJECT_INCLUDES
 	${CMAKE_SOURCE_DIR}/Core/Inc
 
 	${CMAKE_SOURCE_DIR}/Core/Inc/errors
-	${CMAKE_SOURCE_DIR}/Core/Inc/hardware/accelerometer
-	${CMAKE_SOURCE_DIR}/Core/Inc/hardware/screen
 )
 
 #define the CPU-specific arguments used when compiling
