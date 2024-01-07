@@ -2,7 +2,7 @@
  * @file SSD1306.c
  * @brief Implement the functioning of the SSD1306 OLED screen via SPI and DMA
  * @author Gilles Henrard
- * @date 17/11/2023
+ * @date 07/01/2024
  *
  * @note Datasheet : https://cdn-shop.adafruit.com/datasheets/SSD1306.pdf
  */
@@ -28,6 +28,10 @@
 #define NB_INIT_REGISERS	8U		///< Number of registers set at initialisation
 #define SSD_LAST_COLUMN		127U	///< Index of the highest column
 #define SSD_LAST_PAGE		31U		///< Index of the highest page
+
+//static assertions (ran at compile time)
+_Static_assert((ANGLE_NB_CHARS * VERDANA_NB_BYTES_CHAR) <= MAX_DATA_SIZE, "SSD1306 font chosen uses too much space.");
+_Static_assert((ANGLE_NB_CHARS * VERDANA_CHAR_WIDTH) <= (SSD_LAST_COLUMN + 1), "SSD1306 font chosen has too many columns.");
 
 /**
  * @brief Enumeration of the function IDs of the SSD1306
