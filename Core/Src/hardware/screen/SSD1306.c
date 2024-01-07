@@ -14,7 +14,7 @@
 //definitions
 #define SPI_TIMEOUT_MS		10U		///< Maximum number of milliseconds SPI traffic should last before timeout
 #define MAX_PARAMETERS		6U		///< Maximum number of parameters a command can have
-#define MAX_DATA_SIZE		1024U	///< Maximum data size (128 * 64 bits / 8 bits per bytes)
+#define MAX_DATA_SIZE		1024U	///< Maximum SSD1306 data size (128 * 64 pixels / 8 pixels per byte)
 #define MIN_ANGLE_DEG		-90.0f	///< Minimum angle allowed (in degrees)
 #define MAX_ANGLE_DEG		90.0f	///< Maximum angle allowed (in degrees)
 #define FLOAT_FACTOR_10		10.0f	///< Factor of 10 used in float calculations
