@@ -13,17 +13,7 @@
 
 //definitions
 #define SPI_TIMEOUT_MS		10U		///< Maximum number of milliseconds SPI traffic should last before timeout
-#define MAX_PARAMETERS		6U		///< Maximum number of parameters a command can have
 #define MAX_DATA_SIZE		1024U	///< Maximum SSD1306 data size (128 * 64 pixels / 8 pixels per byte)
-#define MIN_ANGLE_DEG		-90.0f	///< Minimum angle allowed (in degrees)
-#define MAX_ANGLE_DEG		90.0f	///< Maximum angle allowed (in degrees)
-#define FLOAT_FACTOR_10		10.0f	///< Factor of 10 used in float calculations
-#define INT_FACTOR_10		10U		///< Factor of 10 used in integer calculations
-#define NEG_THRESHOLD		-0.05f	///< Threshold above which an angle is considered positive (circumvents float incaccuracies)
-#define INDEX_SIGN			0		///< Index of the sign in the angle indexes array
-#define INDEX_TENS			1U		///< Index of the tens in the angle indexes array
-#define INDEX_UNITS			2U		///< Index of the units in the angle indexes array
-#define INDEX_TENTHS		4U		///< Index of the tenths in the angle indexes array
 #define ANGLE_NB_CHARS		6U		///< Number of characters in the angle array
 #define NB_INIT_REGISERS	8U		///< Number of registers set at initialisation
 #define SSD_LAST_COLUMN		127U	///< Index of the highest column
@@ -176,6 +166,7 @@ static inline void setDataStatus(dataStatus_e value){
  * @retval 3 Error while sending the data
  */
 errorCode_u sendCommand(SSD1306register_e regNumber, const uint8_t parameters[], uint8_t nbParameters){
+	static const uint8_t MAX_PARAMETERS = 6U;		///< Maximum number of parameters a command can have
 	HAL_StatusTypeDef HALresult;
 	errorCode_u result = ERR_SUCCESS;
 
@@ -247,6 +238,15 @@ uint8_t isScreenReady(){
  * @retval 1 Angle above maximum amplitude
  */
 errorCode_u SSD1306_printAngle(float angle, uint8_t page, uint8_t column){
+	static const float MIN_ANGLE_DEG = -90.0f;	///< Minimum angle allowed (in degrees)
+	static const float MAX_ANGLE_DEG =  90.0f;	///< Maximum angle allowed (in degrees)
+	static const float FLOAT_FACTOR_10 = 10.0f;	///< Factor of 10 used in float calculations
+	static const uint8_t INT_FACTOR_10 = 10U;	///< Factor of 10 used in integer calculations
+	static const float NEG_THRESHOLD = -0.05f;	///< Threshold above which an angle is considered positive (circumvents float incaccuracies)
+	static const uint8_t INDEX_SIGN = 0;		///< Index of the sign in the angle indexes array
+	static const uint8_t INDEX_TENS = 1U;		///< Index of the tens in the angle indexes array
+	static const uint8_t INDEX_UNITS = 2U;		///< Index of the units in the angle indexes array
+	static const uint8_t INDEX_TENTHS = 4U;		///< Index of the tenths in the angle indexes array
 	uint8_t charIndexes[ANGLE_NB_CHARS] = {INDEX_PLUS, 0, 0, INDEX_DOT, 0, INDEX_DEG};
 	uint8_t* iterator = _screenBuffer;
 
