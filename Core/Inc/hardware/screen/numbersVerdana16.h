@@ -2,8 +2,8 @@
 #define NUMBERS_VERDANA_16_H_INCLUDED
 #include <stdint.h>
 
-#define VERDANA_NB_BYTES_CHAR	22U	///< Number of bytes per character
-#define VERDANA_CHAR_WIDTH		11U	///< Width of a character in pixels
+#define VERDANA_NB_BYTES_CHAR	28U	///< Number of bytes per character
+#define VERDANA_CHAR_WIDTH		14U	///< Width of a character in pixels
 #define VERDANA_NB_PAGES		2U	///< Number of SSD pages used by a character
 
 /**
@@ -20,9 +20,9 @@ typedef enum{
 	INDEX_7,
 	INDEX_8,
 	INDEX_9,
-	INDEX_DOT,
 	INDEX_PLUS,
 	INDEX_MINUS,
+	INDEX_DOT,
 	INDEX_DEG,
 	NB_NUMBERS
 }numbers_e;
