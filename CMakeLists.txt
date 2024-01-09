@@ -1,6 +1,6 @@
 #############################################################################################################################
 # file:  CMakeLists.txt
-# date:  06/01/2023
+# date:  09/01/2024
 # brief: Root CMakeLists file
 #
 # Prerequisites:
@@ -30,7 +30,8 @@ set(CMAKE_C_EXTENSIONS              ON)
 
 #define the definitions used when compiling (-D)
 set (PROJECT_DEFINES
-	USE_HAL_DRIVER
+#	USE_HAL_DRIVER
+	USE_FULL_LL_DRIVER
 	STM32F103xB
 	$<$<CONFIG:Debug>:DEBUG>
 )
@@ -94,7 +95,6 @@ add_subdirectory(Core)
 add_executable(${PROJECT_NAME}
 	Core/Startup/startup_stm32f103c8tx.s
 	Core/Src/main.c
-	Core/Src/stm32f1xx_hal_msp.c
 	Core/Src/stm32f1xx_it.c
 	Core/Src/syscalls.c
 	Core/Src/sysmem.c
@@ -102,8 +102,8 @@ add_executable(${PROJECT_NAME}
 )
 target_link_libraries(${PROJECT_NAME} PRIVATE
 						CubeMXgenerated
-						adxl345
-						ssd1306
+#						adxl345
+#						ssd1306
 )
 
 #declare Assembly compilation arguments
