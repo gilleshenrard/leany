@@ -187,6 +187,9 @@ void SysTick_Handler(void)
   /* USER CODE BEGIN SysTick_IRQn 0 */
 	if(adxlTimer_ms)
 		adxlTimer_ms = adxlTimer_ms - 1;
+
+  if(adxlSPITimer_ms)
+    adxlSPITimer_ms = adxlSPITimer_ms - 1;
 /*
 	if(screenTimer_ms)
 		screenTimer_ms = screenTimer_ms - 1;
