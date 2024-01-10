@@ -25,9 +25,9 @@ target_compile_options(errorStack PUBLIC ${CUSTOM_COMPILE_OPTIONS} ${WARNING_FLA
 target_link_options(errorStack PUBLIC ${CUSTOM_LINK_OPTIONS})
 
 #create the adxl345 library, taking care of the accelerometer
-# add_library(adxl345 Src/hardware/accelerometer/ADXL345.c)
-# target_include_directories(adxl345 AFTER PUBLIC Inc/hardware/accelerometer)
-# target_link_libraries(adxl345 PRIVATE errorStack)
+add_library(adxl345 Src/hardware/accelerometer/ADXL345.c)
+target_include_directories(adxl345 AFTER PUBLIC Inc/hardware/accelerometer)
+target_link_libraries(adxl345 PRIVATE errorStack)
 
 #create the ssd1306 library, taking care of the screen
 # add_library(ssd1306 Src/hardware/screen/SSD1306.c Src/hardware/screen/numbersVerdana16.c)
