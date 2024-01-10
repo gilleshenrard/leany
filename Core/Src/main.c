@@ -357,7 +357,10 @@ static void MX_GPIO_Init(void)
   LL_EXTI_Init(&EXTI_InitStruct);
 
   /**/
-  LL_GPIO_SetPinMode(ADXL_INT1_GPIO_Port, ADXL_INT1_Pin, LL_GPIO_MODE_FLOATING);
+  LL_GPIO_SetPinPull(ADXL_INT1_GPIO_Port, ADXL_INT1_Pin, LL_GPIO_PULL_UP);
+
+  /**/
+  LL_GPIO_SetPinMode(ADXL_INT1_GPIO_Port, ADXL_INT1_Pin, LL_GPIO_MODE_INPUT);
 
   /* EXTI interrupt init*/
   NVIC_SetPriority(EXTI0_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),0, 0));
