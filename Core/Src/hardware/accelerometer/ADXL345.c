@@ -30,9 +30,9 @@
 //integration sampling
 #define ADXL_AVG_SAMPLES	ADXL_SAMPLES_32
 #define ADXL_AVG_SHIFT		5U
-#if (ADXL_AVG_SAMPLES >> ADXL_AVG_SHIFT) != 1
-#error TADXL_AVG_SHIFT does not divide all the samples configured with ADXL_AVG_NB
-#endif
+
+//assertions
+static_assert((ADXL_AVG_SAMPLES >> ADXL_AVG_SHIFT) == 1, "TADXL_AVG_SHIFT does not divide all the samples configured with ADXL_AVG_NB");
 
 //type definitions
 /**
