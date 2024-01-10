@@ -101,6 +101,7 @@ int main(void)
   MX_SPI2_Init();
   /* USER CODE BEGIN 2 */
   ADXL345initialise(&hspi1);
+  LL_SYSTICK_EnableIT();
   //SSD1306initialise(&hspi2);
   /* USER CODE END 2 */
 
