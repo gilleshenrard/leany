@@ -414,6 +414,7 @@ errorCode_u stStartup(){
 	}
 
 	//if unable to read device ID, go error
+	adxlTimer_ms = INT_TIMEOUT_MS;
 	_result = readRegisters(DEVICE_ID, &deviceID, 1);
 	if(IS_ERROR(_result)){
 		_state = stError;
@@ -447,7 +448,7 @@ errorCode_u stConfiguring(){
 		_result = writeRegister(initialisationArray[i][0], initialisationArray[i][1]);
 		if(IS_ERROR(_result)){
 			_state = stError;
-			return (pushErrorCode(_result, INIT, 1));
+			return (pushErrorCode(_result, INIT, 2));
 		}
 	}
 
