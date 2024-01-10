@@ -14,22 +14,12 @@
 #include <math.h>
 
 //definitions
-#define SPI_TIMEOUT_MS	10U		///< SPI direct transmission timeout span in milliseconds
-#define INT_TIMEOUT_MS	1000U	///< Maximum number of milliseconds before watermark int. timeout
-#define ST_WAIT_MS		25U		///< Maximum number of milliseconds before watermark int. timeout
-#define BYTE_OFFSET		8U		///< Number of bits to offset a byte
-#define X_INDEX_MSB		1U		///< Index of the X MSB in the measurements
-#define X_INDEX_LSB		0U		///< Index of the X LSB in the measurements
-#define Y_INDEX_MSB		3U		///< Index of the Y MSB in the measurements
-#define Y_INDEX_LSB		2U		///< Index of the Y LSB in the measurements
-#define Z_INDEX_MSB		5U		///< Index of the Z MSB in the measurements
-#define Z_INDEX_LSB		4U		///< Index of the Z LSB in the measurements
-#define NB_REG_INIT		5U		///< Number of registers configured at initialisation
-#define DEGREES_180		180.0f	///< Value representing a flat angle
-
-//integration sampling
-#define ADXL_AVG_SAMPLES	ADXL_SAMPLES_32
-#define ADXL_AVG_SHIFT		5U
+#define SPI_TIMEOUT_MS		10U				///< SPI direct transmission timeout span in milliseconds
+#define INT_TIMEOUT_MS		1000U			///< Maximum number of milliseconds before watermark int. timeout
+#define ST_WAIT_MS			25U				///< Maximum number of milliseconds before watermark int. timeout
+#define NB_REG_INIT			5U				///< Number of registers configured at initialisation
+#define ADXL_AVG_SAMPLES	ADXL_SAMPLES_32	///< Amount of samples to integrate in the ADXL
+#define ADXL_AVG_SHIFT		5U				///< Number used to shift the samples sum in order to divide it during integration
 
 //assertions
 static_assert((ADXL_AVG_SAMPLES >> ADXL_AVG_SHIFT) == 1, "TADXL_AVG_SHIFT does not divide all the samples configured with ADXL_AVG_NB");
@@ -336,6 +326,8 @@ float measureToAngleDegrees(int16_t axisValue){
  * @return Angle between direction and the Z axis
  */
 static inline float atanDegrees(int16_t direction, int16_t axisZ){
+	static const float DEGREES_180 = 180.0f;	///< Value representing a flat angle
+
 	if(!axisZ)
 		return (0.0f);
 
@@ -364,6 +356,13 @@ static inline void setSPIstatus(spiStatus_e value){
  * @retval 1 Error while retrieving values from the FIFO
  */
 errorCode_u integrateFIFO(int16_t* xValue, int16_t* yValue, int16_t* zValue){
+	static const uint8_t BYTE_OFFSET = 8U;	///< Number of bits to offset a byte
+	static const uint8_t X_INDEX_MSB = 1U;	///< Index of the X MSB in the measurements
+	static const uint8_t X_INDEX_LSB = 0U;	///< Index of the X LSB in the measurements
+	static const uint8_t Y_INDEX_MSB = 3U;	///< Index of the Y MSB in the measurements
+	static const uint8_t Y_INDEX_LSB = 2U;	///< Index of the Y LSB in the measurements
+	static const uint8_t Z_INDEX_MSB = 5U;	///< Index of the Z MSB in the measurements
+	static const uint8_t Z_INDEX_LSB = 4U;	///< Index of the Z LSB in the measurements	
 	static uint8_t buffer[ADXL_NB_DATA_REGISTERS];
 
 	*xValue = *yValue = *zValue = 0;
