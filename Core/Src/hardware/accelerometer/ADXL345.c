@@ -1,7 +1,7 @@
 /**
  * @brief Implement the ADXL345 accelerometer communication
  * @author Gilles Henrard
- * @date 18/11/2023
+ * @date 10/01/2024
  *
  * @note Additional information can be found in :
  *   - ADXL345 datasheet : https://www.analog.com/media/en/technical-documentation/data-sheets/ADXL345.pdf
@@ -114,13 +114,16 @@ static const uint8_t dataFormatDefault = (ADXL_NO_SELF_TEST | ADXL_SPI_4WIRE | A
 //global variables
 volatile uint8_t			adxlINT1occurred = 0;		///< Flag used to indicate the ADXL triggered an interrupt
 volatile uint16_t			adxlTimer_ms = 0;			///< Timer used in various states of the ADXL (in ms)
+volatile uint16_t			adxlSPITimer_ms = 0;		///< Timer used to make sure SPI does not time out (in ms)
 
 //state variables
-static SPI_HandleTypeDef*	_spiHandle = NULL;			///< SPI handle used with the ADXL345
-static adxlState			_state = stStartup;			///< State machine current state
-static uint8_t				_measurementsUpdated = 0;	///< Flag used to indicate new integrated measurements are ready within the ADXL345
-static adxlValues_t			_finalValues[NB_AXIS];		///< Array of axis values
-static errorCode_u 			_result;					///< Variables used to store error codes
+static SPI_TypeDef*		_spiHandle = NULL;			///< SPI handle used with the ADXL345
+static GPIO_TypeDef*	_CSport = NULL;				///< GPIO port used to control the ADXL345 CS signal
+static uint16_t			_CSpin = 0;					///< GPIO pin used to control the ADXL345 CS signal
+static adxlState		_state = stStartup;			///< State machine current state
+static uint8_t			_measurementsUpdated = 0;	///< Flag used to indicate new integrated measurements are ready within the ADXL345
+static adxlValues_t		_finalValues[NB_AXIS];		///< Array of axis values
+static errorCode_u 		_result;					///< Variables used to store error codes
 
 
 /********************************************************************************************************************************************/
@@ -130,11 +133,19 @@ static errorCode_u 			_result;					///< Variables used to store error codes
 /**
  * @brief Initialise the ADXL345
  *
- * @param handle SPI handle used
- * @retval 0 Success
+ * @param handle		SPI handle used
+ * @param CSGPIOport	GPIO port used to control CS
+ * @param CSGPIOpin		GPIO pin used to control CS
+ * @returns 			Success
  */
-errorCode_u ADXL345initialise(const SPI_HandleTypeDef* handle){
-	_spiHandle = (SPI_HandleTypeDef*)handle;
+errorCode_u ADXL345initialise(const SPI_TypeDef* handle, const GPIO_TypeDef* CSGPIOport, uint16_t CSGPIOpin){
+	_spiHandle = (SPI_TypeDef*)handle;
+	LL_SPI_Enable(_spiHandle);
+
+	_CSport = (GPIO_TypeDef*)CSGPIOport;
+	_CSpin = CSGPIOpin;
+	setSPIstatus(DISABLED);
+
 	return (ERR_SUCCESS);
 }
 
@@ -173,38 +184,48 @@ uint8_t ADXL345hasChanged(axis_e axis){
  * @retval 5 Error while writing the value
  */
 errorCode_u writeRegister(adxl345Registers_e registerNumber, uint8_t value){
-	HAL_StatusTypeDef HALresult;
-	errorCode_u ret = ERR_SUCCESS;
-	uint8_t instruction = ADXL_WRITE | ADXL_SINGLE | registerNumber;
+	errorCode_u result = ERR_SUCCESS;
 
 	//if handle not set, error
 	if(_spiHandle == NULL)
 		return (createErrorCode(WRITE_REGISTER, 1, ERR_CRITICAL));
 
+	//if SPI busy, error
+	if(LL_SPI_IsActiveFlag_BSY(_spiHandle))
+		return (createErrorCode(WRITE_REGISTER, 2, ERR_CRITICAL));
+
 	//if register number above known, error
 	if(registerNumber > ADXL_NB_REGISTERS)
-		return (createErrorCode(WRITE_REGISTER, 2, ERR_WARNING));
+		return (createErrorCode(WRITE_REGISTER, 3, ERR_WARNING));
 
 	//if register number between 0x01 and 0x1C included, error
 	if((uint8_t)(registerNumber - 1) < ADXL_HIGH_RESERVED_REG)
-		return (createErrorCode(WRITE_REGISTER, 3, ERR_WARNING)); 	// @suppress("Avoid magic numbers")
+		return (createErrorCode(WRITE_REGISTER, 4, ERR_WARNING)); 	// @suppress("Avoid magic numbers")
 
 	setSPIstatus(ENABLED);
 
-	//transmit the read instruction
-	HALresult = HAL_SPI_Transmit(_spiHandle, &instruction, 1, SPI_TIMEOUT_MS);
-	if(HALresult != HAL_OK){
+	//format and transmit the two bytes command
+	uint16_t command = ((ADXL_WRITE | ADXL_SINGLE | registerNumber) << 8) | value;
+	LL_SPI_TransmitData16(_spiHandle, command);
+
+	//wait for the SPI TX start to be confirmed
+	adxlSPITimer_ms = SPI_TIMEOUT_MS;
+	while(!LL_SPI_IsActiveFlag_TXE(_spiHandle) && adxlSPITimer_ms);
+	if(!adxlSPITimer_ms){
 		setSPIstatus(DISABLED);
-		return (createErrorCodeLayer1(WRITE_REGISTER, 4, HALresult, ERR_ERROR)); 	// @suppress("Avoid magic numbers")
+		return (createErrorCode(WRITE_REGISTER, 5, ERR_WARNING));
 	}
 
-	//receive the reply
-	HALresult = HAL_SPI_Transmit(_spiHandle, &value, 1, SPI_TIMEOUT_MS);
-	if(HALresult != HAL_OK)
-		ret = createErrorCodeLayer1(WRITE_REGISTER, 5, HALresult, ERR_ERROR); 	// @suppress("Avoid magic numbers")
+	//wait for the SPI to finish sending
+	adxlSPITimer_ms = SPI_TIMEOUT_MS;
+	while(!LL_SPI_IsActiveFlag_BSY(_spiHandle) && adxlSPITimer_ms);
+	if(!adxlSPITimer_ms){
+		setSPIstatus(DISABLED);
+		return (createErrorCode(WRITE_REGISTER, 6, ERR_WARNING));
+	}
 
 	setSPIstatus(DISABLED);
-	return (ret);
+	return (result);
 }
 
 /**
@@ -220,34 +241,68 @@ errorCode_u writeRegister(adxl345Registers_e registerNumber, uint8_t value){
  * @retval 4 Error while reading the values
  */
 errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint8_t size){
-	HAL_StatusTypeDef HALresult;
-	errorCode_u ret = ERR_SUCCESS;
-	uint8_t instruction = ADXL_READ | ADXL_MULTIPLE | firstRegister;
+	errorCode_u result = ERR_SUCCESS;
+	uint8_t* iterator = value;
 
-	//if handle not set, error
-	if(_spiHandle == NULL)
+	//if no bytes to read, success
+	if(!size)
+		return ERR_SUCCESS;
+
+	//if handle not set or value buffer not provided, error
+	if((_spiHandle == NULL) || (value == NULL))
 		return (createErrorCode(READ_REGISTERS, 1, ERR_CRITICAL));
+
+	//if SPI busy, error
+	if(LL_SPI_IsActiveFlag_BSY(_spiHandle))
+		return (createErrorCode(WRITE_REGISTER, 2, ERR_CRITICAL));
 
 	//if register numbers above known, error
 	if(firstRegister > ADXL_NB_REGISTERS)
-		return (createErrorCode(READ_REGISTERS, 2, ERR_WARNING));
+		return (createErrorCode(READ_REGISTERS, 3, ERR_WARNING));
 
 	setSPIstatus(ENABLED);
 
-	//transmit the read instruction
-	HALresult = HAL_SPI_Transmit(_spiHandle, &instruction, 1, SPI_TIMEOUT_MS);
-	if(HALresult != HAL_OK){
+	//send the read request
+	LL_SPI_TransmitData8(_spiHandle, ADXL_READ | ADXL_MULTIPLE | firstRegister);
+
+	//wait for the SPI TX start to be confirmed
+	adxlSPITimer_ms = SPI_TIMEOUT_MS;
+	while(!LL_SPI_IsActiveFlag_TXE(_spiHandle) && adxlSPITimer_ms);
+	if(!adxlSPITimer_ms){
 		setSPIstatus(DISABLED);
-		return (createErrorCodeLayer1(READ_REGISTERS, 3, HALresult, ERR_ERROR)); 	// @suppress("Avoid magic numbers")
+		return (createErrorCode(READ_REGISTERS, 4, ERR_WARNING));
 	}
 
-	//receive the reply
-	HALresult = HAL_SPI_Receive(_spiHandle, value, size, SPI_TIMEOUT_MS);
-	if(HALresult != HAL_OK)
-		ret = createErrorCodeLayer1(READ_REGISTERS, 4, HALresult, ERR_ERROR); 	// @suppress("Avoid magic numbers")
+	adxlSPITimer_ms = SPI_TIMEOUT_MS;
+
+	//read bytes two by two first
+	while(size >= 2 && adxlSPITimer_ms){
+		//wait for RX flag to be up
+		while(LL_SPI_IsActiveFlag_RXNE(_spiHandle) && adxlSPITimer_ms);
+
+		//retrieve two bytes from SPI
+		*((uint16_t*)iterator) = LL_SPI_ReceiveData16(_spiHandle);
+		iterator += 2;
+		size -= 2;
+	}
+
+	//read the remaining byte (if any)
+	if(size && adxlSPITimer_ms){
+		//wait for RX flag to be up
+		while(!LL_SPI_IsActiveFlag_RXNE(_spiHandle) && adxlSPITimer_ms);
+
+		//retrieve the remaining byte
+		*iterator = LL_SPI_ReceiveData8(_spiHandle);
+	}
+
+	//if timeout, error
+	if(!adxlSPITimer_ms){
+		setSPIstatus(DISABLED);
+		return (createErrorCode(READ_REGISTERS, 5, ERR_WARNING));
+	}
 
 	setSPIstatus(DISABLED);
-	return (ret);
+	return (result);
 }
 
 /**
@@ -293,7 +348,10 @@ static inline float atanDegrees(int16_t direction, int16_t axisZ){
  * @param value New CS pin status
  */
 static inline void setSPIstatus(spiStatus_e value){
-	HAL_GPIO_WritePin(ADXL_CS_GPIO_Port, ADXL_CS_Pin, (value == ENABLED ? GPIO_PIN_RESET : GPIO_PIN_SET));
+	if(value == ENABLED)
+		LL_GPIO_ResetOutputPin(_CSport, _CSpin);
+	else
+		LL_GPIO_SetOutputPin(_CSport, _CSpin);
 }
 
 /**
