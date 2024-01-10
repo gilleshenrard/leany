@@ -21,8 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "errorstack.h"
-//#include "ADXL345.h"
+#include "ADXL345.h"
 //#include "SSD1306.h"
 /* USER CODE END Includes */
 
@@ -101,7 +100,7 @@ int main(void)
   MX_SPI1_Init();
   MX_SPI2_Init();
   /* USER CODE BEGIN 2 */
-  //ADXL345initialise(&hspi1);
+  ADXL345initialise(&hspi1);
   //SSD1306initialise(&hspi2);
   /* USER CODE END 2 */
 
@@ -109,12 +108,11 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-/*
 	  //update the accelerometer state machine
 	  result = ADXL345update();
 	  if(IS_ERROR(result))
 		  result.fields.moduleID = 1;
-
+/*
 	  //update the screen state machine
 	  result = SSD1306update();
 	  if(IS_ERROR(result))
