@@ -30,7 +30,6 @@ set(CMAKE_C_EXTENSIONS              ON)
 
 #define the definitions used when compiling (-D)
 set (PROJECT_DEFINES
-#	USE_HAL_DRIVER
 	USE_FULL_LL_DRIVER
 	STM32F103xB
 	$<$<CONFIG:Debug>:DEBUG>
