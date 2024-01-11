@@ -99,7 +99,7 @@ static const uint8_t initialisationArray[NB_REG_INIT][2] = {
 };
 
 // Default data format (register 0x31) value
-static const uint8_t dataFormatDefault = (ADXL_NO_SELF_TEST | ADXL_SPI_4WIRE | ADXL_INT_ACTIV_LOW | ADXL_RANGE_16G);
+static const uint8_t DATA_FORMAT_DEFAULT = (ADXL_NO_SELF_TEST | ADXL_SPI_4WIRE | ADXL_INT_ACTIV_LOW | ADXL_RANGE_16G);
 
 //global variables
 volatile uint8_t			adxlINT1occurred = 0;		///< Flag used to indicate the ADXL triggered an interrupt
@@ -436,7 +436,7 @@ errorCode_u stStartup(){
  */
 errorCode_u stConfiguring(){
 	//write the default data format
-	_result = writeRegister(DATA_FORMAT, dataFormatDefault);
+	_result = writeRegister(DATA_FORMAT, DATA_FORMAT_DEFAULT);
 	if(IS_ERROR(_result)){
 		_state = stError;
 		return (pushErrorCode(_result, INIT, 1));
@@ -497,7 +497,7 @@ errorCode_u stSelfTestingOFF(){
  */
 errorCode_u stEnablingST(){
 	//Enable the self-test
-	_result = writeRegister(DATA_FORMAT, dataFormatDefault | ADXL_SELF_TEST);
+	_result = writeRegister(DATA_FORMAT, DATA_FORMAT_DEFAULT | ADXL_SELF_TEST);
 	if(IS_ERROR(_result)){
 		_state = stError;
 		return (pushErrorCode(_result, SELF_TEST_ENABLE, 1)); 	// @suppress("Avoid magic numbers")
@@ -573,7 +573,7 @@ errorCode_u stSelfTestingON(){
 	}
 
 	//restore the default data format
-	_result = writeRegister(DATA_FORMAT, dataFormatDefault | ADXL_FULL_RESOL);
+	_result = writeRegister(DATA_FORMAT, DATA_FORMAT_DEFAULT | ADXL_FULL_RESOL);
 	if(IS_ERROR(_result)){
 		_state = stError;
 		return (pushErrorCode(_result, SELF_TESTING_ON, 3)); 	// @suppress("Avoid magic numbers")
