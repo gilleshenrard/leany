@@ -130,8 +130,6 @@ static errorCode_u 		_result;					///< Variables used to store error codes
  */
 errorCode_u ADXL345initialise(const SPI_TypeDef* handle, const GPIO_TypeDef* CSGPIOport, uint16_t CSGPIOpin){
 	_spiHandle = (SPI_TypeDef*)handle;
-	LL_SPI_Enable(_spiHandle);
-
 	_CSport = (GPIO_TypeDef*)CSGPIOport;
 	_CSpin = CSGPIOpin;
 	setSPIstatus(DISABLED);
@@ -192,6 +190,7 @@ errorCode_u writeRegister(adxl345Registers_e registerNumber, uint8_t value){
 	if((uint8_t)(registerNumber - 1) < ADXL_HIGH_RESERVED_REG)
 		return (createErrorCode(WRITE_REGISTER, 4, ERR_WARNING)); 	// @suppress("Avoid magic numbers")
 
+	LL_SPI_Enable(_spiHandle);
 	setSPIstatus(ENABLED);
 
 	//format and transmit the two bytes command
@@ -215,6 +214,7 @@ errorCode_u writeRegister(adxl345Registers_e registerNumber, uint8_t value){
 	}
 
 	setSPIstatus(DISABLED);
+	LL_SPI_Disable(_spiHandle);
 	return (result);
 }
 
@@ -231,68 +231,67 @@ errorCode_u writeRegister(adxl345Registers_e registerNumber, uint8_t value){
  * @retval 4 Error while reading the values
  */
 errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint8_t size){
-	errorCode_u result = ERR_SUCCESS;
 	uint8_t* iterator = value;
+
+	//assertions
+	assert(_spiHandle);
+	assert(value);
 
 	//if no bytes to read, success
 	if(!size)
 		return ERR_SUCCESS;
 
-	//if handle not set or value buffer not provided, error
-	if((_spiHandle == NULL) || (value == NULL))
-		return (createErrorCode(READ_REGISTERS, 1, ERR_CRITICAL));
-
-	//if SPI busy, error
-	if(LL_SPI_IsActiveFlag_BSY(_spiHandle))
-		return (createErrorCode(WRITE_REGISTER, 2, ERR_CRITICAL));
-
 	//if register numbers above known, error
 	if(firstRegister > ADXL_NB_REGISTERS)
 		return (createErrorCode(READ_REGISTERS, 3, ERR_WARNING));
 
+	adxlSPITimer_ms = SPI_TIMEOUT_MS;
+	LL_SPI_Enable(_spiHandle);
 	setSPIstatus(ENABLED);
 
-	//send the read request
-	LL_SPI_TransmitData8(_spiHandle, ADXL_READ | ADXL_MULTIPLE | firstRegister);
-
-	//wait for the SPI TX start to be confirmed
-	adxlSPITimer_ms = SPI_TIMEOUT_MS;
-	while(!LL_SPI_IsActiveFlag_TXE(_spiHandle) && adxlSPITimer_ms);
+	//wait for not busy and TX buffer empty flags
+	while((LL_SPI_IsActiveFlag_BSY(_spiHandle) || !LL_SPI_IsActiveFlag_TXE(_spiHandle)) && adxlSPITimer_ms);
 	if(!adxlSPITimer_ms){
 		setSPIstatus(DISABLED);
 		return (createErrorCode(READ_REGISTERS, 4, ERR_WARNING));
 	}
 
-	adxlSPITimer_ms = SPI_TIMEOUT_MS;
-
-	//read bytes two by two first
-	while(size >= 2 && adxlSPITimer_ms){
-		//wait for RX flag to be up
-		while(!LL_SPI_IsActiveFlag_RXNE(_spiHandle) && adxlSPITimer_ms);
-
-		//retrieve two bytes from SPI
-		*((uint16_t*)iterator) = LL_SPI_ReceiveData16(_spiHandle);
-		iterator += 2;
-		size -= 2;
-	}
-
-	//read the remaining byte (if any)
-	if(size && adxlSPITimer_ms){
-		//wait for RX flag to be up
-		while(!LL_SPI_IsActiveFlag_RXNE(_spiHandle) && adxlSPITimer_ms);
-
-		//retrieve the remaining byte
-		*iterator = LL_SPI_ReceiveData8(_spiHandle);
-	}
-
-	//if timeout, error
+	//send the read request and wait for the SPI TX start to be confirmed
+	LL_SPI_TransmitData8(_spiHandle, ADXL_READ | ADXL_MULTIPLE | firstRegister);
+	while(LL_SPI_IsActiveFlag_TXE(_spiHandle) && adxlSPITimer_ms);
 	if(!adxlSPITimer_ms){
 		setSPIstatus(DISABLED);
 		return (createErrorCode(READ_REGISTERS, 5, ERR_WARNING));
 	}
 
+	//wait for the SPI TX start to be done
+	while(!LL_SPI_IsActiveFlag_TXE(_spiHandle) && adxlSPITimer_ms);
+	if(!adxlSPITimer_ms){
+		setSPIstatus(DISABLED);
+		return (createErrorCode(READ_REGISTERS, 6, ERR_WARNING));
+	}
+
+	//receive the reply bytes
+	do{
+		//wait for RX flag to be up
+		while(!LL_SPI_IsActiveFlag_RXNE(_spiHandle) && adxlSPITimer_ms);
+
+		//retrieve the remaining byte
+		*iterator = LL_SPI_ReceiveData8(_spiHandle);
+		while(LL_SPI_IsActiveFlag_RXNE(_spiHandle) && adxlSPITimer_ms);
+		iterator++;
+		size--;
+	}while(size && adxlSPITimer_ms);
+
+	//if timeout, error
+	if(!adxlSPITimer_ms){
+		setSPIstatus(DISABLED);
+		return (createErrorCode(READ_REGISTERS, 7, ERR_WARNING));
+	}
+
 	setSPIstatus(DISABLED);
-	return (result);
+	LL_SPI_Disable(_spiHandle);
+	return (ERR_SUCCESS);
 }
 
 /**
