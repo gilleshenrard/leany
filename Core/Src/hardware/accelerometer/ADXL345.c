@@ -268,7 +268,7 @@ errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint
 	//read bytes two by two first
 	while(size >= 2 && adxlSPITimer_ms){
 		//wait for RX flag to be up
-		while(LL_SPI_IsActiveFlag_RXNE(_spiHandle) && adxlSPITimer_ms);
+		while(!LL_SPI_IsActiveFlag_RXNE(_spiHandle) && adxlSPITimer_ms);
 
 		//retrieve two bytes from SPI
 		*((uint16_t*)iterator) = LL_SPI_ReceiveData16(_spiHandle);
