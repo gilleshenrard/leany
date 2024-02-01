@@ -172,15 +172,8 @@ uint8_t ADXL345hasChanged(axis_e axis){
  * @retval 5 Error while writing the value
  */
 errorCode_u writeRegister(adxl345Registers_e registerNumber, uint8_t value){
-	errorCode_u result = ERR_SUCCESS;
-
-	//if handle not set, error
-	if(_spiHandle == NULL)
-		return (createErrorCode(WRITE_REGISTER, 1, ERR_CRITICAL));
-
-	//if SPI busy, error
-	if(LL_SPI_IsActiveFlag_BSY(_spiHandle))
-		return (createErrorCode(WRITE_REGISTER, 2, ERR_CRITICAL));
+	//assertions
+	assert(_spiHandle);
 
 	//if register number above known, error
 	if(registerNumber > ADXL_NB_REGISTERS)
@@ -188,34 +181,27 @@ errorCode_u writeRegister(adxl345Registers_e registerNumber, uint8_t value){
 
 	//if register number between 0x01 and 0x1C included, error
 	if((uint8_t)(registerNumber - 1) < ADXL_HIGH_RESERVED_REG)
-		return (createErrorCode(WRITE_REGISTER, 4, ERR_WARNING)); 	// @suppress("Avoid magic numbers")
+		return (createErrorCode(WRITE_REGISTER, 4, ERR_WARNING));
 
-	LL_SPI_Enable(_spiHandle);
+	adxlSPITimer_ms = SPI_TIMEOUT_MS;
 	setSPIstatus(ENABLED);
 
-	//format and transmit the two bytes command
-	uint16_t command = ((ADXL_WRITE | ADXL_SINGLE | registerNumber) << 8) | value;
-	LL_SPI_TransmitData16(_spiHandle, command);
-
-	//wait for the SPI TX start to be confirmed
-	adxlSPITimer_ms = SPI_TIMEOUT_MS;
+	LL_SPI_TransmitData8(_spiHandle, ADXL_WRITE | ADXL_SINGLE | registerNumber);
 	while(!LL_SPI_IsActiveFlag_TXE(_spiHandle) && adxlSPITimer_ms);
 	if(!adxlSPITimer_ms){
 		setSPIstatus(DISABLED);
 		return (createErrorCode(WRITE_REGISTER, 5, ERR_WARNING));
 	}
 
-	//wait for the SPI to finish sending
-	adxlSPITimer_ms = SPI_TIMEOUT_MS;
-	while(!LL_SPI_IsActiveFlag_BSY(_spiHandle) && adxlSPITimer_ms);
+	LL_SPI_TransmitData8(_spiHandle, value);
+	while(!LL_SPI_IsActiveFlag_TXE(_spiHandle) && adxlSPITimer_ms);
 	if(!adxlSPITimer_ms){
 		setSPIstatus(DISABLED);
-		return (createErrorCode(WRITE_REGISTER, 6, ERR_WARNING));
+		return (createErrorCode(WRITE_REGISTER, 5, ERR_WARNING));
 	}
 
 	setSPIstatus(DISABLED);
-	LL_SPI_Disable(_spiHandle);
-	return (result);
+	return (ERR_SUCCESS);
 }
 
 /**
@@ -246,15 +232,7 @@ errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint
 		return (createErrorCode(READ_REGISTERS, 3, ERR_WARNING));
 
 	adxlSPITimer_ms = SPI_TIMEOUT_MS;
-	LL_SPI_Enable(_spiHandle);
 	setSPIstatus(ENABLED);
-
-	//wait for not busy and TX buffer empty flags
-	while((LL_SPI_IsActiveFlag_BSY(_spiHandle) || !LL_SPI_IsActiveFlag_TXE(_spiHandle)) && adxlSPITimer_ms);
-	if(!adxlSPITimer_ms){
-		setSPIstatus(DISABLED);
-		return (createErrorCode(READ_REGISTERS, 4, ERR_WARNING));
-	}
 
 	//send the read request and wait for the SPI TX start to be confirmed
 	LL_SPI_TransmitData8(_spiHandle, ADXL_READ | ADXL_MULTIPLE | firstRegister);
@@ -290,7 +268,6 @@ errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint
 	}
 
 	setSPIstatus(DISABLED);
-	LL_SPI_Disable(_spiHandle);
 	return (ERR_SUCCESS);
 }
 
@@ -339,10 +316,14 @@ static inline float atanDegrees(int16_t direction, int16_t axisZ){
  * @param value New CS pin status
  */
 static inline void setSPIstatus(spiStatus_e value){
-	if(value == ENABLED)
+	if(value == ENABLED){
+		LL_SPI_Enable(_spiHandle);
 		LL_GPIO_ResetOutputPin(_CSport, _CSpin);
-	else
+	}
+	else{
+		LL_SPI_Disable(_spiHandle);
 		LL_GPIO_SetOutputPin(_CSport, _CSpin);
+	}
 }
 
 /**
