@@ -228,37 +228,27 @@ errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint
 	adxlSPITimer_ms = SPI_TIMEOUT_MS;
 	setSPIstatus(ENABLED);
 
-	//send the read request and wait for the SPI TX start to be confirmed
+	//send the read request
 	LL_SPI_TransmitData8(_spiHandle, ADXL_READ | ADXL_MULTIPLE | firstRegister);
-	while(LL_SPI_IsActiveFlag_TXE(_spiHandle) && adxlSPITimer_ms);
-	if(!adxlSPITimer_ms){
-		setSPIstatus(DISABLED);
-		return (createErrorCode(READ_REGISTERS, 2, ERR_WARNING));
-	}
-
-	//wait for the SPI TX start to be done
-	while(!LL_SPI_IsActiveFlag_TXE(_spiHandle) && adxlSPITimer_ms);
-	if(!adxlSPITimer_ms){
-		setSPIstatus(DISABLED);
-		return (createErrorCode(READ_REGISTERS, 3, ERR_WARNING));
-	}
 
 	//receive the reply bytes
 	do{
 		//wait for RX flag to be up
-		while(!LL_SPI_IsActiveFlag_RXNE(_spiHandle) && adxlSPITimer_ms);
+		while((!LL_SPI_IsActiveFlag_RXNE(_spiHandle)) && adxlSPITimer_ms);
 
 		//retrieve the remaining byte
 		*iterator = LL_SPI_ReceiveData8(_spiHandle);
-		while(LL_SPI_IsActiveFlag_RXNE(_spiHandle) && adxlSPITimer_ms);
 		iterator++;
 		size--;
 	}while(size && adxlSPITimer_ms);
 
+	//wait for last byte to be done receiving
+	while(LL_SPI_IsActiveFlag_RXNE(_spiHandle) && adxlSPITimer_ms);
+
 	//if timeout, error
 	if(!adxlSPITimer_ms){
 		setSPIstatus(DISABLED);
-		return (createErrorCode(READ_REGISTERS, 4, ERR_WARNING));
+		return (createErrorCode(READ_REGISTERS, 2, ERR_WARNING));
 	}
 
 	setSPIstatus(DISABLED);
