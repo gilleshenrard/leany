@@ -1,7 +1,7 @@
 /**
  * @brief Implement the ADXL345 accelerometer communication
  * @author Gilles Henrard
- * @date 11/01/2024
+ * @date 01/02/2024
  *
  * @note Additional information can be found in :
  *   - ADXL345 datasheet : https://www.analog.com/media/en/technical-documentation/data-sheets/ADXL345.pdf
@@ -164,24 +164,18 @@ uint8_t ADXL345hasChanged(axis_e axis){
  *
  * @param registerNumber Register number
  * @param value Register value
- * @retval 0 Success
- * @retval 1 No SPI handle set
- * @retval 2 Register number out of range
- * @retval 3 Attempted to access a reserved register
- * @retval 4 Error while writing the command
- * @retval 5 Error while writing the value
+ * @return	 Success
+ * @retval 1 Register number out of range
+ * @retval 2 Timeout while writing the command
+ * @retval 3 Timeout while writing the value
  */
 errorCode_u writeRegister(adxl345Registers_e registerNumber, uint8_t value){
 	//assertions
 	assert(_spiHandle);
 
-	//if register number above known, error
-	if(registerNumber > ADXL_NB_REGISTERS)
-		return (createErrorCode(WRITE_REGISTER, 3, ERR_WARNING));
-
-	//if register number between 0x01 and 0x1C included, error
-	if((uint8_t)(registerNumber - 1) < ADXL_HIGH_RESERVED_REG)
-		return (createErrorCode(WRITE_REGISTER, 4, ERR_WARNING));
+	//if register number above known or within the reserved range, error
+	if((registerNumber > ADXL_NB_REGISTERS) || ((uint8_t)(registerNumber - 1) < ADXL_HIGH_RESERVED_REG))
+		return (createErrorCode(WRITE_REGISTER, 1, ERR_WARNING));
 
 	adxlSPITimer_ms = SPI_TIMEOUT_MS;
 	setSPIstatus(ENABLED);
@@ -190,14 +184,14 @@ errorCode_u writeRegister(adxl345Registers_e registerNumber, uint8_t value){
 	while(!LL_SPI_IsActiveFlag_TXE(_spiHandle) && adxlSPITimer_ms);
 	if(!adxlSPITimer_ms){
 		setSPIstatus(DISABLED);
-		return (createErrorCode(WRITE_REGISTER, 5, ERR_WARNING));
+		return (createErrorCode(WRITE_REGISTER, 2, ERR_WARNING));
 	}
 
 	LL_SPI_TransmitData8(_spiHandle, value);
 	while(!LL_SPI_IsActiveFlag_TXE(_spiHandle) && adxlSPITimer_ms);
 	if(!adxlSPITimer_ms){
 		setSPIstatus(DISABLED);
-		return (createErrorCode(WRITE_REGISTER, 5, ERR_WARNING));
+		return (createErrorCode(WRITE_REGISTER, 3, ERR_WARNING));
 	}
 
 	setSPIstatus(DISABLED);
@@ -210,11 +204,11 @@ errorCode_u writeRegister(adxl345Registers_e registerNumber, uint8_t value){
  * @param firstRegister Number of the first register to read
  * @param[out] value Registers value array
  * @param size Number of registers to read
- * @retval 0 Success
- * @retval 1 No SPI handle set
- * @retval 2 Register number out of range
- * @retval 3 Error while writing the command
- * @retval 4 Error while reading the values
+ * @return   Success
+ * @retval 1 Register number out of range
+ * @retval 2 Timeout while waiting for TX to start
+ * @retval 3 Timeout while waiting for TX to stop
+ * @retval 4 Timeout while receiving the data
  */
 errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint8_t size){
 	uint8_t* iterator = value;
@@ -229,7 +223,7 @@ errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint
 
 	//if register numbers above known, error
 	if(firstRegister > ADXL_NB_REGISTERS)
-		return (createErrorCode(READ_REGISTERS, 3, ERR_WARNING));
+		return (createErrorCode(READ_REGISTERS, 1, ERR_WARNING));
 
 	adxlSPITimer_ms = SPI_TIMEOUT_MS;
 	setSPIstatus(ENABLED);
@@ -239,14 +233,14 @@ errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint
 	while(LL_SPI_IsActiveFlag_TXE(_spiHandle) && adxlSPITimer_ms);
 	if(!adxlSPITimer_ms){
 		setSPIstatus(DISABLED);
-		return (createErrorCode(READ_REGISTERS, 5, ERR_WARNING));
+		return (createErrorCode(READ_REGISTERS, 2, ERR_WARNING));
 	}
 
 	//wait for the SPI TX start to be done
 	while(!LL_SPI_IsActiveFlag_TXE(_spiHandle) && adxlSPITimer_ms);
 	if(!adxlSPITimer_ms){
 		setSPIstatus(DISABLED);
-		return (createErrorCode(READ_REGISTERS, 6, ERR_WARNING));
+		return (createErrorCode(READ_REGISTERS, 3, ERR_WARNING));
 	}
 
 	//receive the reply bytes
@@ -264,7 +258,7 @@ errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint
 	//if timeout, error
 	if(!adxlSPITimer_ms){
 		setSPIstatus(DISABLED);
-		return (createErrorCode(READ_REGISTERS, 7, ERR_WARNING));
+		return (createErrorCode(READ_REGISTERS, 4, ERR_WARNING));
 	}
 
 	setSPIstatus(DISABLED);
