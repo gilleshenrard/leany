@@ -194,6 +194,10 @@ errorCode_u writeRegister(adxl345Registers_e registerNumber, uint8_t value){
 	}
 	LL_SPI_TransmitData8(_spiHandle, value);
 
+	//wait for transaction to be finished and clear Overrun flag afterwards
+	while(LL_SPI_IsActiveFlag_BSY(_spiHandle) && adxlSPITimer_ms);
+	LL_SPI_ClearFlag_OVR(_spiHandle);
+
 	setSPIstatus(DISABLED);
 	return (ERR_SUCCESS);
 }
@@ -242,8 +246,9 @@ errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint
 		size--;
 	}while(size && adxlSPITimer_ms);
 
-	//wait for last byte to be done receiving
-	while(LL_SPI_IsActiveFlag_RXNE(_spiHandle) && adxlSPITimer_ms);
+	//wait for transaction to be finished and clear Overrun flag afterwards
+	while(LL_SPI_IsActiveFlag_BSY(_spiHandle) && adxlSPITimer_ms);
+	LL_SPI_ClearFlag_OVR(_spiHandle);
 
 	//if timeout, error
 	if(!adxlSPITimer_ms){
