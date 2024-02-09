@@ -180,19 +180,19 @@ errorCode_u writeRegister(adxl345Registers_e registerNumber, uint8_t value){
 	adxlSPITimer_ms = SPI_TIMEOUT_MS;
 	setSPIstatus(ENABLED);
 
-	LL_SPI_TransmitData8(_spiHandle, ADXL_WRITE | ADXL_SINGLE | registerNumber);
 	while(!LL_SPI_IsActiveFlag_TXE(_spiHandle) && adxlSPITimer_ms);
 	if(!adxlSPITimer_ms){
 		setSPIstatus(DISABLED);
 		return (createErrorCode(WRITE_REGISTER, 2, ERR_WARNING));
 	}
+	LL_SPI_TransmitData8(_spiHandle, ADXL_WRITE | ADXL_SINGLE | registerNumber);
 
-	LL_SPI_TransmitData8(_spiHandle, value);
 	while(!LL_SPI_IsActiveFlag_TXE(_spiHandle) && adxlSPITimer_ms);
 	if(!adxlSPITimer_ms){
 		setSPIstatus(DISABLED);
 		return (createErrorCode(WRITE_REGISTER, 3, ERR_WARNING));
 	}
+	LL_SPI_TransmitData8(_spiHandle, value);
 
 	setSPIstatus(DISABLED);
 	return (ERR_SUCCESS);
