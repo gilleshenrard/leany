@@ -1,7 +1,7 @@
 /**
  * @brief Implement the ADXL345 accelerometer communication
  * @author Gilles Henrard
- * @date 01/02/2024
+ * @date 09/02/2024
  *
  * @note Additional information can be found in :
  *   - ADXL345 datasheet : https://www.analog.com/media/en/technical-documentation/data-sheets/ADXL345.pdf
@@ -213,13 +213,13 @@ errorCode_u writeRegister(adxl345Registers_e registerNumber, uint8_t value){
 errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint8_t size){
 	uint8_t* iterator = value;
 
-	//assertions
-	assert(_spiHandle);
-	assert(value);
-
 	//if no bytes to read, success
 	if(!size)
 		return ERR_SUCCESS;
+
+	//assertions
+	assert(_spiHandle);
+	assert(value);
 
 	//if register numbers above known, error
 	if(firstRegister > ADXL_NB_REGISTERS)
