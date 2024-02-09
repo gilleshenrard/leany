@@ -45,14 +45,6 @@ typedef enum _ADXLfunctionCodes_e{
 }ADXLfunctionCodes_e;
 
 /**
- * @brief SPI CS pin status enumeration
- */
-typedef enum{
-	DISABLED = 0,
-	ENABLED,
-}spiStatus_e;
-
-/**
  * @brief Structure used to hold axis measurement values
  */
 typedef struct{
@@ -83,7 +75,6 @@ static errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t* valu
 static errorCode_u integrateFIFO(int16_t* xValue, int16_t* yValue, int16_t* zValue);
 
 //tool functions
-static inline void setSPIstatus(spiStatus_e value);
 static inline float atanDegrees(int16_t direction, int16_t axisZ);
 
 /**
@@ -108,8 +99,6 @@ volatile uint16_t			adxlSPITimer_ms = 0;		///< Timer used to make sure SPI does 
 
 //state variables
 static SPI_TypeDef*		_spiHandle = NULL;			///< SPI handle used with the ADXL345
-static GPIO_TypeDef*	_CSport = NULL;				///< GPIO port used to control the ADXL345 CS signal
-static uint16_t			_CSpin = 0;					///< GPIO pin used to control the ADXL345 CS signal
 static adxlState		_state = stStartup;			///< State machine current state
 static uint8_t			_measurementsUpdated = 0;	///< Flag used to indicate new integrated measurements are ready within the ADXL345
 static adxlValues_t		_finalValues[NB_AXIS];		///< Array of axis values
@@ -128,11 +117,9 @@ static errorCode_u 		_result;					///< Variables used to store error codes
  * @param CSGPIOpin		GPIO pin used to control CS
  * @returns 			Success
  */
-errorCode_u ADXL345initialise(const SPI_TypeDef* handle, const GPIO_TypeDef* CSGPIOport, uint16_t CSGPIOpin){
+errorCode_u ADXL345initialise(const SPI_TypeDef* handle){
 	_spiHandle = (SPI_TypeDef*)handle;
-	_CSport = (GPIO_TypeDef*)CSGPIOport;
-	_CSpin = CSGPIOpin;
-	setSPIstatus(DISABLED);
+	LL_SPI_Disable(_spiHandle);
 
 	return (ERR_SUCCESS);
 }
@@ -178,18 +165,18 @@ errorCode_u writeRegister(adxl345Registers_e registerNumber, uint8_t value){
 		return (createErrorCode(WRITE_REGISTER, 1, ERR_WARNING));
 
 	adxlSPITimer_ms = SPI_TIMEOUT_MS;
-	setSPIstatus(ENABLED);
+	LL_SPI_Enable(_spiHandle);
 
 	while(!LL_SPI_IsActiveFlag_TXE(_spiHandle) && adxlSPITimer_ms);
 	if(!adxlSPITimer_ms){
-		setSPIstatus(DISABLED);
+		LL_SPI_Disable(_spiHandle);
 		return (createErrorCode(WRITE_REGISTER, 2, ERR_WARNING));
 	}
 	LL_SPI_TransmitData8(_spiHandle, ADXL_WRITE | ADXL_SINGLE | registerNumber);
 
 	while(!LL_SPI_IsActiveFlag_TXE(_spiHandle) && adxlSPITimer_ms);
 	if(!adxlSPITimer_ms){
-		setSPIstatus(DISABLED);
+		LL_SPI_Disable(_spiHandle);
 		return (createErrorCode(WRITE_REGISTER, 3, ERR_WARNING));
 	}
 	LL_SPI_TransmitData8(_spiHandle, value);
@@ -198,7 +185,7 @@ errorCode_u writeRegister(adxl345Registers_e registerNumber, uint8_t value){
 	while(LL_SPI_IsActiveFlag_BSY(_spiHandle) && adxlSPITimer_ms);
 	LL_SPI_ClearFlag_OVR(_spiHandle);
 
-	setSPIstatus(DISABLED);
+	LL_SPI_Disable(_spiHandle);
 	return (ERR_SUCCESS);
 }
 
@@ -230,7 +217,7 @@ errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint
 		return (createErrorCode(READ_REGISTERS, 1, ERR_WARNING));
 
 	adxlSPITimer_ms = SPI_TIMEOUT_MS;
-	setSPIstatus(ENABLED);
+	LL_SPI_Enable(_spiHandle);
 
 	//send the read request
 	LL_SPI_TransmitData8(_spiHandle, ADXL_READ | ADXL_MULTIPLE | firstRegister);
@@ -252,11 +239,11 @@ errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint
 
 	//if timeout, error
 	if(!adxlSPITimer_ms){
-		setSPIstatus(DISABLED);
+		LL_SPI_Disable(_spiHandle);
 		return (createErrorCode(READ_REGISTERS, 2, ERR_WARNING));
 	}
 
-	setSPIstatus(DISABLED);
+	LL_SPI_Disable(_spiHandle);
 	return (ERR_SUCCESS);
 }
 
@@ -297,22 +284,6 @@ static inline float atanDegrees(int16_t direction, int16_t axisZ){
 		return (0.0f);
 
 	return ((atanf((float)direction / (float)axisZ) * DEGREES_180) / (float)M_PI);
-}
-
-/**
- * brief Set the SPI CS pin to enable/disable a SPI transmission
- *
- * @param value New CS pin status
- */
-static inline void setSPIstatus(spiStatus_e value){
-	if(value == ENABLED){
-		LL_SPI_Enable(_spiHandle);
-		LL_GPIO_ResetOutputPin(_CSport, _CSpin);
-	}
-	else{
-		LL_SPI_Disable(_spiHandle);
-		LL_GPIO_SetOutputPin(_CSport, _CSpin);
-	}
 }
 
 /**
