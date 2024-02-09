@@ -70,8 +70,8 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define ADXL_CS_Pin LL_GPIO_PIN_4
-#define ADXL_CS_GPIO_Port GPIOA
+#define ADXL_NSS_Pin LL_GPIO_PIN_4
+#define ADXL_NSS_GPIO_Port GPIOA
 #define ADXL_SCK_Pin LL_GPIO_PIN_5
 #define ADXL_SCK_GPIO_Port GPIOA
 #define ADXL_MISO_Pin LL_GPIO_PIN_6

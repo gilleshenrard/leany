@@ -17,7 +17,7 @@ typedef enum{
 	NB_AXIS
 }axis_e;
 
-errorCode_u	ADXL345initialise(const SPI_TypeDef* handle, const GPIO_TypeDef* CSGPIOport, uint16_t CSGPIOpin);
+errorCode_u	ADXL345initialise(const SPI_TypeDef* handle);
 errorCode_u	ADXL345update();
 uint8_t		ADXL345hasChanged(axis_e axis);
 int16_t		ADXL345getValue(axis_e axis);
