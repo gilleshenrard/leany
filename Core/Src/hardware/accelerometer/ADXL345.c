@@ -1,7 +1,7 @@
 /**
  * @brief Implement the ADXL345 accelerometer communication
  * @author Gilles Henrard
- * @date 09/02/2024
+ * @date 10/02/2024
  *
  * @note Additional information can be found in :
  *   - ADXL345 datasheet : https://www.analog.com/media/en/technical-documentation/data-sheets/ADXL345.pdf
@@ -164,28 +164,31 @@ errorCode_u writeRegister(adxl345Registers_e registerNumber, uint8_t value){
 	if((registerNumber > ADXL_NB_REGISTERS) || ((uint8_t)(registerNumber - 1) < ADXL_HIGH_RESERVED_REG))
 		return (createErrorCode(WRITE_REGISTER, 1, ERR_WARNING));
 
+	//set timeout timer and enable SPI
 	adxlSPITimer_ms = SPI_TIMEOUT_MS;
 	LL_SPI_Enable(_spiHandle);
 
+	//wait for TX buffer to be ready and send write instruction
 	while(!LL_SPI_IsActiveFlag_TXE(_spiHandle) && adxlSPITimer_ms);
-	if(!adxlSPITimer_ms){
-		LL_SPI_Disable(_spiHandle);
-		return (createErrorCode(WRITE_REGISTER, 2, ERR_WARNING));
-	}
-	LL_SPI_TransmitData8(_spiHandle, ADXL_WRITE | ADXL_SINGLE | registerNumber);
+	if(adxlSPITimer_ms)
+		LL_SPI_TransmitData8(_spiHandle, ADXL_WRITE | ADXL_SINGLE | registerNumber);
 
+	//wait for TX buffer to be ready and send value to write
 	while(!LL_SPI_IsActiveFlag_TXE(_spiHandle) && adxlSPITimer_ms);
-	if(!adxlSPITimer_ms){
-		LL_SPI_Disable(_spiHandle);
-		return (createErrorCode(WRITE_REGISTER, 3, ERR_WARNING));
-	}
-	LL_SPI_TransmitData8(_spiHandle, value);
+	if(adxlSPITimer_ms)
+		LL_SPI_TransmitData8(_spiHandle, value);
 
-	//wait for transaction to be finished and clear Overrun flag afterwards
+	//wait for transaction to be finished and clear Overrun flag
 	while(LL_SPI_IsActiveFlag_BSY(_spiHandle) && adxlSPITimer_ms);
 	LL_SPI_ClearFlag_OVR(_spiHandle);
 
+	//disable SPI
 	LL_SPI_Disable(_spiHandle);
+
+	//if timeout, error
+	if(!adxlSPITimer_ms)
+		return (createErrorCode(WRITE_REGISTER, 2, ERR_WARNING));
+
 	return (ERR_SUCCESS);
 }
 
@@ -202,8 +205,6 @@ errorCode_u writeRegister(adxl345Registers_e registerNumber, uint8_t value){
  * @retval 4 Timeout while receiving the data
  */
 errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint8_t size){
-	uint8_t* iterator = value;
-
 	//if no bytes to read, success
 	if(!size)
 		return ERR_SUCCESS;
@@ -216,34 +217,36 @@ errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint
 	if(firstRegister > ADXL_NB_REGISTERS)
 		return (createErrorCode(READ_REGISTERS, 1, ERR_WARNING));
 
+	//set timeout timer and enable SPI
 	adxlSPITimer_ms = SPI_TIMEOUT_MS;
 	LL_SPI_Enable(_spiHandle);
 
-	//send the read request
+	//send the read request and wait for it to be sent
 	LL_SPI_TransmitData8(_spiHandle, ADXL_READ | ADXL_MULTIPLE | firstRegister);
+	while((!LL_SPI_IsActiveFlag_TXE(_spiHandle)) && adxlSPITimer_ms);
 
-	//receive the reply bytes
+	//receive the bytes to read
+	uint8_t* iterator = value;
 	do{
-		//wait for RX flag to be up
+		//wait for data to be available, and read it
 		while((!LL_SPI_IsActiveFlag_RXNE(_spiHandle)) && adxlSPITimer_ms);
-
-		//retrieve the remaining byte
 		*iterator = LL_SPI_ReceiveData8(_spiHandle);
+		
 		iterator++;
 		size--;
 	}while(size && adxlSPITimer_ms);
 
-	//wait for transaction to be finished and clear Overrun flag afterwards
+	//wait for transaction to be finished and clear Overrun flag
 	while(LL_SPI_IsActiveFlag_BSY(_spiHandle) && adxlSPITimer_ms);
 	LL_SPI_ClearFlag_OVR(_spiHandle);
 
-	//if timeout, error
-	if(!adxlSPITimer_ms){
-		LL_SPI_Disable(_spiHandle);
-		return (createErrorCode(READ_REGISTERS, 2, ERR_WARNING));
-	}
-
+	//disable SPI
 	LL_SPI_Disable(_spiHandle);
+
+	//if timeout, error
+	if(!adxlSPITimer_ms)
+		return (createErrorCode(READ_REGISTERS, 2, ERR_WARNING));
+
 	return (ERR_SUCCESS);
 }
 
