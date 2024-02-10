@@ -202,6 +202,8 @@ errorCode_u writeRegister(adxl345Registers_e registerNumber, uint8_t value){
  * @retval 2 Timeout
  */
 errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint8_t size){
+	static const uint8_t SPI_RX_FILLER = 0xFFU;	///< Value to send as a filler while receiving multiple bytes
+
 	//if no bytes to read, success
 	if(!size)
 		return ERR_SUCCESS;
@@ -228,6 +230,9 @@ errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint
 		//wait for data to be available, and read it
 		while((!LL_SPI_IsActiveFlag_RXNE(_spiHandle)) && adxlSPITimer_ms);
 		*iterator = LL_SPI_ReceiveData8(_spiHandle);
+
+		//send a filler byte to keep the SPI clock running, to receive the next byte
+		LL_SPI_TransmitData8(_spiHandle, SPI_RX_FILLER);
 		
 		iterator++;
 		size--;
