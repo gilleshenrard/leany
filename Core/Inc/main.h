@@ -93,6 +93,10 @@ void Error_Handler(void);
 #define SSD1306_DC_GPIO_Port GPIOA
 #define SSD1306_RST_Pin LL_GPIO_PIN_10
 #define SSD1306_RST_GPIO_Port GPIOA
+#define DEBUG_SWDIO_Pin LL_GPIO_PIN_13
+#define DEBUG_SWDIO_GPIO_Port GPIOA
+#define DEBUG_SWCLK_Pin LL_GPIO_PIN_14
+#define DEBUG_SWCLK_GPIO_Port GPIOA
 #ifndef NVIC_PRIORITYGROUP_0
 #define NVIC_PRIORITYGROUP_0         ((uint32_t)0x00000007) /*!< 0 bit  for pre-emption priority,
                                                                  4 bits for subpriority */
