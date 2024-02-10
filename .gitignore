@@ -51,16 +51,18 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
-# eclipse specific git ignore
+# eclipse files
 .metadata/
 RemoteSystemsTempFiles/
 .settings/
 Debug/
 *.launch
 
-# STM32 git ignore
+# STM32CubeIDE files
 *.mxproject
 *.project
+*.cproject
+*.scratch
 Drivers/CMSIS
 Drivers/STM32F1xx_HAL_Driver
 
