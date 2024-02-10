@@ -153,8 +153,7 @@ uint8_t ADXL345hasChanged(axis_e axis){
  * @param value Register value
  * @return	 Success
  * @retval 1 Register number out of range
- * @retval 2 Timeout while writing the command
- * @retval 3 Timeout while writing the value
+ * @retval 2 Timeout
  */
 errorCode_u writeRegister(adxl345Registers_e registerNumber, uint8_t value){
 	//assertions
@@ -200,9 +199,7 @@ errorCode_u writeRegister(adxl345Registers_e registerNumber, uint8_t value){
  * @param size Number of registers to read
  * @return   Success
  * @retval 1 Register number out of range
- * @retval 2 Timeout while waiting for TX to start
- * @retval 3 Timeout while waiting for TX to stop
- * @retval 4 Timeout while receiving the data
+ * @retval 2 Timeout
  */
 errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint8_t size){
 	//if no bytes to read, success
