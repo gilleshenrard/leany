@@ -167,10 +167,8 @@ errorCode_u writeRegister(adxl345Registers_e registerNumber, uint8_t value){
 	adxlSPITimer_ms = SPI_TIMEOUT_MS;
 	LL_SPI_Enable(_spiHandle);
 
-	//wait for TX buffer to be ready and send write instruction
-	while(!LL_SPI_IsActiveFlag_TXE(_spiHandle) && adxlSPITimer_ms);
-	if(adxlSPITimer_ms)
-		LL_SPI_TransmitData8(_spiHandle, ADXL_WRITE | ADXL_SINGLE | registerNumber);
+	//send the write instruction
+	LL_SPI_TransmitData8(_spiHandle, ADXL_WRITE | ADXL_SINGLE | registerNumber);
 
 	//wait for TX buffer to be ready and send value to write
 	while(!LL_SPI_IsActiveFlag_TXE(_spiHandle) && adxlSPITimer_ms);
