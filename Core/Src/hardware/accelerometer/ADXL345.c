@@ -1,7 +1,7 @@
 /**
  * @brief Implement the ADXL345 accelerometer communication
  * @author Gilles Henrard
- * @date 10/02/2024
+ * @date 11/02/2024
  *
  * @note Additional information can be found in :
  *   - ADXL345 datasheet : https://www.analog.com/media/en/technical-documentation/data-sheets/ADXL345.pdf
@@ -421,7 +421,7 @@ errorCode_u stSelfTestingOFF(){
 	if(!adxlINT1occurred)
 		return (ERR_SUCCESS);
 
-	//retrieve the integrated measurements
+	//retrieve the integrated measurements (to be used with self-testing)
 	_result = integrateFIFO(&_finalValues[X_AXIS].current, &_finalValues[Y_AXIS].current, &_finalValues[Z_AXIS].current);
 	if(IS_ERROR(_result)){
 		_state = stError;
@@ -495,9 +495,9 @@ errorCode_u stWaitingForSTenabled(){
  * @retval 4 Self-test values out of range
  */
 errorCode_u stSelfTestingON(){
-	int16_t _finalXSTon = 0;
-	int16_t _finalYSTon = 0;
-	int16_t _finalZSTon = 0;
+	int16_t STdeltaX = 0;
+	int16_t STdeltaY = 0;
+	int16_t STdeltaZ = 0;
 
 	//if timeout, go error
 	if(!adxlTimer_ms){
@@ -511,7 +511,7 @@ errorCode_u stSelfTestingON(){
 
 	//integrate the FIFOs
 	adxlINT1occurred = 0;
-	_result = integrateFIFO(&_finalXSTon, &_finalYSTon, &_finalZSTon);
+	_result = integrateFIFO(&STdeltaX, &STdeltaY, &STdeltaZ);
 	if(IS_ERROR(_result)){
 		_state = stError;
 		return (pushErrorCode(_result, SELF_TESTING_ON, 2));
@@ -525,14 +525,14 @@ errorCode_u stSelfTestingON(){
 	}
 
 	//compute the self-test deltas
-	_finalXSTon -= _finalValues[X_AXIS].current;
-	_finalYSTon -= _finalValues[Y_AXIS].current;
-	_finalZSTon -= _finalValues[Z_AXIS].current;
+	STdeltaX -= _finalValues[X_AXIS].current;
+	STdeltaY -= _finalValues[Y_AXIS].current;
+	STdeltaZ -= _finalValues[Z_AXIS].current;
 
 	//if self-test values out of range, error
-	if((_finalXSTon <= ADXL_ST_MINX_33_16G) || (_finalXSTon >= ADXL_ST_MAXX_33_16G)
-		|| (_finalYSTon <= ADXL_ST_MINY_33_16G) || (_finalYSTon >= ADXL_ST_MAXY_33_16G)
-		|| (_finalZSTon <= ADXL_ST_MINZ_33_16G) || (_finalZSTon >= ADXL_ST_MAXZ_33_16G))
+	if((STdeltaX <= ADXL_ST_MINX_33_16G) || (STdeltaX >= ADXL_ST_MAXX_33_16G)
+		|| (STdeltaY <= ADXL_ST_MINY_33_16G) || (STdeltaY >= ADXL_ST_MAXY_33_16G)
+		|| (STdeltaZ <= ADXL_ST_MINZ_33_16G) || (STdeltaZ >= ADXL_ST_MAXZ_33_16G))
 	{
 		_state = stError;
 		return (pushErrorCode(_result, SELF_TESTING_ON, 4)); 	// @suppress("Avoid magic numbers")
