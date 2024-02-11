@@ -310,7 +310,7 @@ errorCode_u integrateFIFO(int16_t* xValue, int16_t* yValue, int16_t* zValue){
 
 	*xValue = *yValue = *zValue = 0;
 
-	//for eatch of the 16 samples to read
+	//for each of the samples to read
 	for(uint8_t i = 0 ; i < ADXL_AVG_SAMPLES ; i++){
 		//read all data registers for 1 sample
 		_result = readRegisters(DATA_X0, buffer, ADXL_NB_DATA_REGISTERS);
@@ -323,6 +323,11 @@ errorCode_u integrateFIFO(int16_t* xValue, int16_t* yValue, int16_t* zValue){
 		*xValue += (int16_t)(((uint16_t)(buffer[X_INDEX_MSB]) << BYTE_OFFSET) | (uint16_t)(buffer[X_INDEX_LSB]));
 		*yValue += (int16_t)(((uint16_t)(buffer[Y_INDEX_MSB]) << BYTE_OFFSET) | (uint16_t)(buffer[Y_INDEX_LSB]));
 		*zValue += (int16_t)(((uint16_t)(buffer[Z_INDEX_MSB]) << BYTE_OFFSET) | (uint16_t)(buffer[Z_INDEX_LSB]));
+
+		//wait for a while to make sure 5 us pass between two reads
+		//	as stated in the datasheet, section "Retrieving data from the FIFO"
+		volatile uint8_t tempo = 0x1FU;
+		while(tempo--);
 	}
 
 	//divide the buffers to average out
