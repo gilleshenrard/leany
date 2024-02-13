@@ -447,6 +447,7 @@ errorCode_u stMeasuringST_OFF(){
  * @return 1 Error while re-enabling FIFOs
  */
 errorCode_u stWaitingForSTenabled(){
+	//if timer not elapsed yet, exit
 	if(!adxlTimer_ms)
 		return (ERR_SUCCESS);
 
