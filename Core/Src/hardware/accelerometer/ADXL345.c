@@ -32,7 +32,7 @@ typedef enum _ADXLfunctionCodes_e{
 	INIT = 0,      		///< ADXL345initialise()
 	SELF_TESTING_OFF,	///< stMeasuringST_OFF()
 	SELF_TEST_WAIT,		///< stWaitingForSTenabled()
-	SELF_TESTING_ON,	///< stSelfTestingON()
+	SELF_TESTING_ON,	///< stMeasuringST_ON()
 	MEASURE,        	///< stMeasuring()
 	CHK_MEASURES,  		///< ADXL345hasNewMeasurements()
 	WRITE_REGISTER,		///< ADXL345writeRegister()
@@ -63,7 +63,7 @@ static errorCode_u stStartup();
 static errorCode_u stConfiguring();
 static errorCode_u stMeasuringST_OFF();
 static errorCode_u stWaitingForSTenabled();
-static errorCode_u stSelfTestingON();
+static errorCode_u stMeasuringST_ON();
 static errorCode_u stMeasuring();
 static errorCode_u stError();
 
@@ -461,7 +461,7 @@ errorCode_u stWaitingForSTenabled(){
 
 	//reset timer and get to next state
 	adxlTimer_ms = INT_TIMEOUT_MS;
-	_state = stSelfTestingON;
+	_state = stMeasuringST_ON;
 	return (ERR_SUCCESS);
 }
 
@@ -474,7 +474,7 @@ errorCode_u stWaitingForSTenabled(){
  * @retval 3 Error while resetting the data format
  * @retval 4 Self-test values out of range
  */
-errorCode_u stSelfTestingON(){
+errorCode_u stMeasuringST_ON(){
 	int16_t STdeltaX = 0;
 	int16_t STdeltaY = 0;
 	int16_t STdeltaZ = 0;
@@ -497,7 +497,7 @@ errorCode_u stSelfTestingON(){
 		return (pushErrorCode(_result, SELF_TESTING_ON, 2));
 	}
 
-	//restore the default data format
+	//reset the data format
 	_result = writeRegister(DATA_FORMAT, DATA_FORMAT_DEFAULT | ADXL_FULL_RESOL);
 	if(IS_ERROR(_result)){
 		_state = stError;
