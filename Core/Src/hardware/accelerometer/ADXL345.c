@@ -30,8 +30,7 @@ static_assert((ADXL_AVG_SAMPLES >> ADXL_AVG_SHIFT) == 1, "TADXL_AVG_SHIFT does n
  */
 typedef enum _ADXLfunctionCodes_e{
 	INIT = 0,      		///< ADXL345initialise()
-	SELF_TESTING_OFF,	///< stSelfTestingOFF()
-	SELF_TEST_ENABLE,	///< stEnablingST()
+	SELF_TESTING_OFF,	///< stMeasuringST_OFF()
 	SELF_TEST_WAIT,		///< stWaitingForSTenabled()
 	SELF_TESTING_ON,	///< stSelfTestingON()
 	MEASURE,        	///< stMeasuring()
@@ -62,8 +61,7 @@ typedef errorCode_u (*adxlState)();
 //machine state
 static errorCode_u stStartup();
 static errorCode_u stConfiguring();
-static errorCode_u stSelfTestingOFF();
-static errorCode_u stEnablingST();
+static errorCode_u stMeasuringST_OFF();
 static errorCode_u stWaitingForSTenabled();
 static errorCode_u stSelfTestingON();
 static errorCode_u stMeasuring();
@@ -392,7 +390,7 @@ errorCode_u stConfiguring(){
 
 	//reset the timer and get to next state
 	adxlTimer_ms = INT_TIMEOUT_MS;
-	_state = stSelfTestingOFF;
+	_state = stMeasuringST_OFF;
 	return (_result);
 }
 
@@ -404,7 +402,7 @@ errorCode_u stConfiguring(){
  * @retval 1 Timeout while waiting for measurements
  * @retval 2 Error while integrating the FIFOs
  */
-errorCode_u stSelfTestingOFF(){
+errorCode_u stMeasuringST_OFF(){
 	//if timeout, go error
 	if(!adxlTimer_ms){
 		_state = stError;
@@ -422,34 +420,21 @@ errorCode_u stSelfTestingOFF(){
 		return (pushErrorCode(_result, SELF_TESTING_OFF, 2));
 	}
 
-	//get to next state
-	_state = stEnablingST;
-	return (ERR_SUCCESS);
-}
-
-/**
- * @brief State in which the self-test mode is enabled
- *
- * @return 0 Success
- * @return 1 Error while enabling self-test
- * @return 2 Error while clearing the FIFO
- */
-errorCode_u stEnablingST(){
 	//Enable the self-test
 	_result = writeRegister(DATA_FORMAT, DATA_FORMAT_DEFAULT | ADXL_SELF_TEST);
 	if(IS_ERROR(_result)){
 		_state = stError;
-		return (pushErrorCode(_result, SELF_TEST_ENABLE, 1)); 	// @suppress("Avoid magic numbers")
+		return (pushErrorCode(_result, SELF_TESTING_OFF, 3));
 	}
 
 	//clear the FIFOs
 	_result = writeRegister(FIFO_CONTROL, ADXL_MODE_BYPASS);
 	if(IS_ERROR(_result)){
 		_state = stError;
-		return (pushErrorCode(_result, SELF_TEST_ENABLE, 2)); 	// @suppress("Avoid magic numbers")
+		return (pushErrorCode(_result, SELF_TESTING_OFF, 4));
 	}
 
-	//reset timer and get to next state
+	//set timer to wait for 25ms and get to next state
 	adxlTimer_ms = ST_WAIT_MS;
 	_state = stWaitingForSTenabled;
 	return (ERR_SUCCESS);
