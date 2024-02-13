@@ -5,6 +5,7 @@
  *
  * @note Additional information can be found in :
  *   - ADXL345 datasheet : https://www.analog.com/media/en/technical-documentation/data-sheets/ADXL345.pdf
+ *   - AN-1077 (Quick Start Guide) : https://www.analog.com/media/en/technical-documentation/application-notes/AN-1077.pdf
  *   - AN-1025 (FIFO application note) document : https://www.analog.com/media/en/technical-documentation/application-notes/AN-1025.pdf
  *
  */
