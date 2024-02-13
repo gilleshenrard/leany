@@ -81,19 +81,6 @@ static inline float atanDegrees(int16_t direction, int16_t axisZ);
 static const uint8_t DATA_FORMAT_DEFAULT = (ADXL_NO_SELF_TEST | ADXL_SPI_4WIRE | ADXL_INT_ACTIV_LOW | ADXL_RIGHT_JUSTIFY | ADXL_RANGE_16G);
 static const uint8_t FIFO_CONTROL_DEFAULT = (ADXL_MODE_FIFO | ADXL_TRIGGER_INT1 | (ADXL_AVG_SAMPLES - 1));
 
-/**
- * @brief Array of all the registers/values to write at initialisation
- * @note Two values are written in FIFO_CONTROL to clear the FIFO at startup
- */
-static const uint8_t initialisationArray[NB_REG_INIT][2] = {
-	{DATA_FORMAT,			DATA_FORMAT_DEFAULT | ADXL_10BIT_RESOL},
-	{BANDWIDTH_POWERMODE,	ADXL_POWER_NORMAL | ADXL_RATE_200HZ},
-	{FIFO_CONTROL,			ADXL_MODE_BYPASS},
-	{FIFO_CONTROL,			FIFO_CONTROL_DEFAULT},
-	{INTERRUPT_ENABLE,		ADXL_INT_WATERMARK},
-	{POWER_CONTROL,			ADXL_MEASURE_MODE},
-};
-
 //global variables
 volatile uint8_t			adxlINT1occurred = 0;		///< Flag used to indicate the ADXL triggered an interrupt
 volatile uint16_t			adxlTimer_ms = 0;			///< Timer used in various states of the ADXL (in ms)
@@ -385,6 +372,15 @@ errorCode_u stStartup(){
  * @retval 1 Error while writing a register
  */
 errorCode_u stConfiguring(){
+	static const uint8_t initialisationArray[NB_REG_INIT][2] = {
+		{DATA_FORMAT,			DATA_FORMAT_DEFAULT | ADXL_10BIT_RESOL},
+		{BANDWIDTH_POWERMODE,	ADXL_POWER_NORMAL | ADXL_RATE_200HZ},
+		{FIFO_CONTROL,			ADXL_MODE_BYPASS},
+		{FIFO_CONTROL,			FIFO_CONTROL_DEFAULT},
+		{INTERRUPT_ENABLE,		ADXL_INT_WATERMARK},
+		{POWER_CONTROL,			ADXL_MEASURE_MODE},
+	};
+
 	//write all registers values from the initialisation array
 	for(uint8_t i = 0 ; i < NB_REG_INIT ; i++){
 		_result = writeRegister(initialisationArray[i][0], initialisationArray[i][1]);
