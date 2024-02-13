@@ -275,7 +275,7 @@ static inline float atanDegrees(int16_t direction, int16_t axisZ){
 	if(!axisZ)
 		return (0.0f);
 
-	return ((atanf((float)direction / (float)axisZ) * DEGREES_180) / (float)M_PI);
+	return ((atanf((float)direction / (float)axisZ) * DEGREES_180) * (float)M_1_PI);
 }
 
 /**
