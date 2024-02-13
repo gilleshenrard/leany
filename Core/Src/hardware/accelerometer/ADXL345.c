@@ -401,6 +401,8 @@ errorCode_u stConfiguring(){
  * @retval 0 Success
  * @retval 1 Timeout while waiting for measurements
  * @retval 2 Error while integrating the FIFOs
+ * @retval 3 Error while enabling the self-testing mode
+ * @retval 4 Error while clearing the FIFOs
  */
 errorCode_u stMeasuringST_OFF(){
 	//if timeout, go error
