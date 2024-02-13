@@ -1,7 +1,7 @@
 /**
  * @brief Implement the ADXL345 accelerometer communication
  * @author Gilles Henrard
- * @date 11/02/2024
+ * @date 13/02/2024
  *
  * @note Additional information can be found in :
  *   - ADXL345 datasheet : https://www.analog.com/media/en/technical-documentation/data-sheets/ADXL345.pdf
@@ -90,7 +90,7 @@ static const uint8_t initialisationArray[NB_REG_INIT][2] = {
 };
 
 // Default data format (register 0x31) value
-static const uint8_t DATA_FORMAT_DEFAULT = (ADXL_NO_SELF_TEST | ADXL_SPI_4WIRE | ADXL_INT_ACTIV_LOW | ADXL_RANGE_16G);
+static const uint8_t DATA_FORMAT_DEFAULT = (ADXL_NO_SELF_TEST | ADXL_SPI_4WIRE | ADXL_INT_ACTIV_LOW | ADXL_RIGHT_JUSTIFY | ADXL_RANGE_16G);
 
 //global variables
 volatile uint8_t			adxlINT1occurred = 0;		///< Flag used to indicate the ADXL triggered an interrupt
@@ -384,7 +384,7 @@ errorCode_u stStartup(){
  */
 errorCode_u stConfiguring(){
 	//write the default data format
-	_result = writeRegister(DATA_FORMAT, DATA_FORMAT_DEFAULT);
+	_result = writeRegister(DATA_FORMAT, DATA_FORMAT_DEFAULT | ADXL_10BIT_RESOL);
 	if(IS_ERROR(_result)){
 		_state = stError;
 		return (pushErrorCode(_result, INIT, 1));
