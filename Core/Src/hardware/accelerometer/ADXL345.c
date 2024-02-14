@@ -1,7 +1,7 @@
 /**
  * @brief Implement the ADXL345 accelerometer communication
  * @author Gilles Henrard
- * @date 13/02/2024
+ * @date 14/02/2024
  *
  * @note Additional information can be found in :
  *   - ADXL345 datasheet : https://www.analog.com/media/en/technical-documentation/data-sheets/ADXL345.pdf
@@ -101,8 +101,6 @@ static errorCode_u 		_result;					///< Variables used to store error codes
  * @brief Initialise the ADXL345
  *
  * @param handle		SPI handle used
- * @param CSGPIOport	GPIO port used to control CS
- * @param CSGPIOpin		GPIO pin used to control CS
  * @returns 			Success
  */
 errorCode_u ADXL345initialise(const SPI_TypeDef* handle){
