@@ -81,9 +81,9 @@ static const uint8_t DATA_FORMAT_DEFAULT = (ADXL_NO_SELF_TEST | ADXL_SPI_4WIRE |
 static const uint8_t FIFO_CONTROL_DEFAULT = (ADXL_MODE_FIFO | ADXL_TRIGGER_INT1 | (ADXL_AVG_SAMPLES - 1));
 
 //global variables
-volatile uint8_t			adxlINT1occurred = 0;		///< Flag used to indicate the ADXL triggered an interrupt
-volatile uint16_t			adxlTimer_ms = 0;			///< Timer used in various states of the ADXL (in ms)
-volatile uint16_t			adxlSPITimer_ms = 0;		///< Timer used to make sure SPI does not time out (in ms)
+volatile uint8_t			adxlINT1occurred = 0;			///< Flag used to indicate the ADXL triggered an interrupt
+volatile uint16_t			adxlTimer_ms = INT_TIMEOUT_MS;	///< Timer used in various states of the ADXL (in ms)
+volatile uint16_t			adxlSPITimer_ms = 0;			///< Timer used to make sure SPI does not time out (in ms)
 
 //state variables
 static SPI_TypeDef*		_spiHandle = NULL;			///< SPI handle used with the ADXL345
@@ -333,31 +333,29 @@ errorCode_u integrateFIFO(int16_t* xValue, int16_t* yValue, int16_t* zValue){
  * @brief Begin state of the state machine
  *
  * @retval 0 Success
- * @retval 1 No SPI handle has been specified
+ * @retval 1 Device ID invalid
  * @retval 2 Unable to read device ID
- * @retval 3 Device ID invalid
  */
 errorCode_u stStartup(){
 	uint8_t deviceID = 0;
 
-	//if no handle specified, go error
-	if(_spiHandle == NULL){
+	//if 1s elapsed without reading the correct vendor ID, go error
+	if(!adxlTimer_ms){
 		_state = stError;
 		return (createErrorCode(STARTUP, 1, ERR_CRITICAL));
 	}
 
-	//if unable to read device ID, go error
-	adxlTimer_ms = INT_TIMEOUT_MS;
+	//if unable to read device ID, error
 	_result = readRegisters(DEVICE_ID, &deviceID, 1);
-	if(IS_ERROR(_result)){
-		_state = stError;
+	if(IS_ERROR(_result))
 		return (pushErrorCode(_result, STARTUP, 2));
-	}
 
-	//if invalid device ID, go error
+	//if invalid device ID, exit
 	if(deviceID != ADXL_DEVICE_ID)
-		return (createErrorCode(STARTUP, 3, ERR_CRITICAL)); 	// @suppress("Avoid magic numbers")
+		return (ERR_SUCCESS);
 
+	//reset timeout timer and get to next state
+	adxlTimer_ms = INT_TIMEOUT_MS;
 	_state = stConfiguring;
 	return (ERR_SUCCESS);
 }
