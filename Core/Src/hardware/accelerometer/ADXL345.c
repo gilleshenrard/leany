@@ -370,10 +370,10 @@ errorCode_u stConfiguring(){
 	static const uint8_t initialisationArray[NB_REG_INIT][2] = {
 		{DATA_FORMAT,			DATA_FORMAT_DEFAULT | ADXL_10BIT_RESOL},
 		{BANDWIDTH_POWERMODE,	ADXL_POWER_NORMAL | ADXL_RATE_200HZ},
-		{FIFO_CONTROL,			ADXL_MODE_BYPASS},
+		{FIFO_CONTROL,			ADXL_MODE_BYPASS},		//clear the FIFOs first (blocks otherwise)
 		{FIFO_CONTROL,			FIFO_CONTROL_DEFAULT},
-		{INTERRUPT_ENABLE,		ADXL_INT_WATERMARK},
-		{POWER_CONTROL,			ADXL_MEASURE_MODE},
+		{POWER_CONTROL,			ADXL_MEASURE_MODE},		///
+		{INTERRUPT_ENABLE,		ADXL_INT_WATERMARK},	///must come at the end
 	};
 
 	//write all registers values from the initialisation array
