@@ -193,6 +193,9 @@ void SysTick_Handler(void)
 
 	if(screenTimer_ms)
 		screenTimer_ms = screenTimer_ms - 1;
+
+  if(ssd1306SPITimer_ms)
+    ssd1306SPITimer_ms = ssd1306SPITimer_ms - 1;
   /* USER CODE END SysTick_IRQn 0 */
 
   /* USER CODE BEGIN SysTick_IRQn 1 */

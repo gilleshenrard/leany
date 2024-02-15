@@ -106,7 +106,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
   LL_SYSTICK_EnableIT();
   ADXL345initialise(SPI1);
-  SSD1306initialise(&hspi2);
+  SSD1306initialise(SPI2, DMA1, LL_DMA_CHANNEL_5);
   /* USER CODE END 2 */
 
   /* Infinite loop */

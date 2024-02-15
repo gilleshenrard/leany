@@ -9,7 +9,7 @@
 #include "SSD1306.h"
 #include "numbersVerdana16.h"
 #include "SSD1306_registers.h"
-#include "main.h"
+#include <assert.h>
 
 //definitions
 #define SPI_TIMEOUT_MS		10U		///< Maximum number of milliseconds SPI traffic should last before timeout
@@ -80,7 +80,10 @@ static const SSD1306init_t initCommands[NB_INIT_REGISERS] = {			///< Array used 
 
 //state variables
 volatile uint16_t			screenTimer_ms = 0;				///< Timer used with screen SPI transmissions
-static SPI_HandleTypeDef*	_SSD_SPIhandle = NULL;			///< SPI handle used with the SSD1306
+volatile uint16_t			ssd1306SPITimer_ms = 0;			///< Timer used to make sure SPI does not time out (in ms)
+static SPI_TypeDef*			_spiHandle = (void*)0;			///< SPI handle used with the SSD1306
+static DMA_TypeDef*			_dmaHandle = (void*)0;			///< DMA handle used with the SSD1306
+static uint32_t				_dmaChannel = 0x00000000U;		///< DMA channel used
 static screenState			_state = stIdle;				///< State machine current state
 static uint8_t				_screenBuffer[MAX_DATA_SIZE];	///< Buffer used to send data to the screen
 static uint8_t 				_limitColumns[2];				///< Buffer used to set the first and last column to send
@@ -96,20 +99,23 @@ static uint16_t				_size;							///< Number of bytes to send
  * @brief Initialise the SSD1306
  *
  * @param handle SPI handle used
- * @retval 0 Success
- * @retval 1 Error while initialising the registers
- * @retval 2 Error while clearing the screen
+ * @return Success
+ * @retval 1	Error while initialising the registers
+ * @retval 2	Error while clearing the screen
  */
-errorCode_u SSD1306initialise(SPI_HandleTypeDef* handle){
+errorCode_u SSD1306initialise(SPI_TypeDef* handle, DMA_TypeDef* dma, uint32_t dmaChannel){
 	errorCode_u result;
-	_SSD_SPIhandle = handle;
+	_spiHandle = handle;
+	_dmaHandle = dma;
+	_dmaChannel = dmaChannel;
 
 	//make sure to disable SSD1306 SPI communication
-	setSPIstatus(DISABLED);
+	LL_SPI_Disable(_spiHandle);
+	LL_DMA_DisableChannel(_dmaHandle, _dmaChannel);
 
 	//reset the chip
-	HAL_GPIO_WritePin(SSD1306_RST_GPIO_Port, SSD1306_RST_Pin, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(SSD1306_RST_GPIO_Port, SSD1306_RST_Pin, GPIO_PIN_SET);
+	LL_GPIO_ResetOutputPin(SSD1306_RST_GPIO_Port, SSD1306_RST_Pin);
+	LL_GPIO_SetOutputPin(SSD1306_RST_GPIO_Port, SSD1306_RST_Pin);
 
 	//initialisation taken from PDF p. 64 (Application Example)
 	//	values which don't change from reset values aren't modified
@@ -133,7 +139,10 @@ errorCode_u SSD1306initialise(SPI_HandleTypeDef* handle){
  * @param value Value of the data/command pin
  */
 static inline void setDataStatus(dataStatus_e value){
-	HAL_GPIO_WritePin(SSD1306_DC_GPIO_Port, SSD1306_DC_Pin, (value == COMMAND ? GPIO_PIN_RESET : GPIO_PIN_SET));
+	if(value == COMMAND)
+		LL_GPIO_ResetOutputPin(SSD1306_DC_GPIO_Port, SSD1306_DC_Pin);
+	else
+		LL_GPIO_SetOutputPin(SSD1306_DC_GPIO_Port, SSD1306_DC_Pin);
 }
 
 /**
@@ -142,40 +151,53 @@ static inline void setDataStatus(dataStatus_e value){
  * @param regNumber Register number
  * @param parameters Parameters to write
  * @param nbParameters Number of parameters to write
- * @retval 0 Success
- * @retval 1 Number of parameters above maximum
- * @retval 2 Error while sending the command
- * @retval 3 Error while sending the data
+ * @return Success
+ * @retval 1	Number of parameters above maximum
+ * @retval 2	Timeout while sending the command
  */
 errorCode_u sendCommand(SSD1306register_e regNumber, const uint8_t parameters[], uint8_t nbParameters){
 	static const uint8_t MAX_PARAMETERS = 6U;		///< Maximum number of parameters a command can have
-	HAL_StatusTypeDef HALresult;
 	errorCode_u result = ERR_SUCCESS;
+
+	//assertions
+	assert(_spiHandle);						//handle is not null
+	assert(parameters || !nbParameters);	//either 0 parameters, or parameters array not null
 
 	//if too many parameters, error
 	if(nbParameters > MAX_PARAMETERS)
 		return(createErrorCode(SEND_CMD, 1, ERR_WARNING));
 
 	//set command pin and enable SPI
+	ssd1306SPITimer_ms = SPI_TIMEOUT_MS;
 	setDataStatus(COMMAND);
-	setSPIstatus(ENABLED);
+	LL_SPI_Enable(_spiHandle);
 
 	//send the command byte
-	HALresult = HAL_SPI_Transmit(_SSD_SPIhandle, &regNumber, 1, SPI_TIMEOUT_MS);
-	if(HALresult != HAL_OK){
-		setSPIstatus(DISABLED);
-		return (createErrorCodeLayer1(SEND_CMD, 2, HALresult, ERR_ERROR));
+	LL_SPI_TransmitData8(_spiHandle, regNumber);
+
+	//send the parameters
+	uint8_t* iterator = (uint8_t*)parameters;
+	while(nbParameters && ssd1306SPITimer_ms){
+		//wait for the previous byte to be done, then send the next one
+		while(!LL_SPI_IsActiveFlag_TXE(_spiHandle) && ssd1306SPITimer_ms);
+		if(ssd1306SPITimer_ms)
+			LL_SPI_TransmitData8(_spiHandle, *iterator);
+
+		iterator++;
+		nbParameters--;
 	}
 
-	//if command send OK, send all parameters
-	if(parameters && nbParameters){
-		HALresult = HAL_SPI_Transmit(_SSD_SPIhandle, (uint8_t*)parameters, nbParameters, SPI_TIMEOUT_MS);
-		if(HALresult != HAL_OK)
-			result = createErrorCodeLayer1(SEND_CMD, 3, HALresult, ERR_ERROR); 		// @suppress("Avoid magic numbers")
-	}
+	//wait for transaction to be finished and clear Overrun flag
+	while(LL_SPI_IsActiveFlag_BSY(_spiHandle) && ssd1306SPITimer_ms);
+	LL_SPI_ClearFlag_OVR(_spiHandle);
 
 	//disable SPI and return status
-	setSPIstatus(DISABLED);
+	LL_SPI_Disable(_spiHandle);
+
+	//if timeout, error
+	if(!ssd1306SPITimer_ms)
+		return (createErrorCode(SEND_CMD, 2, ERR_WARNING));
+
 	return (result);
 }
 
@@ -203,7 +225,8 @@ errorCode_u SSD1306clearScreen(){
 /**
  * @brief Check if the screen is ready to accept new commands
  *
- * @return 1 if ready
+ * @return 0 Not ready
+ * @retval 1 Ready
  */
 uint8_t isScreenReady(){
 	return (_state == stIdle);
@@ -216,8 +239,8 @@ uint8_t isScreenReady(){
  * @param page	First page on which to print the angle (screen line)
  * @param column First column on which to print the angle
  *
- * @retval 0 Success
- * @retval 1 Angle above maximum amplitude
+ * @return Success
+ * @retval 1	Angle above maximum amplitude
  */
 errorCode_u SSD1306_printAngle(float angle, uint8_t page, uint8_t column){
 	static const float MIN_ANGLE_DEG = -90.0f;	///< Minimum angle allowed (in degrees)
@@ -295,14 +318,12 @@ errorCode_u stIdle(){
 /**
  * @brief State in which data is sent to the screen
  *
- * @retval 0 Success
- * @retval 1 Error occurred while sending the column address command
- * @retval 1 Error occurred while sending the page address command
- * @retval 1 Error occurred while sending the data
+ * @return Success
+ * @retval 1	Error occurred while sending the column address command
+ * @retval 2	Error occurred while sending the page address command
  */
 errorCode_u stSendingData(){
 	errorCode_u result;
-	HAL_StatusTypeDef HALresult;
 
 	//send the set start and end column addresses
 	result = sendCommand(COLUMN_ADDRESS, _limitColumns, 2);
@@ -318,17 +339,21 @@ errorCode_u stSendingData(){
 		return (pushErrorCode(result, SENDING_DATA, 2));
 	}
 
-	//set GPIOs
+	//set data GPIO and enable SPI
 	setDataStatus(DATA);
-	setSPIstatus(ENABLED);
+	LL_SPI_Enable(_spiHandle);
+
+	//configure the DMA transaction
+	LL_DMA_DisableChannel(_dmaHandle, _dmaChannel);
+	LL_DMA_ClearFlag_GI5(_dmaHandle);
+	LL_DMA_SetPeriphAddress(_dmaHandle, _dmaChannel, LL_SPI_DMA_GetRegAddr(_spiHandle));
+	LL_DMA_SetMemoryAddress(_dmaHandle, _dmaChannel, (uint32_t)_screenBuffer);
+	LL_DMA_SetDataLength(_dmaHandle, _dmaChannel, _size);
+	LL_DMA_EnableIT_TC(_dmaHandle, _dmaChannel);
 
 	//send the data
 	screenTimer_ms = SPI_TIMEOUT_MS;
-	HALresult = HAL_SPI_Transmit_DMA(_SSD_SPIhandle, _screenBuffer, _size);
-	if(HALresult != HAL_OK){
-		_state = stIdle;
-		return (createErrorCodeLayer1(SENDING_DATA, 3, HALresult, ERR_ERROR)); 	// @suppress("Avoid magic numbers")
-	}
+	LL_DMA_EnableChannel(_dmaHandle, _dmaChannel);
 
 	//get to next
 	_state = stWaitingForTXdone;
@@ -338,24 +363,34 @@ errorCode_u stSendingData(){
 /**
  * @brief State in which the machine waits for a DMA transmission to end
  *
- * @retval 0 Success
- * @retval 1 Timeout while waiting for transmission to end
+ * @return Success
+ * @retval 1	Timeout while waiting for transmission to end
+ * @retval 2	Error interrupt occurred during the DMA transfer
  */
 errorCode_u stWaitingForTXdone(){
 	//if timer elapsed, stop DMA and error
 	if(!screenTimer_ms){
-		setSPIstatus(DISABLED);
-		HAL_SPI_DMAStop(_SSD_SPIhandle);
+		LL_DMA_DisableChannel(_dmaHandle, _dmaChannel);
+		LL_SPI_Disable(_spiHandle);
 		_state = stIdle;
 		return (createErrorCode(WAITING_DMA_RDY, 1, ERR_ERROR));
 	}
 
+	//if error interrupt, error
+	if(LL_DMA_IsActiveFlag_TE5(_dmaHandle)){
+		LL_DMA_DisableChannel(_dmaHandle, _dmaChannel);
+		LL_SPI_Disable(_spiHandle);
+		_state = stIdle;
+		return (createErrorCode(WAITING_DMA_RDY, 2, ERR_ERROR));
+	}
+
 	//if TX not done yet, exit
-	if(HAL_SPI_GetState(_SSD_SPIhandle) != HAL_SPI_STATE_READY)
+	if(!LL_DMA_IsActiveFlag_TC5(_dmaHandle))
 		return (ERR_SUCCESS);
 
 	//disable SPI and get to idle state
-	setSPIstatus(DISABLED);
+	LL_DMA_DisableChannel(_dmaHandle, _dmaChannel);
+	LL_SPI_Disable(_spiHandle);
 	_state = stIdle;
 	return (ERR_SUCCESS);
 }
