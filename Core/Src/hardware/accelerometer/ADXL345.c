@@ -45,14 +45,6 @@ typedef enum _ADXLfunctionCodes_e{
 }ADXLfunctionCodes_e;
 
 /**
- * @brief Structure used to hold axis measurement values
- */
-typedef struct{
-	int16_t current;	///< Last known value
-	int16_t previous;	///< Value held last time an update was checked on an axis
-}adxlValues_t;
-
-/**
  * @brief State machine state prototype
  *
  * @return Error code of the state
@@ -90,7 +82,8 @@ volatile uint16_t			adxlSPITimer_ms = 0;			///< Timer used to make sure SPI does
 static SPI_TypeDef*		_spiHandle = NULL;			///< SPI handle used with the ADXL345
 static adxlState		_state = stStartup;			///< State machine current state
 static uint8_t			_measurementsUpdated = 0;	///< Flag used to indicate new integrated measurements are ready within the ADXL345
-static adxlValues_t		_finalValues[NB_AXIS];		///< Array of axis values
+static int16_t			_latestValues[NB_AXIS];		///< Array of latest axis values
+static int16_t			_previousValues[NB_AXIS];	///< Array of values previously compared to latest
 static errorCode_u 		_result;					///< Variables used to store error codes
 
 
@@ -127,8 +120,8 @@ errorCode_u ADXL345update(){
  * @retval 1 New values are available
  */
 uint8_t ADXL345hasChanged(axis_e axis){
-	uint8_t tmp = (_finalValues[axis].current != _finalValues[axis].previous);
-	_finalValues[axis].previous = _finalValues[axis].current;
+	uint8_t tmp = (_latestValues[axis] != _previousValues[axis]);
+	_previousValues[axis] = _latestValues[axis];
 
 	return (tmp);
 }
@@ -248,7 +241,7 @@ int16_t ADXL345getValue(axis_e axis){
 	if(axis >= NB_AXIS)
 		axis = X_AXIS;
 
-	return (_finalValues[axis].current);
+	return (_latestValues[axis]);
 }
 
 /**
@@ -258,7 +251,7 @@ int16_t ADXL345getValue(axis_e axis){
  * @return Angle with the Z axis
  */
 float measureToAngleDegrees(int16_t axisValue){
-	return (arctanDegrees(axisValue, _finalValues[Z_AXIS].current));
+	return (arctanDegrees(axisValue, _latestValues[Z_AXIS]));
 }
 
 /**
@@ -425,7 +418,7 @@ errorCode_u stMeasuringST_OFF(){
 		return (ERR_SUCCESS);
 
 	//retrieve the integrated measurements (to be used with self-testing)
-	_result = integrateFIFO(&_finalValues[X_AXIS].current, &_finalValues[Y_AXIS].current, &_finalValues[Z_AXIS].current);
+	_result = integrateFIFO(&_latestValues[X_AXIS], &_latestValues[Y_AXIS], &_latestValues[Z_AXIS]);
 	if(IS_ERROR(_result)){
 		_state = stError;
 		return (pushErrorCode(_result, SELF_TESTING_OFF, 2));
@@ -516,9 +509,9 @@ errorCode_u stMeasuringST_ON(){
 	}
 
 	//compute the self-test deltas
-	STdeltaX -= _finalValues[X_AXIS].current;
-	STdeltaY -= _finalValues[Y_AXIS].current;
-	STdeltaZ -= _finalValues[Z_AXIS].current;
+	STdeltaX -= _latestValues[X_AXIS];
+	STdeltaY -= _latestValues[Y_AXIS];
+	STdeltaZ -= _latestValues[Z_AXIS];
 
 	//if self-test values out of range, error
 	if((STdeltaX <= ADXL_ST_MINX_33_16G) || (STdeltaX >= ADXL_ST_MAXX_33_16G)
@@ -558,7 +551,7 @@ errorCode_u stMeasuring(){
 	adxlINT1occurred = 0;
 
 	//integrate the FIFOs
-	_result = integrateFIFO(&_finalValues[X_AXIS].current, &_finalValues[Y_AXIS].current, &_finalValues[Z_AXIS].current);
+	_result = integrateFIFO(&_latestValues[X_AXIS], &_latestValues[Y_AXIS], &_latestValues[Z_AXIS]);
 	if(IS_ERROR(_result)){
 		_state = stError;
 		return (pushErrorCode(_result, MEASURE, 2));
