@@ -1,7 +1,7 @@
 #ifndef INC_HARDWARE_SCREEN_SSD1306_H_
 #define INC_HARDWARE_SCREEN_SSD1306_H_
+#include <main.h>
 #include <stdint.h>
-#include <stm32f1xx.h>
 #include "errorstack.h"
 
 //screen defaults
@@ -11,8 +11,9 @@
 #define SSD1306_LINE2_COLUMN	0U		///< Column number of the second screen line
 
 extern volatile uint16_t	screenTimer_ms;
+extern volatile uint16_t	ssd1306SPITimer_ms;
 
-errorCode_u SSD1306initialise(SPI_HandleTypeDef* handle);
+errorCode_u SSD1306initialise(SPI_TypeDef* handle, DMA_TypeDef* dma, uint32_t dmaChannel);
 errorCode_u SSD1306update();
 uint8_t isScreenReady();
 errorCode_u SSD1306clearScreen();
