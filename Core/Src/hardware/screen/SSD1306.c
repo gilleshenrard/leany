@@ -2,7 +2,7 @@
  * @file SSD1306.c
  * @brief Implement the functioning of the SSD1306 OLED screen via SPI and DMA
  * @author Gilles Henrard
- * @date 07/01/2024
+ * @date 15/02/2024
  *
  * @note Datasheet : https://cdn-shop.adafruit.com/datasheets/SSD1306.pdf
  */
@@ -35,14 +35,6 @@ typedef enum _SSD1306functionCodes_e{
 }_SSD1306functionCodes_e;
 
 /**
- * @brief SPI CS pin status enumeration
- */
-typedef enum{
-	DISABLED = 0,
-	ENABLED,
-}spiStatus_e;
-
-/**
  * @brief SPI Data/command pin status enumeration
  */
 typedef enum{
@@ -67,7 +59,6 @@ typedef struct{
 }SSD1306init_t;
 
 //communication functions with the SSD1306
-static inline void setSPIstatus(spiStatus_e value);
 static inline void setDataStatus(dataStatus_e value);
 static errorCode_u sendCommand(SSD1306register_e regNumber, const uint8_t parameters[], uint8_t nbParameters);
 
@@ -134,15 +125,6 @@ errorCode_u SSD1306initialise(SPI_HandleTypeDef* handle){
 		return (pushErrorCode(result, INIT, 2));		// @suppress("Avoid magic numbers")
 
 	return (ERR_SUCCESS);
-}
-
-/**
- * brief Set the SPI CS pin to enable/disable a SPI transmission
- *
- * @param value New CS pin status
- */
-static inline void setSPIstatus(spiStatus_e value){
-	HAL_GPIO_WritePin(SSD1306_CS_GPIO_Port, SSD1306_CS_Pin, (value == ENABLED ? GPIO_PIN_RESET : GPIO_PIN_SET));
 }
 
 /**
