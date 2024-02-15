@@ -206,16 +206,14 @@ errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint
 	LL_SPI_Enable(_spiHandle);
 	uint8_t* iterator = value;
 
-	//send the read request and wait for it to be sent
+	//send the read request and ignore the first byte received (reply to the write request)
 	LL_SPI_TransmitData8(_spiHandle, ADXL_READ | ADXL_MULTIPLE | firstRegister);
-	while((!LL_SPI_IsActiveFlag_TXE(_spiHandle)) && adxlSPITimer_ms);
 	while((!LL_SPI_IsActiveFlag_RXNE(_spiHandle)) && adxlSPITimer_ms);
 	*iterator = LL_SPI_ReceiveData8(_spiHandle);
 
 	//receive the bytes to read
 	do{
 		//send a filler byte to keep the SPI clock running, to receive the next byte
-		while((!LL_SPI_IsActiveFlag_TXE(_spiHandle)) && adxlSPITimer_ms);
 		LL_SPI_TransmitData8(_spiHandle, SPI_RX_FILLER);
 
 		//wait for data to be available, and read it
