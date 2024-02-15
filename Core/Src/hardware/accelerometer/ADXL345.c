@@ -75,6 +75,7 @@ static errorCode_u integrateFIFO(int16_t* xValue, int16_t* yValue, int16_t* zVal
 
 //tool functions
 static inline float atanDegrees(int16_t direction, int16_t axisZ);
+static inline int16_t twoComplement(uint8_t MSB, uint8_t LSB);
 
 // Default DATA FORMAT (register 0x31) and FIFO CONTROL (register 0x38) register values
 static const uint8_t DATA_FORMAT_DEFAULT = (ADXL_NO_SELF_TEST | ADXL_SPI_4WIRE | ADXL_INT_ACTIV_LOW | ADXL_RIGHT_JUSTIFY | ADXL_RANGE_16G);
@@ -276,6 +277,17 @@ static inline float atanDegrees(int16_t direction, int16_t axisZ){
 }
 
 /**
+ * @brief Translate two bytes into an int16_t via a two's complement
+ * 
+ * @param MSB		Most Significant Byte
+ * @param LSB		Least Significant Byte
+ * @return int16_t	16 bit resulting number
+ */
+static inline int16_t twoComplement(uint8_t MSB, uint8_t LSB){
+	return (int16_t)(((uint16_t)MSB << 8) | (uint16_t)LSB);
+}
+
+/**
  * @brief Retrieve and average the values held in the ADXL FIFOs
  *
  * @param[out] xValue Integrated X axis value
@@ -285,7 +297,6 @@ static inline float atanDegrees(int16_t direction, int16_t axisZ){
  * @retval 1 Error while retrieving values from the FIFO
  */
 errorCode_u integrateFIFO(int16_t* xValue, int16_t* yValue, int16_t* zValue){
-	static const uint8_t BYTE_OFFSET = 8U;	///< Number of bits to offset a byte
 	static const uint8_t X_INDEX_MSB = 1U;	///< Index of the X MSB in the measurements
 	static const uint8_t X_INDEX_LSB = 0U;	///< Index of the X LSB in the measurements
 	static const uint8_t Y_INDEX_MSB = 3U;	///< Index of the Y MSB in the measurements
@@ -306,9 +317,9 @@ errorCode_u integrateFIFO(int16_t* xValue, int16_t* yValue, int16_t* zValue){
 		}
 
 		//add the measurements (formatted from a two's complement) to their final value buffer
-		*xValue += (int16_t)(((uint16_t)(buffer[X_INDEX_MSB]) << BYTE_OFFSET) | (uint16_t)(buffer[X_INDEX_LSB]));
-		*yValue += (int16_t)(((uint16_t)(buffer[Y_INDEX_MSB]) << BYTE_OFFSET) | (uint16_t)(buffer[Y_INDEX_LSB]));
-		*zValue += (int16_t)(((uint16_t)(buffer[Z_INDEX_MSB]) << BYTE_OFFSET) | (uint16_t)(buffer[Z_INDEX_LSB]));
+		*xValue += twoComplement(buffer[X_INDEX_MSB], buffer[X_INDEX_LSB]);
+		*yValue += twoComplement(buffer[Y_INDEX_MSB], buffer[Y_INDEX_LSB]);
+		*zValue += twoComplement(buffer[Z_INDEX_MSB], buffer[Z_INDEX_LSB]);
 
 		//wait for a while to make sure 5 us pass between two reads
 		//	as stated in the datasheet, section "Retrieving data from the FIFO"
