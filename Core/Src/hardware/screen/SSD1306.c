@@ -64,19 +64,9 @@ static errorCode_u sendCommand(SSD1306register_e regNumber, const uint8_t parame
 
 //state machine
 static errorCode_u stIdle();
+static errorCode_u stConfiguring();
 static errorCode_u stSendingData();
 static errorCode_u stWaitingForTXdone();
-
-static const SSD1306init_t initCommands[NB_INIT_REGISERS] = {			///< Array used to initialise the registers
-		{SCAN_DIRECTION_N1_0,	0,	0x00},
-		{HARDWARE_CONFIG,		1,	SSD_PIN_CONFIG_ALT | SSD_COM_REMAP_DISABLE},
-		{SEGMENT_REMAP_127,		0,	0x00},
-		{MEMORY_ADDR_MODE,		1,	SSD_HORIZONTAL_ADDR},
-		{CONTRAST_CONTROL,		1,	SSD_CONTRAST_HIGHEST},
-		{CLOCK_DIVIDE_RATIO,	1,	SSD_CLOCK_FREQ_MID | SSD_CLOCK_DIVIDER_1},
-		{CHG_PUMP_REGULATOR,	1,	SSD_ENABLE_CHG_PUMP},
-		{DISPLAY_ON,			0,	0x00},
-};
 
 //state variables
 volatile uint16_t			screenTimer_ms = 0;				///< Timer used with screen SPI transmissions
@@ -84,7 +74,7 @@ volatile uint16_t			ssd1306SPITimer_ms = 0;			///< Timer used to make sure SPI d
 static SPI_TypeDef*			_spiHandle = (void*)0;			///< SPI handle used with the SSD1306
 static DMA_TypeDef*			_dmaHandle = (void*)0;			///< DMA handle used with the SSD1306
 static uint32_t				_dmaChannel = 0x00000000U;		///< DMA channel used
-static screenState			_state = stIdle;				///< State machine current state
+static screenState			_state = stConfiguring;			///< State machine current state
 static uint8_t				_screenBuffer[MAX_DATA_SIZE];	///< Buffer used to send data to the screen
 static uint8_t 				_limitColumns[2];				///< Buffer used to set the first and last column to send
 static uint8_t				_limitPages[2];					///< Buffer used to set the first and last page to send
@@ -104,7 +94,6 @@ static uint16_t				_size;							///< Number of bytes to send
  * @retval 2	Error while clearing the screen
  */
 errorCode_u SSD1306initialise(SPI_TypeDef* handle, DMA_TypeDef* dma, uint32_t dmaChannel){
-	errorCode_u result;
 	_spiHandle = handle;
 	_dmaHandle = dma;
 	_dmaChannel = dmaChannel;
@@ -112,23 +101,6 @@ errorCode_u SSD1306initialise(SPI_TypeDef* handle, DMA_TypeDef* dma, uint32_t dm
 	//make sure to disable SSD1306 SPI communication
 	LL_SPI_Disable(_spiHandle);
 	LL_DMA_DisableChannel(_dmaHandle, _dmaChannel);
-
-	//reset the chip
-	LL_GPIO_ResetOutputPin(SSD1306_RST_GPIO_Port, SSD1306_RST_Pin);
-	LL_GPIO_SetOutputPin(SSD1306_RST_GPIO_Port, SSD1306_RST_Pin);
-
-	//initialisation taken from PDF p. 64 (Application Example)
-	//	values which don't change from reset values aren't modified
-	//TODO test for max oscillator frequency
-	for(uint8_t i = 0 ; i < NB_INIT_REGISERS ; i++){
-		result = sendCommand(initCommands[i].reg, &initCommands[i].value, initCommands[i].nbParameters);
-		if(IS_ERROR(result))
-			return (pushErrorCode(result, INIT, 1));
-	}
-
-	result = SSD1306clearScreen();
-	if(IS_ERROR(result))
-		return (pushErrorCode(result, INIT, 2));		// @suppress("Avoid magic numbers")
 
 	return (ERR_SUCCESS);
 }
@@ -305,6 +277,40 @@ errorCode_u SSD1306update(){
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
 
+
+static errorCode_u stConfiguring(){
+	static const SSD1306init_t initCommands[NB_INIT_REGISERS] = {			///< Array used to initialise the registers
+		{SCAN_DIRECTION_N1_0,	0,	0x00},
+		{HARDWARE_CONFIG,		1,	SSD_PIN_CONFIG_ALT | SSD_COM_REMAP_DISABLE},
+		{SEGMENT_REMAP_127,		0,	0x00},
+		{MEMORY_ADDR_MODE,		1,	SSD_HORIZONTAL_ADDR},
+		{CONTRAST_CONTROL,		1,	SSD_CONTRAST_HIGHEST},
+		{CLOCK_DIVIDE_RATIO,	1,	SSD_CLOCK_FREQ_MID | SSD_CLOCK_DIVIDER_1},
+		{CHG_PUMP_REGULATOR,	1,	SSD_ENABLE_CHG_PUMP},
+		{DISPLAY_ON,			0,	0x00},
+	};
+	errorCode_u result;
+
+	//reset the chip
+	LL_GPIO_ResetOutputPin(SSD1306_RST_GPIO_Port, SSD1306_RST_Pin);
+	LL_GPIO_SetOutputPin(SSD1306_RST_GPIO_Port, SSD1306_RST_Pin);
+
+	//initialisation taken from PDF p. 64 (Application Example)
+	//	values which don't change from reset values aren't modified
+	//TODO test for max oscillator frequency
+	for(uint8_t i = 0 ; i < NB_INIT_REGISERS ; i++){
+		result = sendCommand(initCommands[i].reg, &initCommands[i].value, initCommands[i].nbParameters);
+		if(IS_ERROR(result))
+			return (pushErrorCode(result, INIT, 1));
+	}
+
+	result = SSD1306clearScreen();
+	if(IS_ERROR(result))
+		return (pushErrorCode(result, INIT, 2));
+
+	_state = stSendingData;
+	return (ERR_SUCCESS);
+}
 
 /**
  * @brief State in which the screen awaits for commands
