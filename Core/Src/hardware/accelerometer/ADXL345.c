@@ -321,6 +321,11 @@ errorCode_u integrateFIFO(int16_t* xValue, int16_t* yValue, int16_t* zValue){
 		*xValue += twoComplement(buffer[X_INDEX_MSB], buffer[X_INDEX_LSB]);
 		*yValue += twoComplement(buffer[Y_INDEX_MSB], buffer[Y_INDEX_LSB]);
 		*zValue += twoComplement(buffer[Z_INDEX_MSB], buffer[Z_INDEX_LSB]);
+
+		//wait for a while to make sure 5 us pass between two reads
+		//	as stated in the datasheet, section "Retrieving data from the FIFO"
+		volatile uint8_t tempo = 0x1FU;
+		while(tempo--);
 	}
 
 	//divide the buffers to average out
