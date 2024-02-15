@@ -22,7 +22,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "ADXL345.h"
-//#include "SSD1306.h"
+#include "SSD1306.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -106,7 +106,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
   LL_SYSTICK_EnableIT();
   ADXL345initialise(SPI1);
-  //SSD1306initialise(&hspi2);
+  SSD1306initialise(&hspi2);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -117,7 +117,7 @@ int main(void)
 	  result = ADXL345update();
 	  if(IS_ERROR(result))
 		  result.fields.moduleID = 1;
-/*
+
 	  //update the screen state machine
 	  result = SSD1306update();
 	  if(IS_ERROR(result))
@@ -130,7 +130,6 @@ int main(void)
 	  //if Y axis angle changed, update the screen
 	  if(isScreenReady() && ADXL345hasChanged(Y_AXIS))
 		  SSD1306_printAngle(measureToAngleDegrees(ADXL345getValue(Y_AXIS)), SSD1306_LINE2_PAGE, SSD1306_LINE2_COLUMN);
-*/
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

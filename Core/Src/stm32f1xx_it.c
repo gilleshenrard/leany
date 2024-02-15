@@ -23,7 +23,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "ADXL345.h"
-//#include "SSD1306.h"
+#include "SSD1306.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -190,10 +190,9 @@ void SysTick_Handler(void)
 
   if(adxlSPITimer_ms)
     adxlSPITimer_ms = adxlSPITimer_ms - 1;
-/*
+
 	if(screenTimer_ms)
 		screenTimer_ms = screenTimer_ms - 1;
-  */
   /* USER CODE END SysTick_IRQn 0 */
 
   /* USER CODE BEGIN SysTick_IRQn 1 */

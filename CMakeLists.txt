@@ -1,6 +1,6 @@
 #############################################################################################################################
 # file:  CMakeLists.txt
-# date:  09/01/2024
+# date:  15/02/2024
 # brief: Root CMakeLists file
 #
 # Prerequisites:
@@ -101,7 +101,7 @@ add_executable(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME} PRIVATE
 						CubeMXgenerated
 						adxl345
-#						ssd1306
+						ssd1306
 )
 
 #declare Assembly compilation arguments
