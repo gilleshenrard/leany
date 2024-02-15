@@ -324,7 +324,7 @@ errorCode_u integrateFIFO(int16_t* xValue, int16_t* yValue, int16_t* zValue){
 
 		//wait for a while to make sure 5 us pass between two reads
 		//	as stated in the datasheet, section "Retrieving data from the FIFO"
-		volatile uint8_t tempo = 0x1FU;
+		volatile uint8_t tempo = 0x0FU;
 		while(tempo--);
 	}
 
