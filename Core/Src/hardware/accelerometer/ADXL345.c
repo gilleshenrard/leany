@@ -74,7 +74,7 @@ static errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t* valu
 static errorCode_u integrateFIFO(int16_t* xValue, int16_t* yValue, int16_t* zValue);
 
 //tool functions
-static inline float atanDegrees(int16_t direction, int16_t axisZ);
+static inline float arctanDegrees(int16_t direction, int16_t axisZ);
 static inline int16_t twoComplement(uint8_t MSB, uint8_t LSB);
 
 // Default DATA FORMAT (register 0x31) and FIFO CONTROL (register 0x38) register values
@@ -257,7 +257,7 @@ int16_t ADXL345getValue(axis_e axis){
  * @return Angle with the Z axis
  */
 float measureToAngleDegrees(int16_t axisValue){
-	return (atanDegrees(axisValue, _finalValues[Z_AXIS].current));
+	return (arctanDegrees(axisValue, _finalValues[Z_AXIS].current));
 }
 
 /**
@@ -267,7 +267,7 @@ float measureToAngleDegrees(int16_t axisValue){
  * @param axisZ Value (in G) of the Z axis
  * @return Angle between direction and the Z axis
  */
-static inline float atanDegrees(int16_t direction, int16_t axisZ){
+static inline float arctanDegrees(int16_t direction, int16_t axisZ){
 	static const float DEGREES_180 = 180.0f;	///< Value representing a flat angle
 
 	if(!axisZ)
