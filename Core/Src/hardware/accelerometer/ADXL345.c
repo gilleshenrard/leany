@@ -23,7 +23,7 @@
 #define ADXL_AVG_SHIFT		5U				///< Number used to shift the samples sum in order to divide it during integration
 
 //assertions
-static_assert((ADXL_AVG_SAMPLES >> ADXL_AVG_SHIFT) == 1, "TADXL_AVG_SHIFT does not divide all the samples configured with ADXL_AVG_NB");
+static_assert((ADXL_AVG_SAMPLES >> ADXL_AVG_SHIFT) == 1, "ADXL_AVG_SHIFT does not divide all the samples configured with ADXL_AVG_SAMPLES");
 
 //type definitions
 /**
