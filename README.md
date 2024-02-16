@@ -9,6 +9,20 @@
 Quote : [Wikipedia](https://en.wikipedia.org/wiki/Inclinometer)
 
 This project is a crude implementation of an inclinometer, using :
-- A Bluepill (STM32f103 ARM microcontroller development board)
+- A Bluepill (STM32F103 ARM Cortex-M3 development board)
 - An ADXL345 accelerometer
 - An SSD1306 128x64 OLED screen
+
+### 2. Operation principles
+This devices functions in 5 steps :
+1. Wait for the ADXL345 to gather acceleration values in the X, Y and Z axis
+2. Compute the angles between G (gravity on the Z axis) and the other axis (X and Y) with an arctangent trigonometric operation
+3. Format the angles with their sign and print them on the screen (if the angle changed)
+4. Repeat forever
+
+### 3. Implementation
+#### 3.1. Hardware
+##### 3.1.1. Wiring
+| STM32 pin | Bluepill GPIO | Alternate use | ADXL345 pin |
+| --------- | ------------- | ------------- | ----------- |
+| PA4       | A4            | SPI1 NSS      | CS          |
