@@ -19,7 +19,7 @@
 cmake_minimum_required(VERSION 3.20)
 
 #declare the project and languages used
-set (PROJECT_NAME "stm32-leveler")
+set (PROJECT_NAME "stm32-inclinometer")
 project(${PROJECT_NAME})
 enable_language(ASM C)
 

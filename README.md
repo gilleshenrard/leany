@@ -1,2 +1,2 @@
-# STM32-leveler
-STM32 ARM Cortex-M3 based spirit level
+# STM32-inclinometer
+STM32 ARM Cortex-M3 based inclinometer
