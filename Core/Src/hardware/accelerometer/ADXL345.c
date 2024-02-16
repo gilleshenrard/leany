@@ -66,6 +66,7 @@ static errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t* valu
 static errorCode_u integrateFIFO(int16_t* xValue, int16_t* yValue, int16_t* zValue);
 
 //tool functions
+static inline uint8_t isFIFOdataReady();
 static inline float arctanDegrees(int16_t direction, int16_t axisZ);
 static inline int16_t twoComplement(uint8_t MSB, uint8_t LSB);
 
@@ -74,7 +75,6 @@ static const uint8_t DATA_FORMAT_DEFAULT = (ADXL_NO_SELF_TEST | ADXL_SPI_4WIRE |
 static const uint8_t FIFO_CONTROL_DEFAULT = (ADXL_MODE_FIFO | ADXL_TRIGGER_INT1 | (ADXL_AVG_SAMPLES - 1));
 
 //global variables
-volatile uint8_t			adxlINT1occurred = 0;			///< Flag used to indicate the ADXL triggered an interrupt
 volatile uint16_t			adxlTimer_ms = INT_TIMEOUT_MS;	///< Timer used in various states of the ADXL (in ms)
 volatile uint16_t			adxlSPITimer_ms = 0;			///< Timer used to make sure SPI does not time out (in ms)
 
@@ -255,6 +255,16 @@ float measureToAngleDegrees(int16_t axisValue){
 }
 
 /**
+ * @brief Check the status of the ADXL Data Ready interrupt
+ * 
+ * @retval 0 Data is not ready yet
+ * @retval 1 Data is ready
+ */
+static inline uint8_t isFIFOdataReady(){
+	return !LL_GPIO_IsInputPinSet(ADXL_INT1_GPIO_Port, ADXL_INT1_Pin);
+}
+
+/**
  * @brief Compute the angle (in degrees) between any axis and the Z axis
  *
  * @param direction Value (in G) of an axis
@@ -414,7 +424,7 @@ errorCode_u stMeasuringST_OFF(){
 	}
 
 	//if watermark interrupt not fired, exit
-	if(!adxlINT1occurred)
+	if(!isFIFOdataReady())
 		return (ERR_SUCCESS);
 
 	//retrieve the integrated measurements (to be used with self-testing)
@@ -456,7 +466,6 @@ errorCode_u stWaitingForSTenabled(){
 		return (ERR_SUCCESS);
 
 	//enable FIFOs
-	adxlINT1occurred = 0;
 	_result = writeRegister(FIFO_CONTROL, FIFO_CONTROL_DEFAULT);
 	if(IS_ERROR(_result)){
 		_state = stError;
@@ -490,11 +499,10 @@ errorCode_u stMeasuringST_ON(){
 	}
 
 	//if watermark interrupt not fired, exit
-	if(!adxlINT1occurred)
+	if(!isFIFOdataReady())
 		return (ERR_SUCCESS);
 
 	//integrate the FIFOs
-	adxlINT1occurred = 0;
 	_result = integrateFIFO(&STdeltaX, &STdeltaY, &STdeltaZ);
 	if(IS_ERROR(_result)){
 		_state = stError;
@@ -543,12 +551,11 @@ errorCode_u stMeasuring(){
 	}
 
 	//if watermark interrupt not fired, exit
-	if(!adxlINT1occurred)
+	if(!isFIFOdataReady())
 		return (ERR_SUCCESS);
 
 	//reset flags
 	adxlTimer_ms = INT_TIMEOUT_MS;
-	adxlINT1occurred = 0;
 
 	//integrate the FIFOs
 	_result = integrateFIFO(&_latestValues[X_AXIS], &_latestValues[Y_AXIS], &_latestValues[Z_AXIS]);

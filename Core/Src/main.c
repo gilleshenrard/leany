@@ -369,7 +369,6 @@ static void MX_DMA_Init(void)
   */
 static void MX_GPIO_Init(void)
 {
-  LL_EXTI_InitTypeDef EXTI_InitStruct = {0};
   LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
 /* USER CODE BEGIN MX_GPIO_Init_1 */
 /* USER CODE END MX_GPIO_Init_1 */
@@ -383,20 +382,10 @@ static void MX_GPIO_Init(void)
   LL_GPIO_ResetOutputPin(GPIOA, SSD1306_DC_Pin|SSD1306_RST_Pin);
 
   /**/
-  LL_GPIO_AF_SetEXTISource(LL_GPIO_AF_EXTI_PORTB, LL_GPIO_AF_EXTI_LINE0);
-
-  /**/
-  EXTI_InitStruct.Line_0_31 = LL_EXTI_LINE_0;
-  EXTI_InitStruct.LineCommand = ENABLE;
-  EXTI_InitStruct.Mode = LL_EXTI_MODE_IT;
-  EXTI_InitStruct.Trigger = LL_EXTI_TRIGGER_FALLING;
-  LL_EXTI_Init(&EXTI_InitStruct);
-
-  /**/
-  LL_GPIO_SetPinPull(ADXL_INT1_GPIO_Port, ADXL_INT1_Pin, LL_GPIO_PULL_UP);
-
-  /**/
-  LL_GPIO_SetPinMode(ADXL_INT1_GPIO_Port, ADXL_INT1_Pin, LL_GPIO_MODE_INPUT);
+  GPIO_InitStruct.Pin = ADXL_INT1_Pin;
+  GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
+  LL_GPIO_Init(ADXL_INT1_GPIO_Port, &GPIO_InitStruct);
 
   /**/
   GPIO_InitStruct.Pin = SSD1306_DC_Pin|SSD1306_RST_Pin;
@@ -404,10 +393,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
   LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-  /* EXTI interrupt init*/
-  NVIC_SetPriority(EXTI0_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),0, 0));
-  NVIC_EnableIRQ(EXTI0_IRQn);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */

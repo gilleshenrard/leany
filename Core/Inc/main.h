@@ -81,7 +81,6 @@ void Error_Handler(void);
 #define ADXL_MOSI_GPIO_Port GPIOA
 #define ADXL_INT1_Pin LL_GPIO_PIN_0
 #define ADXL_INT1_GPIO_Port GPIOB
-#define ADXL_INT1_EXTI_IRQn EXTI0_IRQn
 #define SSD1306_NSS_Pin LL_GPIO_PIN_12
 #define SSD1306_NSS_GPIO_Port GPIOB
 #define SSD1306_SCK_Pin LL_GPIO_PIN_13
