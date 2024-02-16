@@ -60,9 +60,9 @@ static errorCode_u stSendingData();
 static errorCode_u stWaitingForTXdone();
 
 //state variables
-volatile uint16_t			screenTimer_ms = 0;				///< Timer used with screen SPI transmissions
+volatile uint16_t			screenTimer_ms = 0;				///< Timer used with screen SPI transmissions (in ms)
 volatile uint16_t			ssd1306SPITimer_ms = 0;			///< Timer used to make sure SPI does not time out (in ms)
-volatile uint8_t			ssdDMAdone = 0;
+volatile uint8_t			ssdDMAdone = 0;					///< Flag used to indicate a DMA transmission is finished
 static SPI_TypeDef*			_spiHandle = (void*)0;			///< SPI handle used with the SSD1306
 static DMA_TypeDef*			_dmaHandle = (void*)0;			///< DMA handle used with the SSD1306
 static uint32_t				_dmaChannel = 0x00000000U;		///< DMA channel used
@@ -274,6 +274,13 @@ errorCode_u SSD1306update(){
 /********************************************************************************************************************************************/
 
 
+/**
+ * @brief State in which the SSD1306 configuration registers are set
+ * 
+ * @return Success
+ * @retval 1	Error while setting a configuration register
+ * @retval 2	Error while requesting the screen wipe
+ */
 static errorCode_u stConfiguring(){
 	static const uint8_t initCommands[NB_INIT_REGISERS][3] = {			///< Array used to initialise the registers
 		{SCAN_DIRECTION_N1_0,	0,	0x00},
