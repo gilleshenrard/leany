@@ -57,7 +57,7 @@
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
-extern DMA_HandleTypeDef hdma_spi2_tx;
+
 /* USER CODE BEGIN EV */
 
 /* USER CODE END EV */
@@ -188,10 +188,16 @@ void SysTick_Handler(void)
 	if(adxlTimer_ms)
 		adxlTimer_ms = adxlTimer_ms - 1;
 
+  if(adxlSPITimer_ms)
+    adxlSPITimer_ms = adxlSPITimer_ms - 1;
+
 	if(screenTimer_ms)
 		screenTimer_ms = screenTimer_ms - 1;
+
+  if(ssd1306SPITimer_ms)
+    ssd1306SPITimer_ms = ssd1306SPITimer_ms - 1;
   /* USER CODE END SysTick_IRQn 0 */
-  HAL_IncTick();
+
   /* USER CODE BEGIN SysTick_IRQn 1 */
 
   /* USER CODE END SysTick_IRQn 1 */
@@ -212,7 +218,13 @@ void EXTI0_IRQHandler(void)
   /* USER CODE BEGIN EXTI0_IRQn 0 */
 	adxlINT1occurred = 1;
   /* USER CODE END EXTI0_IRQn 0 */
-  HAL_GPIO_EXTI_IRQHandler(ADXL_INT1_Pin);
+  if (LL_EXTI_IsActiveFlag_0_31(LL_EXTI_LINE_0) != RESET)
+  {
+    LL_EXTI_ClearFlag_0_31(LL_EXTI_LINE_0);
+    /* USER CODE BEGIN LL_EXTI_LINE_0 */
+
+    /* USER CODE END LL_EXTI_LINE_0 */
+  }
   /* USER CODE BEGIN EXTI0_IRQn 1 */
 
   /* USER CODE END EXTI0_IRQn 1 */
@@ -224,9 +236,12 @@ void EXTI0_IRQHandler(void)
 void DMA1_Channel5_IRQHandler(void)
 {
   /* USER CODE BEGIN DMA1_Channel5_IRQn 0 */
-
+  if(LL_DMA_IsActiveFlag_TC5(DMA1)){
+    LL_DMA_ClearFlag_TC5(DMA1);
+    ssdDMAdone = 1;
+  }
   /* USER CODE END DMA1_Channel5_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_spi2_tx);
+
   /* USER CODE BEGIN DMA1_Channel5_IRQn 1 */
 
   /* USER CODE END DMA1_Channel5_IRQn 1 */
