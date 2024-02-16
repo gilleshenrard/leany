@@ -102,6 +102,9 @@ errorCode_u SSD1306initialise(SPI_TypeDef* handle, DMA_TypeDef* dma, uint32_t dm
 	LL_SPI_Disable(_spiHandle);
 	LL_DMA_DisableChannel(_dmaHandle, _dmaChannel);
 
+	//set the DMA source and destination addresses (will always use the same ones)
+	LL_DMA_ConfigAddresses(_dmaHandle, _dmaChannel, (uint32_t)&_screenBuffer, LL_SPI_DMA_GetRegAddr(_spiHandle), LL_DMA_DIRECTION_MEMORY_TO_PERIPH);
+
 	return (ERR_SUCCESS);
 }
 
@@ -352,14 +355,13 @@ errorCode_u stSendingData(){
 	//configure the DMA transaction
 	LL_DMA_DisableChannel(_dmaHandle, _dmaChannel);
 	LL_DMA_ClearFlag_GI5(_dmaHandle);
-	LL_DMA_SetPeriphAddress(_dmaHandle, _dmaChannel, LL_SPI_DMA_GetRegAddr(_spiHandle));
-	LL_DMA_SetMemoryAddress(_dmaHandle, _dmaChannel, (uint32_t)_screenBuffer);
 	LL_DMA_SetDataLength(_dmaHandle, _dmaChannel, _size);
 	LL_DMA_EnableIT_TC(_dmaHandle, _dmaChannel);
+	LL_DMA_EnableChannel(_dmaHandle, _dmaChannel);
 
 	//send the data
 	screenTimer_ms = SPI_TIMEOUT_MS;
-	LL_DMA_EnableChannel(_dmaHandle, _dmaChannel);
+	LL_SPI_EnableDMAReq_TX(_spiHandle);
 
 	//get to next
 	_state = stWaitingForTXdone;
