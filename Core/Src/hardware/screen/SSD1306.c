@@ -2,7 +2,7 @@
  * @file SSD1306.c
  * @brief Implement the functioning of the SSD1306 OLED screen via SPI and DMA
  * @author Gilles Henrard
- * @date 15/02/2024
+ * @date 16/02/2024
  *
  * @note Datasheet : https://cdn-shop.adafruit.com/datasheets/SSD1306.pdf
  */
@@ -48,15 +48,6 @@ typedef enum{
  * @return Return code of the state
  */
 typedef errorCode_u (*screenState)();
-
-/**
- * @brief Structure used to initialise the registers
- */
-typedef struct{
-	SSD1306register_e	reg;			///< Register to initialise
-	uint8_t				nbParameters;	///< Number of parameters provided to initialise
-	uint8_t				value;			///< Value of the parameters
-}SSD1306init_t;
 
 //communication functions with the SSD1306
 static inline void setDataStatus(dataStatus_e value);
@@ -284,7 +275,7 @@ errorCode_u SSD1306update(){
 
 
 static errorCode_u stConfiguring(){
-	static const SSD1306init_t initCommands[NB_INIT_REGISERS] = {			///< Array used to initialise the registers
+	static const uint8_t initCommands[NB_INIT_REGISERS][3] = {			///< Array used to initialise the registers
 		{SCAN_DIRECTION_N1_0,	0,	0x00},
 		{HARDWARE_CONFIG,		1,	SSD_PIN_CONFIG_ALT | SSD_COM_REMAP_DISABLE},
 		{SEGMENT_REMAP_127,		0,	0x00},
@@ -304,7 +295,7 @@ static errorCode_u stConfiguring(){
 	//	values which don't change from reset values aren't modified
 	//TODO test for max oscillator frequency
 	for(uint8_t i = 0 ; i < NB_INIT_REGISERS ; i++){
-		result = sendCommand(initCommands[i].reg, &initCommands[i].value, initCommands[i].nbParameters);
+		result = sendCommand(initCommands[i][0], &initCommands[i][2], initCommands[i][1]);
 		if(IS_ERROR(result))
 			return (pushErrorCode(result, INIT, 1));
 	}
