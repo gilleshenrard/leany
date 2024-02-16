@@ -14,7 +14,7 @@ This project is a crude implementation of an inclinometer, using :
 - An SSD1306 128x64 OLED screen
 
 ### 2. Operation principles
-This devices functions in 5 steps :
+This devices functions in 4 steps :
 1. Wait for the ADXL345 to gather acceleration values in the X, Y and Z axis
 2. Compute the angles between G (gravity on the Z axis) and the other axis (X and Y) with an arctangent trigonometric operation
 3. Format the angles with their sign and print them on the screen (if the angle changed)
