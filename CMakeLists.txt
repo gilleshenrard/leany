@@ -1,6 +1,6 @@
 #############################################################################################################################
 # file:  CMakeLists.txt
-# date:  04/01/2023
+# date:  15/02/2024
 # brief: Root CMakeLists file
 #
 # Prerequisites:
@@ -30,7 +30,7 @@ set(CMAKE_C_EXTENSIONS              ON)
 
 #define the definitions used when compiling (-D)
 set (PROJECT_DEFINES
-	USE_HAL_DRIVER
+	USE_FULL_LL_DRIVER
 	STM32F103xB
 	$<$<CONFIG:Debug>:DEBUG>
 )
@@ -38,14 +38,11 @@ set (PROJECT_DEFINES
 #define the included directories list
 set (PROJECT_INCLUDES
 	${CMAKE_SOURCE_DIR}/Drivers/STM32F1xx_HAL_Driver/Inc
-	${CMAKE_SOURCE_DIR}/Drivers/STM32F1xx_HAL_Driver/Inc/Legacy
 	${CMAKE_SOURCE_DIR}/Drivers/CMSIS/Include
 	${CMAKE_SOURCE_DIR}/Drivers/CMSIS/Device/ST/STM32F1xx/Include
 	${CMAKE_SOURCE_DIR}/Core/Inc
 
 	${CMAKE_SOURCE_DIR}/Core/Inc/errors
-	${CMAKE_SOURCE_DIR}/Core/Inc/hardware/accelerometer
-	${CMAKE_SOURCE_DIR}/Core/Inc/hardware/screen
 )
 
 #define the CPU-specific arguments used when compiling
@@ -96,7 +93,6 @@ add_subdirectory(Core)
 add_executable(${PROJECT_NAME}
 	Core/Startup/startup_stm32f103c8tx.s
 	Core/Src/main.c
-	Core/Src/stm32f1xx_hal_msp.c
 	Core/Src/stm32f1xx_it.c
 	Core/Src/syscalls.c
 	Core/Src/sysmem.c
