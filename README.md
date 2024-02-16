@@ -8,3 +8,7 @@
 
 Quote : [Wikipedia](https://en.wikipedia.org/wiki/Inclinometer)
 
+This project is a crude implementation of an inclinometer, using :
+- A Bluepill (STM32f103 ARM microcontroller development board)
+- An ADXL345 accelerometer
+- An SSD1306 128x64 OLED screen
