@@ -71,6 +71,7 @@ static errorCode_u stWaitingForTXdone();
 //state variables
 volatile uint16_t			screenTimer_ms = 0;				///< Timer used with screen SPI transmissions
 volatile uint16_t			ssd1306SPITimer_ms = 0;			///< Timer used to make sure SPI does not time out (in ms)
+volatile uint8_t			ssdDMAdone = 0;
 static SPI_TypeDef*			_spiHandle = (void*)0;			///< SPI handle used with the SSD1306
 static DMA_TypeDef*			_dmaHandle = (void*)0;			///< DMA handle used with the SSD1306
 static uint32_t				_dmaChannel = 0x00000000U;		///< DMA channel used
@@ -104,6 +105,7 @@ errorCode_u SSD1306initialise(SPI_TypeDef* handle, DMA_TypeDef* dma, uint32_t dm
 
 	//set the DMA source and destination addresses (will always use the same ones)
 	LL_DMA_ConfigAddresses(_dmaHandle, _dmaChannel, (uint32_t)&_screenBuffer, LL_SPI_DMA_GetRegAddr(_spiHandle), LL_DMA_DIRECTION_MEMORY_TO_PERIPH);
+	LL_DMA_EnableIT_TC(_dmaHandle, _dmaChannel);
 
 	return (ERR_SUCCESS);
 }
@@ -356,11 +358,11 @@ errorCode_u stSendingData(){
 	LL_DMA_DisableChannel(_dmaHandle, _dmaChannel);
 	LL_DMA_ClearFlag_GI5(_dmaHandle);
 	LL_DMA_SetDataLength(_dmaHandle, _dmaChannel, _size);
-	LL_DMA_EnableIT_TC(_dmaHandle, _dmaChannel);
 	LL_DMA_EnableChannel(_dmaHandle, _dmaChannel);
 
 	//send the data
 	screenTimer_ms = SPI_TIMEOUT_MS;
+	ssdDMAdone = 0;
 	LL_SPI_EnableDMAReq_TX(_spiHandle);
 
 	//get to next
@@ -384,16 +386,7 @@ errorCode_u stWaitingForTXdone(){
 		return (createErrorCode(WAITING_DMA_RDY, 1, ERR_ERROR));
 	}
 
-	//if error interrupt, error
-	if(LL_DMA_IsActiveFlag_TE5(_dmaHandle)){
-		LL_DMA_DisableChannel(_dmaHandle, _dmaChannel);
-		LL_SPI_Disable(_spiHandle);
-		_state = stIdle;
-		return (createErrorCode(WAITING_DMA_RDY, 2, ERR_ERROR));
-	}
-
-	//if TX not done yet, exit
-	if(!LL_DMA_IsActiveFlag_TC5(_dmaHandle))
+	if(!ssdDMAdone)
 		return (ERR_SUCCESS);
 
 	//disable SPI and get to idle state
