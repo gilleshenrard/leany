@@ -3,7 +3,6 @@
 #include "main.h"
 #include "errorstack.h"
 
-extern volatile uint8_t		adxlINT1occurred;
 extern volatile uint16_t	adxlTimer_ms;
 extern volatile uint16_t	adxlSPITimer_ms;
 
