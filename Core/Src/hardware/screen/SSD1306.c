@@ -40,7 +40,7 @@ typedef enum _SSD1306functionCodes_e{
 typedef enum{
 	COMMAND = 0,
 	DATA,
-}dataStatus_e;
+}DCgpio_e;
 
 /**
  * @brief Screen state machine state prototype
@@ -50,7 +50,7 @@ typedef enum{
 typedef errorCode_u (*screenState)();
 
 //communication functions with the SSD1306
-static inline void setDataStatus(dataStatus_e value);
+static inline void setDataCommandGPIO(DCgpio_e value);
 static errorCode_u sendCommand(SSD1306register_e regNumber, const uint8_t parameters[], uint8_t nbParameters);
 
 //state machine
@@ -106,7 +106,7 @@ errorCode_u SSD1306initialise(SPI_TypeDef* handle, DMA_TypeDef* dma, uint32_t dm
  *
  * @param value Value of the data/command pin
  */
-static inline void setDataStatus(dataStatus_e value){
+static inline void setDataCommandGPIO(DCgpio_e value){
 	if(value == COMMAND)
 		LL_GPIO_ResetOutputPin(SSD1306_DC_GPIO_Port, SSD1306_DC_Pin);
 	else
@@ -137,7 +137,7 @@ errorCode_u sendCommand(SSD1306register_e regNumber, const uint8_t parameters[],
 
 	//set command pin and enable SPI
 	ssd1306SPITimer_ms = SPI_TIMEOUT_MS;
-	setDataStatus(COMMAND);
+	setDataCommandGPIO(COMMAND);
 	LL_SPI_Enable(_spiHandle);
 
 	//send the command byte
@@ -342,7 +342,7 @@ errorCode_u stSendingData(){
 	}
 
 	//set data GPIO and enable SPI
-	setDataStatus(DATA);
+	setDataCommandGPIO(DATA);
 	LL_SPI_Enable(_spiHandle);
 
 	//configure the DMA transaction
