@@ -12,7 +12,6 @@
 
 extern volatile uint16_t	screenTimer_ms;
 extern volatile uint16_t	ssd1306SPITimer_ms;
-extern volatile uint8_t		ssdDMAdone;
 
 errorCode_u SSD1306initialise(SPI_TypeDef* handle, DMA_TypeDef* dma, uint32_t dmaChannel);
 errorCode_u SSD1306update();
