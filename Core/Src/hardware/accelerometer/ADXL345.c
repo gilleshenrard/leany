@@ -308,6 +308,7 @@ errorCode_u integrateFIFO(int16_t values[]){
 	uint8_t buffer[ADXL_NB_DATA_REGISTERS];
 	uint8_t axis;
 
+	//set the axis values to 0 before integrating
 	values[X_AXIS] = values[Y_AXIS] = values[Z_AXIS] = 0;
 
 	//for each of the samples to read
