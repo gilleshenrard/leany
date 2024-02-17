@@ -1,7 +1,7 @@
 /**
  * @brief Implement the ADXL345 accelerometer communication
  * @author Gilles Henrard
- * @date 15/02/2024
+ * @date 17/02/2024
  *
  * @note Additional information can be found in :
  *   - ADXL345 datasheet : https://www.analog.com/media/en/technical-documentation/data-sheets/ADXL345.pdf
@@ -63,7 +63,7 @@ static errorCode_u stError();
 //manipulation functions
 static errorCode_u writeRegister(adxl345Registers_e registerNumber, uint8_t value);
 static errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint8_t size);
-static errorCode_u integrateFIFO(int16_t* xValue, int16_t* yValue, int16_t* zValue);
+static errorCode_u integrateFIFO(int16_t values[]);
 
 //tool functions
 static inline uint8_t isFIFOdataReady();
@@ -294,13 +294,11 @@ static inline int16_t twoComplement(uint8_t MSB, uint8_t LSB){
 /**
  * @brief Retrieve and average the values held in the ADXL FIFOs
  *
- * @param[out] xValue Integrated X axis value
- * @param[out] yValue Integrated Y axis value
- * @param[out] zValue Integrated Z axis value
+ * @param[out] xValue Integrated X, Y and Z axis values
  * @retval 0 Success
  * @retval 1 Error while retrieving values from the FIFO
  */
-errorCode_u integrateFIFO(int16_t* xValue, int16_t* yValue, int16_t* zValue){
+errorCode_u integrateFIFO(int16_t values[]){
 	static const uint8_t X_INDEX_MSB = 1U;	///< Index of the X MSB in the measurements
 	static const uint8_t X_INDEX_LSB = 0U;	///< Index of the X LSB in the measurements
 	static const uint8_t Y_INDEX_MSB = 3U;	///< Index of the Y MSB in the measurements
@@ -309,7 +307,7 @@ errorCode_u integrateFIFO(int16_t* xValue, int16_t* yValue, int16_t* zValue){
 	static const uint8_t Z_INDEX_LSB = 4U;	///< Index of the Z LSB in the measurements	
 	static uint8_t buffer[ADXL_NB_DATA_REGISTERS];
 
-	*xValue = *yValue = *zValue = 0;
+	values[X_AXIS] = values[Y_AXIS] = values[Z_AXIS] = 0;
 
 	//for each of the samples to read
 	for(uint8_t i = 0 ; i < ADXL_AVG_SAMPLES ; i++){
@@ -321,9 +319,9 @@ errorCode_u integrateFIFO(int16_t* xValue, int16_t* yValue, int16_t* zValue){
 		}
 
 		//add the measurements (formatted from a two's complement) to their final value buffer
-		*xValue += twoComplement(buffer[X_INDEX_MSB], buffer[X_INDEX_LSB]);
-		*yValue += twoComplement(buffer[Y_INDEX_MSB], buffer[Y_INDEX_LSB]);
-		*zValue += twoComplement(buffer[Z_INDEX_MSB], buffer[Z_INDEX_LSB]);
+		values[X_AXIS] += twoComplement(buffer[X_INDEX_MSB], buffer[X_INDEX_LSB]);
+		values[Y_AXIS] += twoComplement(buffer[Y_INDEX_MSB], buffer[Y_INDEX_LSB]);
+		values[Z_AXIS] += twoComplement(buffer[Z_INDEX_MSB], buffer[Z_INDEX_LSB]);
 
 		//wait for a while to make sure 5 us pass between two reads
 		//	as stated in the datasheet, section "Retrieving data from the FIFO"
@@ -332,9 +330,9 @@ errorCode_u integrateFIFO(int16_t* xValue, int16_t* yValue, int16_t* zValue){
 	}
 
 	//divide the buffers to average out
-	*xValue >>= ADXL_AVG_SHIFT;
-	*yValue >>= ADXL_AVG_SHIFT;
-	*zValue >>= ADXL_AVG_SHIFT;
+	values[X_AXIS] >>= ADXL_AVG_SHIFT;
+	values[Y_AXIS] >>= ADXL_AVG_SHIFT;
+	values[Z_AXIS] >>= ADXL_AVG_SHIFT;
 
 	return (ERR_SUCCESS);
 }
@@ -428,7 +426,7 @@ errorCode_u stMeasuringST_OFF(){
 		return (ERR_SUCCESS);
 
 	//retrieve the integrated measurements (to be used with self-testing)
-	_result = integrateFIFO(&_latestValues[X_AXIS], &_latestValues[Y_AXIS], &_latestValues[Z_AXIS]);
+	_result = integrateFIFO(_latestValues);
 	if(IS_ERROR(_result)){
 		_state = stError;
 		return (pushErrorCode(_result, SELF_TESTING_OFF, 2));
@@ -488,9 +486,7 @@ errorCode_u stWaitingForSTenabled(){
  * @retval 4 Self-test values out of range
  */
 errorCode_u stMeasuringST_ON(){
-	int16_t STdeltaX = 0;
-	int16_t STdeltaY = 0;
-	int16_t STdeltaZ = 0;
+	int16_t STdeltas[3];
 
 	//if timeout, go error
 	if(!adxlTimer_ms){
@@ -503,7 +499,7 @@ errorCode_u stMeasuringST_ON(){
 		return (ERR_SUCCESS);
 
 	//integrate the FIFOs
-	_result = integrateFIFO(&STdeltaX, &STdeltaY, &STdeltaZ);
+	_result = integrateFIFO(STdeltas);
 	if(IS_ERROR(_result)){
 		_state = stError;
 		return (pushErrorCode(_result, SELF_TESTING_ON, 2));
@@ -517,14 +513,14 @@ errorCode_u stMeasuringST_ON(){
 	}
 
 	//compute the self-test deltas
-	STdeltaX -= _latestValues[X_AXIS];
-	STdeltaY -= _latestValues[Y_AXIS];
-	STdeltaZ -= _latestValues[Z_AXIS];
+	STdeltas[X_AXIS] -= _latestValues[X_AXIS];
+	STdeltas[Y_AXIS] -= _latestValues[Y_AXIS];
+	STdeltas[Z_AXIS] -= _latestValues[Z_AXIS];
 
 	//if self-test values out of range, error
-	if((STdeltaX <= ADXL_ST_MINX_33_16G) || (STdeltaX >= ADXL_ST_MAXX_33_16G)
-		|| (STdeltaY <= ADXL_ST_MINY_33_16G) || (STdeltaY >= ADXL_ST_MAXY_33_16G)
-		|| (STdeltaZ <= ADXL_ST_MINZ_33_16G) || (STdeltaZ >= ADXL_ST_MAXZ_33_16G))
+	if((STdeltas[X_AXIS] <= ADXL_ST_MINX_33_16G) || (STdeltas[X_AXIS] >= ADXL_ST_MAXX_33_16G)
+		|| (STdeltas[Y_AXIS] <= ADXL_ST_MINY_33_16G) || (STdeltas[Y_AXIS] >= ADXL_ST_MAXY_33_16G)
+		|| (STdeltas[Z_AXIS] <= ADXL_ST_MINZ_33_16G) || (STdeltas[Z_AXIS] >= ADXL_ST_MAXZ_33_16G))
 	{
 		_state = stError;
 		return (pushErrorCode(_result, SELF_TESTING_ON, 4)); 	// @suppress("Avoid magic numbers")
@@ -558,7 +554,7 @@ errorCode_u stMeasuring(){
 	adxlTimer_ms = INT_TIMEOUT_MS;
 
 	//integrate the FIFOs
-	_result = integrateFIFO(&_latestValues[X_AXIS], &_latestValues[Y_AXIS], &_latestValues[Z_AXIS]);
+	_result = integrateFIFO(_latestValues);
 	if(IS_ERROR(_result)){
 		_state = stError;
 		return (pushErrorCode(_result, MEASURE, 2));
