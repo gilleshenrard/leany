@@ -299,13 +299,14 @@ static inline int16_t twoComplement(uint8_t MSB, uint8_t LSB){
  * @retval 1 Error while retrieving values from the FIFO
  */
 errorCode_u integrateFIFO(int16_t values[]){
-	static const uint8_t X_INDEX_MSB = 1U;	///< Index of the X MSB in the measurements
-	static const uint8_t X_INDEX_LSB = 0U;	///< Index of the X LSB in the measurements
-	static const uint8_t Y_INDEX_MSB = 3U;	///< Index of the Y MSB in the measurements
-	static const uint8_t Y_INDEX_LSB = 2U;	///< Index of the Y LSB in the measurements
-	static const uint8_t Z_INDEX_MSB = 5U;	///< Index of the Z MSB in the measurements
-	static const uint8_t Z_INDEX_LSB = 4U;	///< Index of the Z LSB in the measurements	
-	static uint8_t buffer[ADXL_NB_DATA_REGISTERS];
+	//Array describing the order in which the bytes come when reading the ADXL345 FIFO
+	static const uint8_t dataRegistersIndexes[NB_AXIS][2] = {
+		[X_AXIS] = {1, 0},
+		[Y_AXIS] = {3, 2},
+		[Z_AXIS] = {5, 4},
+	};
+	uint8_t buffer[ADXL_NB_DATA_REGISTERS];
+	uint8_t axis;
 
 	values[X_AXIS] = values[Y_AXIS] = values[Z_AXIS] = 0;
 
@@ -319,9 +320,8 @@ errorCode_u integrateFIFO(int16_t values[]){
 		}
 
 		//add the measurements (formatted from a two's complement) to their final value buffer
-		values[X_AXIS] += twoComplement(buffer[X_INDEX_MSB], buffer[X_INDEX_LSB]);
-		values[Y_AXIS] += twoComplement(buffer[Y_INDEX_MSB], buffer[Y_INDEX_LSB]);
-		values[Z_AXIS] += twoComplement(buffer[Z_INDEX_MSB], buffer[Z_INDEX_LSB]);
+		for(axis = 0 ; axis < NB_AXIS ; axis++)
+			values[axis] += twoComplement(buffer[dataRegistersIndexes[axis][0]], buffer[dataRegistersIndexes[axis][1]]);
 
 		//wait for a while to make sure 5 us pass between two reads
 		//	as stated in the datasheet, section "Retrieving data from the FIFO"
@@ -330,9 +330,8 @@ errorCode_u integrateFIFO(int16_t values[]){
 	}
 
 	//divide the buffers to average out
-	values[X_AXIS] >>= ADXL_AVG_SHIFT;
-	values[Y_AXIS] >>= ADXL_AVG_SHIFT;
-	values[Z_AXIS] >>= ADXL_AVG_SHIFT;
+	for(axis = 0 ; axis < NB_AXIS ; axis++)
+		values[axis] >>= ADXL_AVG_SHIFT;
 
 	return (ERR_SUCCESS);
 }
@@ -486,7 +485,7 @@ errorCode_u stWaitingForSTenabled(){
  * @retval 4 Self-test values out of range
  */
 errorCode_u stMeasuringST_ON(){
-	int16_t STdeltas[3];
+	int16_t STdeltas[NB_AXIS];
 
 	//if timeout, go error
 	if(!adxlTimer_ms){
