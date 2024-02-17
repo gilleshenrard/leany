@@ -29,6 +29,7 @@ It is shipped with the GNU Arm Embedded Toolchain, the STLink utilities and the 
 To compile with VSCode, the following is required :
 - CMake (minimum version 3.20)
 - The Ninja build-system
+- VSCode extensions : C/C++ pack, Cortex-Debug, Cmake, CMake Tools
 
 ### 3. Operation principles
 This devices functions in 4 steps :
