@@ -20,11 +20,9 @@ This devices functions in 4 steps :
 3. Format the angles with their sign and print them on the screen (if the angle changed)
 4. Repeat forever
 
-### 3. Implementation
-#### 3.1. Hardware
-##### 3.1.1. Wiring
+### 3. Wiring
 | STM32/Bluepill pin | Alternate use | ADXL345 pin | SSD1306 pin |
-|--------------------|---------------|-------------|-------------|
+|:------------------:|:-------------:|:-----------:|:-----------:|
 | PA4                | SPI1 NSS      | CS          |             |
 | PA5                | SPI1 SCK      | SCL         |             |
 | PA6                | SPI1 MISO     | SDO         |             |
@@ -36,3 +34,6 @@ This devices functions in 4 steps :
 | PA9                | GPIO output   |             | D/C         |
 | PA10               | GPIO output   |             | RES         |
 
+Note : Two different SPI are used because, while the SSD1306 can go at full speed, the ADXL345 can go at max. 5MHz.
+
+In addition, SPI2 is a transmit-only master because the SSD1306 does not allow any read operation in serial mode. 
