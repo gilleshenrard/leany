@@ -23,6 +23,16 @@ This devices functions in 4 steps :
 ### 3. Implementation
 #### 3.1. Hardware
 ##### 3.1.1. Wiring
-| STM32 pin | Bluepill GPIO | Alternate use | ADXL345 pin |
-| --------- | ------------- | ------------- | ----------- |
-| PA4       | A4            | SPI1 NSS      | CS          |
+| STM32/Bluepill pin | Alternate use | ADXL345 pin | SSD1306 pin |
+|--------------------|---------------|-------------|-------------|
+| PA4                | SPI1 NSS      | CS          |             |
+| PA5                | SPI1 SCK      | SCL         |             |
+| PA6                | SPI1 MISO     | SDO         |             |
+| PA7                | SPI1 MOSI     | SDA         |             |
+| PB0                | GPIO output   | INT1        |             |
+| PB12               | SPI2 NSS      |             | CS          |
+| PB13               | SPI2 SCK      |             | D0          |
+| PB15               | SPI2 MOSI     |             | D1          |
+| PA9                | GPIO output   |             | D/C         |
+| PA10               | GPIO output   |             | RES         |
+
