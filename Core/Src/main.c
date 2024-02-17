@@ -245,15 +245,15 @@ static void MX_SPI1_Init(void)
   PA6   ------> SPI1_MISO
   PA7   ------> SPI1_MOSI
   */
-  GPIO_InitStruct.Pin = ADXL_NSS_Pin|ADXL_SCK_Pin|ADXL_MOSI_Pin;
+  GPIO_InitStruct.Pin = ADXL_CS_Pin|ADXL_SCL_Pin|ADXL_SDA_Pin;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
   GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_HIGH;
   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
   LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  GPIO_InitStruct.Pin = ADXL_MISO_Pin;
+  GPIO_InitStruct.Pin = ADXL_SDO_Pin;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_FLOATING;
-  LL_GPIO_Init(ADXL_MISO_GPIO_Port, &GPIO_InitStruct);
+  LL_GPIO_Init(ADXL_SDO_GPIO_Port, &GPIO_InitStruct);
 
   /* USER CODE BEGIN SPI1_Init 1 */
 
@@ -302,15 +302,15 @@ static void MX_SPI2_Init(void)
   PB14   ------> SPI2_MISO
   PB15   ------> SPI2_MOSI
   */
-  GPIO_InitStruct.Pin = SSD1306_NSS_Pin|SSD1306_SCK_Pin|SSD1306_MOSI_Pin;
+  GPIO_InitStruct.Pin = SSD1306_CS_Pin|SSD1306_D0_Pin|SSD1306_D1_Pin;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
   GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_HIGH;
   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
   LL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  GPIO_InitStruct.Pin = SSD1306_MISO_Pin;
+  GPIO_InitStruct.Pin = SSD1306_UNUSED_Pin;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_FLOATING;
-  LL_GPIO_Init(SSD1306_MISO_GPIO_Port, &GPIO_InitStruct);
+  LL_GPIO_Init(SSD1306_UNUSED_GPIO_Port, &GPIO_InitStruct);
 
   /* SPI2 DMA Init */
 
@@ -379,7 +379,7 @@ static void MX_GPIO_Init(void)
   LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_GPIOB);
 
   /**/
-  LL_GPIO_ResetOutputPin(GPIOA, SSD1306_DC_Pin|SSD1306_RST_Pin);
+  LL_GPIO_ResetOutputPin(GPIOA, SSD1306_DC_Pin|SSD1306_RES_Pin);
 
   /**/
   GPIO_InitStruct.Pin = ADXL_INT1_Pin;
@@ -388,7 +388,7 @@ static void MX_GPIO_Init(void)
   LL_GPIO_Init(ADXL_INT1_GPIO_Port, &GPIO_InitStruct);
 
   /**/
-  GPIO_InitStruct.Pin = SSD1306_DC_Pin|SSD1306_RST_Pin;
+  GPIO_InitStruct.Pin = SSD1306_DC_Pin|SSD1306_RES_Pin;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
   GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;

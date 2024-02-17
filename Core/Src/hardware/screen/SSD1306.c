@@ -293,8 +293,8 @@ static errorCode_u stConfiguring(){
 	errorCode_u result;
 
 	//reset the chip
-	LL_GPIO_ResetOutputPin(SSD1306_RST_GPIO_Port, SSD1306_RST_Pin);
-	LL_GPIO_SetOutputPin(SSD1306_RST_GPIO_Port, SSD1306_RST_Pin);
+	LL_GPIO_ResetOutputPin(SSD1306_RES_GPIO_Port, SSD1306_RES_Pin);
+	LL_GPIO_SetOutputPin(SSD1306_RES_GPIO_Port, SSD1306_RES_Pin);
 
 	//initialisation taken from PDF p. 64 (Application Example)
 	//	values which don't change from reset values aren't modified
