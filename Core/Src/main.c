@@ -299,7 +299,6 @@ static void MX_SPI2_Init(void)
   /**SPI2 GPIO Configuration
   PB12   ------> SPI2_NSS
   PB13   ------> SPI2_SCK
-  PB14   ------> SPI2_MISO
   PB15   ------> SPI2_MOSI
   */
   GPIO_InitStruct.Pin = SSD1306_CS_Pin|SSD1306_D0_Pin|SSD1306_D1_Pin;
@@ -307,10 +306,6 @@ static void MX_SPI2_Init(void)
   GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_HIGH;
   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
   LL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-  GPIO_InitStruct.Pin = SSD1306_UNUSED_Pin;
-  GPIO_InitStruct.Mode = LL_GPIO_MODE_FLOATING;
-  LL_GPIO_Init(SSD1306_UNUSED_GPIO_Port, &GPIO_InitStruct);
 
   /* SPI2 DMA Init */
 
