@@ -39,6 +39,21 @@ This devices functions in 4 steps :
 4. Repeat forever
 
 ### 4. Wiring
+
+STLink V2 pinout :
+
+![](img/STLinkV2_pinout.jpg)
+
+STLink to Bluepill wiring :
+| STLink V2 pin | STLink V2 pin number | Bluepill pin | Circuit  |
+|:-------------:|:--------------------:|:------------:|:--------:|
+| MCU VDD       | 1                    | 3V3          |          |
+| SWDIO         | 7                    | SWDIO        |          |
+| SWCLK         | 9                    | SWCLK        |          |
+| GND           | 20                   | GND          |          |
+| VDD           | 19                   |              | VDD rail |
+
+Bluepill to peripherals wiring :
 | STM32/Bluepill pin | Alternate use | ADXL345 pin | SSD1306 pin |
 |:------------------:|:-------------:|:-----------:|:-----------:|
 | PA4                | SPI1 NSS      | CS          |             |
