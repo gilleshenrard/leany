@@ -2,7 +2,7 @@
  * @file SSD1306.c
  * @brief Implement the functioning of the SSD1306 OLED screen via SPI and DMA
  * @author Gilles Henrard
- * @date 16/02/2024
+ * @date 18/02/2024
  *
  * @note Datasheet : https://cdn-shop.adafruit.com/datasheets/SSD1306.pdf
  */
@@ -29,7 +29,7 @@ _Static_assert((ANGLE_NB_CHARS * VERDANA_CHAR_WIDTH) <= (SSD_LAST_COLUMN + 1), "
 typedef enum _SSD1306functionCodes_e{
 	INIT = 0,		///< SSD1306initialise()
 	SEND_CMD,		///< SSD1306sendCommand()
-	PRT_ANGLE,		///< SSD1306_printAngle()
+	PRT_ANGLE,		///< SSD1306_printAngleTenths()
 	SENDING_DATA,	///< stSendingData()
 	WAITING_DMA_RDY	///< stWaitingForTXdone()
 }_SSD1306functionCodes_e;
@@ -62,7 +62,6 @@ static errorCode_u stWaitingForTXdone();
 //state variables
 volatile uint16_t			screenTimer_ms = 0;				///< Timer used with screen SPI transmissions (in ms)
 volatile uint16_t			ssd1306SPITimer_ms = 0;			///< Timer used to make sure SPI does not time out (in ms)
-volatile uint8_t			ssdDMAdone = 0;					///< Flag used to indicate a DMA transmission is finished
 static SPI_TypeDef*			_spiHandle = (void*)0;			///< SPI handle used with the SSD1306
 static DMA_TypeDef*			_dmaHandle = (void*)0;			///< DMA handle used with the SSD1306
 static uint32_t				_dmaChannel = 0x00000000U;		///< DMA channel used
@@ -96,7 +95,6 @@ errorCode_u SSD1306initialise(SPI_TypeDef* handle, DMA_TypeDef* dma, uint32_t dm
 
 	//set the DMA source and destination addresses (will always use the same ones)
 	LL_DMA_ConfigAddresses(_dmaHandle, _dmaChannel, (uint32_t)&_screenBuffer, LL_SPI_DMA_GetRegAddr(_spiHandle), LL_DMA_DIRECTION_MEMORY_TO_PERIPH);
-	LL_DMA_EnableIT_TC(_dmaHandle, _dmaChannel);
 
 	return (ERR_SUCCESS);
 }
@@ -203,19 +201,16 @@ uint8_t isScreenReady(){
 /**
  * @brief Print an angle (in degrees, with sign) on the screen
  *
- * @param angle	Angle to print
+ * @param angleTenths	Angle to print
  * @param page	First page on which to print the angle (screen line)
  * @param column First column on which to print the angle
  *
  * @return Success
  * @retval 1	Angle above maximum amplitude
  */
-errorCode_u SSD1306_printAngle(float angle, uint8_t page, uint8_t column){
-	static const float MIN_ANGLE_DEG = -90.0f;	///< Minimum angle allowed (in degrees)
-	static const float MAX_ANGLE_DEG =  90.0f;	///< Maximum angle allowed (in degrees)
-	static const float FLOAT_FACTOR_10 = 10.0f;	///< Factor of 10 used in float calculations
-	static const uint8_t INT_FACTOR_10 = 10U;	///< Factor of 10 used in integer calculations
-	static const float NEG_THRESHOLD = -0.05f;	///< Threshold above which an angle is considered positive (circumvents float incaccuracies)
+errorCode_u SSD1306_printAngleTenths(int16_t angleTenths, uint8_t page, uint8_t column){
+	static const int16_t MIN_ANGLE_DEG_TENTHS = -900;	///< Minimum angle allowed (in tenths of degrees)
+	static const int16_t MAX_ANGLE_DEG_TENTHS =  900;	///< Maximum angle allowed (in tenths of degrees)
 	static const uint8_t INDEX_SIGN = 0;		///< Index of the sign in the angle indexes array
 	static const uint8_t INDEX_TENS = 1U;		///< Index of the tens in the angle indexes array
 	static const uint8_t INDEX_UNITS = 2U;		///< Index of the units in the angle indexes array
@@ -224,7 +219,7 @@ errorCode_u SSD1306_printAngle(float angle, uint8_t page, uint8_t column){
 	uint8_t* iterator = _screenBuffer;
 
 	//if angle out of bounds, return error
-	if((angle < MIN_ANGLE_DEG) || (angle > MAX_ANGLE_DEG))
+	if((angleTenths < MIN_ANGLE_DEG_TENTHS) || (angleTenths > MAX_ANGLE_DEG_TENTHS))
 		return (createErrorCode(PRT_ANGLE, 1, ERR_WARNING));
 
 	//store the values
@@ -235,15 +230,15 @@ errorCode_u SSD1306_printAngle(float angle, uint8_t page, uint8_t column){
 	_size = ANGLE_NB_CHARS * VERDANA_NB_BYTES_CHAR;
 
 	//if angle negative, replace plus sign with minus sign
-	if(angle < NEG_THRESHOLD){
+	if(angleTenths < 0){
 		charIndexes[INDEX_SIGN] = INDEX_MINUS;
-		angle = -angle;
+		angleTenths = -angleTenths;
 	}
 
 	//fill the angle characters indexes array with the float values (tens, units, tenths)
-	charIndexes[INDEX_TENS] = (uint8_t)(angle / FLOAT_FACTOR_10);
-	charIndexes[INDEX_UNITS] = ((uint8_t)angle) % INT_FACTOR_10;
-	charIndexes[INDEX_TENTHS] = (uint8_t)((uint16_t)(angle * FLOAT_FACTOR_10) % INT_FACTOR_10);
+	charIndexes[INDEX_TENS] = (uint8_t)(angleTenths / 100);
+	charIndexes[INDEX_UNITS] = (uint8_t)((angleTenths / 10) % 10);
+	charIndexes[INDEX_TENTHS] = (uint8_t)(angleTenths % 10);
 
 	//fill the buffer with all the required bitmaps bytes (column by column, then character by character, then page by page)
 	for(page = 0 ; page < VERDANA_NB_PAGES ; page++){
@@ -295,8 +290,8 @@ static errorCode_u stConfiguring(){
 	errorCode_u result;
 
 	//reset the chip
-	LL_GPIO_ResetOutputPin(SSD1306_RST_GPIO_Port, SSD1306_RST_Pin);
-	LL_GPIO_SetOutputPin(SSD1306_RST_GPIO_Port, SSD1306_RST_Pin);
+	LL_GPIO_ResetOutputPin(SSD1306_RES_GPIO_Port, SSD1306_RES_Pin);
+	LL_GPIO_SetOutputPin(SSD1306_RES_GPIO_Port, SSD1306_RES_Pin);
 
 	//initialisation taken from PDF p. 64 (Application Example)
 	//	values which don't change from reset values aren't modified
@@ -360,7 +355,6 @@ errorCode_u stSendingData(){
 
 	//send the data
 	screenTimer_ms = SPI_TIMEOUT_MS;
-	ssdDMAdone = 0;
 	LL_SPI_EnableDMAReq_TX(_spiHandle);
 
 	//get to next
@@ -376,20 +370,27 @@ errorCode_u stSendingData(){
  * @retval 2	Error interrupt occurred during the DMA transfer
  */
 errorCode_u stWaitingForTXdone(){
+	errorCode_u result = ERR_SUCCESS;
+
 	//if timer elapsed, stop DMA and error
 	if(!screenTimer_ms){
-		LL_DMA_DisableChannel(_dmaHandle, _dmaChannel);
-		LL_SPI_Disable(_spiHandle);
-		_state = stIdle;
-		return (createErrorCode(WAITING_DMA_RDY, 1, ERR_ERROR));
+		result = createErrorCode(WAITING_DMA_RDY, 1, ERR_ERROR);
+		goto finalise;
 	}
 
-	if(!ssdDMAdone)
+	//if DMA error, error
+	if(LL_DMA_IsActiveFlag_TE5(_dmaHandle)){
+		result = createErrorCode(WAITING_DMA_RDY, 2, ERR_ERROR);
+		goto finalise;
+	}
+
+	//if transmission not complete yet, exit
+	if(!LL_DMA_IsActiveFlag_TC5(_dmaHandle))
 		return (ERR_SUCCESS);
 
-	//disable SPI and get to idle state
+finalise:
 	LL_DMA_DisableChannel(_dmaHandle, _dmaChannel);
 	LL_SPI_Disable(_spiHandle);
 	_state = stIdle;
-	return (ERR_SUCCESS);
+	return result;
 }

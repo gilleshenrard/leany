@@ -28,6 +28,7 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f1xx_ll_dma.h"
+#include "stm32f1xx_ll_iwdg.h"
 #include "stm32f1xx_ll_rcc.h"
 #include "stm32f1xx_ll_bus.h"
 #include "stm32f1xx_ll_system.h"
@@ -70,29 +71,26 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define ADXL_NSS_Pin LL_GPIO_PIN_4
-#define ADXL_NSS_GPIO_Port GPIOA
-#define ADXL_SCK_Pin LL_GPIO_PIN_5
-#define ADXL_SCK_GPIO_Port GPIOA
-#define ADXL_MISO_Pin LL_GPIO_PIN_6
-#define ADXL_MISO_GPIO_Port GPIOA
-#define ADXL_MOSI_Pin LL_GPIO_PIN_7
-#define ADXL_MOSI_GPIO_Port GPIOA
+#define ADXL_CS_Pin LL_GPIO_PIN_4
+#define ADXL_CS_GPIO_Port GPIOA
+#define ADXL_SCL_Pin LL_GPIO_PIN_5
+#define ADXL_SCL_GPIO_Port GPIOA
+#define ADXL_SDO_Pin LL_GPIO_PIN_6
+#define ADXL_SDO_GPIO_Port GPIOA
+#define ADXL_SDA_Pin LL_GPIO_PIN_7
+#define ADXL_SDA_GPIO_Port GPIOA
 #define ADXL_INT1_Pin LL_GPIO_PIN_0
 #define ADXL_INT1_GPIO_Port GPIOB
-#define ADXL_INT1_EXTI_IRQn EXTI0_IRQn
-#define SSD1306_NSS_Pin LL_GPIO_PIN_12
-#define SSD1306_NSS_GPIO_Port GPIOB
-#define SSD1306_SCK_Pin LL_GPIO_PIN_13
-#define SSD1306_SCK_GPIO_Port GPIOB
-#define SSD1306_MISO_Pin LL_GPIO_PIN_14
-#define SSD1306_MISO_GPIO_Port GPIOB
-#define SSD1306_MOSI_Pin LL_GPIO_PIN_15
-#define SSD1306_MOSI_GPIO_Port GPIOB
+#define SSD1306_CS_Pin LL_GPIO_PIN_12
+#define SSD1306_CS_GPIO_Port GPIOB
+#define SSD1306_D0_Pin LL_GPIO_PIN_13
+#define SSD1306_D0_GPIO_Port GPIOB
+#define SSD1306_D1_Pin LL_GPIO_PIN_15
+#define SSD1306_D1_GPIO_Port GPIOB
 #define SSD1306_DC_Pin LL_GPIO_PIN_9
 #define SSD1306_DC_GPIO_Port GPIOA
-#define SSD1306_RST_Pin LL_GPIO_PIN_10
-#define SSD1306_RST_GPIO_Port GPIOA
+#define SSD1306_RES_Pin LL_GPIO_PIN_10
+#define SSD1306_RES_GPIO_Port GPIOA
 #define DEBUG_SWDIO_Pin LL_GPIO_PIN_13
 #define DEBUG_SWDIO_GPIO_Port GPIOA
 #define DEBUG_SWCLK_Pin LL_GPIO_PIN_14
