@@ -236,13 +236,18 @@ errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint
  * @param axis Axis for which get the angle with the Z axis
  * @return Angle with the Z axis
  */
-float getAngleDegrees(axis_e axis){
-	static const float DEGREES_180 = 180.0f;	///< Value representing a flat angle
+int16_t getAngleDegreesTenths(axis_e axis){
+	static const float RADIANS_TO_DEGREES_TENTHS = 180.0f * 10.0f * (float)M_1_PI;
 
 	if(!_latestValues[Z_AXIS])
-		return (0.0f);
+		return (0);
 
-	return ((atanf((float)_latestValues[axis] / (float)_latestValues[Z_AXIS]) * DEGREES_180) * (float)M_1_PI);
+	//compute the angle between Z axis and the requested one
+	//	then transform radians to 0.1 degrees
+	//	formula : degrees_tenths = (arctan(axis/Z) * 180° * 10) / PI
+	float angle = atanf((float)_latestValues[axis] / (float)_latestValues[Z_AXIS]);
+	angle *= RADIANS_TO_DEGREES_TENTHS;
+	return ((int16_t)angle);
 }
 
 /**
