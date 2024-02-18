@@ -231,7 +231,7 @@ errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint
 }
 
 /**
- * @brief Transpose a measurement to an angle in degrees with the Z axis
+ * @brief Transpose a measurement to an angle in tenths of degrees with the Z axis
  *
  * @param axis Axis for which get the angle with the Z axis
  * @return Angle with the Z axis
