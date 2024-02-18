@@ -44,6 +44,8 @@ STLink V2 pinout :
 
 ![](img/STLinkV2_pinout.jpg)
 
+Photo : [PlayEmbedded](https://www.playembedded.org/blog/mikroe-clicker-2-for-stm32-and-stlink-v2/)
+
 STLink to Bluepill wiring :
 | STLink V2 pin | STLink V2 pin number | Bluepill pin | Circuit  |
 |:-------------:|:--------------------:|:------------:|:--------:|
