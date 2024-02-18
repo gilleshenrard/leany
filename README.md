@@ -50,8 +50,8 @@ STLink to Bluepill wiring :
 | MCU VDD       | 1                    | 3V3          |          |
 | SWDIO         | 7                    | SWDIO        |          |
 | SWCLK         | 9                    | SWCLK        |          |
-| GND           | 20                   | GND          |          |
 | VDD           | 19                   |              | VDD rail |
+| GND           | 20                   |              | GND rail |
 
 Bluepill to peripherals wiring :
 | STM32/Bluepill pin | Alternate use | ADXL345 pin | SSD1306 pin |
