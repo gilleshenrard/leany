@@ -498,9 +498,9 @@ errorCode_u stMeasuringST_ON(){
 	STdeltas[Z_AXIS] -= _latestValues[Z_AXIS];
 
 	//if self-test values out of range, error
-	if((STdeltas[X_AXIS] <= ADXL_ST_MINX_33_16G) || (STdeltas[X_AXIS] >= ADXL_ST_MAXX_33_16G)
-		|| (STdeltas[Y_AXIS] <= ADXL_ST_MINY_33_16G) || (STdeltas[Y_AXIS] >= ADXL_ST_MAXY_33_16G)
-		|| (STdeltas[Z_AXIS] <= ADXL_ST_MINZ_33_16G) || (STdeltas[Z_AXIS] >= ADXL_ST_MAXZ_33_16G))
+	if((STdeltas[X_AXIS] <= ADXL_ST_MINX_3V3_16G) || (STdeltas[X_AXIS] >= ADXL_ST_MAXX_3V3_16G)
+		|| (STdeltas[Y_AXIS] <= ADXL_ST_MINY_3V3_16G) || (STdeltas[Y_AXIS] >= ADXL_ST_MAXY_3V3_16G)
+		|| (STdeltas[Z_AXIS] <= ADXL_ST_MINZ_3V3_16G) || (STdeltas[Z_AXIS] >= ADXL_ST_MAXZ_3V3_16G))
 	{
 		_state = stError;
 		return (pushErrorCode(_result, SELF_TESTING_ON, 4)); 	// @suppress("Avoid magic numbers")
