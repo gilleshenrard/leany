@@ -67,7 +67,6 @@ static errorCode_u integrateFIFO(int16_t values[]);
 
 //tool functions
 static inline uint8_t isFIFOdataReady();
-static inline float arctanDegrees(int16_t direction, int16_t axisZ);
 static inline int16_t twoComplement(uint8_t MSB, uint8_t LSB);
 
 // Default DATA FORMAT (register 0x31) and FIFO CONTROL (register 0x38) register values
@@ -251,7 +250,12 @@ int16_t ADXL345getValue(axis_e axis){
  * @return Angle with the Z axis
  */
 float measureToAngleDegrees(int16_t axisValue){
-	return (arctanDegrees(axisValue, _latestValues[Z_AXIS]));
+	static const float DEGREES_180 = 180.0f;	///< Value representing a flat angle
+
+	if(!_latestValues[Z_AXIS])
+		return (0.0f);
+
+	return ((atanf((float)axisValue / (float)_latestValues[Z_AXIS]) * DEGREES_180) * (float)M_1_PI);
 }
 
 /**
@@ -262,22 +266,6 @@ float measureToAngleDegrees(int16_t axisValue){
  */
 static inline uint8_t isFIFOdataReady(){
 	return !LL_GPIO_IsInputPinSet(ADXL_INT1_GPIO_Port, ADXL_INT1_Pin);
-}
-
-/**
- * @brief Compute the angle (in degrees) between any axis and the Z axis
- *
- * @param direction Value (in G) of an axis
- * @param axisZ Value (in G) of the Z axis
- * @return Angle between direction and the Z axis
- */
-static inline float arctanDegrees(int16_t direction, int16_t axisZ){
-	static const float DEGREES_180 = 180.0f;	///< Value representing a flat angle
-
-	if(!axisZ)
-		return (0.0f);
-
-	return ((atanf((float)direction / (float)axisZ) * DEGREES_180) * (float)M_1_PI);
 }
 
 /**
