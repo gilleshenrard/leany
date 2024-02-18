@@ -19,6 +19,6 @@ typedef enum{
 errorCode_u	ADXL345initialise(const SPI_TypeDef* handle);
 errorCode_u	ADXL345update();
 uint8_t		ADXL345hasChanged(axis_e axis);
-float		getAngleDegrees(axis_e axis);
+int16_t		getAngleDegreesTenths(axis_e axis);
 
 #endif /* INC_ADXL345_H_ */
