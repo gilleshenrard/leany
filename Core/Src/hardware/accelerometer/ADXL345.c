@@ -231,31 +231,18 @@ errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint
 }
 
 /**
- * @brief Get the last known integrated measurements for an axis
- *
- * @param axis Axis of which get the measurement
- * @return Last known integrated measurement
- */
-int16_t ADXL345getValue(axis_e axis){
-	if(axis >= NB_AXIS)
-		axis = X_AXIS;
-
-	return (_latestValues[axis]);
-}
-
-/**
  * @brief Transpose a measurement to an angle in degrees with the Z axis
  *
  * @param axisValue Measurement to transpose
  * @return Angle with the Z axis
  */
-float measureToAngleDegrees(int16_t axisValue){
+float measureToAngleDegrees(axis_e axis){
 	static const float DEGREES_180 = 180.0f;	///< Value representing a flat angle
 
 	if(!_latestValues[Z_AXIS])
 		return (0.0f);
 
-	return ((atanf((float)axisValue / (float)_latestValues[Z_AXIS]) * DEGREES_180) * (float)M_1_PI);
+	return ((atanf((float)_latestValues[axis] / (float)_latestValues[Z_AXIS]) * DEGREES_180) * (float)M_1_PI);
 }
 
 /**
