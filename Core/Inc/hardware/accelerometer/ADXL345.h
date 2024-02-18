@@ -3,7 +3,6 @@
 #include "main.h"
 #include "errorstack.h"
 
-extern volatile uint8_t		adxlINT1occurred;
 extern volatile uint16_t	adxlTimer_ms;
 extern volatile uint16_t	adxlSPITimer_ms;
 
@@ -20,7 +19,6 @@ typedef enum{
 errorCode_u	ADXL345initialise(const SPI_TypeDef* handle);
 errorCode_u	ADXL345update();
 uint8_t		ADXL345hasChanged(axis_e axis);
-int16_t		ADXL345getValue(axis_e axis);
-float		measureToAngleDegrees(int16_t axisValue);
+int16_t		getAngleDegreesTenths(axis_e axis);
 
 #endif /* INC_ADXL345_H_ */

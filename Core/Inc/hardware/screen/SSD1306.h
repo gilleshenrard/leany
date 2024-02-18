@@ -12,12 +12,11 @@
 
 extern volatile uint16_t	screenTimer_ms;
 extern volatile uint16_t	ssd1306SPITimer_ms;
-extern volatile uint8_t		ssdDMAdone;
 
+uint8_t isScreenReady();
 errorCode_u SSD1306initialise(SPI_TypeDef* handle, DMA_TypeDef* dma, uint32_t dmaChannel);
 errorCode_u SSD1306update();
-uint8_t isScreenReady();
 errorCode_u SSD1306clearScreen();
-errorCode_u SSD1306_printAngle(float angle, uint8_t page, uint8_t column);
+errorCode_u SSD1306_printAngleTenths(int16_t angle, uint8_t page, uint8_t column);
 
 #endif /* INC_HARDWARE_SCREEN_SSD1306_H_ */

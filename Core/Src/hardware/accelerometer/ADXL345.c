@@ -1,7 +1,7 @@
 /**
  * @brief Implement the ADXL345 accelerometer communication
  * @author Gilles Henrard
- * @date 15/02/2024
+ * @date 17/02/2024
  *
  * @note Additional information can be found in :
  *   - ADXL345 datasheet : https://www.analog.com/media/en/technical-documentation/data-sheets/ADXL345.pdf
@@ -63,10 +63,10 @@ static errorCode_u stError();
 //manipulation functions
 static errorCode_u writeRegister(adxl345Registers_e registerNumber, uint8_t value);
 static errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint8_t size);
-static errorCode_u integrateFIFO(int16_t* xValue, int16_t* yValue, int16_t* zValue);
+static errorCode_u integrateFIFO(int16_t values[]);
 
 //tool functions
-static inline float arctanDegrees(int16_t direction, int16_t axisZ);
+static inline uint8_t isFIFOdataReady();
 static inline int16_t twoComplement(uint8_t MSB, uint8_t LSB);
 
 // Default DATA FORMAT (register 0x31) and FIFO CONTROL (register 0x38) register values
@@ -74,7 +74,6 @@ static const uint8_t DATA_FORMAT_DEFAULT = (ADXL_NO_SELF_TEST | ADXL_SPI_4WIRE |
 static const uint8_t FIFO_CONTROL_DEFAULT = (ADXL_MODE_FIFO | ADXL_TRIGGER_INT1 | (ADXL_AVG_SAMPLES - 1));
 
 //global variables
-volatile uint8_t			adxlINT1occurred = 0;			///< Flag used to indicate the ADXL triggered an interrupt
 volatile uint16_t			adxlTimer_ms = INT_TIMEOUT_MS;	///< Timer used in various states of the ADXL (in ms)
 volatile uint16_t			adxlSPITimer_ms = 0;			///< Timer used to make sure SPI does not time out (in ms)
 
@@ -232,42 +231,33 @@ errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint
 }
 
 /**
- * @brief Get the last known integrated measurements for an axis
+ * @brief Transpose a measurement to an angle in tenths of degrees with the Z axis
  *
- * @param axis Axis of which get the measurement
- * @return Last known integrated measurement
- */
-int16_t ADXL345getValue(axis_e axis){
-	if(axis >= NB_AXIS)
-		axis = X_AXIS;
-
-	return (_latestValues[axis]);
-}
-
-/**
- * @brief Transpose a measurement to an angle in degrees with the Z axis
- *
- * @param axisValue Measurement to transpose
+ * @param axis Axis for which get the angle with the Z axis
  * @return Angle with the Z axis
  */
-float measureToAngleDegrees(int16_t axisValue){
-	return (arctanDegrees(axisValue, _latestValues[Z_AXIS]));
+int16_t getAngleDegreesTenths(axis_e axis){
+	static const float RADIANS_TO_DEGREES_TENTHS = 180.0f * 10.0f * (float)M_1_PI;
+
+	if(!_latestValues[Z_AXIS])
+		return (0);
+
+	//compute the angle between Z axis and the requested one
+	//	then transform radians to 0.1 degrees
+	//	formula : degrees_tenths = (arctan(axis/Z) * 180° * 10) / PI
+	float angle = atanf((float)_latestValues[axis] / (float)_latestValues[Z_AXIS]);
+	angle *= RADIANS_TO_DEGREES_TENTHS;
+	return ((int16_t)angle);
 }
 
 /**
- * @brief Compute the angle (in degrees) between any axis and the Z axis
- *
- * @param direction Value (in G) of an axis
- * @param axisZ Value (in G) of the Z axis
- * @return Angle between direction and the Z axis
+ * @brief Check the status of the ADXL Data Ready interrupt
+ * 
+ * @retval 0 Data is not ready yet
+ * @retval 1 Data is ready
  */
-static inline float arctanDegrees(int16_t direction, int16_t axisZ){
-	static const float DEGREES_180 = 180.0f;	///< Value representing a flat angle
-
-	if(!axisZ)
-		return (0.0f);
-
-	return ((atanf((float)direction / (float)axisZ) * DEGREES_180) * (float)M_1_PI);
+static inline uint8_t isFIFOdataReady(){
+	return !LL_GPIO_IsInputPinSet(ADXL_INT1_GPIO_Port, ADXL_INT1_Pin);
 }
 
 /**
@@ -284,22 +274,22 @@ static inline int16_t twoComplement(uint8_t MSB, uint8_t LSB){
 /**
  * @brief Retrieve and average the values held in the ADXL FIFOs
  *
- * @param[out] xValue Integrated X axis value
- * @param[out] yValue Integrated Y axis value
- * @param[out] zValue Integrated Z axis value
+ * @param[out] xValue Integrated X, Y and Z axis values
  * @retval 0 Success
  * @retval 1 Error while retrieving values from the FIFO
  */
-errorCode_u integrateFIFO(int16_t* xValue, int16_t* yValue, int16_t* zValue){
-	static const uint8_t X_INDEX_MSB = 1U;	///< Index of the X MSB in the measurements
-	static const uint8_t X_INDEX_LSB = 0U;	///< Index of the X LSB in the measurements
-	static const uint8_t Y_INDEX_MSB = 3U;	///< Index of the Y MSB in the measurements
-	static const uint8_t Y_INDEX_LSB = 2U;	///< Index of the Y LSB in the measurements
-	static const uint8_t Z_INDEX_MSB = 5U;	///< Index of the Z MSB in the measurements
-	static const uint8_t Z_INDEX_LSB = 4U;	///< Index of the Z LSB in the measurements	
-	static uint8_t buffer[ADXL_NB_DATA_REGISTERS];
+errorCode_u integrateFIFO(int16_t values[]){
+	//Array describing the order in which the bytes come when reading the ADXL345 FIFO
+	static const uint8_t dataRegistersIndexes[NB_AXIS][2] = {
+		[X_AXIS] = {1, 0},
+		[Y_AXIS] = {3, 2},
+		[Z_AXIS] = {5, 4},
+	};
+	uint8_t buffer[ADXL_NB_DATA_REGISTERS];
+	uint8_t axis;
 
-	*xValue = *yValue = *zValue = 0;
+	//set the axis values to 0 before integrating
+	values[X_AXIS] = values[Y_AXIS] = values[Z_AXIS] = 0;
 
 	//for each of the samples to read
 	for(uint8_t i = 0 ; i < ADXL_AVG_SAMPLES ; i++){
@@ -311,9 +301,8 @@ errorCode_u integrateFIFO(int16_t* xValue, int16_t* yValue, int16_t* zValue){
 		}
 
 		//add the measurements (formatted from a two's complement) to their final value buffer
-		*xValue += twoComplement(buffer[X_INDEX_MSB], buffer[X_INDEX_LSB]);
-		*yValue += twoComplement(buffer[Y_INDEX_MSB], buffer[Y_INDEX_LSB]);
-		*zValue += twoComplement(buffer[Z_INDEX_MSB], buffer[Z_INDEX_LSB]);
+		for(axis = 0 ; axis < NB_AXIS ; axis++)
+			values[axis] += twoComplement(buffer[dataRegistersIndexes[axis][0]], buffer[dataRegistersIndexes[axis][1]]);
 
 		//wait for a while to make sure 5 us pass between two reads
 		//	as stated in the datasheet, section "Retrieving data from the FIFO"
@@ -322,9 +311,8 @@ errorCode_u integrateFIFO(int16_t* xValue, int16_t* yValue, int16_t* zValue){
 	}
 
 	//divide the buffers to average out
-	*xValue >>= ADXL_AVG_SHIFT;
-	*yValue >>= ADXL_AVG_SHIFT;
-	*zValue >>= ADXL_AVG_SHIFT;
+	for(axis = 0 ; axis < NB_AXIS ; axis++)
+		values[axis] >>= ADXL_AVG_SHIFT;
 
 	return (ERR_SUCCESS);
 }
@@ -414,11 +402,11 @@ errorCode_u stMeasuringST_OFF(){
 	}
 
 	//if watermark interrupt not fired, exit
-	if(!adxlINT1occurred)
+	if(!isFIFOdataReady())
 		return (ERR_SUCCESS);
 
 	//retrieve the integrated measurements (to be used with self-testing)
-	_result = integrateFIFO(&_latestValues[X_AXIS], &_latestValues[Y_AXIS], &_latestValues[Z_AXIS]);
+	_result = integrateFIFO(_latestValues);
 	if(IS_ERROR(_result)){
 		_state = stError;
 		return (pushErrorCode(_result, SELF_TESTING_OFF, 2));
@@ -456,7 +444,6 @@ errorCode_u stWaitingForSTenabled(){
 		return (ERR_SUCCESS);
 
 	//enable FIFOs
-	adxlINT1occurred = 0;
 	_result = writeRegister(FIFO_CONTROL, FIFO_CONTROL_DEFAULT);
 	if(IS_ERROR(_result)){
 		_state = stError;
@@ -479,9 +466,7 @@ errorCode_u stWaitingForSTenabled(){
  * @retval 4 Self-test values out of range
  */
 errorCode_u stMeasuringST_ON(){
-	int16_t STdeltaX = 0;
-	int16_t STdeltaY = 0;
-	int16_t STdeltaZ = 0;
+	int16_t STdeltas[NB_AXIS];
 
 	//if timeout, go error
 	if(!adxlTimer_ms){
@@ -490,12 +475,11 @@ errorCode_u stMeasuringST_ON(){
 	}
 
 	//if watermark interrupt not fired, exit
-	if(!adxlINT1occurred)
+	if(!isFIFOdataReady())
 		return (ERR_SUCCESS);
 
 	//integrate the FIFOs
-	adxlINT1occurred = 0;
-	_result = integrateFIFO(&STdeltaX, &STdeltaY, &STdeltaZ);
+	_result = integrateFIFO(STdeltas);
 	if(IS_ERROR(_result)){
 		_state = stError;
 		return (pushErrorCode(_result, SELF_TESTING_ON, 2));
@@ -509,14 +493,14 @@ errorCode_u stMeasuringST_ON(){
 	}
 
 	//compute the self-test deltas
-	STdeltaX -= _latestValues[X_AXIS];
-	STdeltaY -= _latestValues[Y_AXIS];
-	STdeltaZ -= _latestValues[Z_AXIS];
+	STdeltas[X_AXIS] -= _latestValues[X_AXIS];
+	STdeltas[Y_AXIS] -= _latestValues[Y_AXIS];
+	STdeltas[Z_AXIS] -= _latestValues[Z_AXIS];
 
 	//if self-test values out of range, error
-	if((STdeltaX <= ADXL_ST_MINX_33_16G) || (STdeltaX >= ADXL_ST_MAXX_33_16G)
-		|| (STdeltaY <= ADXL_ST_MINY_33_16G) || (STdeltaY >= ADXL_ST_MAXY_33_16G)
-		|| (STdeltaZ <= ADXL_ST_MINZ_33_16G) || (STdeltaZ >= ADXL_ST_MAXZ_33_16G))
+	if((STdeltas[X_AXIS] <= ADXL_ST_MINX_33_16G) || (STdeltas[X_AXIS] >= ADXL_ST_MAXX_33_16G)
+		|| (STdeltas[Y_AXIS] <= ADXL_ST_MINY_33_16G) || (STdeltas[Y_AXIS] >= ADXL_ST_MAXY_33_16G)
+		|| (STdeltas[Z_AXIS] <= ADXL_ST_MINZ_33_16G) || (STdeltas[Z_AXIS] >= ADXL_ST_MAXZ_33_16G))
 	{
 		_state = stError;
 		return (pushErrorCode(_result, SELF_TESTING_ON, 4)); 	// @suppress("Avoid magic numbers")
@@ -543,15 +527,14 @@ errorCode_u stMeasuring(){
 	}
 
 	//if watermark interrupt not fired, exit
-	if(!adxlINT1occurred)
+	if(!isFIFOdataReady())
 		return (ERR_SUCCESS);
 
 	//reset flags
 	adxlTimer_ms = INT_TIMEOUT_MS;
-	adxlINT1occurred = 0;
 
 	//integrate the FIFOs
-	_result = integrateFIFO(&_latestValues[X_AXIS], &_latestValues[Y_AXIS], &_latestValues[Z_AXIS]);
+	_result = integrateFIFO(_latestValues);
 	if(IS_ERROR(_result)){
 		_state = stError;
 		return (pushErrorCode(_result, MEASURE, 2));
