@@ -233,10 +233,10 @@ errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint
 /**
  * @brief Transpose a measurement to an angle in degrees with the Z axis
  *
- * @param axisValue Measurement to transpose
+ * @param axis Axis for which get the angle with the Z axis
  * @return Angle with the Z axis
  */
-float measureToAngleDegrees(axis_e axis){
+float getAngleDegrees(axis_e axis){
 	static const float DEGREES_180 = 180.0f;	///< Value representing a flat angle
 
 	if(!_latestValues[Z_AXIS])
