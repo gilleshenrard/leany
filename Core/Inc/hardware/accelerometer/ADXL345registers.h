@@ -53,14 +53,6 @@
 #define ADXL_STANDBY_MODE	0x00	///< Power control bit 3 configuration for standby mode
 #define ADXL_MEASURE_MODE	0x08	///< Power control bit 3 configuration for measurement mode
 
-#define ADXL_ST_MAXX_3V3_16G	 118
-#define ADXL_ST_MINX_3V3_16G	 10
-#define ADXL_ST_MAXY_3V3_16G	-10
-#define ADXL_ST_MINY_3V3_16G	-118
-#define ADXL_ST_MAXZ_3V3_16G	 161
-#define ADXL_ST_MINZ_3V3_16G	 14
-
-
 #define ADXL_HIGH_RESERVED_REG	0x1C	///< Number of the last reserved register
 #define ADXL_NB_DATA_REGISTERS	6U		///< Number of the last reserved register
 
