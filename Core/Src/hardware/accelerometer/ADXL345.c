@@ -466,6 +466,13 @@ errorCode_u stWaitingForSTenabled(){
  * @retval 4 Self-test values out of range
  */
 errorCode_u stMeasuringST_ON(){
+	//ADXL Self-Test minimum and maximum delta values
+	//	at 10-bits resolution, 16G range and 3.3V supply, according to the datasheet
+	static const int16_t ST_MAXDELTAS[NB_AXIS][2] = {
+		[X_AXIS] = {10, 118},
+		[Y_AXIS] = {-118, -10},
+		[Z_AXIS] = {14, 161},
+	};
 	int16_t STdeltas[NB_AXIS];
 
 	//if timeout, go error
@@ -498,9 +505,9 @@ errorCode_u stMeasuringST_ON(){
 	STdeltas[Z_AXIS] -= _latestValues[Z_AXIS];
 
 	//if self-test values out of range, error
-	if((STdeltas[X_AXIS] <= ADXL_ST_MINX_3V3_16G) || (STdeltas[X_AXIS] >= ADXL_ST_MAXX_3V3_16G)
-		|| (STdeltas[Y_AXIS] <= ADXL_ST_MINY_3V3_16G) || (STdeltas[Y_AXIS] >= ADXL_ST_MAXY_3V3_16G)
-		|| (STdeltas[Z_AXIS] <= ADXL_ST_MINZ_3V3_16G) || (STdeltas[Z_AXIS] >= ADXL_ST_MAXZ_3V3_16G))
+	if((STdeltas[X_AXIS] <= ST_MAXDELTAS[X_AXIS][0]) || (STdeltas[X_AXIS] >= ST_MAXDELTAS[X_AXIS][1])
+		|| (STdeltas[Y_AXIS] <= ST_MAXDELTAS[Y_AXIS][0]) || (STdeltas[Y_AXIS] >= ST_MAXDELTAS[Y_AXIS][1])
+		|| (STdeltas[Z_AXIS] <= ST_MAXDELTAS[Z_AXIS][0]) || (STdeltas[Z_AXIS] >= ST_MAXDELTAS[Z_AXIS][1]))
 	{
 		_state = stError;
 		return (pushErrorCode(_result, SELF_TESTING_ON, 4)); 	// @suppress("Avoid magic numbers")
