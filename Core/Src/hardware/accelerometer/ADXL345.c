@@ -493,7 +493,7 @@ errorCode_u stMeasuringST_ON(){
 	}
 
 	//reset the data format
-	_result = writeRegister(DATA_FORMAT, DATA_FORMAT_DEFAULT | ADXL_FULL_RESOL);
+	_result = writeRegister(DATA_FORMAT, DATA_FORMAT_DEFAULT | ADXL_13BIT_RESOL);
 	if(IS_ERROR(_result)){
 		_state = stError;
 		return (pushErrorCode(_result, SELF_TESTING_ON, 3)); 	// @suppress("Avoid magic numbers")
