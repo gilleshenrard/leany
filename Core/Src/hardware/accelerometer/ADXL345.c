@@ -70,7 +70,7 @@ static inline uint8_t isFIFOdataReady();
 static inline int16_t twoComplement(uint8_t MSB, uint8_t LSB);
 
 // Default DATA FORMAT (register 0x31) and FIFO CONTROL (register 0x38) register values
-static const uint8_t DATA_FORMAT_DEFAULT = (ADXL_NO_SELF_TEST | ADXL_SPI_4WIRE | ADXL_INT_ACTIV_LOW | ADXL_RIGHT_JUSTIFY | ADXL_RANGE_16G);
+static const uint8_t DATA_FORMAT_DEFAULT = (ADXL_NO_SELF_TEST | ADXL_SPI_4WIRE | ADXL_INT_ACTIV_LOW | ADXL_13BIT_RESOL | ADXL_RIGHT_JUSTIFY | ADXL_RANGE_16G);
 static const uint8_t FIFO_CONTROL_DEFAULT = (ADXL_MODE_FIFO | ADXL_TRIGGER_INT1 | (ADXL_AVG_SAMPLES - 1));
 
 //global variables
@@ -361,7 +361,7 @@ errorCode_u stStartup(){
  */
 errorCode_u stConfiguring(){
 	static const uint8_t initialisationArray[NB_REG_INIT][2] = {
-		{DATA_FORMAT,			DATA_FORMAT_DEFAULT | ADXL_10BIT_RESOL},
+		{DATA_FORMAT,			DATA_FORMAT_DEFAULT},
 		{BANDWIDTH_POWERMODE,	ADXL_POWER_NORMAL | ADXL_RATE_200HZ},
 		{FIFO_CONTROL,			ADXL_MODE_BYPASS},		//clear the FIFOs first (blocks otherwise)
 		{FIFO_CONTROL,			FIFO_CONTROL_DEFAULT},
@@ -467,11 +467,12 @@ errorCode_u stWaitingForSTenabled(){
  */
 errorCode_u stMeasuringST_ON(){
 	//ADXL Self-Test minimum and maximum delta values
-	//	at 10-bits resolution, 16G range and 3.3V supply, according to the datasheet
+	//	at 13-bits resolution, 16G range and 3.3V supply, according to the datasheet
+	//	see Google Drive for calculations
 	static const int16_t ST_MAXDELTAS[NB_AXIS][2] = {
-		[X_AXIS] = {10, 118},
-		[Y_AXIS] = {-118, -10},
-		[Z_AXIS] = {14, 161},
+		[X_AXIS] = {85, 949},
+		[Y_AXIS] = {-949, -85},
+		[Z_AXIS] = {118, 1294},
 	};
 	int16_t STdeltas[NB_AXIS];
 
@@ -493,7 +494,7 @@ errorCode_u stMeasuringST_ON(){
 	}
 
 	//reset the data format
-	_result = writeRegister(DATA_FORMAT, DATA_FORMAT_DEFAULT | ADXL_13BIT_RESOL);
+	_result = writeRegister(DATA_FORMAT, DATA_FORMAT_DEFAULT);
 	if(IS_ERROR(_result)){
 		_state = stError;
 		return (pushErrorCode(_result, SELF_TESTING_ON, 3)); 	// @suppress("Avoid magic numbers")
