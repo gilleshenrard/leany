@@ -139,7 +139,7 @@ errorCode_u writeRegister(adxl345Registers_e registerNumber, uint8_t value){
 	assert(_spiHandle);
 
 	//if register number above known or within the reserved range, error
-	if((registerNumber > ADXL_NB_REGISTERS) || ((uint8_t)(registerNumber - 1) < ADXL_HIGH_RESERVED_REG))
+	if((registerNumber > ADXL_REGISTER_MAXNB) || ((uint8_t)(registerNumber - 1) < ADXL_HIGH_RESERVED_REG))
 		return (createErrorCode(WRITE_REGISTER, 1, ERR_WARNING));
 
 	//set timeout timer and enable SPI
@@ -190,7 +190,7 @@ errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint
 	assert(value);
 
 	//if register numbers above known, error
-	if(firstRegister > ADXL_NB_REGISTERS)
+	if(firstRegister > ADXL_REGISTER_MAXNB)
 		return (createErrorCode(READ_REGISTERS, 1, ERR_WARNING));
 
 	//set timeout timer and enable SPI
