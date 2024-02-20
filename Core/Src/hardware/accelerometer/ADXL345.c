@@ -1,7 +1,7 @@
 /**
  * @brief Implement the ADXL345 accelerometer communication
  * @author Gilles Henrard
- * @date 17/02/2024
+ * @date 20/02/2024
  *
  * @note Additional information can be found in :
  *   - ADXL345 datasheet : https://www.analog.com/media/en/technical-documentation/data-sheets/ADXL345.pdf
@@ -348,7 +348,6 @@ errorCode_u stStartup(){
 		return (ERR_SUCCESS);
 
 	//reset timeout timer and get to next state
-	adxlTimer_ms = INT_TIMEOUT_MS;
 	_state = stConfiguring;
 	return (ERR_SUCCESS);
 }
