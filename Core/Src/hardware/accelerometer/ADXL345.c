@@ -71,7 +71,7 @@ static inline int16_t twoComplement(uint8_t MSB, uint8_t LSB);
 
 // Default DATA FORMAT (register 0x31) and FIFO CONTROL (register 0x38) register values
 static const uint8_t DATA_FORMAT_DEFAULT = (ADXL_NO_SELF_TEST | ADXL_SPI_4WIRE | ADXL_INT_ACTIV_LOW | ADXL_13BIT_RESOL | ADXL_RIGHT_JUSTIFY | ADXL_RANGE_16G);
-static const uint8_t FIFO_CONTROL_DEFAULT = (ADXL_MODE_FIFO | ADXL_TRIGGER_INT1 | (ADXL_AVG_SAMPLES - 1));
+static const uint8_t FIFO_CONTROL_DEFAULT = (ADXL_MODE_FIFO | ADXL_INT_MAP_INT1 | (ADXL_AVG_SAMPLES - 1));
 
 //global variables
 volatile uint16_t			adxlTimer_ms = INT_TIMEOUT_MS;	///< Timer used in various states of the ADXL (in ms)
