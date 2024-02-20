@@ -1,33 +1,36 @@
 #ifndef INC_ADXL345REGISTERS_H_
 #define INC_ADXL345REGISTERS_H_
 
-#define ADXL_DEVICE_ID		0xE5
+// Device ID
+#define ADXL_DEVICE_ID		0xE5		///< Device ID value
 
-#define ADXL_WRITE			0x00		///< MSB configuration for write operations
-#define ADXL_READ			0x80		///< MSB configuration for read operations
-#define ADXL_SINGLE			0x00		///< Bit 6 configuration for single register operations
-#define ADXL_MULTIPLE		0x40		///< Bit 6 configuration for multiple register operations
+// Base serial communication
+#define ADXL_WRITE			0x00		///< MSB value for a register write operation
+#define ADXL_READ			0x80		///< MSB value for a register read operation
+#define ADXL_SINGLE			0x00		///< Bit 6 value for a single register operation
+#define ADXL_MULTIPLE		0x40		///< Bit 6 value for a multiple registers operation
 
-#define ADXL_MODE_BYPASS	0x00
-#define ADXL_MODE_FIFO		0x40
-#define ADXL_MODE_STREAM	0x80
-#define ADXL_MODE_TRIGGER	0xC0
-#define ADXL_TRIGGER_INT1	0x00
-#define ADXL_TRIGGER_INT2	0x20
-#define ADXL_SAMPLES_32		0x20
-#define ADXL_SAMPLES_16		0x10
-#define ADXL_SAMPLES_8		0x08
+// FIFO Control (register 0x38) configuration value
+#define ADXL_MODE_BYPASS	0x00		///< Bits 7 and 6 values for the FIFO Bypass mode
+#define ADXL_MODE_FIFO		0x40		///< Bits 7 and 6 values for the FIFO mode
+#define ADXL_MODE_STREAM	0x80		///< Bits 7 and 6 values for the FIFO Stream mode
+#define ADXL_MODE_TRIGGER	0xC0		///< Bits 7 and 6 values for the FIFO Trigger mode
+#define ADXL_INT_MAP_INT1	0x00		///< Bit  5 value to map trigger events to the INT1 pin
+#define ADXL_INT_MAP_INT2	0x20		///< Bit  5 value to map trigger events to the INT2 pin
+#define ADXL_SAMPLES_32		0x20		///< Request 32 samples before triggering an interrupt (+1 to reuse at other places)
+#define ADXL_SAMPLES_16		0x10		///< Request 16 samples before triggering an interrupt (+1 to reuse at other places)
+#define ADXL_SAMPLES_8		0x08		///< Request 08 samples before triggering an interrupt (+1 to reuse at other places)
 
-#define ADXL_INT_DISABLED	0x00
-#define ADXL_INT_DATARDY	0x80
-#define ADXL_INT_SINGLETAP	0x40
-#define ADXL_INT_DOUBLETAP	0x20
-#define ADXL_INT_ACTIVITY	0x10
-#define ADXL_INT_INACTIVITY	0x08
-#define ADXL_INT_FREEFALL	0x04
-#define ADXL_INT_WATERMARK	0x02
-#define ADXL_INT_OVERRUN	0x01
-#define ADXL_INT_MAP_INT1	0x00
+// Interrupt Enable (register 0x2E) configuration value
+#define ADXL_INT_DATARDY	0x80		///< Bit to set to enable the Data Ready interrupt
+#define ADXL_INT_SINGLETAP	0x40		///< Bit to set to enable the Single Tap interrupt
+#define ADXL_INT_DOUBLETAP	0x20		///< Bit to set to enable the Double Tap interrupt
+#define ADXL_INT_ACTIVITY	0x10		///< Bit to set to enable the Activity interrupt
+#define ADXL_INT_INACTIVITY	0x08		///< Bit to set to enable the Inactivity interrupt
+#define ADXL_INT_FREEFALL	0x04		///< Bit to set to enable the Free Fall interrupt
+#define ADXL_INT_WATERMARK	0x02		///< Bit to set to enable the Watermark interrupt
+#define ADXL_INT_OVERRUN	0x01		///< Bit to set to enable the Overrun interrupt
+#define ADXL_INT_DISABLED	0x00		///< Bit to set to disable interrupts
 
 #define ADXL_SELF_TEST		0x80
 #define ADXL_NO_SELF_TEST	0x00
