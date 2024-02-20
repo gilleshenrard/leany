@@ -1,63 +1,65 @@
 #ifndef INC_ADXL345REGISTERS_H_
 #define INC_ADXL345REGISTERS_H_
 
-// Device ID
-#define ADXL_DEVICE_ID		0xE5		///< Device ID value
-
 // Base serial communication
-#define ADXL_WRITE			0x00		///< MSB value for a register write operation
-#define ADXL_READ			0x80		///< MSB value for a register read operation
-#define ADXL_SINGLE			0x00		///< Bit 6 value for a single register operation
-#define ADXL_MULTIPLE		0x40		///< Bit 6 value for a multiple registers operation
+#define ADXL_WRITE			0x00		///< Register write operation
+#define ADXL_READ			0x80		///< Register read operation
+#define ADXL_SINGLE			0x00		///< Single register operation
+#define ADXL_MULTIPLE		0x40		///< Multiple registers operation
 
-// FIFO Control (register 0x38) configuration value
-#define ADXL_MODE_BYPASS	0x00		///< Bits 7 and 6 values for the FIFO Bypass mode
-#define ADXL_MODE_FIFO		0x40		///< Bits 7 and 6 values for the FIFO mode
-#define ADXL_MODE_STREAM	0x80		///< Bits 7 and 6 values for the FIFO Stream mode
-#define ADXL_MODE_TRIGGER	0xC0		///< Bits 7 and 6 values for the FIFO Trigger mode
-#define ADXL_INT_MAP_INT1	0x00		///< Bit  5 value to map trigger events to the INT1 pin
-#define ADXL_INT_MAP_INT2	0x20		///< Bit  5 value to map trigger events to the INT2 pin
-#define ADXL_SAMPLES_32		0x20		///< Request 32 samples before triggering an interrupt (+1 to reuse at other places)
-#define ADXL_SAMPLES_16		0x10		///< Request 16 samples before triggering an interrupt (+1 to reuse at other places)
-#define ADXL_SAMPLES_8		0x08		///< Request 08 samples before triggering an interrupt (+1 to reuse at other places)
+// FIFO Control (register 0x38) configuration values
+#define ADXL_MODE_BYPASS	0x00		///< FIFO Bypass mode
+#define ADXL_MODE_FIFO		0x40		///< FIFO mode
+#define ADXL_MODE_STREAM	0x80		///< FIFO Stream mode
+#define ADXL_MODE_TRIGGER	0xC0		///< FIFO Trigger mode
+#define ADXL_INT_MAP_INT1	0x00		///< Map trigger events to the INT1 pin
+#define ADXL_INT_MAP_INT2	0x20		///< Map trigger events to the INT2 pin
+#define ADXL_SAMPLES_32		0x20		///< 32 samples before triggering an interrupt (+1 to reuse at other places)
+#define ADXL_SAMPLES_16		0x10		///< 16 samples before triggering an interrupt (+1 to reuse at other places)
+#define ADXL_SAMPLES_8		0x08		///< 08 samples before triggering an interrupt (+1 to reuse at other places)
 
-// Interrupt Enable (register 0x2E) configuration value
-#define ADXL_INT_DATARDY	0x80		///< Bit to set to enable the Data Ready interrupt
-#define ADXL_INT_SINGLETAP	0x40		///< Bit to set to enable the Single Tap interrupt
-#define ADXL_INT_DOUBLETAP	0x20		///< Bit to set to enable the Double Tap interrupt
-#define ADXL_INT_ACTIVITY	0x10		///< Bit to set to enable the Activity interrupt
-#define ADXL_INT_INACTIVITY	0x08		///< Bit to set to enable the Inactivity interrupt
-#define ADXL_INT_FREEFALL	0x04		///< Bit to set to enable the Free Fall interrupt
-#define ADXL_INT_WATERMARK	0x02		///< Bit to set to enable the Watermark interrupt
-#define ADXL_INT_OVERRUN	0x01		///< Bit to set to enable the Overrun interrupt
-#define ADXL_INT_DISABLED	0x00		///< Bit to set to disable interrupts
+// Interrupt Enable (register 0x2E) configuration values
+#define ADXL_INT_DATARDY	0x80		///< Enable the Data Ready interrupt
+#define ADXL_INT_SINGLETAP	0x40		///< Enable the Single Tap interrupt
+#define ADXL_INT_DOUBLETAP	0x20		///< Enable the Double Tap interrupt
+#define ADXL_INT_ACTIVITY	0x10		///< Enable the Activity interrupt
+#define ADXL_INT_INACTIVITY	0x08		///< Enable the Inactivity interrupt
+#define ADXL_INT_FREEFALL	0x04		///< Enable the Free Fall interrupt
+#define ADXL_INT_WATERMARK	0x02		///< Enable the Watermark interrupt
+#define ADXL_INT_OVERRUN	0x01		///< Enable the Overrun interrupt
+#define ADXL_INT_DISABLED	0x00		///< Disable interrupts
 
-#define ADXL_SELF_TEST		0x80
-#define ADXL_NO_SELF_TEST	0x00
-#define ADXL_SPI_3WIRE		0x40
-#define ADXL_SPI_4WIRE		0x00
-#define ADXL_INT_ACTIV_HIGH 0x00
-#define ADXL_INT_ACTIV_LOW	0x20
-#define ADXL_10BIT_RESOL	0x00
-#define ADXL_13BIT_RESOL	0x08
-#define ADXL_LEFT_JUSTIFY	0x04
-#define ADXL_RIGHT_JUSTIFY	0x00
-#define ADXL_RANGE_2G		0x00
-#define ADXL_RANGE_4G		0x01
-#define ADXL_RANGE_8G		0x02
-#define ADXL_RANGE_16G		0x03
+// Data Format (register 0x31) configuration values
+#define ADXL_SELF_TEST		0x80		///< Enable Self-test functionality
+#define ADXL_NO_SELF_TEST	0x00		///< Disable Self-test functionality
+#define ADXL_SPI_3WIRE		0x40		///< Half-duplex SPI
+#define ADXL_SPI_4WIRE		0x00		///< Full-duplex SPI
+#define ADXL_INT_ACTIV_HIGH 0x00		///< Rising edge interrupt pin
+#define ADXL_INT_ACTIV_LOW	0x20		///< Falling edge interrupt pin
+#define ADXL_13BIT_RESOL	0x08		///< 13-bit resolution
+#define ADXL_10BIT_RESOL	0x00		///< 10-bit resolution
+#define ADXL_LEFT_JUSTIFY	0x04		///< Left-justified values (LSB bits set to 0)
+#define ADXL_RIGHT_JUSTIFY	0x00		///< Right-justified values (MSB bits set to 0)
+#define ADXL_RANGE_16G		0x03		///< 16G range
+#define ADXL_RANGE_8G		0x02		///< 8G range
+#define ADXL_RANGE_4G		0x01		///< 4G range
+#define ADXL_RANGE_2G		0x00		///< 2G range
 
-#define ADXL_POWER_NORMAL	0x00
-#define ADXL_POWER_LOW		0x10
-#define ADXL_RATE_200HZ		0x0B
-#define ADXL_RATE_100HZ		0x0A
-#define ADXL_RATE_50HZ		0x09
+// Data rate and power mode control (register 0x2C) configuration values
+#define ADXL_POWER_NORMAL	0x00		///< Disable low-power mode
+#define ADXL_POWER_LOW		0x10		///< Enable low-power mode (noisier)
+#define ADXL_RATE_200HZ		0x0B		///< Set the output data rate to 200Hz 
+#define ADXL_RATE_100HZ		0x0A		///< Set the output data rate to 100Hz
+#define ADXL_RATE_50HZ		0x09		///< Set the output data rate to 50Hz
 
-#define ADXL_STANDBY_MODE	0x00	///< Power control bit 3 configuration for standby mode
-#define ADXL_MEASURE_MODE	0x08	///< Power control bit 3 configuration for measurement mode
+// Power Control (register 0x2D) configuration values
+#define ADXL_STANDBY_MODE	0x00		///< Set the Standby mode
+#define ADXL_MEASURE_MODE	0x08		///< Set the Measurement mode
 
+//constants
+#define ADXL_DEVICE_ID			0xE5	///< Device ID value
 #define ADXL_HIGH_RESERVED_REG	0x1C	///< Number of the last reserved register
-#define ADXL_NB_DATA_REGISTERS	6U		///< Number of the last reserved register
+#define ADXL_NB_DATA_REGISTERS	6U		///< Number of output data registers to read from the FIFO
 
 /**
  * @brief Enumeration of the available registers of the ADXL345
@@ -95,6 +97,5 @@ typedef enum{
 	FIFO_STATUS,				///< 0x39 - RO : FIFO status
 	ADXL_REGISTER_MAXNB			///< Maximum register number
 }adxl345Registers_e;
-
 
 #endif /* INC_ADXL345REGISTERS_H_ */
