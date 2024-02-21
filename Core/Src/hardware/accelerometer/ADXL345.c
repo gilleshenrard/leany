@@ -42,6 +42,7 @@ typedef enum _ADXLfunctionCodes_e{
     GET_X_ANGLE,		///< ADXL345getXangleDegrees()
     GET_Y_ANGLE,		///< ADXL345getYangleDegrees()
     INTEGRATE,			///< integrateFIFO()
+    POP_FIFO,			///< popAndAddFIFO()
     STARTUP				///< stStartup()
 }ADXLfunctionCodes_e;
 
@@ -320,7 +321,7 @@ static errorCode_u popAndAddFIFO(int16_t values[]){
     _result = readRegisters(DATA_X0, buffer, ADXL_NB_DATA_REGISTERS);
     if(IS_ERROR(_result)){
         _state = stError;
-        return (pushErrorCode(_result, INTEGRATE, 1));
+        return (pushErrorCode(_result, POP_FIFO, 1));
     }
 
     //add the measurements (formatted from a two's complement) to their final value buffer
