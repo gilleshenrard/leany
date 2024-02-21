@@ -135,7 +135,7 @@ uint8_t ADXL345hasChanged(axis_e axis){
  * @retval 1 Register number out of range
  * @retval 2 Timeout
  */
-errorCode_u writeRegister(adxl345Registers_e registerNumber, uint8_t value){
+static errorCode_u writeRegister(adxl345Registers_e registerNumber, uint8_t value){
     //assertions
     assert(_spiHandle);
 
@@ -179,7 +179,7 @@ errorCode_u writeRegister(adxl345Registers_e registerNumber, uint8_t value){
  * @retval 1 Register number out of range
  * @retval 2 Timeout
  */
-errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint8_t size){
+static errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint8_t size){
     static const uint8_t SPI_RX_FILLER = 0xFFU;	///< Value to send as a filler while receiving multiple bytes
 
     //if no bytes to read, success
@@ -279,7 +279,7 @@ static inline int16_t twoComplement(uint8_t MSB, uint8_t LSB){
  * @retval 0 Success
  * @retval 1 Error while retrieving values from the FIFO
  */
-errorCode_u integrateFIFO(int16_t values[]){
+static errorCode_u integrateFIFO(int16_t values[]){
     //Array describing the order in which the bytes come when reading the ADXL345 FIFO
     static const uint8_t dataRegistersIndexes[NB_AXIS][2] = {
         [X_AXIS] = {1, 0},
@@ -330,7 +330,7 @@ errorCode_u integrateFIFO(int16_t values[]){
  * @retval 1 Device ID invalid
  * @retval 2 Unable to read device ID
  */
-errorCode_u stStartup(){
+static errorCode_u stStartup(){
     uint8_t deviceID = 0;
 
     //if 1s elapsed without reading the correct vendor ID, go error
@@ -359,7 +359,7 @@ errorCode_u stStartup(){
  * @retval 0 Success
  * @retval 1 Error while writing a register
  */
-errorCode_u stConfiguring(){
+static errorCode_u stConfiguring(){
     static const uint8_t initialisationArray[NB_REG_INIT][2] = {
         {DATA_FORMAT,			DATA_FORMAT_DEFAULT},
         {BANDWIDTH_POWERMODE,	ADXL_POWER_NORMAL | ADXL_RATE_200HZ},
@@ -394,7 +394,7 @@ errorCode_u stConfiguring(){
  * @retval 3 Error while enabling the self-testing mode
  * @retval 4 Error while clearing the FIFOs
  */
-errorCode_u stMeasuringST_OFF(){
+static errorCode_u stMeasuringST_OFF(){
     //if timeout, go error
     if(!adxlTimer_ms){
         _state = stError;
@@ -438,7 +438,7 @@ errorCode_u stMeasuringST_OFF(){
  * @return 0 Success
  * @return 1 Error while re-enabling FIFOs
  */
-errorCode_u stWaitingForSTenabled(){
+static errorCode_u stWaitingForSTenabled(){
     //if timer not elapsed yet, exit
     if(!adxlTimer_ms)
         return (ERR_SUCCESS);
@@ -465,7 +465,7 @@ errorCode_u stWaitingForSTenabled(){
  * @retval 3 Self-test values out of range
  * @retval 4 Error while resetting the data format
  */
-errorCode_u stMeasuringST_ON(){
+static errorCode_u stMeasuringST_ON(){
     //ADXL Self-Test minimum and maximum delta values
     //	at 13-bits resolution, 16G range and 3.3V supply, according to the datasheet
     //	see Google Drive for calculations
@@ -527,7 +527,7 @@ errorCode_u stMeasuringST_ON(){
  * @retval 1 Timeout occurred while waiting for watermark interrupt
  * @retval 2 Error occurred while integrating the FIFOs
  */
-errorCode_u stMeasuring(){
+static errorCode_u stMeasuring(){
     //if timeout, go error
     if(!adxlTimer_ms){
         _state = stError;
@@ -557,6 +557,6 @@ errorCode_u stMeasuring(){
  *
  * @return Success
  */
-errorCode_u stError(){
+static errorCode_u stError(){
     return (ERR_SUCCESS);
 }
