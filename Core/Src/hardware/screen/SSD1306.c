@@ -27,19 +27,19 @@ _Static_assert((ANGLE_NB_CHARS * VERDANA_CHAR_WIDTH) <= (SSD_LAST_COLUMN + 1), "
  * @brief Enumeration of the function IDs of the SSD1306
  */
 typedef enum _SSD1306functionCodes_e{
-	INIT = 0,		///< SSD1306initialise()
-	SEND_CMD,		///< SSD1306sendCommand()
-	PRT_ANGLE,		///< SSD1306_printAngleTenths()
-	SENDING_DATA,	///< stSendingData()
-	WAITING_DMA_RDY	///< stWaitingForTXdone()
+    INIT = 0,		///< SSD1306initialise()
+    SEND_CMD,		///< SSD1306sendCommand()
+    PRT_ANGLE,		///< SSD1306_printAngleTenths()
+    SENDING_DATA,	///< stSendingData()
+    WAITING_DMA_RDY	///< stWaitingForTXdone()
 }_SSD1306functionCodes_e;
 
 /**
  * @brief SPI Data/command pin status enumeration
  */
 typedef enum{
-	COMMAND = 0,
-	DATA,
+    COMMAND = 0,
+    DATA,
 }DCgpio_e;
 
 /**
@@ -85,18 +85,18 @@ static uint16_t				_size;							///< Number of bytes to send
  * @retval 2	Error while clearing the screen
  */
 errorCode_u SSD1306initialise(SPI_TypeDef* handle, DMA_TypeDef* dma, uint32_t dmaChannel){
-	_spiHandle = handle;
-	_dmaHandle = dma;
-	_dmaChannel = dmaChannel;
+    _spiHandle = handle;
+    _dmaHandle = dma;
+    _dmaChannel = dmaChannel;
 
-	//make sure to disable SSD1306 SPI communication
-	LL_SPI_Disable(_spiHandle);
-	LL_DMA_DisableChannel(_dmaHandle, _dmaChannel);
+    //make sure to disable SSD1306 SPI communication
+    LL_SPI_Disable(_spiHandle);
+    LL_DMA_DisableChannel(_dmaHandle, _dmaChannel);
 
-	//set the DMA source and destination addresses (will always use the same ones)
-	LL_DMA_ConfigAddresses(_dmaHandle, _dmaChannel, (uint32_t)&_screenBuffer, LL_SPI_DMA_GetRegAddr(_spiHandle), LL_DMA_DIRECTION_MEMORY_TO_PERIPH);
+    //set the DMA source and destination addresses (will always use the same ones)
+    LL_DMA_ConfigAddresses(_dmaHandle, _dmaChannel, (uint32_t)&_screenBuffer, LL_SPI_DMA_GetRegAddr(_spiHandle), LL_DMA_DIRECTION_MEMORY_TO_PERIPH);
 
-	return (ERR_SUCCESS);
+    return (ERR_SUCCESS);
 }
 
 /**
@@ -105,10 +105,10 @@ errorCode_u SSD1306initialise(SPI_TypeDef* handle, DMA_TypeDef* dma, uint32_t dm
  * @param value Value of the data/command pin
  */
 static inline void setDataCommandGPIO(DCgpio_e value){
-	if(value == COMMAND)
-		LL_GPIO_ResetOutputPin(SSD1306_DC_GPIO_Port, SSD1306_DC_Pin);
-	else
-		LL_GPIO_SetOutputPin(SSD1306_DC_GPIO_Port, SSD1306_DC_Pin);
+    if(value == COMMAND)
+        LL_GPIO_ResetOutputPin(SSD1306_DC_GPIO_Port, SSD1306_DC_Pin);
+    else
+        LL_GPIO_SetOutputPin(SSD1306_DC_GPIO_Port, SSD1306_DC_Pin);
 }
 
 /**
@@ -122,49 +122,49 @@ static inline void setDataCommandGPIO(DCgpio_e value){
  * @retval 2	Timeout while sending the command
  */
 errorCode_u sendCommand(SSD1306register_e regNumber, const uint8_t parameters[], uint8_t nbParameters){
-	static const uint8_t MAX_PARAMETERS = 6U;		///< Maximum number of parameters a command can have
-	errorCode_u result = ERR_SUCCESS;
+    static const uint8_t MAX_PARAMETERS = 6U;		///< Maximum number of parameters a command can have
+    errorCode_u result = ERR_SUCCESS;
 
-	//assertions
-	assert(_spiHandle);						//handle is not null
-	assert(parameters || !nbParameters);	//either 0 parameters, or parameters array not null
+    //assertions
+    assert(_spiHandle);						//handle is not null
+    assert(parameters || !nbParameters);	//either 0 parameters, or parameters array not null
 
-	//if too many parameters, error
-	if(nbParameters > MAX_PARAMETERS)
-		return(createErrorCode(SEND_CMD, 1, ERR_WARNING));
+    //if too many parameters, error
+    if(nbParameters > MAX_PARAMETERS)
+        return(createErrorCode(SEND_CMD, 1, ERR_WARNING));
 
-	//set command pin and enable SPI
-	ssd1306SPITimer_ms = SPI_TIMEOUT_MS;
-	setDataCommandGPIO(COMMAND);
-	LL_SPI_Enable(_spiHandle);
+    //set command pin and enable SPI
+    ssd1306SPITimer_ms = SPI_TIMEOUT_MS;
+    setDataCommandGPIO(COMMAND);
+    LL_SPI_Enable(_spiHandle);
 
-	//send the command byte
-	LL_SPI_TransmitData8(_spiHandle, regNumber);
+    //send the command byte
+    LL_SPI_TransmitData8(_spiHandle, regNumber);
 
-	//send the parameters
-	uint8_t* iterator = (uint8_t*)parameters;
-	while(nbParameters && ssd1306SPITimer_ms){
-		//wait for the previous byte to be done, then send the next one
-		while(!LL_SPI_IsActiveFlag_TXE(_spiHandle) && ssd1306SPITimer_ms);
-		if(ssd1306SPITimer_ms)
-			LL_SPI_TransmitData8(_spiHandle, *iterator);
+    //send the parameters
+    uint8_t* iterator = (uint8_t*)parameters;
+    while(nbParameters && ssd1306SPITimer_ms){
+        //wait for the previous byte to be done, then send the next one
+        while(!LL_SPI_IsActiveFlag_TXE(_spiHandle) && ssd1306SPITimer_ms);
+        if(ssd1306SPITimer_ms)
+            LL_SPI_TransmitData8(_spiHandle, *iterator);
 
-		iterator++;
-		nbParameters--;
-	}
+        iterator++;
+        nbParameters--;
+    }
 
-	//wait for transaction to be finished and clear Overrun flag
-	while(LL_SPI_IsActiveFlag_BSY(_spiHandle) && ssd1306SPITimer_ms);
-	LL_SPI_ClearFlag_OVR(_spiHandle);
+    //wait for transaction to be finished and clear Overrun flag
+    while(LL_SPI_IsActiveFlag_BSY(_spiHandle) && ssd1306SPITimer_ms);
+    LL_SPI_ClearFlag_OVR(_spiHandle);
 
-	//disable SPI and return status
-	LL_SPI_Disable(_spiHandle);
+    //disable SPI and return status
+    LL_SPI_Disable(_spiHandle);
 
-	//if timeout, error
-	if(!ssd1306SPITimer_ms)
-		return (createErrorCode(SEND_CMD, 2, ERR_WARNING));
+    //if timeout, error
+    if(!ssd1306SPITimer_ms)
+        return (createErrorCode(SEND_CMD, 2, ERR_WARNING));
 
-	return (result);
+    return (result);
 }
 
 /**
@@ -173,19 +173,19 @@ errorCode_u sendCommand(SSD1306register_e regNumber, const uint8_t parameters[],
  * @return Success
  */
 errorCode_u SSD1306clearScreen(){
-	uint8_t* iterator = _screenBuffer;
+    uint8_t* iterator = _screenBuffer;
 
-	_limitColumns[0] = 0;
-	_limitColumns[1] = SSD_LAST_COLUMN;
-	_limitPages[0] = 0;
-	_limitPages[1] = SSD_LAST_PAGE;
-	_size = MAX_DATA_SIZE;
+    _limitColumns[0] = 0;
+    _limitColumns[1] = SSD_LAST_COLUMN;
+    _limitPages[0] = 0;
+    _limitPages[1] = SSD_LAST_PAGE;
+    _size = MAX_DATA_SIZE;
 
-	for(uint16_t i = 0 ; i < MAX_DATA_SIZE ; i++)
-		*(iterator++) = 0x00U;
+    for(uint16_t i = 0 ; i < MAX_DATA_SIZE ; i++)
+        *(iterator++) = 0x00U;
 
-	_state = stSendingData;
-	return (ERR_SUCCESS);
+    _state = stSendingData;
+    return (ERR_SUCCESS);
 }
 
 /**
@@ -195,7 +195,7 @@ errorCode_u SSD1306clearScreen(){
  * @retval 1 Ready
  */
 uint8_t isScreenReady(){
-	return (_state == stIdle);
+    return (_state == stIdle);
 }
 
 /**
@@ -209,50 +209,50 @@ uint8_t isScreenReady(){
  * @retval 1	Angle above maximum amplitude
  */
 errorCode_u SSD1306_printAngleTenths(int16_t angleTenths, uint8_t page, uint8_t column){
-	static const int16_t MIN_ANGLE_DEG_TENTHS = -900;	///< Minimum angle allowed (in tenths of degrees)
-	static const int16_t MAX_ANGLE_DEG_TENTHS =  900;	///< Maximum angle allowed (in tenths of degrees)
-	static const uint8_t INDEX_SIGN = 0;		///< Index of the sign in the angle indexes array
-	static const uint8_t INDEX_TENS = 1U;		///< Index of the tens in the angle indexes array
-	static const uint8_t INDEX_UNITS = 2U;		///< Index of the units in the angle indexes array
-	static const uint8_t INDEX_TENTHS = 4U;		///< Index of the tenths in the angle indexes array
-	uint8_t charIndexes[ANGLE_NB_CHARS] = {INDEX_PLUS, 0, 0, INDEX_DOT, 0, INDEX_DEG};
-	uint8_t* iterator = _screenBuffer;
+    static const int16_t MIN_ANGLE_DEG_TENTHS = -900;	///< Minimum angle allowed (in tenths of degrees)
+    static const int16_t MAX_ANGLE_DEG_TENTHS =  900;	///< Maximum angle allowed (in tenths of degrees)
+    static const uint8_t INDEX_SIGN = 0;		///< Index of the sign in the angle indexes array
+    static const uint8_t INDEX_TENS = 1U;		///< Index of the tens in the angle indexes array
+    static const uint8_t INDEX_UNITS = 2U;		///< Index of the units in the angle indexes array
+    static const uint8_t INDEX_TENTHS = 4U;		///< Index of the tenths in the angle indexes array
+    uint8_t charIndexes[ANGLE_NB_CHARS] = {INDEX_PLUS, 0, 0, INDEX_DOT, 0, INDEX_DEG};
+    uint8_t* iterator = _screenBuffer;
 
-	//if angle out of bounds, return error
-	if((angleTenths < MIN_ANGLE_DEG_TENTHS) || (angleTenths > MAX_ANGLE_DEG_TENTHS))
-		return (createErrorCode(PRT_ANGLE, 1, ERR_WARNING));
+    //if angle out of bounds, return error
+    if((angleTenths < MIN_ANGLE_DEG_TENTHS) || (angleTenths > MAX_ANGLE_DEG_TENTHS))
+        return (createErrorCode(PRT_ANGLE, 1, ERR_WARNING));
 
-	//store the values
-	_limitColumns[0] = column;
-	_limitColumns[1] = column + (VERDANA_CHAR_WIDTH * ANGLE_NB_CHARS) - 1;
-	_limitPages[0] = page;
-	_limitPages[1] = page + 1;
-	_size = ANGLE_NB_CHARS * VERDANA_NB_BYTES_CHAR;
+    //store the values
+    _limitColumns[0] = column;
+    _limitColumns[1] = column + (VERDANA_CHAR_WIDTH * ANGLE_NB_CHARS) - 1;
+    _limitPages[0] = page;
+    _limitPages[1] = page + 1;
+    _size = ANGLE_NB_CHARS * VERDANA_NB_BYTES_CHAR;
 
-	//if angle negative, replace plus sign with minus sign
-	if(angleTenths < 0){
-		charIndexes[INDEX_SIGN] = INDEX_MINUS;
-		angleTenths = -angleTenths;
-	}
+    //if angle negative, replace plus sign with minus sign
+    if(angleTenths < 0){
+        charIndexes[INDEX_SIGN] = INDEX_MINUS;
+        angleTenths = -angleTenths;
+    }
 
-	//fill the angle characters indexes array with the float values (tens, units, tenths)
-	charIndexes[INDEX_TENS] = (uint8_t)(angleTenths / 100);
-	charIndexes[INDEX_UNITS] = (uint8_t)((angleTenths / 10) % 10);
-	charIndexes[INDEX_TENTHS] = (uint8_t)(angleTenths % 10);
+    //fill the angle characters indexes array with the float values (tens, units, tenths)
+    charIndexes[INDEX_TENS] = (uint8_t)(angleTenths / 100);
+    charIndexes[INDEX_UNITS] = (uint8_t)((angleTenths / 10) % 10);
+    charIndexes[INDEX_TENTHS] = (uint8_t)(angleTenths % 10);
 
-	//fill the buffer with all the required bitmaps bytes (column by column, then character by character, then page by page)
-	for(page = 0 ; page < VERDANA_NB_PAGES ; page++){
-		for(uint8_t character = 0 ; character < ANGLE_NB_CHARS ; character++){
-			for(column = 0 ; column < VERDANA_CHAR_WIDTH ; column++){
-				*iterator = verdana_16ptNumbers[charIndexes[character]][(VERDANA_CHAR_WIDTH * page) + column];
-				iterator++;
-			}
-		}
-	}
+    //fill the buffer with all the required bitmaps bytes (column by column, then character by character, then page by page)
+    for(page = 0 ; page < VERDANA_NB_PAGES ; page++){
+        for(uint8_t character = 0 ; character < ANGLE_NB_CHARS ; character++){
+            for(column = 0 ; column < VERDANA_CHAR_WIDTH ; column++){
+                *iterator = verdana_16ptNumbers[charIndexes[character]][(VERDANA_CHAR_WIDTH * page) + column];
+                iterator++;
+            }
+        }
+    }
 
-	//get to printing state
-	_state = stSendingData;
-	return (ERR_SUCCESS);
+    //get to printing state
+    _state = stSendingData;
+    return (ERR_SUCCESS);
 }
 
 /**
@@ -261,7 +261,7 @@ errorCode_u SSD1306_printAngleTenths(int16_t angleTenths, uint8_t page, uint8_t 
  * @return Return code of the current state
  */
 errorCode_u SSD1306update(){
-	return ((*_state)());
+    return ((*_state)());
 }
 
 
@@ -277,37 +277,37 @@ errorCode_u SSD1306update(){
  * @retval 2	Error while requesting the screen wipe
  */
 static errorCode_u stConfiguring(){
-	static const uint8_t initCommands[NB_INIT_REGISERS][3] = {			///< Array used to initialise the registers
-		{SCAN_DIRECTION_N1_0,	0,	0x00},
-		{HARDWARE_CONFIG,		1,	SSD_PIN_CONFIG_ALT | SSD_COM_REMAP_DISABLE},
-		{SEGMENT_REMAP_127,		0,	0x00},
-		{MEMORY_ADDR_MODE,		1,	SSD_HORIZONTAL_ADDR},
-		{CONTRAST_CONTROL,		1,	SSD_CONTRAST_HIGHEST},
-		{CLOCK_DIVIDE_RATIO,	1,	SSD_CLOCK_FREQ_MID | SSD_CLOCK_DIVIDER_1},
-		{CHG_PUMP_REGULATOR,	1,	SSD_ENABLE_CHG_PUMP},
-		{DISPLAY_ON,			0,	0x00},
-	};
-	errorCode_u result;
+    static const uint8_t initCommands[NB_INIT_REGISERS][3] = {			///< Array used to initialise the registers
+        {SCAN_DIRECTION_N1_0,	0,	0x00},
+        {HARDWARE_CONFIG,		1,	SSD_PIN_CONFIG_ALT | SSD_COM_REMAP_DISABLE},
+        {SEGMENT_REMAP_127,		0,	0x00},
+        {MEMORY_ADDR_MODE,		1,	SSD_HORIZONTAL_ADDR},
+        {CONTRAST_CONTROL,		1,	SSD_CONTRAST_HIGHEST},
+        {CLOCK_DIVIDE_RATIO,	1,	SSD_CLOCK_FREQ_MID | SSD_CLOCK_DIVIDER_1},
+        {CHG_PUMP_REGULATOR,	1,	SSD_ENABLE_CHG_PUMP},
+        {DISPLAY_ON,			0,	0x00},
+    };
+    errorCode_u result;
 
-	//reset the chip
-	LL_GPIO_ResetOutputPin(SSD1306_RES_GPIO_Port, SSD1306_RES_Pin);
-	LL_GPIO_SetOutputPin(SSD1306_RES_GPIO_Port, SSD1306_RES_Pin);
+    //reset the chip
+    LL_GPIO_ResetOutputPin(SSD1306_RES_GPIO_Port, SSD1306_RES_Pin);
+    LL_GPIO_SetOutputPin(SSD1306_RES_GPIO_Port, SSD1306_RES_Pin);
 
-	//initialisation taken from PDF p. 64 (Application Example)
-	//	values which don't change from reset values aren't modified
-	//TODO test for max oscillator frequency
-	for(uint8_t i = 0 ; i < NB_INIT_REGISERS ; i++){
-		result = sendCommand(initCommands[i][0], &initCommands[i][2], initCommands[i][1]);
-		if(IS_ERROR(result))
-			return (pushErrorCode(result, INIT, 1));
-	}
+    //initialisation taken from PDF p. 64 (Application Example)
+    //	values which don't change from reset values aren't modified
+    //TODO test for max oscillator frequency
+    for(uint8_t i = 0 ; i < NB_INIT_REGISERS ; i++){
+        result = sendCommand(initCommands[i][0], &initCommands[i][2], initCommands[i][1]);
+        if(IS_ERROR(result))
+            return (pushErrorCode(result, INIT, 1));
+    }
 
-	result = SSD1306clearScreen();
-	if(IS_ERROR(result))
-		return (pushErrorCode(result, INIT, 2));
+    result = SSD1306clearScreen();
+    if(IS_ERROR(result))
+        return (pushErrorCode(result, INIT, 2));
 
-	_state = stSendingData;
-	return (ERR_SUCCESS);
+    _state = stSendingData;
+    return (ERR_SUCCESS);
 }
 
 /**
@@ -316,7 +316,7 @@ static errorCode_u stConfiguring(){
  * @return Success
  */
 errorCode_u stIdle(){
-	return (ERR_SUCCESS);
+    return (ERR_SUCCESS);
 }
 
 /**
@@ -327,39 +327,39 @@ errorCode_u stIdle(){
  * @retval 2	Error occurred while sending the page address command
  */
 errorCode_u stSendingData(){
-	errorCode_u result;
+    errorCode_u result;
 
-	//send the set start and end column addresses
-	result = sendCommand(COLUMN_ADDRESS, _limitColumns, 2);
-	if(IS_ERROR(result)){
-		_state = stIdle;
-		return (pushErrorCode(result, SENDING_DATA, 1));
-	}
+    //send the set start and end column addresses
+    result = sendCommand(COLUMN_ADDRESS, _limitColumns, 2);
+    if(IS_ERROR(result)){
+        _state = stIdle;
+        return (pushErrorCode(result, SENDING_DATA, 1));
+    }
 
-	//send the set start and end page addresses
-	/*result = */sendCommand(PAGE_ADDRESS, _limitPages, 2);
-	if(IS_ERROR(result)){
-		_state = stIdle;
-		return (pushErrorCode(result, SENDING_DATA, 2));
-	}
+    //send the set start and end page addresses
+    /*result = */sendCommand(PAGE_ADDRESS, _limitPages, 2);
+    if(IS_ERROR(result)){
+        _state = stIdle;
+        return (pushErrorCode(result, SENDING_DATA, 2));
+    }
 
-	//set data GPIO and enable SPI
-	setDataCommandGPIO(DATA);
-	LL_SPI_Enable(_spiHandle);
+    //set data GPIO and enable SPI
+    setDataCommandGPIO(DATA);
+    LL_SPI_Enable(_spiHandle);
 
-	//configure the DMA transaction
-	LL_DMA_DisableChannel(_dmaHandle, _dmaChannel);
-	LL_DMA_ClearFlag_GI5(_dmaHandle);
-	LL_DMA_SetDataLength(_dmaHandle, _dmaChannel, _size);
-	LL_DMA_EnableChannel(_dmaHandle, _dmaChannel);
+    //configure the DMA transaction
+    LL_DMA_DisableChannel(_dmaHandle, _dmaChannel);
+    LL_DMA_ClearFlag_GI5(_dmaHandle);
+    LL_DMA_SetDataLength(_dmaHandle, _dmaChannel, _size);
+    LL_DMA_EnableChannel(_dmaHandle, _dmaChannel);
 
-	//send the data
-	screenTimer_ms = SPI_TIMEOUT_MS;
-	LL_SPI_EnableDMAReq_TX(_spiHandle);
+    //send the data
+    screenTimer_ms = SPI_TIMEOUT_MS;
+    LL_SPI_EnableDMAReq_TX(_spiHandle);
 
-	//get to next
-	_state = stWaitingForTXdone;
-	return (ERR_SUCCESS);
+    //get to next
+    _state = stWaitingForTXdone;
+    return (ERR_SUCCESS);
 }
 
 /**
@@ -370,27 +370,27 @@ errorCode_u stSendingData(){
  * @retval 2	Error interrupt occurred during the DMA transfer
  */
 errorCode_u stWaitingForTXdone(){
-	errorCode_u result = ERR_SUCCESS;
+    errorCode_u result = ERR_SUCCESS;
 
-	//if timer elapsed, stop DMA and error
-	if(!screenTimer_ms){
-		result = createErrorCode(WAITING_DMA_RDY, 1, ERR_ERROR);
-		goto finalise;
-	}
+    //if timer elapsed, stop DMA and error
+    if(!screenTimer_ms){
+        result = createErrorCode(WAITING_DMA_RDY, 1, ERR_ERROR);
+        goto finalise;
+    }
 
-	//if DMA error, error
-	if(LL_DMA_IsActiveFlag_TE5(_dmaHandle)){
-		result = createErrorCode(WAITING_DMA_RDY, 2, ERR_ERROR);
-		goto finalise;
-	}
+    //if DMA error, error
+    if(LL_DMA_IsActiveFlag_TE5(_dmaHandle)){
+        result = createErrorCode(WAITING_DMA_RDY, 2, ERR_ERROR);
+        goto finalise;
+    }
 
-	//if transmission not complete yet, exit
-	if(!LL_DMA_IsActiveFlag_TC5(_dmaHandle))
-		return (ERR_SUCCESS);
+    //if transmission not complete yet, exit
+    if(!LL_DMA_IsActiveFlag_TC5(_dmaHandle))
+        return (ERR_SUCCESS);
 
 finalise:
-	LL_DMA_DisableChannel(_dmaHandle, _dmaChannel);
-	LL_SPI_Disable(_spiHandle);
-	_state = stIdle;
-	return result;
+    LL_DMA_DisableChannel(_dmaHandle, _dmaChannel);
+    LL_SPI_Disable(_spiHandle);
+    _state = stIdle;
+    return result;
 }

@@ -65,37 +65,37 @@
  * @brief Enumeration of the available registers of the ADXL345
  */
 typedef enum{
-	DEVICE_ID 		= 0x00,		///< 0x00 - RO : Device ID
-	TAP_THRESHOLD	= 0x1D,		///< 0x1D - RW : Tap threshold   @note Registers 0x01 to 0x1C are reserved
-	OFFSET_X,					///< 0x1E - RW : X-axis offset
-	OFFSET_Y,					///< 0x1F - RW : Y-axis offset
-	OFFSET_Z,					///< 0x20 - RW : Z-axis offset
-	TAP_DURATION,				///< 0x21 - RW : Tap duration
-	TAP_LATENCY,				///< 0x22 - RW : Tap latency
-	TAP_WINDOW,					///< 0x23 - RW : Tap window
-	ACTIVITY_THRESHOLD,			///< 0x24 - RW : Activity threshold
-	INACTIVITY_THRESHOLD,		///< 0x25 - RW : Inactivity threshold
-	INACTIVITY_TIME,			///< 0x26 - RW : Inactivity time
-	ACTIVITY_CONTROL,			///< 0x27 - RW : Axis enable control for activity and inactivity detection
-	FREEFALL_THRESHOLD,			///< 0x28 - RW : Free-fall threshold
-	FREEFALL_TIME,				///< 0x29 - RW : Free-fall time
-	TAP_AXES,					///< 0x2A - RW : Axis control for single tap/double tap
-	TAP_ACTIVITY_SOURCE,		///< 0x2B - RO : Source of single tap/double tap
-	BANDWIDTH_POWERMODE,		///< 0x2C - RW : Data rate and power mode control
-	POWER_CONTROL,				///< 0x2D - RW : Power-saving features control
-	INTERRUPT_ENABLE,			///< 0x2E - RW : Interrupt enable control
-	INTERRUPT_MAPPING,			///< 0x2F - RW : Interrupt mapping control
-	INTERRUPT_SOURCE,			///< 0x30 - RO : Source of interrupts
-	DATA_FORMAT,				///< 0x31 - RW : Data format control
-	DATA_X0,					///< 0x32 - RO : X-Axis Data 0
-	DATA_X1,					///< 0x33 - RO : X-Axis Data 1
-	DATA_Y0,					///< 0x34 - RO : Y-Axis Data 0
-	DATA_Y1,					///< 0x35 - RO : Y-Axis Data 1
-	DATA_Z0,					///< 0x36 - RO : Z-Axis Data 0
-	DATA_Z1,					///< 0x37 - RO : Z-Axis Data 1
-	FIFO_CONTROL,				///< 0x38 - RW : FIFO control
-	FIFO_STATUS,				///< 0x39 - RO : FIFO status
-	ADXL_REGISTER_MAXNB			///< Maximum register number
+    DEVICE_ID 		= 0x00,		///< 0x00 - RO : Device ID
+    TAP_THRESHOLD	= 0x1D,		///< 0x1D - RW : Tap threshold   @note Registers 0x01 to 0x1C are reserved
+    OFFSET_X,					///< 0x1E - RW : X-axis offset
+    OFFSET_Y,					///< 0x1F - RW : Y-axis offset
+    OFFSET_Z,					///< 0x20 - RW : Z-axis offset
+    TAP_DURATION,				///< 0x21 - RW : Tap duration
+    TAP_LATENCY,				///< 0x22 - RW : Tap latency
+    TAP_WINDOW,					///< 0x23 - RW : Tap window
+    ACTIVITY_THRESHOLD,			///< 0x24 - RW : Activity threshold
+    INACTIVITY_THRESHOLD,		///< 0x25 - RW : Inactivity threshold
+    INACTIVITY_TIME,			///< 0x26 - RW : Inactivity time
+    ACTIVITY_CONTROL,			///< 0x27 - RW : Axis enable control for activity and inactivity detection
+    FREEFALL_THRESHOLD,			///< 0x28 - RW : Free-fall threshold
+    FREEFALL_TIME,				///< 0x29 - RW : Free-fall time
+    TAP_AXES,					///< 0x2A - RW : Axis control for single tap/double tap
+    TAP_ACTIVITY_SOURCE,		///< 0x2B - RO : Source of single tap/double tap
+    BANDWIDTH_POWERMODE,		///< 0x2C - RW : Data rate and power mode control
+    POWER_CONTROL,				///< 0x2D - RW : Power-saving features control
+    INTERRUPT_ENABLE,			///< 0x2E - RW : Interrupt enable control
+    INTERRUPT_MAPPING,			///< 0x2F - RW : Interrupt mapping control
+    INTERRUPT_SOURCE,			///< 0x30 - RO : Source of interrupts
+    DATA_FORMAT,				///< 0x31 - RW : Data format control
+    DATA_X0,					///< 0x32 - RO : X-Axis Data 0
+    DATA_X1,					///< 0x33 - RO : X-Axis Data 1
+    DATA_Y0,					///< 0x34 - RO : Y-Axis Data 0
+    DATA_Y1,					///< 0x35 - RO : Y-Axis Data 1
+    DATA_Z0,					///< 0x36 - RO : Z-Axis Data 0
+    DATA_Z1,					///< 0x37 - RO : Z-Axis Data 1
+    FIFO_CONTROL,				///< 0x38 - RW : FIFO control
+    FIFO_STATUS,				///< 0x39 - RO : FIFO status
+    ADXL_REGISTER_MAXNB			///< Maximum register number
 }adxl345Registers_e;
 
 #endif /* INC_ADXL345REGISTERS_H_ */
