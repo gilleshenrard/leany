@@ -1,7 +1,7 @@
 /**
  * @brief Implement the ADXL345 accelerometer communication
  * @author Gilles Henrard
- * @date 20/02/2024
+ * @date 21/02/2024
  *
  * @note Additional information can be found in :
  *   - ADXL345 datasheet : https://www.analog.com/media/en/technical-documentation/data-sheets/ADXL345.pdf
@@ -65,6 +65,7 @@ static errorCode_u stError();
 static errorCode_u writeRegister(adxl345Registers_e registerNumber, uint8_t value);
 static errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint8_t size);
 static errorCode_u integrateFIFO(int16_t values[]);
+static errorCode_u popAndAddFIFO(int16_t values[]);
 
 //tool functions
 static inline uint8_t isFIFOdataReady();
@@ -275,11 +276,38 @@ static inline int16_t twoComplement(uint8_t MSB, uint8_t LSB){
 /**
  * @brief Retrieve and average the values held in the ADXL FIFOs
  *
- * @param[out] xValue Integrated X, Y and Z axis values
+ * @param[out] values Integrated X, Y and Z axis values
  * @retval 0 Success
  * @retval 1 Error while retrieving values from the FIFO
  */
 static errorCode_u integrateFIFO(int16_t values[]){
+    //set the axis values to 0 before integrating
+    values[X_AXIS] = values[Y_AXIS] = values[Z_AXIS] = 0;
+
+    //pop all samples from the FIFO
+    for(uint8_t i = 0 ; i < ADXL_AVG_SAMPLES ; i++){
+        _result = popAndAddFIFO(values);
+        if(IS_ERROR(_result)){
+            _state = stError;
+            return (pushErrorCode(_result, INTEGRATE, 1));
+        }
+    }
+
+    //divide the buffers to average out
+    for(uint8_t axis = 0 ; axis < NB_AXIS ; axis++)
+        values[axis] >>= ADXL_AVG_SHIFT;
+
+    return (ERR_SUCCESS);
+}
+
+/**
+ * @brief Pop a sample from the ADXL FIFO 
+ *
+ * @param[out] values Integrated X, Y and Z axis values
+ * @retval 0 Success
+ * @retval 1 Error while retrieving values from the FIFO
+ */
+static errorCode_u popAndAddFIFO(int16_t values[]){
     //Array describing the order in which the bytes come when reading the ADXL345 FIFO
     static const uint8_t dataRegistersIndexes[NB_AXIS][2] = {
         [X_AXIS] = {1, 0},
@@ -287,33 +315,22 @@ static errorCode_u integrateFIFO(int16_t values[]){
         [Z_AXIS] = {5, 4},
     };
     uint8_t buffer[ADXL_NB_DATA_REGISTERS];
-    uint8_t axis;
 
-    //set the axis values to 0 before integrating
-    values[X_AXIS] = values[Y_AXIS] = values[Z_AXIS] = 0;
-
-    //for each of the samples to read
-    for(uint8_t i = 0 ; i < ADXL_AVG_SAMPLES ; i++){
-        //read all data registers for 1 sample
-        _result = readRegisters(DATA_X0, buffer, ADXL_NB_DATA_REGISTERS);
-        if(IS_ERROR(_result)){
-            _state = stError;
-            return (pushErrorCode(_result, INTEGRATE, 1));
-        }
-
-        //add the measurements (formatted from a two's complement) to their final value buffer
-        for(axis = 0 ; axis < NB_AXIS ; axis++)
-            values[axis] += twoComplement(buffer[dataRegistersIndexes[axis][0]], buffer[dataRegistersIndexes[axis][1]]);
-
-        //wait for a while to make sure 5 us pass between two reads
-        //	as stated in the datasheet, section "Retrieving data from the FIFO"
-        volatile uint8_t tempo = 0x0FU;
-        while(tempo--);
+    //read all data registers for 1 sample
+    _result = readRegisters(DATA_X0, buffer, ADXL_NB_DATA_REGISTERS);
+    if(IS_ERROR(_result)){
+        _state = stError;
+        return (pushErrorCode(_result, INTEGRATE, 1));
     }
 
-    //divide the buffers to average out
-    for(axis = 0 ; axis < NB_AXIS ; axis++)
-        values[axis] >>= ADXL_AVG_SHIFT;
+    //add the measurements (formatted from a two's complement) to their final value buffer
+    for(uint8_t axis = 0 ; axis < NB_AXIS ; axis++)
+        values[axis] += twoComplement(buffer[dataRegistersIndexes[axis][0]], buffer[dataRegistersIndexes[axis][1]]);
+
+    //wait for a while to make sure 5 us pass between two reads
+    //	as stated in the datasheet, section "Retrieving data from the FIFO"
+    volatile uint8_t tempo = 0x0FU;
+    while(tempo--);
 
     return (ERR_SUCCESS);
 }
