@@ -65,8 +65,8 @@ static errorCode_u stError();
 //manipulation functions
 static errorCode_u writeRegister(adxl345Registers_e registerNumber, uint8_t value);
 static errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint8_t size);
-static errorCode_u integrateFIFO(int16_t values[]);
-static errorCode_u popAndAddFIFO(int16_t values[]);
+static errorCode_u integrateFIFO(int32_t values[]);
+static errorCode_u popAndAddFIFO(int32_t values[]);
 
 //tool functions
 static inline uint8_t isFIFOdataReady();
@@ -84,8 +84,8 @@ volatile uint16_t			adxlSPITimer_ms = 0;			///< Timer used to make sure SPI does
 static SPI_TypeDef*		_spiHandle = NULL;			///< SPI handle used with the ADXL345
 static adxlState		_state = stStartup;			///< State machine current state
 static uint8_t			_measurementsUpdated = 0;	///< Flag used to indicate new integrated measurements are ready within the ADXL345
-static int16_t			_latestValues[NB_AXIS];		///< Array of latest axis values
-static int16_t			_previousValues[NB_AXIS];	///< Array of values previously compared to latest
+static int32_t			_latestValues[NB_AXIS];		///< Array of latest axis values
+static int32_t			_previousValues[NB_AXIS];	///< Array of values previously compared to latest
 static errorCode_u 		_result;					///< Variables used to store error codes
 
 
@@ -271,7 +271,7 @@ static inline uint8_t isFIFOdataReady(){
  * @return int16_t	16 bit resulting number
  */
 static inline int16_t twoComplement(uint8_t MSB, uint8_t LSB){
-    return (int16_t)(((uint16_t)MSB << 8) | (uint16_t)LSB);
+    return (int16_t)(((int16_t)MSB << 8) | (int16_t)LSB);
 }
 
 /**
@@ -281,7 +281,7 @@ static inline int16_t twoComplement(uint8_t MSB, uint8_t LSB){
  * @retval 0 Success
  * @retval 1 Error while retrieving values from the FIFO
  */
-static errorCode_u integrateFIFO(int16_t values[]){
+static errorCode_u integrateFIFO(int32_t values[]){
     //set the axis values to 0 before integrating
     values[X_AXIS] = values[Y_AXIS] = values[Z_AXIS] = 0;
 
@@ -308,7 +308,7 @@ static errorCode_u integrateFIFO(int16_t values[]){
  * @retval 0 Success
  * @retval 1 Error while retrieving values from the FIFO
  */
-static errorCode_u popAndAddFIFO(int16_t values[]){
+static errorCode_u popAndAddFIFO(int32_t values[]){
     //Array describing the order in which the bytes come when reading the ADXL345 FIFO
     static const uint8_t dataRegistersIndexes[NB_AXIS][2] = {
         [X_AXIS] = {1, 0},
@@ -326,7 +326,7 @@ static errorCode_u popAndAddFIFO(int16_t values[]){
 
     //add the measurements (formatted from a two's complement) to their final value buffer
     for(uint8_t axis = 0 ; axis < NB_AXIS ; axis++)
-        values[axis] += twoComplement(buffer[dataRegistersIndexes[axis][0]], buffer[dataRegistersIndexes[axis][1]]);
+        values[axis] += (int32_t)twoComplement(buffer[dataRegistersIndexes[axis][0]], buffer[dataRegistersIndexes[axis][1]]);
 
     //wait for a while to make sure 5 us pass between two reads
     //	as stated in the datasheet, section "Retrieving data from the FIFO"
@@ -492,7 +492,7 @@ static errorCode_u stMeasuringST_ON(){
         [Y_AXIS] = {-949, -85},
         [Z_AXIS] = {118, 1294},
     };
-    int16_t STdeltas[NB_AXIS];
+    int32_t STdeltas[NB_AXIS];
 
     //if timeout, go error
     if(!adxlTimer_ms){
