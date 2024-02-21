@@ -1,7 +1,7 @@
 /**
  * @brief Implement the ADXL345 accelerometer communication
  * @author Gilles Henrard
- * @date 17/02/2024
+ * @date 20/02/2024
  *
  * @note Additional information can be found in :
  *   - ADXL345 datasheet : https://www.analog.com/media/en/technical-documentation/data-sheets/ADXL345.pdf
@@ -70,8 +70,8 @@ static inline uint8_t isFIFOdataReady();
 static inline int16_t twoComplement(uint8_t MSB, uint8_t LSB);
 
 // Default DATA FORMAT (register 0x31) and FIFO CONTROL (register 0x38) register values
-static const uint8_t DATA_FORMAT_DEFAULT = (ADXL_NO_SELF_TEST | ADXL_SPI_4WIRE | ADXL_INT_ACTIV_LOW | ADXL_RIGHT_JUSTIFY | ADXL_RANGE_16G);
-static const uint8_t FIFO_CONTROL_DEFAULT = (ADXL_MODE_FIFO | ADXL_TRIGGER_INT1 | (ADXL_AVG_SAMPLES - 1));
+static const uint8_t DATA_FORMAT_DEFAULT = (ADXL_NO_SELF_TEST | ADXL_SPI_4WIRE | ADXL_INT_ACTIV_LOW | ADXL_13BIT_RESOL | ADXL_RIGHT_JUSTIFY | ADXL_RANGE_16G);
+static const uint8_t FIFO_CONTROL_DEFAULT = (ADXL_MODE_FIFO | ADXL_INT_MAP_INT1 | (ADXL_AVG_SAMPLES - 1));
 
 //global variables
 volatile uint16_t			adxlTimer_ms = INT_TIMEOUT_MS;	///< Timer used in various states of the ADXL (in ms)
@@ -139,7 +139,7 @@ errorCode_u writeRegister(adxl345Registers_e registerNumber, uint8_t value){
 	assert(_spiHandle);
 
 	//if register number above known or within the reserved range, error
-	if((registerNumber > ADXL_NB_REGISTERS) || ((uint8_t)(registerNumber - 1) < ADXL_HIGH_RESERVED_REG))
+	if((registerNumber > ADXL_REGISTER_MAXNB) || ((uint8_t)(registerNumber - 1) < ADXL_HIGH_RESERVED_REG))
 		return (createErrorCode(WRITE_REGISTER, 1, ERR_WARNING));
 
 	//set timeout timer and enable SPI
@@ -190,7 +190,7 @@ errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint
 	assert(value);
 
 	//if register numbers above known, error
-	if(firstRegister > ADXL_NB_REGISTERS)
+	if(firstRegister > ADXL_REGISTER_MAXNB)
 		return (createErrorCode(READ_REGISTERS, 1, ERR_WARNING));
 
 	//set timeout timer and enable SPI
@@ -348,7 +348,6 @@ errorCode_u stStartup(){
 		return (ERR_SUCCESS);
 
 	//reset timeout timer and get to next state
-	adxlTimer_ms = INT_TIMEOUT_MS;
 	_state = stConfiguring;
 	return (ERR_SUCCESS);
 }
@@ -361,7 +360,7 @@ errorCode_u stStartup(){
  */
 errorCode_u stConfiguring(){
 	static const uint8_t initialisationArray[NB_REG_INIT][2] = {
-		{DATA_FORMAT,			DATA_FORMAT_DEFAULT | ADXL_10BIT_RESOL},
+		{DATA_FORMAT,			DATA_FORMAT_DEFAULT},
 		{BANDWIDTH_POWERMODE,	ADXL_POWER_NORMAL | ADXL_RATE_200HZ},
 		{FIFO_CONTROL,			ADXL_MODE_BYPASS},		//clear the FIFOs first (blocks otherwise)
 		{FIFO_CONTROL,			FIFO_CONTROL_DEFAULT},
@@ -462,10 +461,18 @@ errorCode_u stWaitingForSTenabled(){
  * @retval 0 Success
  * @retval 1 Timeout while waiting for measurements
  * @retval 2 Error while integrating the FIFOs
- * @retval 3 Error while resetting the data format
- * @retval 4 Self-test values out of range
+ * @retval 3 Self-test values out of range
+ * @retval 4 Error while resetting the data format
  */
 errorCode_u stMeasuringST_ON(){
+	//ADXL Self-Test minimum and maximum delta values
+	//	at 13-bits resolution, 16G range and 3.3V supply, according to the datasheet
+	//	see Google Drive for calculations
+	static const int16_t ST_MAXDELTAS[NB_AXIS][2] = {
+		[X_AXIS] = {85, 949},
+		[Y_AXIS] = {-949, -85},
+		[Z_AXIS] = {118, 1294},
+	};
 	int16_t STdeltas[NB_AXIS];
 
 	//if timeout, go error
@@ -485,25 +492,25 @@ errorCode_u stMeasuringST_ON(){
 		return (pushErrorCode(_result, SELF_TESTING_ON, 2));
 	}
 
-	//reset the data format
-	_result = writeRegister(DATA_FORMAT, DATA_FORMAT_DEFAULT | ADXL_FULL_RESOL);
-	if(IS_ERROR(_result)){
-		_state = stError;
-		return (pushErrorCode(_result, SELF_TESTING_ON, 3)); 	// @suppress("Avoid magic numbers")
-	}
-
 	//compute the self-test deltas
 	STdeltas[X_AXIS] -= _latestValues[X_AXIS];
 	STdeltas[Y_AXIS] -= _latestValues[Y_AXIS];
 	STdeltas[Z_AXIS] -= _latestValues[Z_AXIS];
 
 	//if self-test values out of range, error
-	if((STdeltas[X_AXIS] <= ADXL_ST_MINX_33_16G) || (STdeltas[X_AXIS] >= ADXL_ST_MAXX_33_16G)
-		|| (STdeltas[Y_AXIS] <= ADXL_ST_MINY_33_16G) || (STdeltas[Y_AXIS] >= ADXL_ST_MAXY_33_16G)
-		|| (STdeltas[Z_AXIS] <= ADXL_ST_MINZ_33_16G) || (STdeltas[Z_AXIS] >= ADXL_ST_MAXZ_33_16G))
+	if((STdeltas[X_AXIS] <= ST_MAXDELTAS[X_AXIS][0]) || (STdeltas[X_AXIS] >= ST_MAXDELTAS[X_AXIS][1])
+		|| (STdeltas[Y_AXIS] <= ST_MAXDELTAS[Y_AXIS][0]) || (STdeltas[Y_AXIS] >= ST_MAXDELTAS[Y_AXIS][1])
+		|| (STdeltas[Z_AXIS] <= ST_MAXDELTAS[Z_AXIS][0]) || (STdeltas[Z_AXIS] >= ST_MAXDELTAS[Z_AXIS][1]))
 	{
 		_state = stError;
-		return (pushErrorCode(_result, SELF_TESTING_ON, 4)); 	// @suppress("Avoid magic numbers")
+		return (pushErrorCode(_result, SELF_TESTING_ON, 3));
+	}
+
+	//reset the data format
+	_result = writeRegister(DATA_FORMAT, DATA_FORMAT_DEFAULT);
+	if(IS_ERROR(_result)){
+		_state = stError;
+		return (pushErrorCode(_result, SELF_TESTING_ON, 4));
 	}
 
 	//reset timer and get to next state
