@@ -26,22 +26,23 @@
 static_assert((ADXL_AVG_SAMPLES >> ADXL_AVG_SHIFT) == 1, "ADXL_AVG_SHIFT does not divide all the samples configured with ADXL_AVG_SAMPLES");
 
 //type definitions
+
 /**
  * @brief Enumeration of the function IDs of the ADXL345
  */
 typedef enum _ADXLfunctionCodes_e{
-	INIT = 0,      		///< ADXL345initialise()
-	SELF_TESTING_OFF,	///< stMeasuringST_OFF()
-	SELF_TEST_WAIT,		///< stWaitingForSTenabled()
-	SELF_TESTING_ON,	///< stMeasuringST_ON()
-	MEASURE,        	///< stMeasuring()
-	CHK_MEASURES,  		///< ADXL345hasNewMeasurements()
-	WRITE_REGISTER,		///< ADXL345writeRegister()
-	READ_REGISTERS,		///< ADXL345readRegisters()
-	GET_X_ANGLE,		///< ADXL345getXangleDegrees()
-	GET_Y_ANGLE,		///< ADXL345getYangleDegrees()
-	INTEGRATE,			///< integrateFIFO()
-	STARTUP				///< stStartup()
+    INIT = 0,      		///< ADXL345initialise()
+    SELF_TESTING_OFF,	///< stMeasuringST_OFF()
+    SELF_TEST_WAIT,		///< stWaitingForSTenabled()
+    SELF_TESTING_ON,	///< stMeasuringST_ON()
+    MEASURE,        	///< stMeasuring()
+    CHK_MEASURES,  		///< ADXL345hasNewMeasurements()
+    WRITE_REGISTER,		///< ADXL345writeRegister()
+    READ_REGISTERS,		///< ADXL345readRegisters()
+    GET_X_ANGLE,		///< ADXL345getXangleDegrees()
+    GET_Y_ANGLE,		///< ADXL345getYangleDegrees()
+    INTEGRATE,			///< integrateFIFO()
+    STARTUP				///< stStartup()
 }ADXLfunctionCodes_e;
 
 /**
@@ -93,14 +94,14 @@ static errorCode_u 		_result;					///< Variables used to store error codes
 /**
  * @brief Initialise the ADXL345
  *
- * @param handle		SPI handle used
- * @returns 			Success
+ * @param handle	SPI handle used
+ * @returns 		Success
  */
 errorCode_u ADXL345initialise(const SPI_TypeDef* handle){
-	_spiHandle = (SPI_TypeDef*)handle;
-	LL_SPI_Disable(_spiHandle);
+    _spiHandle = (SPI_TypeDef*)handle;
+    LL_SPI_Disable(_spiHandle);
 
-	return (ERR_SUCCESS);
+    return (ERR_SUCCESS);
 }
 
 /**
@@ -109,7 +110,7 @@ errorCode_u ADXL345initialise(const SPI_TypeDef* handle){
  * @return Current machine state return value
  */
 errorCode_u ADXL345update(){
-	return ( (*_state)() );
+    return ( (*_state)() );
 }
 
 /**
@@ -119,10 +120,10 @@ errorCode_u ADXL345update(){
  * @retval 1 New values are available
  */
 uint8_t ADXL345hasChanged(axis_e axis){
-	uint8_t tmp = (_latestValues[axis] != _previousValues[axis]);
-	_previousValues[axis] = _latestValues[axis];
+    uint8_t tmp = (_latestValues[axis] != _previousValues[axis]);
+    _previousValues[axis] = _latestValues[axis];
 
-	return (tmp);
+    return (tmp);
 }
 
 /**
@@ -135,37 +136,37 @@ uint8_t ADXL345hasChanged(axis_e axis){
  * @retval 2 Timeout
  */
 errorCode_u writeRegister(adxl345Registers_e registerNumber, uint8_t value){
-	//assertions
-	assert(_spiHandle);
+    //assertions
+    assert(_spiHandle);
 
-	//if register number above known or within the reserved range, error
-	if((registerNumber > ADXL_REGISTER_MAXNB) || ((uint8_t)(registerNumber - 1) < ADXL_HIGH_RESERVED_REG))
-		return (createErrorCode(WRITE_REGISTER, 1, ERR_WARNING));
+    //if register number above known or within the reserved range, error
+    if((registerNumber > ADXL_REGISTER_MAXNB) || ((uint8_t)(registerNumber - 1) < ADXL_HIGH_RESERVED_REG))
+        return (createErrorCode(WRITE_REGISTER, 1, ERR_WARNING));
 
-	//set timeout timer and enable SPI
-	adxlSPITimer_ms = SPI_TIMEOUT_MS;
-	LL_SPI_Enable(_spiHandle);
+    //set timeout timer and enable SPI
+    adxlSPITimer_ms = SPI_TIMEOUT_MS;
+    LL_SPI_Enable(_spiHandle);
 
-	//send the write instruction
-	LL_SPI_TransmitData8(_spiHandle, ADXL_WRITE | ADXL_SINGLE | registerNumber);
+    //send the write instruction
+    LL_SPI_TransmitData8(_spiHandle, ADXL_WRITE | ADXL_SINGLE | registerNumber);
 
-	//wait for TX buffer to be ready and send value to write
-	while(!LL_SPI_IsActiveFlag_TXE(_spiHandle) && adxlSPITimer_ms);
-	if(adxlSPITimer_ms)
-		LL_SPI_TransmitData8(_spiHandle, value);
+    //wait for TX buffer to be ready and send value to write
+    while(!LL_SPI_IsActiveFlag_TXE(_spiHandle) && adxlSPITimer_ms);
+    if(adxlSPITimer_ms)
+        LL_SPI_TransmitData8(_spiHandle, value);
 
-	//wait for transaction to be finished and clear Overrun flag
-	while(LL_SPI_IsActiveFlag_BSY(_spiHandle) && adxlSPITimer_ms);
-	LL_SPI_ClearFlag_OVR(_spiHandle);
+    //wait for transaction to be finished and clear Overrun flag
+    while(LL_SPI_IsActiveFlag_BSY(_spiHandle) && adxlSPITimer_ms);
+    LL_SPI_ClearFlag_OVR(_spiHandle);
 
-	//disable SPI
-	LL_SPI_Disable(_spiHandle);
+    //disable SPI
+    LL_SPI_Disable(_spiHandle);
 
-	//if timeout, error
-	if(!adxlSPITimer_ms)
-		return (createErrorCode(WRITE_REGISTER, 2, ERR_WARNING));
+    //if timeout, error
+    if(!adxlSPITimer_ms)
+        return (createErrorCode(WRITE_REGISTER, 2, ERR_WARNING));
 
-	return (ERR_SUCCESS);
+    return (ERR_SUCCESS);
 }
 
 /**
@@ -179,55 +180,55 @@ errorCode_u writeRegister(adxl345Registers_e registerNumber, uint8_t value){
  * @retval 2 Timeout
  */
 errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint8_t size){
-	static const uint8_t SPI_RX_FILLER = 0xFFU;	///< Value to send as a filler while receiving multiple bytes
+    static const uint8_t SPI_RX_FILLER = 0xFFU;	///< Value to send as a filler while receiving multiple bytes
 
-	//if no bytes to read, success
-	if(!size)
-		return ERR_SUCCESS;
+    //if no bytes to read, success
+    if(!size)
+        return ERR_SUCCESS;
 
-	//assertions
-	assert(_spiHandle);
-	assert(value);
+    //assertions
+    assert(_spiHandle);
+    assert(value);
 
-	//if register numbers above known, error
-	if(firstRegister > ADXL_REGISTER_MAXNB)
-		return (createErrorCode(READ_REGISTERS, 1, ERR_WARNING));
+    //if register numbers above known, error
+    if(firstRegister > ADXL_REGISTER_MAXNB)
+        return (createErrorCode(READ_REGISTERS, 1, ERR_WARNING));
 
-	//set timeout timer and enable SPI
-	adxlSPITimer_ms = SPI_TIMEOUT_MS;
-	LL_SPI_Enable(_spiHandle);
-	uint8_t* iterator = value;
+    //set timeout timer and enable SPI
+    adxlSPITimer_ms = SPI_TIMEOUT_MS;
+    LL_SPI_Enable(_spiHandle);
+    uint8_t* iterator = value;
 
-	//send the read request and ignore the first byte received (reply to the write request)
-	LL_SPI_TransmitData8(_spiHandle, ADXL_READ | ADXL_MULTIPLE | firstRegister);
-	while((!LL_SPI_IsActiveFlag_RXNE(_spiHandle)) && adxlSPITimer_ms);
-	*iterator = LL_SPI_ReceiveData8(_spiHandle);
+    //send the read request and ignore the first byte received (reply to the write request)
+    LL_SPI_TransmitData8(_spiHandle, ADXL_READ | ADXL_MULTIPLE | firstRegister);
+    while((!LL_SPI_IsActiveFlag_RXNE(_spiHandle)) && adxlSPITimer_ms);
+    *iterator = LL_SPI_ReceiveData8(_spiHandle);
 
-	//receive the bytes to read
-	do{
-		//send a filler byte to keep the SPI clock running, to receive the next byte
-		LL_SPI_TransmitData8(_spiHandle, SPI_RX_FILLER);
+    //receive the bytes to read
+    do{
+        //send a filler byte to keep the SPI clock running, to receive the next byte
+        LL_SPI_TransmitData8(_spiHandle, SPI_RX_FILLER);
 
-		//wait for data to be available, and read it
-		while((!LL_SPI_IsActiveFlag_RXNE(_spiHandle)) && adxlSPITimer_ms);
-		*iterator = LL_SPI_ReceiveData8(_spiHandle);
-		
-		iterator++;
-		size--;
-	}while(size && adxlSPITimer_ms);
+        //wait for data to be available, and read it
+        while((!LL_SPI_IsActiveFlag_RXNE(_spiHandle)) && adxlSPITimer_ms);
+        *iterator = LL_SPI_ReceiveData8(_spiHandle);
+        
+        iterator++;
+        size--;
+    }while(size && adxlSPITimer_ms);
 
-	//wait for transaction to be finished and clear Overrun flag
-	while(LL_SPI_IsActiveFlag_BSY(_spiHandle) && adxlSPITimer_ms);
-	LL_SPI_ClearFlag_OVR(_spiHandle);
+    //wait for transaction to be finished and clear Overrun flag
+    while(LL_SPI_IsActiveFlag_BSY(_spiHandle) && adxlSPITimer_ms);
+    LL_SPI_ClearFlag_OVR(_spiHandle);
 
-	//disable SPI
-	LL_SPI_Disable(_spiHandle);
+    //disable SPI
+    LL_SPI_Disable(_spiHandle);
 
-	//if timeout, error
-	if(!adxlSPITimer_ms)
-		return (createErrorCode(READ_REGISTERS, 2, ERR_WARNING));
+    //if timeout, error
+    if(!adxlSPITimer_ms)
+        return (createErrorCode(READ_REGISTERS, 2, ERR_WARNING));
 
-	return (ERR_SUCCESS);
+    return (ERR_SUCCESS);
 }
 
 /**
@@ -237,17 +238,17 @@ errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint
  * @return Angle with the Z axis
  */
 int16_t getAngleDegreesTenths(axis_e axis){
-	static const float RADIANS_TO_DEGREES_TENTHS = 180.0f * 10.0f * (float)M_1_PI;
+    static const float RADIANS_TO_DEGREES_TENTHS = 180.0f * 10.0f * (float)M_1_PI;
 
-	if(!_latestValues[Z_AXIS])
-		return (0);
+    if(!_latestValues[Z_AXIS])
+        return (0);
 
-	//compute the angle between Z axis and the requested one
-	//	then transform radians to 0.1 degrees
-	//	formula : degrees_tenths = (arctan(axis/Z) * 180° * 10) / PI
-	float angle = atanf((float)_latestValues[axis] / (float)_latestValues[Z_AXIS]);
-	angle *= RADIANS_TO_DEGREES_TENTHS;
-	return ((int16_t)angle);
+    //compute the angle between Z axis and the requested one
+    //	then transform radians to 0.1 degrees
+    //	formula : degrees_tenths = (arctan(axis/Z) * 180° * 10) / PI
+    float angle = atanf((float)_latestValues[axis] / (float)_latestValues[Z_AXIS]);
+    angle *= RADIANS_TO_DEGREES_TENTHS;
+    return ((int16_t)angle);
 }
 
 /**
@@ -257,7 +258,7 @@ int16_t getAngleDegreesTenths(axis_e axis){
  * @retval 1 Data is ready
  */
 static inline uint8_t isFIFOdataReady(){
-	return !LL_GPIO_IsInputPinSet(ADXL_INT1_GPIO_Port, ADXL_INT1_Pin);
+    return !LL_GPIO_IsInputPinSet(ADXL_INT1_GPIO_Port, ADXL_INT1_Pin);
 }
 
 /**
@@ -268,7 +269,7 @@ static inline uint8_t isFIFOdataReady(){
  * @return int16_t	16 bit resulting number
  */
 static inline int16_t twoComplement(uint8_t MSB, uint8_t LSB){
-	return (int16_t)(((uint16_t)MSB << 8) | (uint16_t)LSB);
+    return (int16_t)(((uint16_t)MSB << 8) | (uint16_t)LSB);
 }
 
 /**
@@ -279,42 +280,42 @@ static inline int16_t twoComplement(uint8_t MSB, uint8_t LSB){
  * @retval 1 Error while retrieving values from the FIFO
  */
 errorCode_u integrateFIFO(int16_t values[]){
-	//Array describing the order in which the bytes come when reading the ADXL345 FIFO
-	static const uint8_t dataRegistersIndexes[NB_AXIS][2] = {
-		[X_AXIS] = {1, 0},
-		[Y_AXIS] = {3, 2},
-		[Z_AXIS] = {5, 4},
-	};
-	uint8_t buffer[ADXL_NB_DATA_REGISTERS];
-	uint8_t axis;
+    //Array describing the order in which the bytes come when reading the ADXL345 FIFO
+    static const uint8_t dataRegistersIndexes[NB_AXIS][2] = {
+        [X_AXIS] = {1, 0},
+        [Y_AXIS] = {3, 2},
+        [Z_AXIS] = {5, 4},
+    };
+    uint8_t buffer[ADXL_NB_DATA_REGISTERS];
+    uint8_t axis;
 
-	//set the axis values to 0 before integrating
-	values[X_AXIS] = values[Y_AXIS] = values[Z_AXIS] = 0;
+    //set the axis values to 0 before integrating
+    values[X_AXIS] = values[Y_AXIS] = values[Z_AXIS] = 0;
 
-	//for each of the samples to read
-	for(uint8_t i = 0 ; i < ADXL_AVG_SAMPLES ; i++){
-		//read all data registers for 1 sample
-		_result = readRegisters(DATA_X0, buffer, ADXL_NB_DATA_REGISTERS);
-		if(IS_ERROR(_result)){
-			_state = stError;
-			return (pushErrorCode(_result, INTEGRATE, 1));
-		}
+    //for each of the samples to read
+    for(uint8_t i = 0 ; i < ADXL_AVG_SAMPLES ; i++){
+        //read all data registers for 1 sample
+        _result = readRegisters(DATA_X0, buffer, ADXL_NB_DATA_REGISTERS);
+        if(IS_ERROR(_result)){
+            _state = stError;
+            return (pushErrorCode(_result, INTEGRATE, 1));
+        }
 
-		//add the measurements (formatted from a two's complement) to their final value buffer
-		for(axis = 0 ; axis < NB_AXIS ; axis++)
-			values[axis] += twoComplement(buffer[dataRegistersIndexes[axis][0]], buffer[dataRegistersIndexes[axis][1]]);
+        //add the measurements (formatted from a two's complement) to their final value buffer
+        for(axis = 0 ; axis < NB_AXIS ; axis++)
+            values[axis] += twoComplement(buffer[dataRegistersIndexes[axis][0]], buffer[dataRegistersIndexes[axis][1]]);
 
-		//wait for a while to make sure 5 us pass between two reads
-		//	as stated in the datasheet, section "Retrieving data from the FIFO"
-		volatile uint8_t tempo = 0x0FU;
-		while(tempo--);
-	}
+        //wait for a while to make sure 5 us pass between two reads
+        //	as stated in the datasheet, section "Retrieving data from the FIFO"
+        volatile uint8_t tempo = 0x0FU;
+        while(tempo--);
+    }
 
-	//divide the buffers to average out
-	for(axis = 0 ; axis < NB_AXIS ; axis++)
-		values[axis] >>= ADXL_AVG_SHIFT;
+    //divide the buffers to average out
+    for(axis = 0 ; axis < NB_AXIS ; axis++)
+        values[axis] >>= ADXL_AVG_SHIFT;
 
-	return (ERR_SUCCESS);
+    return (ERR_SUCCESS);
 }
 
 
@@ -330,26 +331,26 @@ errorCode_u integrateFIFO(int16_t values[]){
  * @retval 2 Unable to read device ID
  */
 errorCode_u stStartup(){
-	uint8_t deviceID = 0;
+    uint8_t deviceID = 0;
 
-	//if 1s elapsed without reading the correct vendor ID, go error
-	if(!adxlTimer_ms){
-		_state = stError;
-		return (createErrorCode(STARTUP, 1, ERR_CRITICAL));
-	}
+    //if 1s elapsed without reading the correct vendor ID, go error
+    if(!adxlTimer_ms){
+        _state = stError;
+        return (createErrorCode(STARTUP, 1, ERR_CRITICAL));
+    }
 
-	//if unable to read device ID, error
-	_result = readRegisters(DEVICE_ID, &deviceID, 1);
-	if(IS_ERROR(_result))
-		return (pushErrorCode(_result, STARTUP, 2));
+    //if unable to read device ID, error
+    _result = readRegisters(DEVICE_ID, &deviceID, 1);
+    if(IS_ERROR(_result))
+        return (pushErrorCode(_result, STARTUP, 2));
 
-	//if invalid device ID, exit
-	if(deviceID != ADXL_DEVICE_ID)
-		return (ERR_SUCCESS);
+    //if invalid device ID, exit
+    if(deviceID != ADXL_DEVICE_ID)
+        return (ERR_SUCCESS);
 
-	//reset timeout timer and get to next state
-	_state = stConfiguring;
-	return (ERR_SUCCESS);
+    //reset timeout timer and get to next state
+    _state = stConfiguring;
+    return (ERR_SUCCESS);
 }
 
 /**
@@ -359,28 +360,28 @@ errorCode_u stStartup(){
  * @retval 1 Error while writing a register
  */
 errorCode_u stConfiguring(){
-	static const uint8_t initialisationArray[NB_REG_INIT][2] = {
-		{DATA_FORMAT,			DATA_FORMAT_DEFAULT},
-		{BANDWIDTH_POWERMODE,	ADXL_POWER_NORMAL | ADXL_RATE_200HZ},
-		{FIFO_CONTROL,			ADXL_MODE_BYPASS},		//clear the FIFOs first (blocks otherwise)
-		{FIFO_CONTROL,			FIFO_CONTROL_DEFAULT},
-		{POWER_CONTROL,			ADXL_MEASURE_MODE},		///
-		{INTERRUPT_ENABLE,		ADXL_INT_WATERMARK},	///must come at the end
-	};
+    static const uint8_t initialisationArray[NB_REG_INIT][2] = {
+        {DATA_FORMAT,			DATA_FORMAT_DEFAULT},
+        {BANDWIDTH_POWERMODE,	ADXL_POWER_NORMAL | ADXL_RATE_200HZ},
+        {FIFO_CONTROL,			ADXL_MODE_BYPASS},		//clear the FIFOs first (blocks otherwise)
+        {FIFO_CONTROL,			FIFO_CONTROL_DEFAULT},
+        {POWER_CONTROL,			ADXL_MEASURE_MODE},		///
+        {INTERRUPT_ENABLE,		ADXL_INT_WATERMARK},	///must come at the end
+    };
 
-	//write all registers values from the initialisation array
-	for(uint8_t i = 0 ; i < NB_REG_INIT ; i++){
-		_result = writeRegister(initialisationArray[i][0], initialisationArray[i][1]);
-		if(IS_ERROR(_result)){
-			_state = stError;
-			return (pushErrorCode(_result, INIT, 1));
-		}
-	}
+    //write all registers values from the initialisation array
+    for(uint8_t i = 0 ; i < NB_REG_INIT ; i++){
+        _result = writeRegister(initialisationArray[i][0], initialisationArray[i][1]);
+        if(IS_ERROR(_result)){
+            _state = stError;
+            return (pushErrorCode(_result, INIT, 1));
+        }
+    }
 
-	//reset the timer and get to next state
-	adxlTimer_ms = INT_TIMEOUT_MS;
-	_state = stMeasuringST_OFF;
-	return (_result);
+    //reset the timer and get to next state
+    adxlTimer_ms = INT_TIMEOUT_MS;
+    _state = stMeasuringST_OFF;
+    return (_result);
 }
 
 /**
@@ -394,41 +395,41 @@ errorCode_u stConfiguring(){
  * @retval 4 Error while clearing the FIFOs
  */
 errorCode_u stMeasuringST_OFF(){
-	//if timeout, go error
-	if(!adxlTimer_ms){
-		_state = stError;
-		return (createErrorCode(SELF_TESTING_OFF, 1, ERR_ERROR));
-	}
+    //if timeout, go error
+    if(!adxlTimer_ms){
+        _state = stError;
+        return (createErrorCode(SELF_TESTING_OFF, 1, ERR_ERROR));
+    }
 
-	//if watermark interrupt not fired, exit
-	if(!isFIFOdataReady())
-		return (ERR_SUCCESS);
+    //if watermark interrupt not fired, exit
+    if(!isFIFOdataReady())
+        return (ERR_SUCCESS);
 
-	//retrieve the integrated measurements (to be used with self-testing)
-	_result = integrateFIFO(_latestValues);
-	if(IS_ERROR(_result)){
-		_state = stError;
-		return (pushErrorCode(_result, SELF_TESTING_OFF, 2));
-	}
+    //retrieve the integrated measurements (to be used with self-testing)
+    _result = integrateFIFO(_latestValues);
+    if(IS_ERROR(_result)){
+        _state = stError;
+        return (pushErrorCode(_result, SELF_TESTING_OFF, 2));
+    }
 
-	//Enable the self-test
-	_result = writeRegister(DATA_FORMAT, DATA_FORMAT_DEFAULT | ADXL_SELF_TEST);
-	if(IS_ERROR(_result)){
-		_state = stError;
-		return (pushErrorCode(_result, SELF_TESTING_OFF, 3));
-	}
+    //Enable the self-test
+    _result = writeRegister(DATA_FORMAT, DATA_FORMAT_DEFAULT | ADXL_SELF_TEST);
+    if(IS_ERROR(_result)){
+        _state = stError;
+        return (pushErrorCode(_result, SELF_TESTING_OFF, 3));
+    }
 
-	//clear the FIFOs
-	_result = writeRegister(FIFO_CONTROL, ADXL_MODE_BYPASS);
-	if(IS_ERROR(_result)){
-		_state = stError;
-		return (pushErrorCode(_result, SELF_TESTING_OFF, 4));
-	}
+    //clear the FIFOs
+    _result = writeRegister(FIFO_CONTROL, ADXL_MODE_BYPASS);
+    if(IS_ERROR(_result)){
+        _state = stError;
+        return (pushErrorCode(_result, SELF_TESTING_OFF, 4));
+    }
 
-	//set timer to wait for 25ms and get to next state
-	adxlTimer_ms = ST_WAIT_MS;
-	_state = stWaitingForSTenabled;
-	return (ERR_SUCCESS);
+    //set timer to wait for 25ms and get to next state
+    adxlTimer_ms = ST_WAIT_MS;
+    _state = stWaitingForSTenabled;
+    return (ERR_SUCCESS);
 }
 
 /**
@@ -438,21 +439,21 @@ errorCode_u stMeasuringST_OFF(){
  * @return 1 Error while re-enabling FIFOs
  */
 errorCode_u stWaitingForSTenabled(){
-	//if timer not elapsed yet, exit
-	if(!adxlTimer_ms)
-		return (ERR_SUCCESS);
+    //if timer not elapsed yet, exit
+    if(!adxlTimer_ms)
+        return (ERR_SUCCESS);
 
-	//enable FIFOs
-	_result = writeRegister(FIFO_CONTROL, FIFO_CONTROL_DEFAULT);
-	if(IS_ERROR(_result)){
-		_state = stError;
-		return (pushErrorCode(_result, SELF_TEST_WAIT, 1)); 	// @suppress("Avoid magic numbers")
-	}
+    //enable FIFOs
+    _result = writeRegister(FIFO_CONTROL, FIFO_CONTROL_DEFAULT);
+    if(IS_ERROR(_result)){
+        _state = stError;
+        return (pushErrorCode(_result, SELF_TEST_WAIT, 1)); 	// @suppress("Avoid magic numbers")
+    }
 
-	//reset timer and get to next state
-	adxlTimer_ms = INT_TIMEOUT_MS;
-	_state = stMeasuringST_ON;
-	return (ERR_SUCCESS);
+    //reset timer and get to next state
+    adxlTimer_ms = INT_TIMEOUT_MS;
+    _state = stMeasuringST_ON;
+    return (ERR_SUCCESS);
 }
 
 /**
@@ -465,58 +466,58 @@ errorCode_u stWaitingForSTenabled(){
  * @retval 4 Error while resetting the data format
  */
 errorCode_u stMeasuringST_ON(){
-	//ADXL Self-Test minimum and maximum delta values
-	//	at 13-bits resolution, 16G range and 3.3V supply, according to the datasheet
-	//	see Google Drive for calculations
-	static const int16_t ST_MAXDELTAS[NB_AXIS][2] = {
-		[X_AXIS] = {85, 949},
-		[Y_AXIS] = {-949, -85},
-		[Z_AXIS] = {118, 1294},
-	};
-	int16_t STdeltas[NB_AXIS];
+    //ADXL Self-Test minimum and maximum delta values
+    //	at 13-bits resolution, 16G range and 3.3V supply, according to the datasheet
+    //	see Google Drive for calculations
+    static const int16_t ST_MAXDELTAS[NB_AXIS][2] = {
+        [X_AXIS] = {85, 949},
+        [Y_AXIS] = {-949, -85},
+        [Z_AXIS] = {118, 1294},
+    };
+    int16_t STdeltas[NB_AXIS];
 
-	//if timeout, go error
-	if(!adxlTimer_ms){
-		_state = stError;
-		return (createErrorCode(SELF_TESTING_ON, 1, ERR_ERROR));
-	}
+    //if timeout, go error
+    if(!adxlTimer_ms){
+        _state = stError;
+        return (createErrorCode(SELF_TESTING_ON, 1, ERR_ERROR));
+    }
 
-	//if watermark interrupt not fired, exit
-	if(!isFIFOdataReady())
-		return (ERR_SUCCESS);
+    //if watermark interrupt not fired, exit
+    if(!isFIFOdataReady())
+        return (ERR_SUCCESS);
 
-	//integrate the FIFOs
-	_result = integrateFIFO(STdeltas);
-	if(IS_ERROR(_result)){
-		_state = stError;
-		return (pushErrorCode(_result, SELF_TESTING_ON, 2));
-	}
+    //integrate the FIFOs
+    _result = integrateFIFO(STdeltas);
+    if(IS_ERROR(_result)){
+        _state = stError;
+        return (pushErrorCode(_result, SELF_TESTING_ON, 2));
+    }
 
-	//compute the self-test deltas
-	STdeltas[X_AXIS] -= _latestValues[X_AXIS];
-	STdeltas[Y_AXIS] -= _latestValues[Y_AXIS];
-	STdeltas[Z_AXIS] -= _latestValues[Z_AXIS];
+    //compute the self-test deltas
+    STdeltas[X_AXIS] -= _latestValues[X_AXIS];
+    STdeltas[Y_AXIS] -= _latestValues[Y_AXIS];
+    STdeltas[Z_AXIS] -= _latestValues[Z_AXIS];
 
-	//if self-test values out of range, error
-	if((STdeltas[X_AXIS] <= ST_MAXDELTAS[X_AXIS][0]) || (STdeltas[X_AXIS] >= ST_MAXDELTAS[X_AXIS][1])
-		|| (STdeltas[Y_AXIS] <= ST_MAXDELTAS[Y_AXIS][0]) || (STdeltas[Y_AXIS] >= ST_MAXDELTAS[Y_AXIS][1])
-		|| (STdeltas[Z_AXIS] <= ST_MAXDELTAS[Z_AXIS][0]) || (STdeltas[Z_AXIS] >= ST_MAXDELTAS[Z_AXIS][1]))
-	{
-		_state = stError;
-		return (pushErrorCode(_result, SELF_TESTING_ON, 3));
-	}
+    //if self-test values out of range, error
+    if((STdeltas[X_AXIS] <= ST_MAXDELTAS[X_AXIS][0]) || (STdeltas[X_AXIS] >= ST_MAXDELTAS[X_AXIS][1])
+        || (STdeltas[Y_AXIS] <= ST_MAXDELTAS[Y_AXIS][0]) || (STdeltas[Y_AXIS] >= ST_MAXDELTAS[Y_AXIS][1])
+        || (STdeltas[Z_AXIS] <= ST_MAXDELTAS[Z_AXIS][0]) || (STdeltas[Z_AXIS] >= ST_MAXDELTAS[Z_AXIS][1]))
+    {
+        _state = stError;
+        return (pushErrorCode(_result, SELF_TESTING_ON, 3));
+    }
 
-	//reset the data format
-	_result = writeRegister(DATA_FORMAT, DATA_FORMAT_DEFAULT);
-	if(IS_ERROR(_result)){
-		_state = stError;
-		return (pushErrorCode(_result, SELF_TESTING_ON, 4));
-	}
+    //reset the data format
+    _result = writeRegister(DATA_FORMAT, DATA_FORMAT_DEFAULT);
+    if(IS_ERROR(_result)){
+        _state = stError;
+        return (pushErrorCode(_result, SELF_TESTING_ON, 4));
+    }
 
-	//reset timer and get to next state
-	adxlTimer_ms = INT_TIMEOUT_MS;
-	_state = stMeasuring;
-	return (ERR_SUCCESS);
+    //reset timer and get to next state
+    adxlTimer_ms = INT_TIMEOUT_MS;
+    _state = stMeasuring;
+    return (ERR_SUCCESS);
 }
 
 /**
@@ -527,28 +528,28 @@ errorCode_u stMeasuringST_ON(){
  * @retval 2 Error occurred while integrating the FIFOs
  */
 errorCode_u stMeasuring(){
-	//if timeout, go error
-	if(!adxlTimer_ms){
-		_state = stError;
-		return (createErrorCode(MEASURE, 1, ERR_ERROR));
-	}
+    //if timeout, go error
+    if(!adxlTimer_ms){
+        _state = stError;
+        return (createErrorCode(MEASURE, 1, ERR_ERROR));
+    }
 
-	//if watermark interrupt not fired, exit
-	if(!isFIFOdataReady())
-		return (ERR_SUCCESS);
+    //if watermark interrupt not fired, exit
+    if(!isFIFOdataReady())
+        return (ERR_SUCCESS);
 
-	//reset flags
-	adxlTimer_ms = INT_TIMEOUT_MS;
+    //reset flags
+    adxlTimer_ms = INT_TIMEOUT_MS;
 
-	//integrate the FIFOs
-	_result = integrateFIFO(_latestValues);
-	if(IS_ERROR(_result)){
-		_state = stError;
-		return (pushErrorCode(_result, MEASURE, 2));
-	}
+    //integrate the FIFOs
+    _result = integrateFIFO(_latestValues);
+    if(IS_ERROR(_result)){
+        _state = stError;
+        return (pushErrorCode(_result, MEASURE, 2));
+    }
 
-	_measurementsUpdated = 1;
-	return (ERR_SUCCESS);
+    _measurementsUpdated = 1;
+    return (ERR_SUCCESS);
 }
 
 /**
@@ -557,5 +558,5 @@ errorCode_u stMeasuring(){
  * @return Success
  */
 errorCode_u stError(){
-	return (ERR_SUCCESS);
+    return (ERR_SUCCESS);
 }
