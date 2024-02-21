@@ -288,7 +288,7 @@ static errorCode_u integrateFIFO(int16_t values[]){
     //pop all samples from the FIFO
     for(uint8_t i = 0 ; i < ADXL_AVG_SAMPLES ; i++){
         _result = popAndAddFIFO(values);
-        if(IS_ERROR(_result)){
+        if(isError(_result)){
             _state = stError;
             return (pushErrorCode(_result, INTEGRATE, 1));
         }
@@ -319,7 +319,7 @@ static errorCode_u popAndAddFIFO(int16_t values[]){
 
     //read all data registers for 1 sample
     _result = readRegisters(DATA_X0, buffer, ADXL_NB_DATA_REGISTERS);
-    if(IS_ERROR(_result)){
+    if(isError(_result)){
         _state = stError;
         return (pushErrorCode(_result, POP_FIFO, 1));
     }
@@ -359,7 +359,7 @@ static errorCode_u stStartup(){
 
     //if unable to read device ID, error
     _result = readRegisters(DEVICE_ID, &deviceID, 1);
-    if(IS_ERROR(_result))
+    if(isError(_result))
         return (pushErrorCode(_result, STARTUP, 2));
 
     //if invalid device ID, exit
@@ -390,7 +390,7 @@ static errorCode_u stConfiguring(){
     //write all registers values from the initialisation array
     for(uint8_t i = 0 ; i < NB_REG_INIT ; i++){
         _result = writeRegister(initialisationArray[i][0], initialisationArray[i][1]);
-        if(IS_ERROR(_result)){
+        if(isError(_result)){
             _state = stError;
             return (pushErrorCode(_result, INIT, 1));
         }
@@ -425,21 +425,21 @@ static errorCode_u stMeasuringST_OFF(){
 
     //retrieve the integrated measurements (to be used with self-testing)
     _result = integrateFIFO(_latestValues);
-    if(IS_ERROR(_result)){
+    if(isError(_result)){
         _state = stError;
         return (pushErrorCode(_result, SELF_TESTING_OFF, 2));
     }
 
     //Enable the self-test
     _result = writeRegister(DATA_FORMAT, DATA_FORMAT_DEFAULT | ADXL_SELF_TEST);
-    if(IS_ERROR(_result)){
+    if(isError(_result)){
         _state = stError;
         return (pushErrorCode(_result, SELF_TESTING_OFF, 3));
     }
 
     //clear the FIFOs
     _result = writeRegister(FIFO_CONTROL, ADXL_MODE_BYPASS);
-    if(IS_ERROR(_result)){
+    if(isError(_result)){
         _state = stError;
         return (pushErrorCode(_result, SELF_TESTING_OFF, 4));
     }
@@ -463,7 +463,7 @@ static errorCode_u stWaitingForSTenabled(){
 
     //enable FIFOs
     _result = writeRegister(FIFO_CONTROL, FIFO_CONTROL_DEFAULT);
-    if(IS_ERROR(_result)){
+    if(isError(_result)){
         _state = stError;
         return (pushErrorCode(_result, SELF_TEST_WAIT, 1)); 	// @suppress("Avoid magic numbers")
     }
@@ -506,7 +506,7 @@ static errorCode_u stMeasuringST_ON(){
 
     //integrate the FIFOs
     _result = integrateFIFO(STdeltas);
-    if(IS_ERROR(_result)){
+    if(isError(_result)){
         _state = stError;
         return (pushErrorCode(_result, SELF_TESTING_ON, 2));
     }
@@ -527,7 +527,7 @@ static errorCode_u stMeasuringST_ON(){
 
     //reset the data format
     _result = writeRegister(DATA_FORMAT, DATA_FORMAT_DEFAULT);
-    if(IS_ERROR(_result)){
+    if(isError(_result)){
         _state = stError;
         return (pushErrorCode(_result, SELF_TESTING_ON, 4));
     }
@@ -561,7 +561,7 @@ static errorCode_u stMeasuring(){
 
     //integrate the FIFOs
     _result = integrateFIFO(_latestValues);
-    if(IS_ERROR(_result)){
+    if(isError(_result)){
         _state = stError;
         return (pushErrorCode(_result, MEASURE, 2));
     }
