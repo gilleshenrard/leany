@@ -461,8 +461,8 @@ errorCode_u stWaitingForSTenabled(){
  * @retval 0 Success
  * @retval 1 Timeout while waiting for measurements
  * @retval 2 Error while integrating the FIFOs
- * @retval 3 Error while resetting the data format
- * @retval 4 Self-test values out of range
+ * @retval 3 Self-test values out of range
+ * @retval 4 Error while resetting the data format
  */
 errorCode_u stMeasuringST_ON(){
 	//ADXL Self-Test minimum and maximum delta values
@@ -492,13 +492,6 @@ errorCode_u stMeasuringST_ON(){
 		return (pushErrorCode(_result, SELF_TESTING_ON, 2));
 	}
 
-	//reset the data format
-	_result = writeRegister(DATA_FORMAT, DATA_FORMAT_DEFAULT);
-	if(IS_ERROR(_result)){
-		_state = stError;
-		return (pushErrorCode(_result, SELF_TESTING_ON, 3)); 	// @suppress("Avoid magic numbers")
-	}
-
 	//compute the self-test deltas
 	STdeltas[X_AXIS] -= _latestValues[X_AXIS];
 	STdeltas[Y_AXIS] -= _latestValues[Y_AXIS];
@@ -510,7 +503,14 @@ errorCode_u stMeasuringST_ON(){
 		|| (STdeltas[Z_AXIS] <= ST_MAXDELTAS[Z_AXIS][0]) || (STdeltas[Z_AXIS] >= ST_MAXDELTAS[Z_AXIS][1]))
 	{
 		_state = stError;
-		return (pushErrorCode(_result, SELF_TESTING_ON, 4)); 	// @suppress("Avoid magic numbers")
+		return (pushErrorCode(_result, SELF_TESTING_ON, 3));
+	}
+
+	//reset the data format
+	_result = writeRegister(DATA_FORMAT, DATA_FORMAT_DEFAULT);
+	if(IS_ERROR(_result)){
+		_state = stError;
+		return (pushErrorCode(_result, SELF_TESTING_ON, 4));
 	}
 
 	//reset timer and get to next state
