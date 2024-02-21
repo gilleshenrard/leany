@@ -15,30 +15,30 @@
  * @brief Error levels possible
  */
 typedef enum{
-	ERR_INFO = 0,	///< Simple information
-	ERR_WARNING, 	///< Warning
-	ERR_ERROR,   	///< Non-critical error
-	ERR_CRITICAL 	///< Critical error
+    ERR_INFO = 0,	///< Simple information
+    ERR_WARNING, 	///< Warning
+    ERR_ERROR,   	///< Non-critical error
+    ERR_CRITICAL 	///< Critical error
 }errorLevel_e;
 
 /**
  * @brief Union implementing the error codes structure
  */
 typedef union{
-	/**
-	 * @brief Structure defining the discrete fields of an error code
-	 */
-	struct{
-		uint32_t layer3		: ERR_LAYER_NBBITS;		///< Layer 3 return code (lowest layer)
-		uint32_t layer2		: ERR_LAYER_NBBITS;		///< Layer 2 return code
-		uint32_t layer1		: ERR_LAYER_NBBITS;		///< Layer 1 return code
-		uint32_t layer0		: ERR_LAYER_NBBITS;		///< Layer 0 return code (highest layer)
-		uint32_t functionID	: ERR_ID_NBBITS;		///< ID of the highest function which returns the code
-		uint32_t moduleID	: ERR_ID_NBBITS;		///< ID of the module returning the code
-		uint32_t level		: ERR_LEVEL_NBBITS;		///< Error level
-	}fields;
+    /**
+     * @brief Structure defining the discrete fields of an error code
+     */
+    struct{
+        uint32_t layer3		: ERR_LAYER_NBBITS;		///< Layer 3 return code (lowest layer)
+        uint32_t layer2		: ERR_LAYER_NBBITS;		///< Layer 2 return code
+        uint32_t layer1		: ERR_LAYER_NBBITS;		///< Layer 1 return code
+        uint32_t layer0		: ERR_LAYER_NBBITS;		///< Layer 0 return code (highest layer)
+        uint32_t functionID	: ERR_ID_NBBITS;		///< ID of the highest function which returns the code
+        uint32_t moduleID	: ERR_ID_NBBITS;		///< ID of the module returning the code
+        uint32_t level		: ERR_LEVEL_NBBITS;		///< Error level
+    }fields;
 
-	uint32_t dword;									///< All 32 bits of the code at once
+    uint32_t dword;									///< All 32 bits of the code at once
 }errorCode_u;
 
 //global variables
