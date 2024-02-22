@@ -70,7 +70,7 @@ static errorCode_u popAndAddFIFO(int32_t values[]);
 
 //tool functions
 static inline uint8_t isFIFOdataReady();
-static inline int16_t twoComplement(uint8_t MSB, uint8_t LSB);
+static inline int16_t twoComplement(const uint8_t bytes[2]);
 
 // Default DATA FORMAT (register 0x31) and FIFO CONTROL (register 0x38) register values
 static const uint8_t DATA_FORMAT_DEFAULT = (ADXL_NO_SELF_TEST | ADXL_SPI_4WIRE | ADXL_INT_ACTIV_LOW | ADXL_13BIT_RESOL | ADXL_RIGHT_JUSTIFY | ADXL_RANGE_16G);
@@ -264,14 +264,14 @@ static inline uint8_t isFIFOdataReady(){
 }
 
 /**
- * @brief Translate two bytes into an int16_t via a two's complement
+ * @brief Reassemble a two's complement int16_t from two bytes
  * 
- * @param MSB		Most Significant Byte
- * @param LSB		Least Significant Byte
+ * @note  Within the ADXL345's data registers, the LSB comes before the MSB
+ * @param bytes		Array of two bytes to reassemble
  * @return int16_t	16 bit resulting number
  */
-static inline int16_t twoComplement(uint8_t MSB, uint8_t LSB){
-    return (int16_t)(((int16_t)MSB << 8) | (int16_t)LSB);
+static inline int16_t twoComplement(const uint8_t bytes[2]){
+    return (int16_t)(((int16_t)bytes[1] << 8) | (int16_t)bytes[0]);
 }
 
 /**
@@ -310,12 +310,6 @@ static errorCode_u integrateFIFO(int32_t values[]){
  * @retval 1 Error while retrieving values from the FIFO
  */
 static errorCode_u popAndAddFIFO(int32_t values[]){
-    //Array describing the order in which the bytes come when reading the ADXL345 FIFO
-    static const uint8_t dataRegistersIndexes[NB_AXIS][2] = {
-        [X_AXIS] = {1, 0},
-        [Y_AXIS] = {3, 2},
-        [Z_AXIS] = {5, 4},
-    };
     uint8_t buffer[ADXL_NB_DATA_REGISTERS];
 
     //read all data registers for 1 sample
@@ -327,7 +321,7 @@ static errorCode_u popAndAddFIFO(int32_t values[]){
 
     //add the measurements (formatted from a two's complement) to their final value buffer
     for(uint8_t axis = 0 ; axis < NB_AXIS ; axis++)
-        values[axis] += (int32_t)twoComplement(buffer[dataRegistersIndexes[axis][0]], buffer[dataRegistersIndexes[axis][1]]);
+        values[axis] += (int32_t)twoComplement(&buffer[axis << 1]);
 
     //wait for a while to make sure 5 us pass between two reads
     //	as stated in the datasheet, section "Retrieving data from the FIFO"
