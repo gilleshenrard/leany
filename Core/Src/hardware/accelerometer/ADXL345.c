@@ -271,7 +271,7 @@ static inline uint8_t isFIFOdataReady(){
  * @return int16_t	16 bit resulting number
  */
 static inline int16_t twoComplement(const uint8_t bytes[2]){
-    return (int16_t)(((int16_t)bytes[1] << 8) | (int16_t)bytes[0]);
+    return (((int16_t)bytes[1] << 8) | (int16_t)bytes[0]);
 }
 
 /**
