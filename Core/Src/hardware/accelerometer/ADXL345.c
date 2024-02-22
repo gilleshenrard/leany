@@ -294,7 +294,7 @@ static errorCode_u integrateFIFO(int32_t values[]){
         }
     }
 
-    //divide the buffers to average out
+    //divide the buffers to average out (Tested : compiler does divide negatives correctly)
     values[X_AXIS] >>= ADXL_AVG_SHIFT;
     values[Y_AXIS] >>= ADXL_AVG_SHIFT;
     values[Z_AXIS] >>= ADXL_AVG_SHIFT;
