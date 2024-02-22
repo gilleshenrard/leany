@@ -294,10 +294,9 @@ static errorCode_u integrateFIFO(int32_t values[]){
         }
     }
 
-    //divide the buffers to average out (+ avoid implementation-defined behaviour)
-    static const int32_t MSB_MASK = (int32_t)0x80000000;
+    //divide the buffers to average out
     for(uint8_t axis = 0 ; axis < NB_AXIS ; axis++)
-        values[axis] = (values[axis] & MSB_MASK) | (values[axis] >> ADXL_AVG_SHIFT);
+        values[axis] >>= ADXL_AVG_SHIFT;
 
     return (ERR_SUCCESS);
 }
