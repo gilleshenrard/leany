@@ -65,7 +65,6 @@ static errorCode_u stError();
 static errorCode_u writeRegister(adxl345Registers_e registerNumber, uint8_t value);
 static errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t value[], uint8_t size);
 static errorCode_u integrateFIFO(int32_t values[]);
-static errorCode_u popAndAddFIFO(int32_t values[]);
 
 //tool functions
 static inline uint8_t isFIFOdataReady();
@@ -281,51 +280,35 @@ static inline int16_t twoComplement(const uint8_t bytes[2]){
  * @retval 1 Error while retrieving values from the FIFO
  */
 static errorCode_u integrateFIFO(int32_t values[]){
+    uint8_t buffer[ADXL_NB_DATA_REGISTERS];
+    uint8_t axis;
+
     //set the axis values to 0 before integrating
     values[X_AXIS] = values[Y_AXIS] = values[Z_AXIS] = 0;
 
-    //pop all samples from the FIFO
+    //for each of the samples to read
     for(uint8_t i = 0 ; i < ADXL_AVG_SAMPLES ; i++){
-        _result = popAndAddFIFO(values);
+        //read all data registers for 1 sample
+        _result = readRegisters(DATA_X0, buffer, ADXL_NB_DATA_REGISTERS);
         if(isError(_result)){
             _state = stError;
             return (pushErrorCode(_result, INTEGRATE, 1));
         }
+
+        //add the measurements (formatted from a two's complement) to their final value buffer
+        for(axis = 0 ; axis < NB_AXIS ; axis++)
+            values[axis] += twoComplement(&buffer[axis << 1]);
+
+        //wait for a while to make sure 5 us pass between two reads
+        //	as stated in the datasheet, section "Retrieving data from the FIFO"
+        volatile uint8_t tempo = 0x0FU;
+        while(tempo--);
     }
 
     //divide the buffers to average out (Tested : compiler does divide negatives correctly)
     values[X_AXIS] >>= ADXL_AVG_SHIFT;
     values[Y_AXIS] >>= ADXL_AVG_SHIFT;
     values[Z_AXIS] >>= ADXL_AVG_SHIFT;
-
-    return (ERR_SUCCESS);
-}
-
-/**
- * @brief Pop a sample from the ADXL FIFO 
- *
- * @param[out] values Integrated X, Y and Z axis values
- * @retval 0 Success
- * @retval 1 Error while retrieving values from the FIFO
- */
-static errorCode_u popAndAddFIFO(int32_t values[]){
-    uint8_t buffer[ADXL_NB_DATA_REGISTERS];
-
-    //read all data registers for 1 sample
-    _result = readRegisters(DATA_X0, buffer, ADXL_NB_DATA_REGISTERS);
-    if(isError(_result)){
-        _state = stError;
-        return (pushErrorCode(_result, POP_FIFO, 1));
-    }
-
-    //add the measurements (formatted from a two's complement) to their final value buffer
-    for(uint8_t axis = 0 ; axis < NB_AXIS ; axis++)
-        values[axis] += (int32_t)twoComplement(&buffer[axis << 1]);
-
-    //wait for a while to make sure 5 us pass between two reads
-    //	as stated in the datasheet, section "Retrieving data from the FIFO"
-    volatile uint8_t tempo = 0x0FU;
-    while(tempo--);
 
     return (ERR_SUCCESS);
 }
