@@ -1,7 +1,7 @@
 /**
  * @brief Implement the ADXL345 accelerometer communication
  * @author Gilles Henrard
- * @date 21/02/2024
+ * @date 27/02/2024
  *
  * @note Additional information can be found in :
  *   - ADXL345 datasheet : https://www.analog.com/media/en/technical-documentation/data-sheets/ADXL345.pdf
@@ -64,7 +64,7 @@ static errorCode_u stError();
 
 //manipulation functions
 static errorCode_u writeRegister(adxl345Registers_e registerNumber, uint8_t value);
-static errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint8_t size);
+static errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t value[], uint8_t size);
 static errorCode_u integrateFIFO(int32_t values[]);
 static errorCode_u popAndAddFIFO(int32_t values[]);
 
@@ -181,7 +181,7 @@ static errorCode_u writeRegister(adxl345Registers_e registerNumber, uint8_t valu
  * @retval 1 Register number out of range
  * @retval 2 Timeout
  */
-static errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint8_t size){
+static errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t value[], uint8_t size){
     static const uint8_t SPI_RX_FILLER = 0xFFU;	///< Value to send as a filler while receiving multiple bytes
 
     //if no bytes to read, success
