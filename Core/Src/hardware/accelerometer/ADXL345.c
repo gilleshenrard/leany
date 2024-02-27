@@ -17,7 +17,6 @@
 //definitions
 #define SPI_TIMEOUT_MS		10U				///< SPI direct transmission timeout span in milliseconds
 #define INT_TIMEOUT_MS		1000U			///< Maximum number of milliseconds before watermark int. timeout
-#define ST_WAIT_MS			25U				///< Maximum number of milliseconds before watermark int. timeout
 #define NB_REG_INIT			6U				///< Number of registers configured at initialisation
 #define ADXL_AVG_SAMPLES	ADXL_SAMPLES_32	///< Amount of samples to integrate in the ADXL
 #define ADXL_AVG_SHIFT		5U				///< Number used to shift the samples sum in order to divide it during integration
@@ -440,6 +439,7 @@ static errorCode_u stMeasuringST_OFF(){
     }
 
     //set timer to wait for 25ms and get to next state
+    static const uint8_t ST_WAIT_MS = 25U;  ///< Number of milliseconds to wait for self-testing to be operating
     adxlTimer_ms = ST_WAIT_MS;
     _state = stWaitingForSTenabled;
     return (ERR_SUCCESS);
