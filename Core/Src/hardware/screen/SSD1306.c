@@ -298,12 +298,12 @@ static errorCode_u stConfiguring(){
     //TODO test for max oscillator frequency
     for(uint8_t i = 0 ; i < NB_INIT_REGISERS ; i++){
         result = sendCommand(initCommands[i][0], &initCommands[i][2], initCommands[i][1]);
-        if(IS_ERROR(result))
+        if(isError(result))
             return (pushErrorCode(result, INIT, 1));
     }
 
     result = SSD1306clearScreen();
-    if(IS_ERROR(result))
+    if(isError(result))
         return (pushErrorCode(result, INIT, 2));
 
     _state = stSendingData;
@@ -331,14 +331,14 @@ errorCode_u stSendingData(){
 
     //send the set start and end column addresses
     result = sendCommand(COLUMN_ADDRESS, _limitColumns, 2);
-    if(IS_ERROR(result)){
+    if(isError(result)){
         _state = stIdle;
         return (pushErrorCode(result, SENDING_DATA, 1));
     }
 
     //send the set start and end page addresses
     /*result = */sendCommand(PAGE_ADDRESS, _limitPages, 2);
-    if(IS_ERROR(result)){
+    if(isError(result)){
         _state = stIdle;
         return (pushErrorCode(result, SENDING_DATA, 2));
     }

@@ -121,12 +121,12 @@ int main(void)
   
 	  //update the accelerometer state machine
 	  result = ADXL345update();
-	  if(IS_ERROR(result))
+	  if(isError(result))
 		  result.fields.moduleID = 1;
 
 	  //update the screen state machine
 	  result = SSD1306update();
-	  if(IS_ERROR(result))
+	  if(isError(result))
 		  result.fields.moduleID = 2;
 
 	  //if X axis angle changed, update the screen

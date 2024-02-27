@@ -1,7 +1,7 @@
 /**
  * @brief Implement the ADXL345 accelerometer communication
  * @author Gilles Henrard
- * @date 20/02/2024
+ * @date 27/02/2024
  *
  * @note Additional information can be found in :
  *   - ADXL345 datasheet : https://www.analog.com/media/en/technical-documentation/data-sheets/ADXL345.pdf
@@ -17,7 +17,6 @@
 //definitions
 #define SPI_TIMEOUT_MS		10U				///< SPI direct transmission timeout span in milliseconds
 #define INT_TIMEOUT_MS		1000U			///< Maximum number of milliseconds before watermark int. timeout
-#define ST_WAIT_MS			25U				///< Maximum number of milliseconds before watermark int. timeout
 #define NB_REG_INIT			6U				///< Number of registers configured at initialisation
 #define ADXL_AVG_SAMPLES	ADXL_SAMPLES_32	///< Amount of samples to integrate in the ADXL
 #define ADXL_AVG_SHIFT		5U				///< Number used to shift the samples sum in order to divide it during integration
@@ -42,6 +41,7 @@ typedef enum _ADXLfunctionCodes_e{
     GET_X_ANGLE,		///< ADXL345getXangleDegrees()
     GET_Y_ANGLE,		///< ADXL345getYangleDegrees()
     INTEGRATE,			///< integrateFIFO()
+    POP_FIFO,			///< popAndAddFIFO()
     STARTUP				///< stStartup()
 }ADXLfunctionCodes_e;
 
@@ -63,12 +63,12 @@ static errorCode_u stError();
 
 //manipulation functions
 static errorCode_u writeRegister(adxl345Registers_e registerNumber, uint8_t value);
-static errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint8_t size);
-static errorCode_u integrateFIFO(int16_t values[]);
+static errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t value[], uint8_t size);
+static errorCode_u integrateFIFO(int32_t values[]);
 
 //tool functions
 static inline uint8_t isFIFOdataReady();
-static inline int16_t twoComplement(uint8_t MSB, uint8_t LSB);
+static inline int16_t twoComplement(const uint8_t bytes[2]);
 
 // Default DATA FORMAT (register 0x31) and FIFO CONTROL (register 0x38) register values
 static const uint8_t DATA_FORMAT_DEFAULT = (ADXL_NO_SELF_TEST | ADXL_SPI_4WIRE | ADXL_INT_ACTIV_LOW | ADXL_13BIT_RESOL | ADXL_RIGHT_JUSTIFY | ADXL_RANGE_16G);
@@ -82,8 +82,8 @@ volatile uint16_t			adxlSPITimer_ms = 0;			///< Timer used to make sure SPI does
 static SPI_TypeDef*		_spiHandle = NULL;			///< SPI handle used with the ADXL345
 static adxlState		_state = stStartup;			///< State machine current state
 static uint8_t			_measurementsUpdated = 0;	///< Flag used to indicate new integrated measurements are ready within the ADXL345
-static int16_t			_latestValues[NB_AXIS];		///< Array of latest axis values
-static int16_t			_previousValues[NB_AXIS];	///< Array of values previously compared to latest
+static int32_t			_latestValues[NB_AXIS];		///< Array of latest axis values
+static int32_t			_previousValues[NB_AXIS];	///< Array of values previously compared to latest
 static errorCode_u 		_result;					///< Variables used to store error codes
 
 
@@ -135,7 +135,7 @@ uint8_t ADXL345hasChanged(axis_e axis){
  * @retval 1 Register number out of range
  * @retval 2 Timeout
  */
-errorCode_u writeRegister(adxl345Registers_e registerNumber, uint8_t value){
+static errorCode_u writeRegister(adxl345Registers_e registerNumber, uint8_t value){
     //assertions
     assert(_spiHandle);
 
@@ -179,7 +179,7 @@ errorCode_u writeRegister(adxl345Registers_e registerNumber, uint8_t value){
  * @retval 1 Register number out of range
  * @retval 2 Timeout
  */
-errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t* value, uint8_t size){
+static errorCode_u readRegisters(adxl345Registers_e firstRegister, uint8_t value[], uint8_t size){
     static const uint8_t SPI_RX_FILLER = 0xFFU;	///< Value to send as a filler while receiving multiple bytes
 
     //if no bytes to read, success
@@ -262,30 +262,24 @@ static inline uint8_t isFIFOdataReady(){
 }
 
 /**
- * @brief Translate two bytes into an int16_t via a two's complement
+ * @brief Reassemble a two's complement int16_t from two bytes
  * 
- * @param MSB		Most Significant Byte
- * @param LSB		Least Significant Byte
+ * @note  Within the ADXL345's data registers, the LSB comes before the MSB
+ * @param bytes		Array of two bytes to reassemble
  * @return int16_t	16 bit resulting number
  */
-static inline int16_t twoComplement(uint8_t MSB, uint8_t LSB){
-    return (int16_t)(((uint16_t)MSB << 8) | (uint16_t)LSB);
+static inline int16_t twoComplement(const uint8_t bytes[2]){
+    return (((int16_t)bytes[1] << 8) | (int16_t)bytes[0]);
 }
 
 /**
  * @brief Retrieve and average the values held in the ADXL FIFOs
  *
- * @param[out] xValue Integrated X, Y and Z axis values
+ * @param[out] values Integrated X, Y and Z axis values
  * @retval 0 Success
  * @retval 1 Error while retrieving values from the FIFO
  */
-errorCode_u integrateFIFO(int16_t values[]){
-    //Array describing the order in which the bytes come when reading the ADXL345 FIFO
-    static const uint8_t dataRegistersIndexes[NB_AXIS][2] = {
-        [X_AXIS] = {1, 0},
-        [Y_AXIS] = {3, 2},
-        [Z_AXIS] = {5, 4},
-    };
+static errorCode_u integrateFIFO(int32_t values[]){
     uint8_t buffer[ADXL_NB_DATA_REGISTERS];
     uint8_t axis;
 
@@ -296,14 +290,14 @@ errorCode_u integrateFIFO(int16_t values[]){
     for(uint8_t i = 0 ; i < ADXL_AVG_SAMPLES ; i++){
         //read all data registers for 1 sample
         _result = readRegisters(DATA_X0, buffer, ADXL_NB_DATA_REGISTERS);
-        if(IS_ERROR(_result)){
+        if(isError(_result)){
             _state = stError;
             return (pushErrorCode(_result, INTEGRATE, 1));
         }
 
         //add the measurements (formatted from a two's complement) to their final value buffer
         for(axis = 0 ; axis < NB_AXIS ; axis++)
-            values[axis] += twoComplement(buffer[dataRegistersIndexes[axis][0]], buffer[dataRegistersIndexes[axis][1]]);
+            values[axis] += twoComplement(&buffer[axis << 1]);
 
         //wait for a while to make sure 5 us pass between two reads
         //	as stated in the datasheet, section "Retrieving data from the FIFO"
@@ -311,9 +305,10 @@ errorCode_u integrateFIFO(int16_t values[]){
         while(tempo--);
     }
 
-    //divide the buffers to average out
-    for(axis = 0 ; axis < NB_AXIS ; axis++)
-        values[axis] >>= ADXL_AVG_SHIFT;
+    //divide the buffers to average out (Tested : compiler does divide negatives correctly)
+    values[X_AXIS] >>= ADXL_AVG_SHIFT;
+    values[Y_AXIS] >>= ADXL_AVG_SHIFT;
+    values[Z_AXIS] >>= ADXL_AVG_SHIFT;
 
     return (ERR_SUCCESS);
 }
@@ -330,7 +325,7 @@ errorCode_u integrateFIFO(int16_t values[]){
  * @retval 1 Device ID invalid
  * @retval 2 Unable to read device ID
  */
-errorCode_u stStartup(){
+static errorCode_u stStartup(){
     uint8_t deviceID = 0;
 
     //if 1s elapsed without reading the correct vendor ID, go error
@@ -341,7 +336,7 @@ errorCode_u stStartup(){
 
     //if unable to read device ID, error
     _result = readRegisters(DEVICE_ID, &deviceID, 1);
-    if(IS_ERROR(_result))
+    if(isError(_result))
         return (pushErrorCode(_result, STARTUP, 2));
 
     //if invalid device ID, exit
@@ -359,7 +354,7 @@ errorCode_u stStartup(){
  * @retval 0 Success
  * @retval 1 Error while writing a register
  */
-errorCode_u stConfiguring(){
+static errorCode_u stConfiguring(){
     static const uint8_t initialisationArray[NB_REG_INIT][2] = {
         {DATA_FORMAT,			DATA_FORMAT_DEFAULT},
         {BANDWIDTH_POWERMODE,	ADXL_POWER_NORMAL | ADXL_RATE_200HZ},
@@ -372,7 +367,7 @@ errorCode_u stConfiguring(){
     //write all registers values from the initialisation array
     for(uint8_t i = 0 ; i < NB_REG_INIT ; i++){
         _result = writeRegister(initialisationArray[i][0], initialisationArray[i][1]);
-        if(IS_ERROR(_result)){
+        if(isError(_result)){
             _state = stError;
             return (pushErrorCode(_result, INIT, 1));
         }
@@ -394,7 +389,7 @@ errorCode_u stConfiguring(){
  * @retval 3 Error while enabling the self-testing mode
  * @retval 4 Error while clearing the FIFOs
  */
-errorCode_u stMeasuringST_OFF(){
+static errorCode_u stMeasuringST_OFF(){
     //if timeout, go error
     if(!adxlTimer_ms){
         _state = stError;
@@ -407,26 +402,27 @@ errorCode_u stMeasuringST_OFF(){
 
     //retrieve the integrated measurements (to be used with self-testing)
     _result = integrateFIFO(_latestValues);
-    if(IS_ERROR(_result)){
+    if(isError(_result)){
         _state = stError;
         return (pushErrorCode(_result, SELF_TESTING_OFF, 2));
     }
 
     //Enable the self-test
     _result = writeRegister(DATA_FORMAT, DATA_FORMAT_DEFAULT | ADXL_SELF_TEST);
-    if(IS_ERROR(_result)){
+    if(isError(_result)){
         _state = stError;
         return (pushErrorCode(_result, SELF_TESTING_OFF, 3));
     }
 
     //clear the FIFOs
     _result = writeRegister(FIFO_CONTROL, ADXL_MODE_BYPASS);
-    if(IS_ERROR(_result)){
+    if(isError(_result)){
         _state = stError;
         return (pushErrorCode(_result, SELF_TESTING_OFF, 4));
     }
 
     //set timer to wait for 25ms and get to next state
+    static const uint8_t ST_WAIT_MS = 25U;  ///< Number of milliseconds to wait for self-testing to be operating
     adxlTimer_ms = ST_WAIT_MS;
     _state = stWaitingForSTenabled;
     return (ERR_SUCCESS);
@@ -438,14 +434,14 @@ errorCode_u stMeasuringST_OFF(){
  * @return 0 Success
  * @return 1 Error while re-enabling FIFOs
  */
-errorCode_u stWaitingForSTenabled(){
+static errorCode_u stWaitingForSTenabled(){
     //if timer not elapsed yet, exit
     if(!adxlTimer_ms)
         return (ERR_SUCCESS);
 
     //enable FIFOs
     _result = writeRegister(FIFO_CONTROL, FIFO_CONTROL_DEFAULT);
-    if(IS_ERROR(_result)){
+    if(isError(_result)){
         _state = stError;
         return (pushErrorCode(_result, SELF_TEST_WAIT, 1)); 	// @suppress("Avoid magic numbers")
     }
@@ -465,7 +461,7 @@ errorCode_u stWaitingForSTenabled(){
  * @retval 3 Self-test values out of range
  * @retval 4 Error while resetting the data format
  */
-errorCode_u stMeasuringST_ON(){
+static errorCode_u stMeasuringST_ON(){
     //ADXL Self-Test minimum and maximum delta values
     //	at 13-bits resolution, 16G range and 3.3V supply, according to the datasheet
     //	see Google Drive for calculations
@@ -474,7 +470,7 @@ errorCode_u stMeasuringST_ON(){
         [Y_AXIS] = {-949, -85},
         [Z_AXIS] = {118, 1294},
     };
-    int16_t STdeltas[NB_AXIS];
+    int32_t STdeltas[NB_AXIS];
 
     //if timeout, go error
     if(!adxlTimer_ms){
@@ -488,7 +484,7 @@ errorCode_u stMeasuringST_ON(){
 
     //integrate the FIFOs
     _result = integrateFIFO(STdeltas);
-    if(IS_ERROR(_result)){
+    if(isError(_result)){
         _state = stError;
         return (pushErrorCode(_result, SELF_TESTING_ON, 2));
     }
@@ -509,7 +505,7 @@ errorCode_u stMeasuringST_ON(){
 
     //reset the data format
     _result = writeRegister(DATA_FORMAT, DATA_FORMAT_DEFAULT);
-    if(IS_ERROR(_result)){
+    if(isError(_result)){
         _state = stError;
         return (pushErrorCode(_result, SELF_TESTING_ON, 4));
     }
@@ -527,7 +523,7 @@ errorCode_u stMeasuringST_ON(){
  * @retval 1 Timeout occurred while waiting for watermark interrupt
  * @retval 2 Error occurred while integrating the FIFOs
  */
-errorCode_u stMeasuring(){
+static errorCode_u stMeasuring(){
     //if timeout, go error
     if(!adxlTimer_ms){
         _state = stError;
@@ -543,7 +539,7 @@ errorCode_u stMeasuring(){
 
     //integrate the FIFOs
     _result = integrateFIFO(_latestValues);
-    if(IS_ERROR(_result)){
+    if(isError(_result)){
         _state = stError;
         return (pushErrorCode(_result, MEASURE, 2));
     }
@@ -557,6 +553,6 @@ errorCode_u stMeasuring(){
  *
  * @return Success
  */
-errorCode_u stError(){
+static errorCode_u stError(){
     return (ERR_SUCCESS);
 }
