@@ -7,10 +7,6 @@
 #define ERR_ID_NBBITS		7U	///< Amount of bits in function ID and module ID fields
 #define ERR_LEVEL_NBBITS	2U	///< Amount of level bits
 
-//macros
-#define IS_SUCCESS(value)	(value.fields.layer0 == 0)	///< Macro used to know if a code means success
-#define IS_ERROR(value)		(value.fields.layer0 != 0)	///< Macro used to know if a code means error
-
 /**
  * @brief Error levels possible
  */
@@ -48,5 +44,16 @@ extern const errorCode_u ERR_SUCCESS;
 errorCode_u createErrorCode(uint8_t functionID, uint8_t newError, errorLevel_e level);
 errorCode_u createErrorCodeLayer1(uint8_t functionID, uint8_t newError, uint8_t layer1Code, errorLevel_e level);
 errorCode_u pushErrorCode(errorCode_u oldCode, uint8_t functionID, uint8_t newError);
+
+/**
+ * @brief Check if a code represents an error
+ * @note This is done by verifying if a layer 0 code exists
+ * 
+ * @param   code    Code to check
+ * @return  Non-zero if error
+ */
+inline uint8_t isError(const errorCode_u code){
+    return (code.fields.layer0);
+}
 
 #endif /* INC_ERRORS_ERRORS_H_ */
