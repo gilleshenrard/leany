@@ -2,7 +2,7 @@
  * @file SSD1306.c
  * @brief Implement the functioning of the SSD1306 OLED screen via SPI and DMA
  * @author Gilles Henrard
- * @date 18/02/2024
+ * @date 29/02/2024
  *
  * @note Datasheet : https://cdn-shop.adafruit.com/datasheets/SSD1306.pdf
  */
@@ -168,21 +168,28 @@ errorCode_u sendCommand(SSD1306register_e regNumber, const uint8_t parameters[],
 }
 
 /**
- * @brief Send the whole screen buffer to wipe it
+ * @brief Wipe the screen blank and draw a horizontal separator in the middle
  *
  * @return Success
  */
 errorCode_u SSD1306clearScreen(){
     uint8_t* iterator = _screenBuffer;
 
+    //define the whole screen as the drawing window
     _limitColumns[0] = 0;
     _limitColumns[1] = SSD_LAST_COLUMN;
     _limitPages[0] = 0;
     _limitPages[1] = SSD_LAST_PAGE;
     _size = MAX_DATA_SIZE;
 
+    //fill the screen with blank pixels
     for(uint16_t i = 0 ; i < MAX_DATA_SIZE ; i++)
         *(iterator++) = 0x00U;
+
+    //draw the separator
+    iterator = &_screenBuffer[(MAX_DATA_SIZE >> 1)];
+    for(uint16_t i = 0 ; i <= SSD_LAST_COLUMN ; i++)
+        *(iterator++) = 0x03U;
 
     _state = stSendingData;
     return (ERR_SUCCESS);
