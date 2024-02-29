@@ -182,11 +182,11 @@ errorCode_u SSD1306clearScreen(){
     _limitPages[1] = SSD_LAST_PAGE;
     _size = MAX_DATA_SIZE;
 
-    //fill the screen with blank pixels
+    //fill the screen buffer with blank pixels value
     for(uint16_t i = 0 ; i < MAX_DATA_SIZE ; i++)
         *(iterator++) = 0x00U;
 
-    //draw the separator
+    //draw the separator in the buffer
     iterator = &_screenBuffer[(MAX_DATA_SIZE >> 1)];
     for(uint16_t i = 0 ; i <= SSD_LAST_COLUMN ; i++)
         *(iterator++) = 0x03U;
