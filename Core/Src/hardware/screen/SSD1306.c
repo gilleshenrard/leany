@@ -337,7 +337,7 @@ errorCode_u stSendingData(){
     }
 
     //send the set start and end page addresses
-    /*result = */sendCommand(PAGE_ADDRESS, _limitPages, 2);
+    result = sendCommand(PAGE_ADDRESS, _limitPages, 2);
     if(isError(result)){
         _state = stIdle;
         return (pushErrorCode(result, SENDING_DATA, 2));
