@@ -173,7 +173,7 @@ errorCode_u sendCommand(SSD1306register_e regNumber, const uint8_t parameters[],
  *
  * @return Success
  */
-errorCode_u SSD1306clearScreen(){
+errorCode_u SSD1306drawBaseScreen(){
     static const uint8_t iconPages[NB_ICONS] = {
         [ARROWS_HORIZONTAL] = SSD1306_LINE1_PAGE,
         [ARROWS_VERTICAL] = SSD1306_LINE2_PAGE,
@@ -332,7 +332,7 @@ static errorCode_u stConfiguring(){
             return (pushErrorCode(result, INIT, 1));
     }
 
-    result = SSD1306clearScreen();
+    result = SSD1306drawBaseScreen();
     if(isError(result))
         return (pushErrorCode(result, INIT, 2));
 
