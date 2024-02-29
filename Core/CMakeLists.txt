@@ -30,6 +30,6 @@ target_include_directories(adxl345 AFTER PUBLIC Inc/hardware/accelerometer)
 target_link_libraries(adxl345 PRIVATE errorStack)
 
 #create the ssd1306 library, taking care of the screen
-add_library(ssd1306 Src/hardware/screen/SSD1306.c Src/hardware/screen/numbersVerdana16.c)
+add_library(ssd1306 Src/hardware/screen/SSD1306.c Src/hardware/screen/numbersVerdana16.c Src/hardware/screen/icons16.c)
 target_include_directories(ssd1306 AFTER PUBLIC Inc/hardware/screen)
 target_link_libraries(ssd1306 PRIVATE errorStack)
