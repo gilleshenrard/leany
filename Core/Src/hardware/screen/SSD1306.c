@@ -193,15 +193,24 @@ errorCode_u SSD1306clearScreen(){
         *(iterator++) = 0x03U;
 
     //draw the separator in the buffer
-    iterator = &_screenBuffer[(SSD_LAST_COLUMN + 1) + 5];
+    iterator = &_screenBuffer[((SSD_LAST_COLUMN + 1) * SSD1306_LINE1_PAGE) + 5];
+    for(uint16_t i = 0 ; i < (ICONS_NB_CHARS >> 1) ; i++)
+        *(iterator++) = icons_16pt[ARROWS_HORIZONTAL][i];
+
+    //draw the separator in the buffer
+    iterator = &_screenBuffer[(((SSD_LAST_COLUMN + 1) * SSD1306_LINE1_PAGE) + (SSD_LAST_COLUMN + 1)) + 5];
+    for(uint16_t i = (ICONS_NB_CHARS >> 1) ; i < ICONS_NB_CHARS ; i++)
+        *(iterator++) = icons_16pt[ARROWS_HORIZONTAL][i];
+
+    //draw the separator in the buffer
+    iterator = &_screenBuffer[((SSD_LAST_COLUMN + 1) * SSD1306_LINE2_PAGE) + 5];
     for(uint16_t i = 0 ; i < (ICONS_NB_CHARS >> 1) ; i++)
         *(iterator++) = icons_16pt[ARROWS_VERTICAL][i];
 
     //draw the separator in the buffer
-    iterator = &_screenBuffer[((SSD_LAST_COLUMN + 1) << 1) + 5];
+    iterator = &_screenBuffer[(((SSD_LAST_COLUMN + 1) * SSD1306_LINE2_PAGE) + (SSD_LAST_COLUMN + 1)) + 5];
     for(uint16_t i = (ICONS_NB_CHARS >> 1) ; i < ICONS_NB_CHARS ; i++)
         *(iterator++) = icons_16pt[ARROWS_VERTICAL][i];
-
     _state = stSendingData;
     return (ERR_SUCCESS);
 }
