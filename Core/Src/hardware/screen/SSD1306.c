@@ -174,7 +174,13 @@ errorCode_u sendCommand(SSD1306register_e regNumber, const uint8_t parameters[],
  * @return Success
  */
 errorCode_u SSD1306clearScreen(){
+    static const uint8_t iconPages[NB_ICONS] = {
+        [ARROWS_HORIZONTAL] = SSD1306_LINE1_PAGE,
+        [ARROWS_VERTICAL] = SSD1306_LINE2_PAGE,
+    };
+    static const uint8_t LIGN = 0x03U;
     uint8_t* iterator = _screenBuffer;
+    uint16_t i;
 
     //define the whole screen as the drawing window
     _limitColumns[0] = 0;
@@ -184,33 +190,30 @@ errorCode_u SSD1306clearScreen(){
     _size = MAX_DATA_SIZE;
 
     //fill the screen buffer with blank pixels value
-    for(uint16_t i = 0 ; i < MAX_DATA_SIZE ; i++)
+    for(i = 0 ; i < MAX_DATA_SIZE ; i++)
         *(iterator++) = 0x00U;
 
     //draw the separator in the buffer
     iterator = &_screenBuffer[(MAX_DATA_SIZE >> 1)];
-    for(uint16_t i = 0 ; i <= SSD_LAST_COLUMN ; i++)
-        *(iterator++) = 0x03U;
+    for(i = 0 ; i <= SSD_LAST_COLUMN ; i++)
+        *(iterator++) = LIGN;
 
-    //draw the first half of the horizontal arrows
-    iterator = &_screenBuffer[((SSD_LAST_COLUMN + 1) * SSD1306_LINE1_PAGE) + 5];
-    for(uint16_t i = 0 ; i < (ICONS_NB_CHARS >> 1) ; i++)
-        *(iterator++) = icons_16pt[ARROWS_HORIZONTAL][i];
+    //for each icon to display
+    for(uint8_t icon = 0 ; icon < NB_ICONS ; icon++){
+        uint16_t iconBufferOffset = ((SSD_LAST_COLUMN + 1) * iconPages[icon]);
+        iconBufferOffset += 5;
 
-    //draw the second half of the horizontal arrows
-    iterator = &_screenBuffer[(((SSD_LAST_COLUMN + 1) * SSD1306_LINE1_PAGE) + (SSD_LAST_COLUMN + 1)) + 5];
-    for(uint16_t i = (ICONS_NB_CHARS >> 1) ; i < ICONS_NB_CHARS ; i++)
-        *(iterator++) = icons_16pt[ARROWS_HORIZONTAL][i];
+        //draw the first half of the icon
+        iterator = &_screenBuffer[iconBufferOffset];
+        for(i = 0 ; i < (ICONS_NB_CHARS >> 1) ; i++)
+            *(iterator++) = icons_16pt[icon][i];
 
-    //draw the first half of the vertical arrows
-    iterator = &_screenBuffer[((SSD_LAST_COLUMN + 1) * SSD1306_LINE2_PAGE) + 5];
-    for(uint16_t i = 0 ; i < (ICONS_NB_CHARS >> 1) ; i++)
-        *(iterator++) = icons_16pt[ARROWS_VERTICAL][i];
+        //draw the second half of the icon 1 page below
+        iterator = &_screenBuffer[iconBufferOffset + (SSD_LAST_COLUMN + 1)];
+        for(i = (ICONS_NB_CHARS >> 1) ; i < ICONS_NB_CHARS ; i++)
+            *(iterator++) = icons_16pt[icon][i];
+    }
 
-    //draw the second half of the vertical arrows
-    iterator = &_screenBuffer[(((SSD_LAST_COLUMN + 1) * SSD1306_LINE2_PAGE) + (SSD_LAST_COLUMN + 1)) + 5];
-    for(uint16_t i = (ICONS_NB_CHARS >> 1) ; i < ICONS_NB_CHARS ; i++)
-        *(iterator++) = icons_16pt[ARROWS_VERTICAL][i];
     _state = stSendingData;
     return (ERR_SUCCESS);
 }
