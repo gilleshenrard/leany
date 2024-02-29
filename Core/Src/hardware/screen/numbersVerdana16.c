@@ -5,6 +5,8 @@
  * @date 07/01/24
  *
  * @details Generated with the application The Dot Factory v0.1.4
+ * 
+ * Software Github page : https://github.com/pavius/the-dot-factory
  *
  * 1. Settings to reproduce :
  * - Font : Verdana 16 pts
