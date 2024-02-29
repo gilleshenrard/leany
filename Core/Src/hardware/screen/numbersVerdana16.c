@@ -1,10 +1,12 @@
 /**
  * @file numbersVerdana16.c
- * @brief Declares the bitmaps needed to be displayed on the SSD1306 screen in this application
+ * @brief Declares the Verdana 16pixels bitmaps needed to be displayed on the SSD1306 screen in this application
  * @author Gilles Henrard
- * @date 07/01/24
+ * @date 01/03/24
  *
  * @details Generated with the application The Dot Factory v0.1.4
+ * 
+ * Software Github page : https://github.com/pavius/the-dot-factory
  *
  * 1. Settings to reproduce :
  * - Font : Verdana 16 pts
@@ -249,23 +251,23 @@ const uint8_t verdana_16ptNumbers[NB_NUMBERS][VERDANA_NB_BYTES_CHAR] =
     /* @0 '+' (14 pixels wide) */
     //               
     //               
+    //               
     //       ##      
     //       ##      
     //       ##      
     //       ##      
     //       ##      
-    //       ##      
-    // ##############
-    // ##############
-    //       ##      
+    //  ############ 
+    //  ############ 
     //       ##      
     //       ##      
     //       ##      
     //       ##      
     //       ##      
+    //               
     [INDEX_PLUS] = {
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFC, 0xFC, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-        0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0xFF, 0xFF, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xF8, 0xF8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+        0x00, 0x03, 0x03, 0x03, 0x03, 0x03, 0x7F, 0x7F, 0x03, 0x03, 0x03, 0x03, 0x03, 0x00,
     },
 
     // @0 '-' (14 pixels wide)
@@ -277,8 +279,8 @@ const uint8_t verdana_16ptNumbers[NB_NUMBERS][VERDANA_NB_BYTES_CHAR] =
     //               
     //               
     //               
-    //     ######    
-    //     ######    
+    //    ########   
+    //    ########   
     //               
     //               
     //               
@@ -287,7 +289,7 @@ const uint8_t verdana_16ptNumbers[NB_NUMBERS][VERDANA_NB_BYTES_CHAR] =
     //               
     [INDEX_MINUS] = {
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-        0x00, 0x00, 0x00, 0x00, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x00, 0x00, 0x00,
     },
 
     // @22 '.' (14 pixels wide)

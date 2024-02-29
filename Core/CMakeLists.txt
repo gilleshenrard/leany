@@ -1,6 +1,6 @@
 #############################################################################################################################
 # file:  CMakeLists.txt
-# date:  15/02/2024
+# date:  01/03/2024
 # brief: C modules CMakeLists file
 #############################################################################################################################
 #declare warning flags
@@ -30,6 +30,11 @@ target_include_directories(adxl345 AFTER PUBLIC Inc/hardware/accelerometer)
 target_link_libraries(adxl345 PRIVATE errorStack)
 
 #create the ssd1306 library, taking care of the screen
-add_library(ssd1306 Src/hardware/screen/SSD1306.c Src/hardware/screen/numbersVerdana16.c)
+add_library(ssd1306 Src/hardware/screen/SSD1306.c Src/hardware/screen/numbersVerdana16.c Src/hardware/screen/icons.c)
 target_include_directories(ssd1306 AFTER PUBLIC Inc/hardware/screen)
 target_link_libraries(ssd1306 PRIVATE errorStack)
+
+#create the buttons library, taking care of the control buttons
+add_library(buttons Src/hardware/buttons/buttons.c)
+target_include_directories(buttons AFTER PUBLIC Inc/hardware/buttons)
+target_link_libraries(buttons PRIVATE errorStack)
