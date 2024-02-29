@@ -169,7 +169,7 @@ errorCode_u sendCommand(SSD1306register_e regNumber, const uint8_t parameters[],
 }
 
 /**
- * @brief Wipe the screen blank and draw a horizontal separator in the middle
+ * @brief Wipe the screen blank and draw the separator and icons
  *
  * @return Success
  */
@@ -192,22 +192,22 @@ errorCode_u SSD1306clearScreen(){
     for(uint16_t i = 0 ; i <= SSD_LAST_COLUMN ; i++)
         *(iterator++) = 0x03U;
 
-    //draw the separator in the buffer
+    //draw the first half of the horizontal arrows
     iterator = &_screenBuffer[((SSD_LAST_COLUMN + 1) * SSD1306_LINE1_PAGE) + 5];
     for(uint16_t i = 0 ; i < (ICONS_NB_CHARS >> 1) ; i++)
         *(iterator++) = icons_16pt[ARROWS_HORIZONTAL][i];
 
-    //draw the separator in the buffer
+    //draw the second half of the horizontal arrows
     iterator = &_screenBuffer[(((SSD_LAST_COLUMN + 1) * SSD1306_LINE1_PAGE) + (SSD_LAST_COLUMN + 1)) + 5];
     for(uint16_t i = (ICONS_NB_CHARS >> 1) ; i < ICONS_NB_CHARS ; i++)
         *(iterator++) = icons_16pt[ARROWS_HORIZONTAL][i];
 
-    //draw the separator in the buffer
+    //draw the first half of the vertical arrows
     iterator = &_screenBuffer[((SSD_LAST_COLUMN + 1) * SSD1306_LINE2_PAGE) + 5];
     for(uint16_t i = 0 ; i < (ICONS_NB_CHARS >> 1) ; i++)
         *(iterator++) = icons_16pt[ARROWS_VERTICAL][i];
 
-    //draw the separator in the buffer
+    //draw the second half of the vertical arrows
     iterator = &_screenBuffer[(((SSD_LAST_COLUMN + 1) * SSD1306_LINE2_PAGE) + (SSD_LAST_COLUMN + 1)) + 5];
     for(uint16_t i = (ICONS_NB_CHARS >> 1) ; i < ICONS_NB_CHARS ; i++)
         *(iterator++) = icons_16pt[ARROWS_VERTICAL][i];

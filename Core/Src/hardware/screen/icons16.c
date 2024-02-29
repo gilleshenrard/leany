@@ -1,3 +1,9 @@
+/**
+ * @file icons16.c
+ * @brief Declares the icons bitmaps needed to be displayed on the SSD1306 screen in this application
+ * @author Gilles Henrard
+ * @date 29/02/24
+ */
 #include "icons16.h"
 
 const uint8_t icons_16pt[NB_ICONS][ICONS_NB_CHARS] =

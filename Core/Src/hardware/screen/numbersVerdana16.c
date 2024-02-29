@@ -1,6 +1,6 @@
 /**
  * @file numbersVerdana16.c
- * @brief Declares the bitmaps needed to be displayed on the SSD1306 screen in this application
+ * @brief Declares the Verdana 16pixels bitmaps needed to be displayed on the SSD1306 screen in this application
  * @author Gilles Henrard
  * @date 07/01/24
  *
