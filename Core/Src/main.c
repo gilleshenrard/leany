@@ -23,6 +23,7 @@
 /* USER CODE BEGIN Includes */
 #include "ADXL345.h"
 #include "SSD1306.h"
+#include "buttons.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -69,7 +70,7 @@ static void MX_IWDG_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
+  uint8_t holdingValues = 0;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -118,7 +119,7 @@ int main(void)
   {
     //reset the watchdog
     LL_IWDG_ReloadCounter(IWDG);
-  
+
 	  //update the accelerometer state machine
 	  result = ADXL345update();
 	  if(isError(result))
@@ -129,13 +130,33 @@ int main(void)
 	  if(isError(result))
 		  result.fields.moduleID = 2;
 
+    //update the buttons' state machines
+    buttonsUpdate();
+  
+    //if zero button is pressed, zero down measurements
+    if(buttonHasRisingEdge(ZERO)){
+      ADXLzeroDown();
+      SSD1306_printReferentialIcon(RELATIVE);
+    }
+
+    //if zero button is pressed, get back to absolute measurements
+    if(isButtonHeldDown(ZERO)){
+      ADXLcancelZeroing();
+      SSD1306_printReferentialIcon(ABSOLUTE);
+    }
+
+    if(buttonHasRisingEdge(HOLD)){
+      holdingValues = !holdingValues;
+      SSD1306_printHoldIcon(holdingValues);
+    }
+
 	  //if X axis angle changed, update the screen
-	  if(isScreenReady() && ADXL345hasChanged(X_AXIS))
-		  SSD1306_printAngleTenths(getAngleDegreesTenths(X_AXIS), SSD1306_LINE1_PAGE, SSD1306_LINE1_COLUMN);
+	  if(isScreenReady() && ADXL345hasChanged(X_AXIS) && !holdingValues)
+		  SSD1306_printAngleTenths(getAngleDegreesTenths(X_AXIS), ROLL);
 
 	  //if Y axis angle changed, update the screen
-	  if(isScreenReady() && ADXL345hasChanged(Y_AXIS))
-		  SSD1306_printAngleTenths(getAngleDegreesTenths(Y_AXIS), SSD1306_LINE2_PAGE, SSD1306_LINE2_COLUMN);
+	  if(isScreenReady() && ADXL345hasChanged(Y_AXIS) && !holdingValues)
+		  SSD1306_printAngleTenths(getAngleDegreesTenths(Y_AXIS), PITCH);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -377,10 +398,10 @@ static void MX_GPIO_Init(void)
   LL_GPIO_ResetOutputPin(GPIOA, SSD1306_DC_Pin|SSD1306_RES_Pin);
 
   /**/
-  GPIO_InitStruct.Pin = ADXL_INT1_Pin;
+  GPIO_InitStruct.Pin = ADXL_INT1_Pin|ZERO_BUTTON_Pin|HOLD_BUTTON_Pin;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
-  LL_GPIO_Init(ADXL_INT1_GPIO_Port, &GPIO_InitStruct);
+  LL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /**/
   GPIO_InitStruct.Pin = SSD1306_DC_Pin|SSD1306_RES_Pin;

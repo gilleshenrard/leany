@@ -24,6 +24,7 @@
 /* USER CODE BEGIN Includes */
 #include "ADXL345.h"
 #include "SSD1306.h"
+#include "buttons.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -196,8 +197,21 @@ void SysTick_Handler(void)
 
   if(ssd1306SPITimer_ms)
     ssd1306SPITimer_ms = ssd1306SPITimer_ms - 1;
-  /* USER CODE END SysTick_IRQn 0 */
 
+  for(uint8_t i = 0 ; i < NB_BUTTONS ; i++){
+    if(buttonsTimers[i].debouncing_ms)
+      buttonsTimers[i].debouncing_ms = buttonsTimers[i].debouncing_ms - 1;
+
+    if(buttonsTimers[i].holding_ms)
+      buttonsTimers[i].holding_ms = buttonsTimers[i].holding_ms - 1;
+
+    if(buttonsTimers[i].risingEdge_ms)
+      buttonsTimers[i].risingEdge_ms = buttonsTimers[i].risingEdge_ms - 1;
+
+    if(buttonsTimers[i].fallingEdge_ms)
+      buttonsTimers[i].fallingEdge_ms = buttonsTimers[i].fallingEdge_ms - 1;
+  }
+  /* USER CODE END SysTick_IRQn 0 */
   /* USER CODE BEGIN SysTick_IRQn 1 */
 
   /* USER CODE END SysTick_IRQn 1 */

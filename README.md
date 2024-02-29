@@ -10,6 +10,15 @@ This project is a crude implementation of an inclinometer.
 
 Quote : [Wikipedia](https://en.wikipedia.org/wiki/Inclinometer)
 
+Measurements screen:
+
+![](img/screen.jpg)
+
+Features :
+- Measurements with a precision up to 0.1°
+- Hold function
+- Choice between an absolute referential (slope mode) and a relative referential (angle mode)
+
 ### 2. Prerequisites
 #### 2.1. Hardware
 - A Bluepill (STM32F103 ARM Cortex-M3 development board)
@@ -56,18 +65,22 @@ STLink to Bluepill wiring :
 | GND           | 20                   |              | GND rail |
 
 Bluepill to peripherals wiring :
-| STM32/Bluepill pin | Alternate use | ADXL345 pin | SSD1306 pin |
-|:------------------:|:-------------:|:-----------:|:-----------:|
-| PA4                | SPI1 NSS      | CS          |             |
-| PA5                | SPI1 SCK      | SCL         |             |
-| PA6                | SPI1 MISO     | SDO         |             |
-| PA7                | SPI1 MOSI     | SDA         |             |
-| PB0                | GPIO output   | INT1        |             |
-| PB12               | SPI2 NSS      |             | CS          |
-| PB13               | SPI2 SCK      |             | D0          |
-| PB15               | SPI2 MOSI     |             | D1          |
-| PA9                | GPIO output   |             | D/C         |
-| PA10               | GPIO output   |             | RES         |
+| STM32/Bluepill pin | Alternate use | ADXL345 pin | SSD1306 pin | Zero button      | Hold button      |
+|:------------------:|:-------------:|:-----------:|:-----------:|:----------------:|:----------------:|
+| PA4                | SPI1 NSS      | CS          |             |                  |                  |
+| PA5                | SPI1 SCK      | SCL         |             |                  |                  |
+| PA6                | SPI1 MISO     | SDO         |             |                  |                  |
+| PA7                | SPI1 MOSI     | SDA         |             |                  |                  |
+| PB0                | GPIO input PU*| INT1        |             |                  |                  |
+| PB12               | SPI2 NSS      |             | CS          |                  |                  |
+| PB13               | SPI2 SCK      |             | D0          |                  |                  |
+| PB15               | SPI2 MOSI     |             | D1          |                  |                  |
+| PA9                | GPIO output   |             | D/C         |                  |                  |
+| PA10               | GPIO output   |             | RES         |                  |                  |
+| PB10               | GPIO input PU*|             |             | X (other to GND) |                  |
+| PB11               | GPIO input PU*|             |             |                  | X (other to GND) |
+
+*PU : Pull-up
 
 Note : Two different SPI are used because, while the SSD1306 can go at full speed, the ADXL345 can go at max. 5MHz.
 
