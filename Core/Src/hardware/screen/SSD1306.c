@@ -9,6 +9,7 @@
 #include "SSD1306.h"
 #include "numbersVerdana16.h"
 #include "SSD1306_registers.h"
+#include "icons16.h"
 #include <assert.h>
 
 //definitions
@@ -190,6 +191,16 @@ errorCode_u SSD1306clearScreen(){
     iterator = &_screenBuffer[(MAX_DATA_SIZE >> 1)];
     for(uint16_t i = 0 ; i <= SSD_LAST_COLUMN ; i++)
         *(iterator++) = 0x03U;
+
+    //draw the separator in the buffer
+    iterator = &_screenBuffer[(SSD_LAST_COLUMN + 1) + 5];
+    for(uint16_t i = 0 ; i < (ICONS_NB_CHARS >> 1) ; i++)
+        *(iterator++) = icons_16pt[ARROWS_VERTICAL][i];
+
+    //draw the separator in the buffer
+    iterator = &_screenBuffer[((SSD_LAST_COLUMN + 1) << 1) + 5];
+    for(uint16_t i = (ICONS_NB_CHARS >> 1) ; i < ICONS_NB_CHARS ; i++)
+        *(iterator++) = icons_16pt[ARROWS_VERTICAL][i];
 
     _state = stSendingData;
     return (ERR_SUCCESS);
