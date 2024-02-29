@@ -5,8 +5,8 @@
 #define ICONS_NB_CHARS  32U
 
 typedef enum{
-    ARROWS_VERTICAL = 0,
-    ARROWS_HORIZONTAL,
+    ARROWS_HORIZONTAL = 0,
+    ARROWS_VERTICAL,
     NB_ICONS,
 }icon_e;
 
