@@ -16,7 +16,7 @@
 #define ANGLE_ROLL_PAGE	    1U		///< Number of the page at which display the roll axis angle
 #define ANGLE_PITCH_PAGE	5U		///< Number of the page at which display the pitch axis angle
 #define ANGLE_COLUMN	    40U		///< Column number of the first screen line
-#define REFTYPE_PAGE        0
+#define REFTYPE_PAGE        SSD_LAST_PAGE
 #define REFTYPE_COLUMN      (SSD_LAST_COLUMN - REFERENCETYPE_NB_BYTES)
 #define SPI_TIMEOUT_MS		10U		///< Maximum number of milliseconds SPI traffic should last before timeout
 #define MAX_DATA_SIZE		1024U	///< Maximum SSD1306 data size (128 * 64 pixels / 8 pixels per byte)
@@ -207,7 +207,7 @@ errorCode_u SSD1306drawBaseScreen(){
     }
 
     //draw the absolute referential icon
-    iterator = &_screenBuffer[REFTYPE_COLUMN];
+    iterator = &_screenBuffer[MAX_DATA_SIZE - REFERENCETYPE_NB_BYTES];
     for(i = 0 ; i < REFERENCETYPE_NB_BYTES ; i++)
         *(iterator++) = absoluteReferentialIcon[i];
 
