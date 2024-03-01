@@ -309,6 +309,12 @@ errorCode_u SSD1306_printReferentialIcon(referentialType_e type){
     return (ERR_SUCCESS);
 }
 
+/**
+ * @brief Draw/erase the icon representing the hold function
+ * 
+ * @param status 1 to print, 0 to erase
+ * @return Success
+ */
 errorCode_u SSD1306_printHoldIcon(uint8_t status){
     uint8_t* iterator = _screenBuffer;
     const uint8_t* iconIterator = holdIcon;
