@@ -102,6 +102,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 						CubeMXgenerated
 						adxl345
 						ssd1306
+						buttons
 )
 
 #declare Assembly compilation arguments
