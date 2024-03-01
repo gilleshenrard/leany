@@ -134,12 +134,16 @@ int main(void)
     buttonsUpdate();
   
     //if zero button is pressed, zero down measurements
-    if(buttonHasRisingEdge(ZERO))
+    if(buttonHasRisingEdge(ZERO)){
       ADXLzeroDown();
+      SSD1306_printReferentialIcon(RELATIVE);
+    }
 
     //if zero button is pressed, get back to absolute measurements
-    if(isButtonHeldDown(ZERO))
+    if(isButtonHeldDown(ZERO)){
       ADXLcancelZeroing();
+      SSD1306_printReferentialIcon(ABSOLUTE);
+    }
 
 	  //if X axis angle changed, update the screen
 	  if(isScreenReady() && ADXL345hasChanged(X_AXIS))
