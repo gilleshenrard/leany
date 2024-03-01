@@ -131,11 +131,11 @@ int main(void)
 
 	  //if X axis angle changed, update the screen
 	  if(isScreenReady() && ADXL345hasChanged(X_AXIS))
-		  SSD1306_printAngleTenths(getAngleDegreesTenths(X_AXIS), SSD1306_LINE1_PAGE, SSD1306_LINE1_COLUMN);
+		  SSD1306_printAngleTenths(getAngleDegreesTenths(X_AXIS), ROLL);
 
 	  //if Y axis angle changed, update the screen
 	  if(isScreenReady() && ADXL345hasChanged(Y_AXIS))
-		  SSD1306_printAngleTenths(getAngleDegreesTenths(Y_AXIS), SSD1306_LINE2_PAGE, SSD1306_LINE2_COLUMN);
+		  SSD1306_printAngleTenths(getAngleDegreesTenths(Y_AXIS), PITCH);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

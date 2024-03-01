@@ -2,7 +2,7 @@
  * @file SSD1306.c
  * @brief Implement the functioning of the SSD1306 OLED screen via SPI and DMA
  * @author Gilles Henrard
- * @date 29/02/2024
+ * @date 01/03/2024
  *
  * @note Datasheet : https://cdn-shop.adafruit.com/datasheets/SSD1306.pdf
  */
@@ -13,6 +13,9 @@
 #include <assert.h>
 
 //definitions
+#define ANGLE_ROLL_PAGE	    1U		///< Number of the page at which display the roll axis angle
+#define ANGLE_PITCH_PAGE	5U		///< Number of the page at which display the pitch axis angle
+#define ANGLE_COLUMN	    40U		///< Column number of the first screen line
 #define SPI_TIMEOUT_MS		10U		///< Maximum number of milliseconds SPI traffic should last before timeout
 #define MAX_DATA_SIZE		1024U	///< Maximum SSD1306 data size (128 * 64 pixels / 8 pixels per byte)
 #define ANGLE_NB_CHARS		6U		///< Number of characters in the angle array
@@ -219,13 +222,12 @@ uint8_t isScreenReady(){
  * @brief Print an angle (in degrees, with sign) on the screen
  *
  * @param angleTenths	Angle to print
- * @param page	First page on which to print the angle (screen line)
- * @param column First column on which to print the angle
+ * @param rotationAxis  Axis around which the rotation angle is to print
  *
  * @return Success
  * @retval 1	Angle above maximum amplitude
  */
-errorCode_u SSD1306_printAngleTenths(int16_t angleTenths, uint8_t page, uint8_t column){
+errorCode_u SSD1306_printAngleTenths(int16_t angleTenths, rotationAxis_e rotationAxis){
     static const int16_t MIN_ANGLE_DEG_TENTHS = -900;	///< Minimum angle allowed (in tenths of degrees)
     static const int16_t MAX_ANGLE_DEG_TENTHS =  900;	///< Maximum angle allowed (in tenths of degrees)
     static const uint8_t INDEX_SIGN = 0;		///< Index of the sign in the angle indexes array
@@ -240,10 +242,10 @@ errorCode_u SSD1306_printAngleTenths(int16_t angleTenths, uint8_t page, uint8_t 
         return (createErrorCode(PRT_ANGLE, 1, ERR_WARNING));
 
     //store the values
-    _limitColumns[0] = column;
-    _limitColumns[1] = column + (VERDANA_CHAR_WIDTH * ANGLE_NB_CHARS) - 1;
-    _limitPages[0] = page;
-    _limitPages[1] = page + 1;
+    _limitColumns[0] = ANGLE_COLUMN;
+    _limitColumns[1] = ANGLE_COLUMN + (VERDANA_CHAR_WIDTH * ANGLE_NB_CHARS) - 1;
+    _limitPages[0] = (rotationAxis == ROLL ? ANGLE_ROLL_PAGE : ANGLE_PITCH_PAGE);
+    _limitPages[1] = (rotationAxis == ROLL ? ANGLE_ROLL_PAGE : ANGLE_PITCH_PAGE) + 1;
     _size = ANGLE_NB_CHARS * VERDANA_NB_BYTES_CHAR;
 
     //if angle negative, replace plus sign with minus sign
@@ -258,9 +260,9 @@ errorCode_u SSD1306_printAngleTenths(int16_t angleTenths, uint8_t page, uint8_t 
     charIndexes[INDEX_TENTHS] = (uint8_t)(angleTenths % 10);
 
     //fill the buffer with all the required bitmaps bytes (column by column, then character by character, then page by page)
-    for(page = 0 ; page < VERDANA_NB_PAGES ; page++){
+    for(uint8_t page = 0 ; page < VERDANA_NB_PAGES ; page++){
         for(uint8_t character = 0 ; character < ANGLE_NB_CHARS ; character++){
-            for(column = 0 ; column < VERDANA_CHAR_WIDTH ; column++){
+            for(uint8_t column = 0 ; column < VERDANA_CHAR_WIDTH ; column++){
                 *iterator = verdana_16ptNumbers[charIndexes[character]][(VERDANA_CHAR_WIDTH * page) + column];
                 iterator++;
             }
