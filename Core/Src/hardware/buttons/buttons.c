@@ -43,6 +43,28 @@ void buttonsUpdate(){
         (*buttons[i].state)(i);
 }
 
+uint8_t isButtonReleased(button_e button){
+    return (buttons[button].state == stReleased);
+}
+
+uint8_t isButtonPressed(button_e button){
+    return (buttons[button].state == stPressed);
+}
+
+uint8_t buttonHasRisingEdge(button_e button){
+    uint8_t tmp = buttonsTimers[button].risingEdge_ms;
+    buttonsTimers[button].risingEdge_ms = 0;
+
+    return (tmp > 0);
+}
+
+uint8_t buttonHasFallingEdge(button_e button){
+    uint8_t tmp = buttonsTimers[button].fallingEdge_ms;
+    buttonsTimers[button].fallingEdge_ms = 0;
+
+    return (tmp > 0);
+}
+
 
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/

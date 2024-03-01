@@ -14,6 +14,10 @@ typedef struct{
 }gpioTimer_t;
 
 void buttonsUpdate();
+uint8_t isButtonReleased(button_e button);
+uint8_t isButtonPressed(button_e button);
+uint8_t buttonHasRisingEdge(button_e button);
+uint8_t buttonHasFallingEdge(button_e button);
 
 extern gpioTimer_t buttonsTimers[NB_BUTTONS];
 
