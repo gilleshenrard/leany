@@ -195,9 +195,10 @@ errorCode_u SSD1306drawBaseScreen(){
         *(iterator++) = LIGN;
 
     //draw the arrows icon
-    for(i = 0 ; i < ARROWSICON_NB_CHARS ; i++){
-        uint16_t bufferOffset = (i >> 5) * (SSD_LAST_COLUMN + 1);
-        _screenBuffer[bufferOffset + (i % 32U)] = arrowsIcon_32px[i];
+    for(i = 0 ; i < ARROWSICON_NB_BYTES ; i++){
+        //copy a byte, while making sure to copy it at the proper page number
+        uint16_t bufferOffset = (i / ARROWSICON_WIDTH) * (SSD_LAST_COLUMN + 1);
+        _screenBuffer[bufferOffset + (i % ARROWSICON_WIDTH)] = arrowsIcon_32px[i];
     }
 
     _state = stSendingData;
