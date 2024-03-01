@@ -309,6 +309,27 @@ errorCode_u SSD1306_printReferentialIcon(referentialType_e type){
     return (ERR_SUCCESS);
 }
 
+errorCode_u SSD1306_printHoldIcon(uint8_t status){
+    uint8_t* iterator = _screenBuffer;
+    uint8_t* iconIterator = (uint8_t*)holdIcon;
+
+    _limitColumns[0] = REFTYPE_COLUMN - REFERENCETYPE_NB_BYTES;
+    _limitColumns[1] = REFTYPE_COLUMN;
+    _limitPages[0] = REFTYPE_PAGE;
+    _limitPages[1] = REFTYPE_PAGE;
+    _size = REFERENCETYPE_NB_BYTES;
+
+    for(uint8_t i = 0 ; i < REFERENCETYPE_NB_BYTES ; i++)
+        if(status)
+            *(iterator++) = *(iconIterator++);
+        else
+            *(iterator++) = 0x00;
+
+    //get to printing state
+    _state = stSendingData;
+    return (ERR_SUCCESS);
+}
+
 /**
  * @brief Run the state machine
  *

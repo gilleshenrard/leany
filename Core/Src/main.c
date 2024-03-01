@@ -145,8 +145,10 @@ int main(void)
       SSD1306_printReferentialIcon(ABSOLUTE);
     }
 
-    if(buttonHasRisingEdge(HOLD))
+    if(buttonHasRisingEdge(HOLD)){
       holdingValues = !holdingValues;
+      SSD1306_printHoldIcon(holdingValues);
+    }
 
 	  //if X axis angle changed, update the screen
 	  if(isScreenReady() && ADXL345hasChanged(X_AXIS) && !holdingValues)

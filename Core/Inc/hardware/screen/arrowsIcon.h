@@ -9,5 +9,6 @@
 extern const uint8_t arrowsIcon_32px[ARROWSICON_NB_BYTES];
 extern const uint8_t relativeReferentialIcon[REFERENCETYPE_NB_BYTES];
 extern const uint8_t absoluteReferentialIcon[REFERENCETYPE_NB_BYTES];
+extern const uint8_t holdIcon[REFERENCETYPE_NB_BYTES];
 
 #endif
