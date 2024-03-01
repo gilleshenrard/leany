@@ -76,7 +76,6 @@ const uint8_t arrowsIconLight_32px[ARROWSICON_NB_BYTES] = {
     0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFE, 0xFC, 0xF8, 0xF0, 0xF0, 0xF8, 0xFC, 0xFE, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
 };
 
-
 const uint8_t arrowsIconDark_32px[ARROWSICON_NB_BYTES] = {
     // ################################ //Page 0
     // ################################
@@ -109,9 +108,9 @@ const uint8_t arrowsIconDark_32px[ARROWSICON_NB_BYTES] = {
     // ##                            ##
     // ##                            ##
     // ##                            ##
-    // ################################
-    // ################################ //Page 4
     // ##                            ##
+    // ################################ //Page 4
+    // ################################
     // ##                            ##
     // ##                            ##
     // ##             ##             ##
