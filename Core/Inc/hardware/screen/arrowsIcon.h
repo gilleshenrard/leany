@@ -1,5 +1,5 @@
-#ifndef ICONS_32_H_INCLUDED
-#define ICONS_32_H_INCLUDED
+#ifndef ARROWSICON_H_INCLUDED
+#define ARROWSICON_H_INCLUDED
 #include <stdint.h>
 
 #define ICONS32_NB_CHARS    (UINT8_MAX + 1)
