@@ -23,6 +23,7 @@
 /* USER CODE BEGIN Includes */
 #include "ADXL345.h"
 #include "SSD1306.h"
+#include "buttons.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -118,7 +119,7 @@ int main(void)
   {
     //reset the watchdog
     LL_IWDG_ReloadCounter(IWDG);
-  
+
 	  //update the accelerometer state machine
 	  result = ADXL345update();
 	  if(isError(result))
@@ -128,6 +129,10 @@ int main(void)
 	  result = SSD1306update();
 	  if(isError(result))
 		  result.fields.moduleID = 2;
+
+    result = buttonsUpdate();
+	  if(isError(result))
+		  result.fields.moduleID = 3;
 
 	  //if X axis angle changed, update the screen
 	  if(isScreenReady() && ADXL345hasChanged(X_AXIS))
@@ -377,10 +382,10 @@ static void MX_GPIO_Init(void)
   LL_GPIO_ResetOutputPin(GPIOA, SSD1306_DC_Pin|SSD1306_RES_Pin);
 
   /**/
-  GPIO_InitStruct.Pin = ADXL_INT1_Pin;
+  GPIO_InitStruct.Pin = ADXL_INT1_Pin|ZERO_BUTTON_Pin;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
-  LL_GPIO_Init(ADXL_INT1_GPIO_Port, &GPIO_InitStruct);
+  LL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /**/
   GPIO_InitStruct.Pin = SSD1306_DC_Pin|SSD1306_RES_Pin;
