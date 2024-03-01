@@ -9,7 +9,7 @@
 #include "SSD1306.h"
 #include "numbersVerdana16.h"
 #include "SSD1306_registers.h"
-#include "icons16.h"
+#include "icons32.h"
 #include <assert.h>
 
 //definitions
@@ -174,10 +174,6 @@ errorCode_u sendCommand(SSD1306register_e regNumber, const uint8_t parameters[],
  * @return Success
  */
 errorCode_u SSD1306drawBaseScreen(){
-    static const uint8_t iconPages[NB_ICONS] = {
-        [ARROWS_HORIZONTAL] = SSD1306_LINE1_PAGE,
-        [ARROWS_VERTICAL] = SSD1306_LINE2_PAGE,
-    };
     static const uint8_t LIGN = 0x03U;
     uint8_t* iterator = _screenBuffer;
     uint16_t i;
@@ -198,20 +194,9 @@ errorCode_u SSD1306drawBaseScreen(){
     for(i = 0 ; i <= SSD_LAST_COLUMN ; i++)
         *(iterator++) = LIGN;
 
-    //for each icon to display
-    for(uint8_t icon = 0 ; icon < NB_ICONS ; icon++){
-        uint16_t iconBufferOffset = ((SSD_LAST_COLUMN + 1) * iconPages[icon]);
-        iconBufferOffset += 5;
-
-        //draw the first half of the icon
-        iterator = &_screenBuffer[iconBufferOffset];
-        for(i = 0 ; i < (ICONS_NB_CHARS >> 1) ; i++)
-            *(iterator++) = icons_16pt[icon][i];
-
-        //draw the second half of the icon 1 page below
-        iterator = &_screenBuffer[iconBufferOffset + (SSD_LAST_COLUMN + 1)];
-        for(i = (ICONS_NB_CHARS >> 1) ; i < ICONS_NB_CHARS ; i++)
-            *(iterator++) = icons_16pt[icon][i];
+    for(uint16_t j = 0 ; j < ICONS32_NB_CHARS ; j++){
+        uint16_t bufferOffset = (j >> 5) * (SSD_LAST_COLUMN + 1);
+        _screenBuffer[bufferOffset + (j % 32U)] = icons_32pt[j];
     }
 
     _state = stSendingData;

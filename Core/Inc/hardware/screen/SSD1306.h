@@ -6,9 +6,9 @@
 
 //screen defaults
 #define SSD1306_LINE1_PAGE		1U		///< Page number of the first screen line
-#define SSD1306_LINE1_COLUMN	23U		///< Column number of the first screen line
+#define SSD1306_LINE1_COLUMN	40U		///< Column number of the first screen line
 #define SSD1306_LINE2_PAGE		5U		///< Page number of the second screen line
-#define SSD1306_LINE2_COLUMN	23U		///< Column number of the second screen line
+#define SSD1306_LINE2_COLUMN	40U		///< Column number of the second screen line
 
 extern volatile uint16_t	screenTimer_ms;
 extern volatile uint16_t	ssd1306SPITimer_ms;
