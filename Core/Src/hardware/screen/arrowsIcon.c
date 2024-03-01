@@ -1,4 +1,4 @@
-#include "icons32.h"
+#include "arrowsIcon.h"
 
 const uint8_t icons_32pt[ICONS32_NB_CHARS] = {
     // ################################
