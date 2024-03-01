@@ -7,6 +7,7 @@
  */
 typedef enum{
     ZERO = 0,
+    HOLD,
     NB_BUTTONS
 }button_e;
 
