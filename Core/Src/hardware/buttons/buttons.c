@@ -7,12 +7,13 @@
 #include "buttons.h"
 
 #define DEBOUNCE_TIME_MS        50U;
+#define HOLDING_TIME_MS         1000U;
 #define EDGEDETECTION_TIME_MS   40U;
 
 //machine state
 static void stReleased(button_e button);
 static void stPressed(button_e button);
-//static void stHeldDown(button_e button);
+static void stHeldDown(button_e button);
 
 /**
  * @brief State machine state prototype
@@ -48,7 +49,12 @@ uint8_t isButtonReleased(button_e button){
 }
 
 uint8_t isButtonPressed(button_e button){
-    return (buttons[button].state == stPressed);
+    return ((buttons[button].state == stPressed)
+            || (buttons[button].state == stHeldDown));
+}
+
+uint8_t isButtonHeldDown(button_e button){
+    return (buttons[button].state == stHeldDown);
 }
 
 uint8_t buttonHasRisingEdge(button_e button){
@@ -81,10 +87,30 @@ static void stReleased(button_e button){
 
     //set the timer during which rising edge can be read, and get to pressed state
     buttonsTimers[button].risingEdge_ms = EDGEDETECTION_TIME_MS;
+    buttonsTimers[button].holding_ms = HOLDING_TIME_MS;
     buttons[button].state = stPressed;
 }
 
 static void stPressed(button_e button){
+    //if button pressed, restart debouncing timer
+    if(!LL_GPIO_IsInputPinSet(buttons[button].port, buttons[button].pin)){
+        buttonsTimers[button].debouncing_ms = DEBOUNCE_TIME_MS;
+
+        //if button maintained for long enough, get to held down state
+        if(!buttonsTimers[button].holding_ms)
+            buttons[button].state = stHeldDown;
+    }
+
+    //if button not released for long enough, exit
+    if(buttonsTimers[button].debouncing_ms)
+        return;
+
+    //set the timer during which falling edge can be read, and get to pressed state
+    buttonsTimers[button].fallingEdge_ms = EDGEDETECTION_TIME_MS;
+    buttons[button].state = stReleased;
+}
+
+static void stHeldDown(button_e button){
     //if button pressed, restart debouncing timer
     if(!LL_GPIO_IsInputPinSet(buttons[button].port, buttons[button].pin))
         buttonsTimers[button].debouncing_ms = DEBOUNCE_TIME_MS;
@@ -97,8 +123,3 @@ static void stPressed(button_e button){
     buttonsTimers[button].fallingEdge_ms = EDGEDETECTION_TIME_MS;
     buttons[button].state = stReleased;
 }
-/*
-static void stHeldDown(button_e button){
-    buttons[button].state = stPressed;
-}
-*/
