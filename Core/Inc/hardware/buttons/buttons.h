@@ -7,6 +7,14 @@ typedef enum{
     NB_BUTTONS
 }button_e;
 
+typedef struct{
+    volatile uint8_t debouncing_ms;
+    volatile uint8_t risingEdge_ms;
+    volatile uint8_t fallingEdge_ms;
+}gpioTimer_t;
+
 void buttonsUpdate();
+
+extern gpioTimer_t buttonsTimers[NB_BUTTONS];
 
 #endif
