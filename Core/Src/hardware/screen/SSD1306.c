@@ -16,6 +16,8 @@
 #define ANGLE_ROLL_PAGE	    1U		///< Number of the page at which display the roll axis angle
 #define ANGLE_PITCH_PAGE	5U		///< Number of the page at which display the pitch axis angle
 #define ANGLE_COLUMN	    40U		///< Column number of the first screen line
+#define REFTYPE_PAGE        0
+#define REFTYPE_COLUMN      (SSD_LAST_COLUMN - REFERENCETYPE_NB_BYTES)
 #define SPI_TIMEOUT_MS		10U		///< Maximum number of milliseconds SPI traffic should last before timeout
 #define MAX_DATA_SIZE		1024U	///< Maximum SSD1306 data size (128 * 64 pixels / 8 pixels per byte)
 #define ANGLE_NB_CHARS		6U		///< Number of characters in the angle array
@@ -204,6 +206,11 @@ errorCode_u SSD1306drawBaseScreen(){
         _screenBuffer[bufferOffset + (i % ARROWSICON_WIDTH)] = arrowsIcon_32px[i];
     }
 
+    //draw the absolute referential icon
+    iterator = &_screenBuffer[REFTYPE_COLUMN];
+    for(i = 0 ; i < REFERENCETYPE_NB_BYTES ; i++)
+        *(iterator++) = absoluteReferentialIcon[i];
+
     _state = stSendingData;
     return (ERR_SUCCESS);
 }
@@ -272,6 +279,30 @@ errorCode_u SSD1306_printAngleTenths(int16_t angleTenths, rotationAxis_e rotatio
             }
         }
     }
+
+    //get to printing state
+    _state = stSendingData;
+    return (ERR_SUCCESS);
+}
+
+/**
+ * @brief Draw the icon representing the type of referential currently used
+ * 
+ * @param type Referential type
+ * @return Success
+ */
+errorCode_u SSD1306_printReferentialIcon(referentialType_e type){
+    uint8_t* iterator = _screenBuffer;
+    uint8_t* iconIterator = (uint8_t*)(type == ABSOLUTE ? absoluteReferentialIcon : relativeReferentialIcon);
+
+    _limitColumns[0] = REFTYPE_COLUMN;
+    _limitColumns[1] = REFTYPE_COLUMN + REFERENCETYPE_NB_BYTES;
+    _limitPages[0] = REFTYPE_PAGE;
+    _limitPages[1] = REFTYPE_PAGE;
+    _size = REFERENCETYPE_NB_BYTES;
+
+    for(uint8_t i = 0 ; i < REFERENCETYPE_NB_BYTES ; i++)
+        *(iterator++) = *(iconIterator++);
 
     //get to printing state
     _state = stSendingData;
