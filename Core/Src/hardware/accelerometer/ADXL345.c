@@ -1,7 +1,7 @@
 /**
  * @brief Implement the ADXL345 accelerometer communication
  * @author Gilles Henrard
- * @date 27/02/2024
+ * @date 01/03/2024
  *
  * @note Additional information can be found in :
  *   - ADXL345 datasheet : https://www.analog.com/media/en/technical-documentation/data-sheets/ADXL345.pdf
@@ -84,6 +84,7 @@ static adxlState		_state = stStartup;			///< State machine current state
 static uint8_t			_measurementsUpdated = 0;	///< Flag used to indicate new integrated measurements are ready within the ADXL345
 static int32_t			_latestValues[NB_AXIS];		///< Array of latest axis values
 static int32_t			_previousValues[NB_AXIS];	///< Array of values previously compared to latest
+static int32_t			_zeroValues[NB_AXIS];	    ///< Array of values used to compensate measurements since last zeroing
 static errorCode_u 		_result;					///< Variables used to store error codes
 
 
@@ -100,6 +101,13 @@ static errorCode_u 		_result;					///< Variables used to store error codes
 errorCode_u ADXL345initialise(const SPI_TypeDef* handle){
     _spiHandle = (SPI_TypeDef*)handle;
     LL_SPI_Disable(_spiHandle);
+
+    //reset all values
+    for(uint8_t axis = 0 ; axis < NB_AXIS ; axis++){
+        _latestValues[axis] = 0;
+        _previousValues[axis] = 0;
+        _zeroValues[axis] = 0;
+    }
 
     return (ERR_SUCCESS);
 }
@@ -246,7 +254,7 @@ int16_t getAngleDegreesTenths(axis_e axis){
     //compute the angle between Z axis and the requested one
     //	then transform radians to 0.1 degrees
     //	formula : degrees_tenths = (arctan(axis/Z) * 180° * 10) / PI
-    float angle = atanf((float)_latestValues[axis] / (float)_latestValues[Z_AXIS]);
+    float angle = atanf((float)(_latestValues[axis] + _zeroValues[axis]) / (float)_latestValues[Z_AXIS]);
     angle *= RADIANS_TO_DEGREES_TENTHS;
     return ((int16_t)angle);
 }
@@ -311,6 +319,22 @@ static errorCode_u integrateFIFO(int32_t values[]){
     values[Z_AXIS] >>= ADXL_AVG_SHIFT;
 
     return (ERR_SUCCESS);
+}
+
+/**
+ * @brief Set the measurements in relative mode and zero down the values
+ */
+void ADXLzeroDown(){
+    _zeroValues[X_AXIS] = -_latestValues[X_AXIS];
+    _zeroValues[Y_AXIS] = -_latestValues[Y_AXIS];
+}
+
+/**
+ * @brief Set the measurements in absolute mode (no zeroing compensation)
+ */
+void ADXLcancelZeroing(){
+    for(uint8_t axis = 0 ; axis < NB_AXIS ; axis++)
+        _zeroValues[axis] = 0;
 }
 
 
