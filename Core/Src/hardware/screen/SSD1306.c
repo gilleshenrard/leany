@@ -293,7 +293,7 @@ errorCode_u SSD1306_printAngleTenths(int16_t angleTenths, rotationAxis_e rotatio
  */
 errorCode_u SSD1306_printReferentialIcon(referentialType_e type){
     uint8_t* iterator = _screenBuffer;
-    uint8_t* iconIterator = (uint8_t*)(type == ABSOLUTE ? absoluteReferentialIcon : relativeReferentialIcon);
+    const uint8_t* iconIterator = (type == ABSOLUTE ? absoluteReferentialIcon : relativeReferentialIcon);
 
     _limitColumns[0] = REFTYPE_COLUMN;
     _limitColumns[1] = REFTYPE_COLUMN + REFERENCETYPE_NB_BYTES;
@@ -311,7 +311,7 @@ errorCode_u SSD1306_printReferentialIcon(referentialType_e type){
 
 errorCode_u SSD1306_printHoldIcon(uint8_t status){
     uint8_t* iterator = _screenBuffer;
-    uint8_t* iconIterator = (uint8_t*)holdIcon;
+    const uint8_t* iconIterator = holdIcon;
 
     _limitColumns[0] = REFTYPE_COLUMN - REFERENCETYPE_NB_BYTES;
     _limitColumns[1] = REFTYPE_COLUMN;
