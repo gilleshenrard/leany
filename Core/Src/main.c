@@ -130,9 +130,8 @@ int main(void)
 	  if(isError(result))
 		  result.fields.moduleID = 2;
 
-    result = buttonsUpdate();
-	  if(isError(result))
-		  result.fields.moduleID = 3;
+    //update the buttons' state machines
+    buttonsUpdate();
 
 	  //if X axis angle changed, update the screen
 	  if(isScreenReady() && ADXL345hasChanged(X_AXIS))

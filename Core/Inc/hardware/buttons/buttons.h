@@ -2,6 +2,11 @@
 #define INC_BUTTONS_H_
 #include "errorstack.h"
 
-errorCode_u buttonsUpdate();
+typedef enum{
+    ZERO = 0,
+    NB_BUTTONS
+}button_e;
+
+void buttonsUpdate();
 
 #endif
