@@ -202,6 +202,9 @@ void SysTick_Handler(void)
     if(buttonsTimers[i].debouncing_ms)
       buttonsTimers[i].debouncing_ms = buttonsTimers[i].debouncing_ms - 1;
 
+    if(buttonsTimers[i].holding_ms)
+      buttonsTimers[i].holding_ms = buttonsTimers[i].holding_ms - 1;
+
     if(buttonsTimers[i].risingEdge_ms)
       buttonsTimers[i].risingEdge_ms = buttonsTimers[i].risingEdge_ms - 1;
 
