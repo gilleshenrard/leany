@@ -99,3 +99,15 @@ const uint8_t absoluteReferentialIcon[REFERENCETYPE_NB_BYTES] = {
     // #######
     0xFF, 0x87, 0xEB, 0xED, 0xEB, 0x87, 0xFF,
 };
+
+const uint8_t holdIcon[REFERENCETYPE_NB_BYTES] = {
+    // #######
+    // # ### #
+    // # ### #
+    // #     #
+    // # ### #
+    // # ### #
+    // # ### #
+    // #######
+    0xFF, 0x81, 0xF7, 0xF7, 0xF7, 0x81, 0xFF,
+};
