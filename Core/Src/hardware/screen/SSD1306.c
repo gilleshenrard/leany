@@ -194,7 +194,8 @@ errorCode_u SSD1306drawBaseScreen(){
     for(i = 0 ; i <= SSD_LAST_COLUMN ; i++)
         *(iterator++) = LIGN;
 
-    for(uint16_t j = 0 ; j < ICONS32_NB_CHARS ; j++){
+    //draw the arrows icon
+    for(uint16_t j = 0 ; j < ARROWSICON_NB_CHARS ; j++){
         uint16_t bufferOffset = (j >> 5) * (SSD_LAST_COLUMN + 1);
         _screenBuffer[bufferOffset + (j % 32U)] = arrowsIcon_32px[j];
     }
