@@ -196,7 +196,7 @@ errorCode_u SSD1306drawBaseScreen(){
 
     for(uint16_t j = 0 ; j < ICONS32_NB_CHARS ; j++){
         uint16_t bufferOffset = (j >> 5) * (SSD_LAST_COLUMN + 1);
-        _screenBuffer[bufferOffset + (j % 32U)] = icons_32pt[j];
+        _screenBuffer[bufferOffset + (j % 32U)] = arrowsIcon_32px[j];
     }
 
     _state = stSendingData;

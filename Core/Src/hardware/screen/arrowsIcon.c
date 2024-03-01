@@ -1,6 +1,6 @@
 #include "arrowsIcon.h"
 
-const uint8_t icons_32pt[ICONS32_NB_CHARS] = {
+const uint8_t arrowsIcon_32px[ICONS32_NB_CHARS] = {
     // ################################
     // ################################
     // ################################
