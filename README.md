@@ -11,6 +11,7 @@ This project is a crude implementation of an inclinometer.
 Quote : [Wikipedia](https://en.wikipedia.org/wiki/Inclinometer)
 
 Measurements screen:
+
 ![](img/measures_screen.jpg)
 
 ### 2. Prerequisites
