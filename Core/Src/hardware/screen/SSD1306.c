@@ -237,9 +237,19 @@ errorCode_u SSD1306_printAngleTenths(int16_t angleTenths, rotationAxis_e rotatio
     uint8_t charIndexes[ANGLE_NB_CHARS] = {INDEX_PLUS, 0, 0, INDEX_DOT, 0, INDEX_DEG};
     uint8_t* iterator = _screenBuffer;
 
-    //if angle out of bounds, return error
-    if((angleTenths < MIN_ANGLE_DEG_TENTHS) || (angleTenths > MAX_ANGLE_DEG_TENTHS))
-        return (createErrorCode(PRT_ANGLE, 1, ERR_WARNING));
+    //clamp the angle to print to the min value
+    if(angleTenths < MIN_ANGLE_DEG_TENTHS)
+        angleTenths = MIN_ANGLE_DEG_TENTHS;
+
+    //clamp the angle to print to the max value
+    if(angleTenths > MAX_ANGLE_DEG_TENTHS)
+        angleTenths = MAX_ANGLE_DEG_TENTHS;
+
+    //if angle negative, replace plus sign with minus sign
+    if(angleTenths < 0){
+        charIndexes[INDEX_SIGN] = INDEX_MINUS;
+        angleTenths = -angleTenths;
+    }
 
     //store the values
     _limitColumns[0] = ANGLE_COLUMN;
@@ -247,12 +257,6 @@ errorCode_u SSD1306_printAngleTenths(int16_t angleTenths, rotationAxis_e rotatio
     _limitPages[0] = (rotationAxis == ROLL ? ANGLE_ROLL_PAGE : ANGLE_PITCH_PAGE);
     _limitPages[1] = (rotationAxis == ROLL ? ANGLE_ROLL_PAGE : ANGLE_PITCH_PAGE) + 1;
     _size = ANGLE_NB_CHARS * VERDANA_NB_BYTES_CHAR;
-
-    //if angle negative, replace plus sign with minus sign
-    if(angleTenths < 0){
-        charIndexes[INDEX_SIGN] = INDEX_MINUS;
-        angleTenths = -angleTenths;
-    }
 
     //fill the angle characters indexes array with the float values (tens, units, tenths)
     charIndexes[INDEX_TENS] = (uint8_t)(angleTenths / 100);
