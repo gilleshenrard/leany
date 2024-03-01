@@ -83,6 +83,8 @@ void Error_Handler(void);
 #define ADXL_INT1_GPIO_Port GPIOB
 #define ZERO_BUTTON_Pin LL_GPIO_PIN_10
 #define ZERO_BUTTON_GPIO_Port GPIOB
+#define HOLD_BUTTON_Pin LL_GPIO_PIN_11
+#define HOLD_BUTTON_GPIO_Port GPIOB
 #define SSD1306_CS_Pin LL_GPIO_PIN_12
 #define SSD1306_CS_GPIO_Port GPIOB
 #define SSD1306_D0_Pin LL_GPIO_PIN_13

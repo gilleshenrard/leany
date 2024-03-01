@@ -70,7 +70,7 @@ static void MX_IWDG_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
+  uint8_t holdingValues = 0;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -145,12 +145,15 @@ int main(void)
       SSD1306_printReferentialIcon(ABSOLUTE);
     }
 
+    if(buttonHasRisingEdge(HOLD))
+      holdingValues = !holdingValues;
+
 	  //if X axis angle changed, update the screen
-	  if(isScreenReady() && ADXL345hasChanged(X_AXIS))
+	  if(isScreenReady() && ADXL345hasChanged(X_AXIS) && !holdingValues)
 		  SSD1306_printAngleTenths(getAngleDegreesTenths(X_AXIS), ROLL);
 
 	  //if Y axis angle changed, update the screen
-	  if(isScreenReady() && ADXL345hasChanged(Y_AXIS))
+	  if(isScreenReady() && ADXL345hasChanged(Y_AXIS) && !holdingValues)
 		  SSD1306_printAngleTenths(getAngleDegreesTenths(Y_AXIS), PITCH);
     /* USER CODE END WHILE */
 
@@ -393,7 +396,7 @@ static void MX_GPIO_Init(void)
   LL_GPIO_ResetOutputPin(GPIOA, SSD1306_DC_Pin|SSD1306_RES_Pin);
 
   /**/
-  GPIO_InitStruct.Pin = ADXL_INT1_Pin|ZERO_BUTTON_Pin;
+  GPIO_InitStruct.Pin = ADXL_INT1_Pin|ZERO_BUTTON_Pin|HOLD_BUTTON_Pin;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
   LL_GPIO_Init(GPIOB, &GPIO_InitStruct);
