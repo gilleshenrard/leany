@@ -132,6 +132,14 @@ int main(void)
 
     //update the buttons' state machines
     buttonsUpdate();
+  
+    //if zero button is pressed, zero down measurements
+    if(buttonHasRisingEdge(ZERO))
+      ADXLzeroDown();
+
+    //if zero button is pressed, get back to absolute measurements
+    if(isButtonHeldDown(ZERO))
+      ADXLcancelZeroing();
 
 	  //if X axis angle changed, update the screen
 	  if(isScreenReady() && ADXL345hasChanged(X_AXIS))

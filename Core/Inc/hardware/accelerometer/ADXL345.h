@@ -20,5 +20,7 @@ errorCode_u	ADXL345initialise(const SPI_TypeDef* handle);
 errorCode_u	ADXL345update();
 uint8_t		ADXL345hasChanged(axis_e axis);
 int16_t		getAngleDegreesTenths(axis_e axis);
+void        ADXLzeroDown();
+void        ADXLcancelZeroing();
 
 #endif /* INC_ADXL345_H_ */
