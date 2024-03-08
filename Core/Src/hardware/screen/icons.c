@@ -1,4 +1,4 @@
-#include "arrowsIcon.h"
+#include "icons.h"
 
 const uint8_t arrowsIcon_32px[ARROWSICON_NB_BYTES] = {
     //                               ## //Page 0
