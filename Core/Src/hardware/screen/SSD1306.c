@@ -13,15 +13,11 @@
 #include <assert.h>
 
 //definitions
-#define ANGLE_ROLL_PAGE	    1U		///< Number of the page at which display the roll axis angle
-#define ANGLE_PITCH_PAGE	5U		///< Number of the page at which display the pitch axis angle
-#define ANGLE_COLUMN	    40U		///< Column number of the first screen line
 #define REFTYPE_PAGE        SSD_LAST_PAGE
 #define REFTYPE_COLUMN      (SSD_LAST_COLUMN - REFERENCETYPE_NB_BYTES)
 #define SPI_TIMEOUT_MS		10U		///< Maximum number of milliseconds SPI traffic should last before timeout
 #define MAX_DATA_SIZE		1024U	///< Maximum SSD1306 data size (128 * 64 pixels / 8 pixels per byte)
 #define ANGLE_NB_CHARS		6U		///< Number of characters in the angle array
-#define NB_INIT_REGISERS	8U		///< Number of registers set at initialisation
 #define SSD_LAST_COLUMN		127U	///< Index of the highest column
 #define SSD_LAST_PAGE		31U		///< Index of the highest page
 
@@ -235,12 +231,15 @@ uint8_t isScreenReady(){
  * @retval 1	Angle above maximum amplitude
  */
 errorCode_u SSD1306_printAngleTenths(int16_t angleTenths, rotationAxis_e rotationAxis){
+    static const uint8_t  ANGLE_COLUMN = 40U;		    ///< Column number of the first screen line
+    static const uint8_t ANGLE_ROLL_PAGE = 1U;		    ///< Number of the page at which display the roll axis angle
+    static const uint8_t ANGLE_PITCH_PAGE = 5U;		    ///< Number of the page at which display the pitch axis angle
     static const int16_t MIN_ANGLE_DEG_TENTHS = -900;	///< Minimum angle allowed (in tenths of degrees)
     static const int16_t MAX_ANGLE_DEG_TENTHS =  900;	///< Maximum angle allowed (in tenths of degrees)
-    static const uint8_t INDEX_SIGN = 0;		///< Index of the sign in the angle indexes array
-    static const uint8_t INDEX_TENS = 1U;		///< Index of the tens in the angle indexes array
-    static const uint8_t INDEX_UNITS = 2U;		///< Index of the units in the angle indexes array
-    static const uint8_t INDEX_TENTHS = 4U;		///< Index of the tenths in the angle indexes array
+    static const uint8_t INDEX_SIGN = 0;	            ///< Index of the sign in the angle indexes array
+    static const uint8_t INDEX_TENS = 1U;	            ///< Index of the tens in the angle indexes array
+    static const uint8_t INDEX_UNITS = 2U;	            ///< Index of the units in the angle indexes array
+    static const uint8_t INDEX_TENTHS = 4U;	            ///< Index of the tenths in the angle indexes array
     uint8_t charIndexes[ANGLE_NB_CHARS] = {INDEX_PLUS, 0, 0, INDEX_DOT, 0, INDEX_DEG};
     uint8_t* iterator = _screenBuffer;
 
@@ -358,6 +357,7 @@ errorCode_u SSD1306update(){
  * @retval 2	Error while requesting the screen wipe
  */
 static errorCode_u stConfiguring(){
+    #define NB_INIT_REGISERS    8U		                                ///< Number of registers set at initialisation
     static const uint8_t initCommands[NB_INIT_REGISERS][3] = {			///< Array used to initialise the registers
         {SCAN_DIRECTION_N1_0,	0,	0x00},
         {HARDWARE_CONFIG,		1,	SSD_PIN_CONFIG_ALT | SSD_COM_REMAP_DISABLE},
