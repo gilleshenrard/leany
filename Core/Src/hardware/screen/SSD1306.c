@@ -2,7 +2,7 @@
  * @file SSD1306.c
  * @brief Implement the functioning of the SSD1306 OLED screen via SPI and DMA
  * @author Gilles Henrard
- * @date 01/03/2024
+ * @date 08/03/2024
  *
  * @note Datasheet : https://cdn-shop.adafruit.com/datasheets/SSD1306.pdf
  */
@@ -56,7 +56,7 @@ typedef enum{
 typedef errorCode_u (*screenState)();
 
 //communication functions with the SSD1306
-static inline void setDataCommandGPIO(DCgpio_e value);
+static inline void setDataCommandGPIO(DCgpio_e function);
 static errorCode_u sendCommand(SSD1306register_e regNumber, const uint8_t parameters[], uint8_t nbParameters);
 
 //state machine
@@ -108,10 +108,10 @@ errorCode_u SSD1306initialise(SPI_TypeDef* handle, DMA_TypeDef* dma, uint32_t dm
 /**
  * brief Set the Data/Command pin
  *
- * @param value Value of the data/command pin
+ * @param function Value of the data/command pin
  */
-static inline void setDataCommandGPIO(DCgpio_e value){
-    if(value == COMMAND)
+static inline void setDataCommandGPIO(DCgpio_e function){
+    if(function == COMMAND)
         LL_GPIO_ResetOutputPin(SSD1306_DC_GPIO_Port, SSD1306_DC_Pin);
     else
         LL_GPIO_SetOutputPin(SSD1306_DC_GPIO_Port, SSD1306_DC_Pin);
