@@ -9,7 +9,7 @@
 #include "SSD1306.h"
 #include "numbersVerdana16.h"
 #include "SSD1306_registers.h"
-#include "arrowsIcon.h"
+#include "icons.h"
 #include <assert.h>
 
 //definitions
