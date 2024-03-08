@@ -1,7 +1,7 @@
 /**
  * @brief Implement the GPIO buttons state and debouncing
  * @author Gilles Henrard
- * @date 01/03/2024
+ * @date 08/03/2024
  */
 #include <main.h>
 #include "buttons.h"
@@ -62,6 +62,9 @@ void buttonsUpdate(){
  * @retval 1        Button is released
  */
 uint8_t isButtonReleased(button_e button){
+    if(button >= NB_BUTTONS)
+        return 0;
+
     return (buttons[button].state == stReleased);
 }
 
@@ -73,6 +76,9 @@ uint8_t isButtonReleased(button_e button){
  * @retval 1        Button is pressed
  */
 uint8_t isButtonPressed(button_e button){
+    if(button >= NB_BUTTONS)
+        return 0;
+
     return ((buttons[button].state == stPressed)
             || (buttons[button].state == stHeldDown));
 }
@@ -85,6 +91,9 @@ uint8_t isButtonPressed(button_e button){
  * @retval 1        Button is held down
  */
 uint8_t isButtonHeldDown(button_e button){
+    if(button >= NB_BUTTONS)
+        return 0;
+
     return (buttons[button].state == stHeldDown);
 }
 
@@ -97,6 +106,9 @@ uint8_t isButtonHeldDown(button_e button){
  * @retval 1        Button has had a rising edge
  */
 uint8_t buttonHasRisingEdge(button_e button){
+    if(button >= NB_BUTTONS)
+        return 0;
+
     uint8_t tmp = buttonsTimers[button].risingEdge_ms;
     buttonsTimers[button].risingEdge_ms = 0;
 
@@ -112,6 +124,9 @@ uint8_t buttonHasRisingEdge(button_e button){
  * @retval 1        Button has had a falling edge
  */
 uint8_t buttonHasFallingEdge(button_e button){
+    if(button >= NB_BUTTONS)
+        return 0;
+
     uint8_t tmp = buttonsTimers[button].fallingEdge_ms;
     buttonsTimers[button].fallingEdge_ms = 0;
 
