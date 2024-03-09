@@ -2,7 +2,7 @@
  * @file SSD1306.c
  * @brief Implement the functioning of the SSD1306 OLED screen via SPI and DMA
  * @author Gilles Henrard
- * @date 08/03/2024
+ * @date 09/03/2024
  *
  * @note Datasheet : https://cdn-shop.adafruit.com/datasheets/SSD1306.pdf
  */
@@ -175,7 +175,6 @@ errorCode_u sendCommand(SSD1306register_e regNumber, const uint8_t parameters[],
  * @return Success
  */
 errorCode_u SSD1306drawBaseScreen(){
-    static const uint8_t LIGN = 0x03U;
     uint8_t* iterator = _screenBuffer;
     uint16_t i;
 
@@ -190,9 +189,10 @@ errorCode_u SSD1306drawBaseScreen(){
     for(i = 0 ; i < MAX_DATA_SIZE ; i++)
         *(iterator++) = 0x00U;
 
-    //draw the separator in the buffer
-    iterator = &_screenBuffer[(MAX_DATA_SIZE >> 1)];
-    for(i = 0 ; i <= SSD_LAST_COLUMN ; i++)
+    //draw the middle screen separator in the buffer (avoid drawing in the arrows icon zone)
+    static const uint8_t LIGN = 0x03U;
+    iterator = &_screenBuffer[(MAX_DATA_SIZE >> 1) + ARROWSICON_WIDTH];
+    for(i = ARROWSICON_WIDTH ; i <= SSD_LAST_COLUMN ; i++)
         *(iterator++) = LIGN;
 
     //draw the arrows icon
