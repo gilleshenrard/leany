@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Command example (remove the \ characters) :
+cppcheck.exe \-\-enable=all \-\-project=config_release.cppcheck
+-->
+<project version="1">
+    <builddir>config-cppcheck-build-dir</builddir>
+    <platform>arm32-wchar_t2.xml</platform>
+    <importproject>build/Release/compile_commands.json</importproject>
+    <analyze-all-vs-configs>false</analyze-all-vs-configs>
+    <check-headers>true</check-headers>
+    <check-unused-templates>true</check-unused-templates>
+    <max-ctu-depth>2</max-ctu-depth>
+    <max-template-recursion>100</max-template-recursion>
+    <exclude>
+        <path name="build/"/>
+        <path name="Drivers/"/>
+        <path name="Core/Src/dma.c"/>
+        <path name="Core/Src/gpio.c"/>
+        <path name="Core/Src/iwdg.c"/>
+        <path name="Core/Src/spi.c"/>
+        <path name="Core/Src/syscalls.c"/>
+        <path name="Core/Src/sysmem.c"/>
+        <path name="Core/Src/system_stm32f1xx.c"/>
+    </exclude>
+    <suppressions>
+        <suppression>unusedFunction</suppression>
+        <suppression>missingIncludeSystem</suppression>
+        <suppression>missingInclude</suppression>
+    </suppressions>
+    <check-level-exhaustive/>
+    <project-name>config</project-name>
+</project>
