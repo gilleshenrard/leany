@@ -51,27 +51,26 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
-# eclipse files
-.metadata/
-RemoteSystemsTempFiles/
+#STM32CubeMX auto-generated files
+.cproject
+.mxproject
+.project
+mx.scratch
+
+#STM32CubeIDE
 .settings/
-Debug/
-*.launch
 
-# STM32CubeIDE files
-*.mxproject
-*.project
-*.cproject
-*.scratch
-Drivers/CMSIS
-Drivers/STM32F1xx_HAL_Driver
-STM32F103C8TX_FLASH.ld
+#CMake
+build/
 
-# Doxygen files
+#Doxygen outputs
 doxygen/
 
-# VSCode
+#VSCode files
 .vscode/
 
-# CMake
-build/
+#Clangd
+.cache/
+
+#CppCheck
+config-cppcheck-build-dir/
