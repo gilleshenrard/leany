@@ -12,10 +12,15 @@
  */
 #include "LSM6DSO.h"
 
-SPI_TypeDef* _spiHandle = (void*)0;
+SPI_TypeDef* _spiHandle = (void*)0; ///< SPI handle used by the LSM6DSO device
+
+
+/********************************************************************************************************************************************/
+/********************************************************************************************************************************************/
+
 
 /**
- * @brief Initialise the ADXL345
+ * @brief Initialise the LSM6DSO
  *
  * @param handle	SPI handle used
  * @returns 		Success
@@ -27,6 +32,15 @@ errorCode_u LSM6DSOinitialise(const SPI_TypeDef* handle){
     return (ERR_SUCCESS);
 }
 
+/**
+ * @brief Run the LSM6DSO state machine
+ * @returns Current state return code
+ */
 errorCode_u LSM6DSOupdate(){
     return (ERR_SUCCESS);
 }
+
+
+/********************************************************************************************************************************************/
+/********************************************************************************************************************************************/
+
