@@ -22,7 +22,6 @@
 #include "stm32f1xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "ADXL345.h"
 #include "SSD1306.h"
 #include "buttons.h"
 /* USER CODE END Includes */
@@ -186,12 +185,6 @@ void PendSV_Handler(void)
 void SysTick_Handler(void)
 {
   /* USER CODE BEGIN SysTick_IRQn 0 */
-	if(adxlTimer_ms)
-		adxlTimer_ms = adxlTimer_ms - 1;
-
-  if(adxlSPITimer_ms)
-    adxlSPITimer_ms = adxlSPITimer_ms - 1;
-
 	if(screenTimer_ms)
 		screenTimer_ms = screenTimer_ms - 1;
 

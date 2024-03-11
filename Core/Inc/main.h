@@ -71,16 +71,16 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define ADXL_CS_Pin LL_GPIO_PIN_4
-#define ADXL_CS_GPIO_Port GPIOA
-#define ADXL_SCL_Pin LL_GPIO_PIN_5
-#define ADXL_SCL_GPIO_Port GPIOA
-#define ADXL_SDO_Pin LL_GPIO_PIN_6
-#define ADXL_SDO_GPIO_Port GPIOA
-#define ADXL_SDA_Pin LL_GPIO_PIN_7
-#define ADXL_SDA_GPIO_Port GPIOA
-#define ADXL_INT1_Pin LL_GPIO_PIN_0
-#define ADXL_INT1_GPIO_Port GPIOB
+#define LSM6DSO_CS_Pin LL_GPIO_PIN_4
+#define LSM6DSO_CS_GPIO_Port GPIOA
+#define LSM6DSO_SCL_Pin LL_GPIO_PIN_5
+#define LSM6DSO_SCL_GPIO_Port GPIOA
+#define LSM6DSO_SDO_Pin LL_GPIO_PIN_6
+#define LSM6DSO_SDO_GPIO_Port GPIOA
+#define LSM6DSO_SDA_Pin LL_GPIO_PIN_7
+#define LSM6DSO_SDA_GPIO_Port GPIOA
+#define LSM6DSO_INT1_Pin LL_GPIO_PIN_0
+#define LSM6DSO_INT1_GPIO_Port GPIOB
 #define ZERO_BUTTON_Pin LL_GPIO_PIN_10
 #define ZERO_BUTTON_GPIO_Port GPIOB
 #define HOLD_BUTTON_Pin LL_GPIO_PIN_11
