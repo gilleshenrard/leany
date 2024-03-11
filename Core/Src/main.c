@@ -21,7 +21,6 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "ADXL345.h"
 #include "LSM6DSO.h"
 #include "SSD1306.h"
 #include "buttons.h"
@@ -109,7 +108,7 @@ int main(void)
   MX_IWDG_Init();
   /* USER CODE BEGIN 2 */
   LL_SYSTICK_EnableIT();
-  ADXL345initialise(SPI1);
+  LSM6DSOinitialise(SPI1);
   SSD1306initialise(SPI2, DMA1, LL_DMA_CHANNEL_5);
   /* USER CODE END 2 */
 
@@ -121,24 +120,19 @@ int main(void)
     //reset the watchdog
     LL_IWDG_ReloadCounter(IWDG);
 
-	  //update the accelerometer state machine
-	  result = ADXL345update();
-	  if(isError(result))
-		  result.fields.moduleID = 1;
-
 	  //update the MEMS sensor state machine
 	  result = LSM6DSOupdate();
 	  if(isError(result))
-		  result.fields.moduleID = 2;
+		  result.fields.moduleID = 1;
 
 	  //update the screen state machine
 	  result = SSD1306update();
 	  if(isError(result))
-		  result.fields.moduleID = 3;
+		  result.fields.moduleID = 2;
 
     //update the buttons' state machines
     buttonsUpdate();
-  
+  /*
     //if zero button is pressed, zero down measurements
     if(buttonHasRisingEdge(ZERO)){
       ADXLzeroDown();
@@ -163,6 +157,7 @@ int main(void)
 	  //if Y axis angle changed, update the screen
 	  if(isScreenReady() && ADXL345hasChanged(Y_AXIS) && !holdingValues)
 		  SSD1306_printAngleTenths(getAngleDegreesTenths(Y_AXIS), PITCH);
+*/
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -272,15 +267,15 @@ static void MX_SPI1_Init(void)
   PA6   ------> SPI1_MISO
   PA7   ------> SPI1_MOSI
   */
-  GPIO_InitStruct.Pin = ADXL_CS_Pin|ADXL_SCL_Pin|ADXL_SDA_Pin;
+  GPIO_InitStruct.Pin = LSM6DSO_CS_Pin|LSM6DSO_SCL_Pin|LSM6DSO_SDA_Pin;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
   GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_HIGH;
   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
   LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  GPIO_InitStruct.Pin = ADXL_SDO_Pin;
+  GPIO_InitStruct.Pin = LSM6DSO_SDO_Pin;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_FLOATING;
-  LL_GPIO_Init(ADXL_SDO_GPIO_Port, &GPIO_InitStruct);
+  LL_GPIO_Init(LSM6DSO_SDO_GPIO_Port, &GPIO_InitStruct);
 
   /* USER CODE BEGIN SPI1_Init 1 */
 
@@ -292,7 +287,7 @@ static void MX_SPI1_Init(void)
   SPI_InitStruct.ClockPolarity = LL_SPI_POLARITY_HIGH;
   SPI_InitStruct.ClockPhase = LL_SPI_PHASE_2EDGE;
   SPI_InitStruct.NSS = LL_SPI_NSS_HARD_OUTPUT;
-  SPI_InitStruct.BaudRate = LL_SPI_BAUDRATEPRESCALER_DIV16;
+  SPI_InitStruct.BaudRate = LL_SPI_BAUDRATEPRESCALER_DIV8;
   SPI_InitStruct.BitOrder = LL_SPI_MSB_FIRST;
   SPI_InitStruct.CRCCalculation = LL_SPI_CRCCALCULATION_DISABLE;
   SPI_InitStruct.CRCPoly = 10;
@@ -404,7 +399,7 @@ static void MX_GPIO_Init(void)
   LL_GPIO_ResetOutputPin(GPIOA, SSD1306_DC_Pin|SSD1306_RES_Pin);
 
   /**/
-  GPIO_InitStruct.Pin = ADXL_INT1_Pin|ZERO_BUTTON_Pin|HOLD_BUTTON_Pin;
+  GPIO_InitStruct.Pin = LSM6DSO_INT1_Pin|ZERO_BUTTON_Pin|HOLD_BUTTON_Pin;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
   LL_GPIO_Init(GPIOB, &GPIO_InitStruct);

@@ -100,7 +100,6 @@ add_executable(${PROJECT_NAME}
 )
 target_link_libraries(${PROJECT_NAME} PRIVATE
 						CubeMXgenerated
-						adxl345
 						lsm6dso
 						ssd1306
 						buttons

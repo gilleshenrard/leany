@@ -24,11 +24,6 @@ target_include_directories(errorStack PUBLIC ${PROJECT_INCLUDES})
 target_compile_options(errorStack PUBLIC ${CUSTOM_COMPILE_OPTIONS} ${WARNING_FLAGS})
 target_link_options(errorStack PUBLIC ${CUSTOM_LINK_OPTIONS})
 
-#create the adxl345 library, taking care of the accelerometer
-add_library(adxl345 Src/hardware/accelerometer/ADXL345.c)
-target_include_directories(adxl345 AFTER PUBLIC Inc/hardware/accelerometer)
-target_link_libraries(adxl345 PRIVATE errorStack)
-
 #create the LSM6DSO library, taking care of the MEMS sensor
 add_library(lsm6dso Src/hardware/sensor/LSM6DSO.c)
 target_include_directories(lsm6dso AFTER PUBLIC Inc/hardware/sensor)
