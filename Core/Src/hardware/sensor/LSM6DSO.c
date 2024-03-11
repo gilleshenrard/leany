@@ -11,6 +11,7 @@
  *   - DT0058 (Design tip) : https://www.st.com/resource/en/design_tip/dt0058-computing-tilt-measurement-and-tiltcompensated-ecompass-stmicroelectronics.pdf
  */
 #include "LSM6DSO.h"
+#include "LSM6DSO_registers.h"
 
 SPI_TypeDef* _spiHandle = (void*)0; ///< SPI handle used by the LSM6DSO device
 
