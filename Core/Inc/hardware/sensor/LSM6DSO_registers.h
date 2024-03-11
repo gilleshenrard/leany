@@ -7,6 +7,9 @@
 //WhoAmI register (0x0F) values
 #define LSM6_WHOAMI 0x6CU   ///< Who Am I constant value
 
+/**
+ * @brief Enumeration of the LSM6DSO registers table
+ */
 typedef enum{
     FUNC_CFG_ACCESS         = 0x01U,    ///< 0x01 - RW : Enable embedded functions register
     PIN_CTRL,                           ///< 0x02 - RW : SDO, OCS_AUX, SDO_AUX pins pull-up enable/disable register
@@ -51,8 +54,42 @@ typedef enum{
     EMB_FUNC_STATUS_MAINPAGE= 0x35U,    ///< 0x35 - RO : Embedded function status register
     FSM_STATUS_A_MAINPAGE,              ///< 0x36 - RO : Finite State Machines 1 to 8 status register
     FSM_STATUS_B_MAINPAGE,              ///< 0x37 - RO : Finite State Machines 9 to 16 status register
-    STATUS_MASTER_MAINPAGE  = 0x39U,    ///< 0x37 - RO : Sensor hub source register
-    NB_REGISTERS
+    STATUS_MASTER_MAINPAGE  = 0x39U,    ///< 0x39 - RO : Sensor hub source register
+    FIFO_STATUS1,                       ///< 0x3A - RO : FIFO status register 1
+    FIFO_STATUS2,                       ///< 0x3B - RO : FIFO status register 2
+    TIMESTAMP0              = 0x40U,    ///< 0x40 - RO : Timestamp first data output register, bits [31-24]
+    TIMESTAMP1,                         ///< 0x41 - RO : Timestamp first data output register, bits [23-16]
+    TIMESTAMP2,                         ///< 0x42 - RO : Timestamp first data output register, bits [15-8]
+    TIMESTAMP3,                         ///< 0x43 - RO : Timestamp first data output register, bits [7-0]
+    TAP_CFG0                = 0x56U,    ///< 0x56 - RW : Activity/inactivity functions, configuration of filtering, and tap recognition functions
+    TAP_CFG1,                           ///< 0x57 - RW : Tap configuration register
+    TAP_CFG2,                           ///< 0x58 - RW : Enables interrupt and inactivity functions, and tap recognition functions
+    TAP_THS_6D,                         ///< 0x59 - RW : Portrait/landscape position and tap function threshold register
+    INT_DUR2,                           ///< 0x5A - RW : Tap recognition function setting register
+    WAKE_UP_THS,                        ///< 0x5B - RW : Single/double-tap selection and wake-up configuration
+    WAKE_UP_DUR,                        ///< 0x5C - RW : Free-fall, wakeup and sleep mode functions duration setting register
+    FREE_FALL,                          ///< 0x5D - RW : Free-fall function duration setting register
+    MD1_CFG,                            ///< 0x5E - RW : Functions routing on INT1 register
+    MD2_CFG,                            ///< 0x5F - RW : Functions routing on INT2 register
+    I3C_BUS_AVB             = 0x62U,    ///< 0x62 - RW : I3C_BUS_AVB register
+    INTERNAL_FREQ_FINE,                 ///< 0x63 - RO : Internal frequency register
+    INT_OIS                 = 0x6FU,    ///< 0x6F - RO : OIS interrupt configuration register and accelerometer self-test enable setting
+    CTRL1_OIS,                          ///< 0x70 - RO : OIS configuration register
+    CTRL2_OIS,                          ///< 0x71 - RO : OIS configuration register
+    CTRL3_OIS,                          ///< 0x72 - RO : OIS configuration register
+    X_OFS_USR,                          ///< 0x73 - RW : Accelerometer X-axis user offset correction
+    Y_OFS_USR,                          ///< 0x74 - RW : Accelerometer Y-axis user offset correction
+    Z_OFS_USR,                          ///< 0x75 - RW : Accelerometer Z-axis user offset correction
+    FIFO_DATA_OUT_TAG       = 0x78U,    ///< 0x78 - RO : FIFO tag register
+    FIFO_DATA_OUT_X_L,                  ///< 0x79 - RO : FIFO data output X LSB
+    FIFO_DATA_OUT_X_H,                  ///< 0x7A - RO : FIFO data output X MSB
+    FIFO_DATA_OUT_Y_L,                  ///< 0x7B - RO : FIFO data output Y LSB
+    FIFO_DATA_OUT_Y_H,                  ///< 0x7C - RO : FIFO data output Y MSB
+    FIFO_DATA_OUT_Z_L,                  ///< 0x7D - RO : FIFO data output Z LSB
+    FIFO_DATA_OUT_Z_H,                  ///< 0x7E - RO : FIFO data output Z MSB
+    MAX_REGISTER
 }LSM6DSOregister_e;
+
+
 
 #endif
