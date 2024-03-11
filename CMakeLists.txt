@@ -1,6 +1,6 @@
 #############################################################################################################################
 # file:  CMakeLists.txt
-# date:  15/02/2024
+# date:  11/02/2024
 # brief: Root CMakeLists file
 #
 # Prerequisites:
@@ -101,6 +101,7 @@ add_executable(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME} PRIVATE
 						CubeMXgenerated
 						adxl345
+						lsm6dso
 						ssd1306
 						buttons
 )
