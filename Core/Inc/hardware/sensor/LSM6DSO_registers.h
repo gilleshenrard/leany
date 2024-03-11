@@ -90,6 +90,54 @@ typedef enum{
     MAX_REGISTER
 }LSM6DSOregister_e;
 
-
+/**
+ * @brief Enumeration of all the embedded functions
+ */
+typedef enum{
+    PAGE_SEL            = 0x02U,    ///< 0x02 - RW : Enable advanced features dedicated page
+    EMB_FUNC_EN_A       = 0x04U,    ///< 0x04 - RW : Embedded functions enable register
+    EMB_FUNC_EN_B,                  ///< 0x05 - RW : Embedded functions enable register
+    PAGE_ADDRESS        = 0x08U,    ///< 0x08 - RW : Page address register
+    PAGE_VALUE,                     ///< 0x09 - RW : Page value register
+    EMB_FUNC_INT1,                  ///< 0x0A - RW : INT1 pin control register
+    FSM_INT1_A,                     ///< 0x0B - RW : INT1 pin control register, FSM 1 to 8
+    FSM_INT1_B,                     ///< 0x0C - RW : INT1 pin control register, FSM 9 to 16
+    EMB_FUNC_INT2       = 0x0EU,    ///< 0x0E - RW : INT2 pin control register
+    FSM_INT2_A,                     ///< 0x0F - RW : INT2 pin control register, FSM 1 to 8
+    FSM_INT2_B,                     ///< 0x10 - RW : INT2 pin control register, FSM 9 to 16
+    EMB_FUNC_STATUS     = 0x12U,    ///< 0x12 - RO : Embedded function status register
+    FSM_STATUS_A,                   ///< 0x13 - RO : Finite State Machine status register, FSM 1 to 8
+    FSM_STATUS_B,                   ///< 0x14 - RO : Finite State Machine status register, FSM 9 to 16
+    PAGE_RW             = 0x17U,    ///< 0x17 - RW : Enable read and write mode of advanced features dedicated page
+    EMB_FUNC_FIFO_CFG   = 0x44U,    ///< 0x44 - RW : Embedded functions batching configuration register
+    FSM_ENABLE_A        = 0x46U,    ///< 0x46 - RW : FSM enable register, FSM 1 to 8
+    FSM_ENABLE_B,                   ///< 0x47 - RW : FSM enable register, FSM 9 to 16
+    FSM_LONG_COUNTER_L,             ///< 0x48 - RW : FSM long counter status register LSB
+    FSM_LONG_COUNTER_H,             ///< 0x49 - RW : FSM long counter status register MSB
+    FSM_LONG_COUNTER_CLEAR,         ///< 0x4A - RW : FSM long counter reset register
+    FSM_OUTS1           = 0x4CU,    ///< 0x4C - RO : FSM1 output register
+    FSM_OUTS2,                      ///< 0x4D - RO : FSM2 output register
+    FSM_OUTS3,                      ///< 0x4E - RO : FSM3 output register
+    FSM_OUTS4,                      ///< 0x4F - RO : FSM4 output register
+    FSM_OUTS5,                      ///< 0x50 - RO : FSM5 output register
+    FSM_OUTS6,                      ///< 0x51 - RO : FSM6 output register
+    FSM_OUTS7,                      ///< 0x52 - RO : FSM7 output register
+    FSM_OUTS8,                      ///< 0x53 - RO : FSM8 output register
+    FSM_OUTS9,                      ///< 0x54 - RO : FSM9 output register
+    FSM_OUTS10,                     ///< 0x55 - RO : FSM10 output register
+    FSM_OUTS11,                     ///< 0x56 - RO : FSM11 output register
+    FSM_OUTS12,                     ///< 0x57 - RO : FSM12 output register
+    FSM_OUTS13,                     ///< 0x58 - RO : FSM13 output register
+    FSM_OUTS14,                     ///< 0x59 - RO : FSM14 output register
+    FSM_OUTS15,                     ///< 0x5A - RO : FSM15 output register
+    FSM_OUTS16,                     ///< 0x5B - RO : FSM16 output register
+    EMB_FUNC_ODR_CFG_B  = 0x5FU,    ///< 0x5F - RW : Finite State Machine output data rate configuration register
+    STEP_COUNTER_L      = 0x62U,    ///< 0x62 - RO : Step counter output register LSB
+    STEP_COUNTER_H,                 ///< 0x63 - RO : Step counter output register MSB
+    EMB_FUNC_SRC,                   ///< 0x64 - RW : Embedded function source register
+    EMB_FUNC_INIT_A     = 0x66U,    ///< 0x66 - RW : Embedded functions initialization register
+    EMB_FUNC_INIT_B,                ///< 0x67 - RW : Embedded functions initialization register
+    MAX_FUNCTION
+}LSM6DSOembeddedFunction_e;
 
 #endif
