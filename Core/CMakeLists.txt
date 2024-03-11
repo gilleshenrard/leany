@@ -1,6 +1,6 @@
 #############################################################################################################################
 # file:  CMakeLists.txt
-# date:  01/03/2024
+# date:  11/03/2024
 # brief: C modules CMakeLists file
 #############################################################################################################################
 #declare warning flags
@@ -28,6 +28,11 @@ target_link_options(errorStack PUBLIC ${CUSTOM_LINK_OPTIONS})
 add_library(adxl345 Src/hardware/accelerometer/ADXL345.c)
 target_include_directories(adxl345 AFTER PUBLIC Inc/hardware/accelerometer)
 target_link_libraries(adxl345 PRIVATE errorStack)
+
+#create the LSM6DSO library, taking care of the MEMS sensor
+add_library(lsm6dso Src/hardware/sensor/LSM6DSO.c)
+target_include_directories(lsm6dso AFTER PUBLIC Inc/hardware/sensor)
+target_link_libraries(lsm6dso PRIVATE errorStack)
 
 #create the ssd1306 library, taking care of the screen
 add_library(ssd1306 Src/hardware/screen/SSD1306.c Src/hardware/screen/numbersVerdana16.c Src/hardware/screen/icons.c)

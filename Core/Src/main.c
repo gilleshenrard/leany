@@ -22,6 +22,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "ADXL345.h"
+#include "LSM6DSO.h"
 #include "SSD1306.h"
 #include "buttons.h"
 /* USER CODE END Includes */
@@ -125,10 +126,15 @@ int main(void)
 	  if(isError(result))
 		  result.fields.moduleID = 1;
 
+	  //update the MEMS sensor state machine
+	  result = LSM6DSOupdate();
+	  if(isError(result))
+		  result.fields.moduleID = 2;
+
 	  //update the screen state machine
 	  result = SSD1306update();
 	  if(isError(result))
-		  result.fields.moduleID = 2;
+		  result.fields.moduleID = 3;
 
     //update the buttons' state machines
     buttonsUpdate();
