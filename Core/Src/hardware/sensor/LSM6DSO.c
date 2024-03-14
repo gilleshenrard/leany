@@ -2,7 +2,7 @@
  * @file LSM6DSO.c
  * @brief Implement the LSM6DSO MEMS sensor communication
  * @author Gilles Henrard
- * @date 11/03/2024
+ * @date 14/03/2024
  *
  * @note Additional information can be found in :
  *   - Datasheet : https://www.st.com/resource/en/datasheet/lsm6dso.pdf
@@ -21,7 +21,7 @@ static const uint16_t TIMEOUT_MS = 1000U;
  */
 typedef enum{
     READ_REGISTERS = 1,     ///< readRegisters() function
-    CHECK_DEVICE_ID         ///< stCheckingDeviceID() state
+    CHECK_DEVICE_ID         ///< stWaitingDeviceID() state
 }LSM6DSOfunction_e;
 
 /**
@@ -32,7 +32,7 @@ typedef enum{
 typedef errorCode_u (*lsm6dsoState)();
 
 //machine state
-static errorCode_u stCheckingDeviceID();
+static errorCode_u stWaitingDeviceID();
 static errorCode_u stIdle();
 static errorCode_u stError();
 
@@ -45,7 +45,7 @@ volatile uint16_t	lsm6dsoSPITimer_ms = 0;         ///< Timer used to make sure S
 
 //state variables
 static SPI_TypeDef* _spiHandle = (void*)0;          ///< SPI handle used by the LSM6DSO device
-static lsm6dsoState _state = stCheckingDeviceID;    ///< State machine current state
+static lsm6dsoState _state = stWaitingDeviceID;     ///< State machine current state
 static errorCode_u 	_result;                        ///< Variables used to store error codes
 
 
@@ -139,13 +139,14 @@ static errorCode_u readRegisters(LSM6DSOregister_e firstRegister, uint8_t value[
 
 /**
  * @brief State during which the Who Am I ID is checked
+ * @attention This takes the 10ms boot time into account
  * @note If no correct manufacturer ID is read within 1 second, a timeout occurs
  * 
  * @retval 0 Success
  * @retval 1 Timeout while reading the manufacturer ID
  * @retval 2 Error while sending the read request
  */
-static errorCode_u stCheckingDeviceID(){
+static errorCode_u stWaitingDeviceID(){
     uint8_t deviceID = 0;
 
     //if 1s elapsed without reading the correct vendor ID, go error
