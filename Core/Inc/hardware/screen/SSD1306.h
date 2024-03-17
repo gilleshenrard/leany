@@ -30,5 +30,6 @@ errorCode_u SSD1306drawBaseScreen();
 errorCode_u SSD1306_printAngleTenths(int16_t angle, rotationAxis_e rotationAxis);
 errorCode_u SSD1306_printReferentialIcon(referentialType_e type);
 errorCode_u SSD1306_printHoldIcon(uint8_t status);
+errorCode_u SSD1306_turnDisplayOFF();
 
 #endif /* INC_HARDWARE_SCREEN_SSD1306_H_ */

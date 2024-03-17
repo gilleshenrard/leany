@@ -2,7 +2,7 @@
  * @file SSD1306.c
  * @brief Implement the functioning of the SSD1306 OLED screen via SPI and DMA
  * @author Gilles Henrard
- * @date 09/03/2024
+ * @date 17/03/2024
  *
  * @note Datasheet : https://cdn-shop.adafruit.com/datasheets/SSD1306.pdf
  */
@@ -333,6 +333,15 @@ errorCode_u SSD1306_printHoldIcon(uint8_t status){
     //get to printing state
     _state = stSendingData;
     return (ERR_SUCCESS);
+}
+
+/**
+ * @brief Turn the screen OFF
+ * 
+ * @return Success
+ */
+errorCode_u SSD1306_turnDisplayOFF(){
+    return (sendCommand(DISPLAY_OFF, (void*)0, 0));
 }
 
 /**
