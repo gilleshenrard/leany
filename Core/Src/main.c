@@ -150,7 +150,7 @@ int main(void)
       SSD1306_printHoldIcon(holdingValues);
     }
 
-    //if power button is pressed, get back to absolute measurements
+    //if power button is held down, shut down
     if(isButtonHeldDown(POWER))
       LL_GPIO_ResetOutputPin(POWER_ON_GPIO_Port, POWER_ON_Pin);
 /*

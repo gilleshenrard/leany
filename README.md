@@ -65,20 +65,22 @@ STLink to Bluepill wiring :
 | GND           | 20                   |              | GND rail |
 
 Bluepill to peripherals wiring :
-| STM32/Bluepill pin | Alternate use | ADXL345 pin | SSD1306 pin | Zero button      | Hold button      |
-|:------------------:|:-------------:|:-----------:|:-----------:|:----------------:|:----------------:|
-| PA4                | SPI1 NSS      | CS          |             |                  |                  |
-| PA5                | SPI1 SCK      | SCL         |             |                  |                  |
-| PA6                | SPI1 MISO     | SDO         |             |                  |                  |
-| PA7                | SPI1 MOSI     | SDA         |             |                  |                  |
-| PB0                | GPIO input PU*| INT1        |             |                  |                  |
-| PB12               | SPI2 NSS      |             | CS          |                  |                  |
-| PB13               | SPI2 SCK      |             | D0          |                  |                  |
-| PB15               | SPI2 MOSI     |             | D1          |                  |                  |
-| PA9                | GPIO output   |             | D/C         |                  |                  |
-| PA10               | GPIO output   |             | RES         |                  |                  |
-| PB10               | GPIO input PU*|             |             | X (other to GND) |                  |
-| PB11               | GPIO input PU*|             |             |                  | X (other to GND) |
+| STM32/Bluepill pin | Alternate use | ADXL345 pin | SSD1306 pin | Zero button      | Hold button      | Power latch      |
+|:------------------:|:-------------:|:-----------:|:-----------:|:----------------:|:----------------:|:----------------:|
+| PA4                | SPI1 NSS      | CS          |             |                  |                  |                  |
+| PA5                | SPI1 SCK      | SCL         |             |                  |                  |                  |
+| PA6                | SPI1 MISO     | SDO         |             |                  |                  |                  |
+| PA7                | SPI1 MOSI     | SDA         |             |                  |                  |                  |
+| PB0                | GPIO input PU*| INT1        |             |                  |                  |                  |
+| PB12               | SPI2 NSS      |             | CS          |                  |                  |                  |
+| PB13               | SPI2 SCK      |             | D0          |                  |                  |                  |
+| PB15               | SPI2 MOSI     |             | D1          |                  |                  |                  |
+| PA9                | GPIO output   |             | D/C         |                  |                  |                  |
+| PA10               | GPIO output   |             | RES         |                  |                  |                  |
+| PB1                | GPIO input PU*|             |             |                  |                  | Button           |
+| PB10               | GPIO input PU*|             |             | X (other to GND) |                  |                  |
+| PB11               | GPIO input PU*|             |             |                  | X (other to GND) |                  |
+| PB14               | GPIO out. PU* |             |             |                  |                  | Power ON output  |
 
 *PU : Pull-up
 
