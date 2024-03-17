@@ -2,7 +2,7 @@
  * @file LSM6DSO.c
  * @brief Implement the LSM6DSO MEMS sensor communication
  * @author Gilles Henrard
- * @date 14/03/2024
+ * @date 17/03/2024
  *
  * @note Additional information can be found in :
  *   - Datasheet : https://www.st.com/resource/en/datasheet/lsm6dso.pdf
@@ -13,6 +13,7 @@
 #include "LSM6DSO.h"
 #include "LSM6DSO_registers.h"
 
+static const uint8_t BOOT_TIME_MS = 10U;
 static const uint8_t SPI_TIMEOUT_MS = 10U;
 static const uint16_t TIMEOUT_MS = 1000U;
 
@@ -32,6 +33,7 @@ typedef enum{
 typedef errorCode_u (*lsm6dsoState)();
 
 //machine state
+static errorCode_u stWaitingBoot();
 static errorCode_u stWaitingDeviceID();
 static errorCode_u stIdle();
 static errorCode_u stError();
@@ -40,12 +42,12 @@ static errorCode_u stError();
 static errorCode_u readRegisters(LSM6DSOregister_e firstRegister, uint8_t value[], uint8_t size);
 
 //global variables
-volatile uint16_t	lsm6dsoTimer_ms = TIMEOUT_MS;   ///< Timer used in various states of the LSM6DSO (in ms)
+volatile uint16_t	lsm6dsoTimer_ms = BOOT_TIME_MS; ///< Timer used in various states of the LSM6DSO (in ms)
 volatile uint16_t	lsm6dsoSPITimer_ms = 0;         ///< Timer used to make sure SPI does not time out (in ms)
 
 //state variables
 static SPI_TypeDef* _spiHandle = (void*)0;          ///< SPI handle used by the LSM6DSO device
-static lsm6dsoState _state = stWaitingDeviceID;     ///< State machine current state
+static lsm6dsoState _state = stWaitingBoot;         ///< State machine current state
 static errorCode_u 	_result;                        ///< Variables used to store error codes
 
 
@@ -136,6 +138,21 @@ static errorCode_u readRegisters(LSM6DSOregister_e firstRegister, uint8_t value[
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
 
+
+/**
+ * @brief State in which the program waits for the LSM6DSO to boot up
+ * 
+ * @return Success
+ */
+static errorCode_u stWaitingBoot(){
+    //if timer elapsed, reset it and get to next state
+    if(!lsm6dsoTimer_ms){
+        lsm6dsoTimer_ms = TIMEOUT_MS;
+        _state = stWaitingDeviceID;
+    }
+
+    return (ERR_SUCCESS);
+}
 
 /**
  * @brief State during which the Who Am I ID is checked
