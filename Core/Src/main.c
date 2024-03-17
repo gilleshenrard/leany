@@ -151,8 +151,10 @@ int main(void)
     }
 
     //if power button is held down, shut down
-    if(isButtonHeldDown(POWER))
+    if(isButtonHeldDown(POWER)){
+      SSD1306_turnDisplayOFF();
       LL_GPIO_ResetOutputPin(POWER_ON_GPIO_Port, POWER_ON_Pin);
+    }
 /*
 	  //if X axis angle changed, update the screen
 	  if(isScreenReady() && ADXL345hasChanged(X_AXIS) && !holdingValues)
