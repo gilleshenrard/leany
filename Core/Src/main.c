@@ -132,16 +132,16 @@ int main(void)
 
     //update the buttons' state machines
     buttonsUpdate();
-  /*
+
     //if zero button is pressed, zero down measurements
     if(buttonHasRisingEdge(ZERO)){
-      ADXLzeroDown();
+//      ADXLzeroDown();
       SSD1306_printReferentialIcon(RELATIVE);
     }
 
     //if zero button is held down, get back to absolute measurements
     if(isButtonHeldDown(ZERO)){
-      ADXLcancelZeroing();
+//      ADXLcancelZeroing();
       SSD1306_printReferentialIcon(ABSOLUTE);
     }
 
@@ -153,7 +153,7 @@ int main(void)
     //if power button is pressed, get back to absolute measurements
     if(isButtonHeldDown(POWER))
       LL_GPIO_ResetOutputPin(POWER_ON_GPIO_Port, POWER_ON_Pin);
-
+/*
 	  //if X axis angle changed, update the screen
 	  if(isScreenReady() && ADXL345hasChanged(X_AXIS) && !holdingValues)
 		  SSD1306_printAngleTenths(getAngleDegreesTenths(X_AXIS), ROLL);
