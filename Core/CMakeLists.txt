@@ -1,6 +1,6 @@
 #############################################################################################################################
 # file:  CMakeLists.txt
-# date:  11/03/2024
+# date:  17/03/2024
 # brief: C modules CMakeLists file
 #############################################################################################################################
 #declare warning flags
@@ -29,9 +29,9 @@ add_library(lsm6dso Src/hardware/sensor/LSM6DSO.c)
 target_include_directories(lsm6dso AFTER PUBLIC Inc/hardware/sensor)
 target_link_libraries(lsm6dso PRIVATE errorStack)
 
-#create the ssd1306 library, taking care of the screen
-add_library(ssd1306 Src/hardware/screen/SSD1306.c Src/hardware/screen/numbersVerdana16.c Src/hardware/screen/icons.c)
-target_include_directories(ssd1306 AFTER PUBLIC Inc/hardware/screen)
+#create the ssd1306 library, taking care of the display
+add_library(ssd1306 Src/hardware/display/SSD1306.c Src/hardware/display/numbersVerdana16.c Src/hardware/display/icons.c)
+target_include_directories(ssd1306 AFTER PUBLIC Inc/hardware/display)
 target_link_libraries(ssd1306 PRIVATE errorStack)
 
 #create the buttons library, taking care of the control buttons

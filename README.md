@@ -23,7 +23,7 @@ Quote : [Wikipedia](https://en.wikipedia.org/wiki/Inclinometer)
 #### 4.1. Hardware
 - A Bluepill (STM32F103C8T6 ARM Cortex-M3 development board)
 - An ADXL345 accelerometer breakout board
-- An SSD1306 128x64 OLED screen breakout board (with SPI pinout, not I²C)
+- An SSD1306 128x64 OLED display breakout board (with SPI pinout, not I²C)
 - An STLink programmer
 
 #### 4.2. Software (to program only)
