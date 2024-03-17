@@ -39,6 +39,7 @@ gpioTimer_t buttonsTimers[NB_BUTTONS];  ///< Array of timers used by the buttons
 static button_t buttons[NB_BUTTONS] = {
     [ZERO] = {ZERO_BUTTON_GPIO_Port, ZERO_BUTTON_Pin, stReleased},
     [HOLD] = {HOLD_BUTTON_GPIO_Port, HOLD_BUTTON_Pin, stReleased},
+    [POWER] = {POWER_BUTTON_GPIO_Port, POWER_BUTTON_Pin, stReleased},
 };
 
 
