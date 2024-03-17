@@ -60,7 +60,12 @@ static void MX_IWDG_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+/**
+ * @brief Reset the POWER ON pin to shut the system down
+ */
+static inline void powerOFF(){
+  LL_GPIO_ResetOutputPin(POWER_ON_GPIO_Port, POWER_ON_Pin);
+}
 /* USER CODE END 0 */
 
 /**
@@ -153,7 +158,7 @@ int main(void)
     //if power button is held down, shut down
     if(isButtonHeldDown(POWER)){
       SSD1306_turnDisplayOFF();
-      LL_GPIO_ResetOutputPin(POWER_ON_GPIO_Port, POWER_ON_Pin);
+      powerOFF();
     }
 /*
 	  //if X axis angle changed, update the screen
