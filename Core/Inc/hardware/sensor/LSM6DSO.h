@@ -3,6 +3,16 @@
 #include <main.h>
 #include "errorstack.h"
 
+/**
+ * @brief Enumeration of the axis of which to get measurements
+ */
+typedef enum{
+    X_AXIS = 0,
+    Y_AXIS,
+    Z_AXIS,
+    NB_AXIS
+}axis_e;
+
 extern volatile uint16_t lsm6dsoTimer_ms;
 extern volatile uint16_t lsm6dsoSPITimer_ms;
 
