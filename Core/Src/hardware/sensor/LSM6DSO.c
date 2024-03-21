@@ -2,7 +2,7 @@
  * @file LSM6DSO.c
  * @brief Implement the LSM6DSO MEMS sensor communication
  * @author Gilles Henrard
- * @date 17/03/2024
+ * @date 21/03/2024
  *
  * @note Additional information can be found in :
  *   - Datasheet : https://www.st.com/resource/en/datasheet/lsm6dso.pdf
@@ -22,7 +22,10 @@ static const uint16_t TIMEOUT_MS = 1000U;
  */
 typedef enum{
     READ_REGISTERS = 1,     ///< readRegisters() function
-    CHECK_DEVICE_ID         ///< stWaitingDeviceID() state
+    WRITE_REGISTER,         ///< writeRegister() function
+    CHECK_DEVICE_ID,        ///< stWaitingDeviceID() state
+    CONFIGURING,            ///< stConfiguring() state
+    MEASURING,              ///< stMeasuring() state
 }LSM6DSOfunction_e;
 
 /**
@@ -35,11 +38,14 @@ typedef errorCode_u (*lsm6dsoState)();
 //machine state
 static errorCode_u stWaitingBoot();
 static errorCode_u stWaitingDeviceID();
-static errorCode_u stIdle();
+static errorCode_u stConfiguring();
+static errorCode_u stMeasuring();
 static errorCode_u stError();
 
 //registers read/write functions
+static errorCode_u writeRegister(LSM6DSOregister_e registerNumber, uint8_t value);
 static errorCode_u readRegisters(LSM6DSOregister_e firstRegister, uint8_t value[], uint8_t size);
+static inline int16_t twoComplement(const uint8_t bytes[2]);
 
 //global variables
 volatile uint16_t	lsm6dsoTimer_ms = BOOT_TIME_MS; ///< Timer used in various states of the LSM6DSO (in ms)
@@ -49,6 +55,8 @@ volatile uint16_t	lsm6dsoSPITimer_ms = 0;         ///< Timer used to make sure S
 static SPI_TypeDef* _spiHandle = (void*)0;          ///< SPI handle used by the LSM6DSO device
 static lsm6dsoState _state = stWaitingBoot;         ///< State machine current state
 static errorCode_u 	_result;                        ///< Variables used to store error codes
+int16_t             accelerometerValues[NB_AXIS];
+int16_t             gyroscopeValues[NB_AXIS];
 
 
 /********************************************************************************************************************************************/
@@ -134,6 +142,61 @@ static errorCode_u readRegisters(LSM6DSOregister_e firstRegister, uint8_t value[
     return (ERR_SUCCESS);
 }
 
+/**
+ * @brief Write a single register on the LSM6DSO
+ *
+ * @param registerNumber Register number
+ * @param value Register value
+ * @return	 Success
+ * @retval 1 No SPI handle specified
+ * @retval 2 Register number out of range
+ * @retval 3 Timeout
+ */
+static errorCode_u writeRegister(LSM6DSOregister_e registerNumber, uint8_t value){
+    //if handle not specified, error
+    if(!_spiHandle)
+        return (createErrorCode(WRITE_REGISTER, 1, ERR_WARNING));
+
+    //if register number above known or within the reserved range, error
+    if(registerNumber > MAX_REGISTER)
+        return (createErrorCode(WRITE_REGISTER, 2, ERR_WARNING));
+
+    //set timeout timer and enable SPI
+    lsm6dsoSPITimer_ms = SPI_TIMEOUT_MS;
+    LL_SPI_Enable(_spiHandle);
+
+    //send the write instruction
+    LL_SPI_TransmitData8(_spiHandle, LSM6_WRITE | registerNumber);
+
+    //wait for TX buffer to be ready and send value to write
+    while(!LL_SPI_IsActiveFlag_TXE(_spiHandle) && lsm6dsoSPITimer_ms);
+    if(lsm6dsoSPITimer_ms)
+        LL_SPI_TransmitData8(_spiHandle, value);
+
+    //wait for transaction to be finished and clear Overrun flag
+    while(LL_SPI_IsActiveFlag_BSY(_spiHandle) && lsm6dsoSPITimer_ms);
+    LL_SPI_ClearFlag_OVR(_spiHandle);
+
+    //disable SPI
+    LL_SPI_Disable(_spiHandle);
+
+    //if timeout, error
+    if(!lsm6dsoSPITimer_ms)
+        return (createErrorCode(WRITE_REGISTER, 3, ERR_WARNING));
+
+    return (ERR_SUCCESS);
+}
+
+/**
+ * @brief Reassemble a two's complement int16_t from two bytes
+ * 
+ * @param bytes		Array of two bytes to reassemble
+ * @return int16_t	16 bit resulting number
+ */
+static inline int16_t twoComplement(const uint8_t bytes[2]){
+    return (((int16_t)bytes[1] << 8) | (int16_t)bytes[0]);
+}
+
 
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
@@ -182,11 +245,81 @@ static errorCode_u stWaitingDeviceID(){
         return (ERR_SUCCESS);
 
     //reset timeout timer and get to next state
-    _state = stIdle;
+    _state = stConfiguring;
     return (ERR_SUCCESS);
 }
 
-static errorCode_u stIdle(){
+/**
+ * @brief State in which the registers are configured in the LSM6DSO
+ * 
+ * @retval 0 Success
+ * @retval 1 Error while writing a register
+ */
+static errorCode_u stConfiguring(){
+    #define NB_INIT_REG 2U
+    static const uint8_t initialisationArray[NB_INIT_REG][2] = {
+        {CTRL1_XL,  LSM6_ODR_416HZ},   //set the accelerometer in high-performance mode
+        {CTRL2_G,   LSM6_ODR_416HZ},   //set the gyroscope in high-performance mode
+    };
+
+    //write all registers values from the initialisation array
+    for(uint8_t i = 0 ; i < NB_INIT_REG ; i++){
+        _result = writeRegister(initialisationArray[i][0], initialisationArray[i][1]);
+        if(isError(_result)){
+            _state = stError;
+            return (pushErrorCode(_result, CONFIGURING, 1));
+        }
+    }
+
+    lsm6dsoTimer_ms = SPI_TIMEOUT_MS;
+    _state = stMeasuring;
+    return (ERR_SUCCESS);
+}
+
+/**
+ * @brief State in which the measurements are pulled from the sensor
+ * 
+ * @retval 0 Success
+ * @retval 1 Error while reading the status register value
+ */
+static errorCode_u stMeasuring(){
+    if(lsm6dsoTimer_ms)
+        return (ERR_SUCCESS);
+
+    lsm6dsoTimer_ms = SPI_TIMEOUT_MS;
+
+    uint8_t status;
+    _result = readRegisters(STATUS_REG, &status, 1);
+    if(isError(_result)){
+        _state = stError;
+        return (pushErrorCode(_result, MEASURING, 1));
+    }
+
+    uint8_t buffer[LSM6_NB_OUT_REGISTERS];
+
+    if(status & LSM6_AXL_DATA_AVAIL){
+        _result = readRegisters(OUTX_L_A, buffer, LSM6_NB_OUT_REGISTERS);
+        if(isError(_result)){
+            _state = stError;
+            return (pushErrorCode(_result, MEASURING, 2));
+        }
+
+        accelerometerValues[X_AXIS] = twoComplement(&buffer[X_AXIS << 1]);
+        accelerometerValues[Y_AXIS] = twoComplement(&buffer[Y_AXIS << 1]);
+        accelerometerValues[Z_AXIS] = twoComplement(&buffer[Z_AXIS << 1]);
+    }
+
+    if(status & LSM6_GYR_DATA_AVAIL){
+        _result = readRegisters(OUTX_L_G, buffer, LSM6_NB_OUT_REGISTERS);
+        if(isError(_result)){
+            _state = stError;
+            return (pushErrorCode(_result, MEASURING, 3));
+        }
+        gyroscopeValues[X_AXIS] = twoComplement(&buffer[X_AXIS << 1]);
+        gyroscopeValues[Y_AXIS] = twoComplement(&buffer[Y_AXIS << 1]);
+        gyroscopeValues[Z_AXIS] = twoComplement(&buffer[Z_AXIS << 1]);
+    }
+    
     return (ERR_SUCCESS);
 }
 

@@ -1,11 +1,21 @@
 #ifndef LSM6DSO_REGISTERS_H_INCLUDED
 #define LSM6DSO_REGISTERS_H_INCLUDED
 
-#define LSM6_WRITE  0x00U   ///< Address byte value for a write operation
-#define LSM6_READ   0x80U   ///< Address byte value for a read operation
+#define LSM6_WRITE              0x00U   ///< Address byte value for a write operation
+#define LSM6_READ               0x80U   ///< Address byte value for a read operation
+#define LSM6_NB_OUT_REGISTERS   6U      ///< Number of output data registers for the accelerometer and the gyroscope
 
 //WhoAmI register (0x0F) values
-#define LSM6_WHOAMI 0x6CU   ///< Who Am I constant value
+#define LSM6_WHOAMI             0x6CU   ///< Who Am I constant value
+
+//Accelerometer Control register (0x10) values
+#define LSM6_POWER_DOWN         0x00U   ///< Accelerometer/gyroscope ODR value for power-down
+#define LSM6_ODR_416HZ          0x60U   ///< Accelerometer/gyroscope ODR value for 416Hz High-Performance
+
+//Status register (0x1E) values
+#define LSM6_AXL_DATA_AVAIL     0x01U   ///< Bit value indicating new accelerometer reading is available
+#define LSM6_GYR_DATA_AVAIL     0x02U   ///< Bit value indicating new gyroscope reading is available
+#define LSM6_TMP_DATA_AVAIL     0x04U   ///< Bit value indicating new temperature reading is available
 
 /**
  * @brief Enumeration of the LSM6DSO registers table
