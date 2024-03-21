@@ -283,11 +283,14 @@ static errorCode_u stConfiguring(){
  * @retval 1 Error while reading the status register value
  */
 static errorCode_u stMeasuring(){
+    //if timer not elapsed, exit
     if(lsm6dsoTimer_ms)
         return (ERR_SUCCESS);
 
+    //reset the timer
     lsm6dsoTimer_ms = SPI_TIMEOUT_MS;
 
+    //retrieve the status register value
     uint8_t status;
     _result = readRegisters(STATUS_REG, &status, 1);
     if(isError(_result)){
@@ -295,8 +298,10 @@ static errorCode_u stMeasuring(){
         return (pushErrorCode(_result, MEASURING, 1));
     }
 
+    //declare the measurements buffer
     uint8_t buffer[LSM6_NB_OUT_REGISTERS];
 
+    //if accelerometer data available, retrieve and format it
     if(status & LSM6_AXL_DATA_AVAIL){
         _result = readRegisters(OUTX_L_A, buffer, LSM6_NB_OUT_REGISTERS);
         if(isError(_result)){
@@ -309,6 +314,7 @@ static errorCode_u stMeasuring(){
         accelerometerValues[Z_AXIS] = twoComplement(&buffer[Z_AXIS << 1]);
     }
 
+    //if gyroscope data available, retrieve and format it
     if(status & LSM6_GYR_DATA_AVAIL){
         _result = readRegisters(OUTX_L_G, buffer, LSM6_NB_OUT_REGISTERS);
         if(isError(_result)){
