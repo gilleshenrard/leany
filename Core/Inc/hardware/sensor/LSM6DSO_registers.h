@@ -17,6 +17,18 @@
 #define LSM6_GYR_DATA_AVAIL     0x02U   ///< Bit value indicating new gyroscope reading is available
 #define LSM6_TMP_DATA_AVAIL     0x04U   ///< Bit value indicating new temperature reading is available
 
+//Embedded Function register (0x01) values
+#define LSM6_ENABLE_EMB_FUNCT   0x80U   ///< Enable the embedded function register access
+#define LSM6_DISABLE_FUNCTIONS  0x00U   ///< Disable the embedded function and sensor hub registers access
+
+//Page Read/Write register (0x17) values
+#define LSM6_ENABLE_PG_WRITE    0x40U   ///< Enable write operations to an embedded function page
+#define LSM6_ENABLE_PG_READ     0x20U   ///< Enable read operations to an embedded function page
+#define LSM6_DISABLE_PG_RDWR    0x00U   ///< Disable read/write operations on embedded functions
+
+//Page selection register (0x02) values
+#define LSM6_PG_SELECT_DEFAULT  0x01U   ///< Value of the 4 lower bits needed for correct operation
+
 /**
  * @brief Enumeration of the LSM6DSO registers table
  */
