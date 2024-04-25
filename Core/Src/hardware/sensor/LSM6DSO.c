@@ -2,7 +2,7 @@
  * @file LSM6DSO.c
  * @brief Implement the LSM6DSO MEMS sensor communication
  * @author Gilles Henrard
- * @date 21/03/2024
+ * @date 25/04/2024
  *
  * @note Additional information can be found in :
  *   - Datasheet : https://www.st.com/resource/en/datasheet/lsm6dso.pdf
@@ -12,6 +12,7 @@
  */
 #include "LSM6DSO.h"
 #include "LSM6DSO_registers.h"
+#include "LSM6DSO_config_script.h"
 
 static const uint8_t BOOT_TIME_MS = 10U;
 static const uint8_t SPI_TIMEOUT_MS = 10U;
@@ -256,12 +257,6 @@ static errorCode_u stWaitingDeviceID(){
  * @retval 1 Error while writing a register
  */
 static errorCode_u stConfiguring(){
-    #define NB_INIT_REG 2U
-    static const uint8_t initialisationArray[NB_INIT_REG][2] = {
-        {CTRL1_XL,  LSM6_ODR_416HZ},   //set the accelerometer in high-performance mode
-        {CTRL2_G,   LSM6_ODR_416HZ},   //set the gyroscope in high-performance mode
-    };
-
     //write all registers values from the initialisation array
     for(uint8_t i = 0 ; i < NB_INIT_REG ; i++){
         _result = writeRegister(initialisationArray[i][0], initialisationArray[i][1]);

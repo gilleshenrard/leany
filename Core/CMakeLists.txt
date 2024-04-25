@@ -1,6 +1,6 @@
 #############################################################################################################################
 # file:  CMakeLists.txt
-# date:  17/03/2024
+# date:  25/04/2024
 # brief: C modules CMakeLists file
 #############################################################################################################################
 #declare warning flags
@@ -25,7 +25,7 @@ target_compile_options(errorStack PUBLIC ${CUSTOM_COMPILE_OPTIONS} ${WARNING_FLA
 target_link_options(errorStack PUBLIC ${CUSTOM_LINK_OPTIONS})
 
 #create the LSM6DSO library, taking care of the MEMS sensor
-add_library(lsm6dso Src/hardware/sensor/LSM6DSO.c)
+add_library(lsm6dso Src/hardware/sensor/LSM6DSO.c Src/hardware/sensor/LSM6DSO_config_script.c)
 target_include_directories(lsm6dso AFTER PUBLIC Inc/hardware/sensor)
 target_link_libraries(lsm6dso PRIVATE errorStack)
 
