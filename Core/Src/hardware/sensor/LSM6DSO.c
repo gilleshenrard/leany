@@ -24,8 +24,8 @@ static const uint16_t TIMEOUT_MS = 1000U;
 typedef enum{
     READ_REGISTERS = 1,     ///< readRegisters() function
     WRITE_REGISTER,         ///< writeRegister() function
-    CHECK_DEVICE_ID,        ///< stWaitingDeviceID() state
-    CONFIGURING,            ///< stConfiguring() state
+    CHECK_DEVICE_ID,        ///< stateWaitingDeviceID() state
+    CONFIGURING,            ///< stateConfiguring() state
     MEASURING,              ///< stMeasuring() state
 }LSM6DSOfunction_e;
 
@@ -37,11 +37,11 @@ typedef enum{
 typedef errorCode_u (*lsm6dsoState)();
 
 //machine state
-static errorCode_u stWaitingBoot();
-static errorCode_u stWaitingDeviceID();
-static errorCode_u stConfiguring();
-static errorCode_u stMeasuring();
-static errorCode_u stError();
+static errorCode_u stateWaitingBoot();
+static errorCode_u stateWaitingDeviceID();
+static errorCode_u stateConfiguring();
+static errorCode_u stateMeasuring();
+static errorCode_u stateError();
 
 //registers read/write functions
 static errorCode_u writeRegister(LSM6DSOregister_e registerNumber, uint8_t value);
@@ -54,7 +54,7 @@ volatile uint16_t	lsm6dsoSPITimer_ms = 0;         ///< Timer used to make sure S
 
 //state variables
 static SPI_TypeDef* _spiHandle = (void*)0;          ///< SPI handle used by the LSM6DSO device
-static lsm6dsoState _state = stWaitingBoot;         ///< State machine current state
+static lsm6dsoState _state = stateWaitingBoot;      ///< State machine current state
 static errorCode_u 	_result;                        ///< Variables used to store error codes
 int16_t             accelerometerValues[NB_AXIS];
 int16_t             gyroscopeValues[NB_AXIS];
@@ -208,11 +208,11 @@ static inline int16_t twoComplement(const uint8_t bytes[2]){
  * 
  * @return Success
  */
-static errorCode_u stWaitingBoot(){
+static errorCode_u stateWaitingBoot(){
     //if timer elapsed, reset it and get to next state
     if(!lsm6dsoTimer_ms){
         lsm6dsoTimer_ms = TIMEOUT_MS;
-        _state = stWaitingDeviceID;
+        _state = stateWaitingDeviceID;
     }
 
     return (ERR_SUCCESS);
@@ -227,12 +227,12 @@ static errorCode_u stWaitingBoot(){
  * @retval 1 Timeout while reading the manufacturer ID
  * @retval 2 Error while sending the read request
  */
-static errorCode_u stWaitingDeviceID(){
+static errorCode_u stateWaitingDeviceID(){
     uint8_t deviceID = 0;
 
     //if 1s elapsed without reading the correct vendor ID, go error
     if(!lsm6dsoTimer_ms){
-        _state = stError;
+        _state = stateError;
         return (createErrorCode(CHECK_DEVICE_ID, 1, ERR_CRITICAL));
     }
 
@@ -246,7 +246,7 @@ static errorCode_u stWaitingDeviceID(){
         return (ERR_SUCCESS);
 
     //reset timeout timer and get to next state
-    _state = stConfiguring;
+    _state = stateConfiguring;
     return (ERR_SUCCESS);
 }
 
@@ -256,14 +256,14 @@ static errorCode_u stWaitingDeviceID(){
  * @retval 0 Success
  * @retval 1 Error while writing a register
  */
-static errorCode_u stConfiguring(){
+static errorCode_u stateConfiguring(){
     const registerValue_t* iterator = initialisationArray;
 
     //write all registers values from the initialisation array
     for(uint8_t i = 0 ; i < NB_INIT_REG ; i++){
         _result = writeRegister(iterator->registerID, iterator->value);
         if(isError(_result)){
-            _state = stError;
+            _state = stateError;
             return (pushErrorCode(_result, CONFIGURING, 1));
         }
 
@@ -271,7 +271,7 @@ static errorCode_u stConfiguring(){
     }
 
     lsm6dsoTimer_ms = SPI_TIMEOUT_MS;
-    _state = stMeasuring;
+    _state = stateMeasuring;
     return (ERR_SUCCESS);
 }
 
@@ -281,7 +281,7 @@ static errorCode_u stConfiguring(){
  * @retval 0 Success
  * @retval 1 Error while reading the status register value
  */
-static errorCode_u stMeasuring(){
+static errorCode_u stateMeasuring(){
     //if timer not elapsed, exit
     if(lsm6dsoTimer_ms)
         return (ERR_SUCCESS);
@@ -293,7 +293,7 @@ static errorCode_u stMeasuring(){
     uint8_t status;
     _result = readRegisters(STATUS_REG, &status, 1);
     if(isError(_result)){
-        _state = stError;
+        _state = stateError;
         return (pushErrorCode(_result, MEASURING, 1));
     }
 
@@ -304,7 +304,7 @@ static errorCode_u stMeasuring(){
     if(status & LSM6_AXL_DATA_AVAIL){
         _result = readRegisters(OUTX_L_A, buffer, LSM6_NB_OUT_REGISTERS);
         if(isError(_result)){
-            _state = stError;
+            _state = stateError;
             return (pushErrorCode(_result, MEASURING, 2));
         }
 
@@ -317,7 +317,7 @@ static errorCode_u stMeasuring(){
     if(status & LSM6_GYR_DATA_AVAIL){
         _result = readRegisters(OUTX_L_G, buffer, LSM6_NB_OUT_REGISTERS);
         if(isError(_result)){
-            _state = stError;
+            _state = stateError;
             return (pushErrorCode(_result, MEASURING, 3));
         }
         gyroscopeValues[X_AXIS] = twoComplement(&buffer[X_AXIS << 1]);
@@ -328,6 +328,6 @@ static errorCode_u stMeasuring(){
     return (ERR_SUCCESS);
 }
 
-static errorCode_u stError(){
+static errorCode_u stateError(){
     return (ERR_SUCCESS);
 }
