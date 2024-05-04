@@ -2,7 +2,7 @@
  * @file SSD1306.c
  * @brief Implement the functioning of the SSD1306 OLED screen via SPI and DMA
  * @author Gilles Henrard
- * @date 17/03/2024
+ * @date 04/05/2024
  *
  * @note Datasheet : https://cdn-shop.adafruit.com/datasheets/SSD1306.pdf
  */
@@ -32,8 +32,8 @@ typedef enum _SSD1306functionCodes_e{
     INIT = 0,		///< SSD1306initialise()
     SEND_CMD,		///< SSD1306sendCommand()
     PRT_ANGLE,		///< SSD1306_printAngleTenths()
-    SENDING_DATA,	///< stSendingData()
-    WAITING_DMA_RDY	///< stWaitingForTXdone()
+    SENDING_DATA,	///< stateSendingData()
+    WAITING_DMA_RDY	///< stateWaitingForTXdone()
 }_SSD1306functionCodes_e;
 
 /**
@@ -56,10 +56,10 @@ static inline void setDataCommandGPIO(DCgpio_e function);
 static errorCode_u sendCommand(SSD1306register_e regNumber, const uint8_t parameters[], uint8_t nbParameters);
 
 //state machine
-static errorCode_u stIdle();
-static errorCode_u stConfiguring();
-static errorCode_u stSendingData();
-static errorCode_u stWaitingForTXdone();
+static errorCode_u stateIdle();
+static errorCode_u stateConfiguring();
+static errorCode_u stateSendingData();
+static errorCode_u stateWaitingForTXdone();
 
 //state variables
 volatile uint16_t			screenTimer_ms = 0;				///< Timer used with screen SPI transmissions (in ms)
@@ -67,7 +67,7 @@ volatile uint16_t			ssd1306SPITimer_ms = 0;			///< Timer used to make sure SPI d
 static SPI_TypeDef*			_spiHandle = (void*)0;			///< SPI handle used with the SSD1306
 static DMA_TypeDef*			_dmaHandle = (void*)0;			///< DMA handle used with the SSD1306
 static uint32_t				_dmaChannel = 0x00000000U;		///< DMA channel used
-static screenState			_state = stConfiguring;			///< State machine current state
+static screenState			_state = stateConfiguring;		///< State machine current state
 static uint8_t				_screenBuffer[MAX_DATA_SIZE];	///< Buffer used to send data to the screen
 static uint8_t 				_limitColumns[2];				///< Buffer used to set the first and last column to send
 static uint8_t				_limitPages[2];					///< Buffer used to set the first and last page to send
@@ -207,7 +207,7 @@ errorCode_u SSD1306drawBaseScreen(){
     for(i = 0 ; i < REFERENCETYPE_NB_BYTES ; i++)
         *(iterator++) = absoluteReferentialIcon[i];
 
-    _state = stSendingData;
+    _state = stateSendingData;
     return (ERR_SUCCESS);
 }
 
@@ -218,7 +218,7 @@ errorCode_u SSD1306drawBaseScreen(){
  * @retval 1 Ready
  */
 uint8_t isScreenReady(){
-    return (_state == stIdle);
+    return (_state == stateIdle);
 }
 
 /**
@@ -280,7 +280,7 @@ errorCode_u SSD1306_printAngleTenths(int16_t angleTenths, rotationAxis_e rotatio
     }
 
     //get to printing state
-    _state = stSendingData;
+    _state = stateSendingData;
     return (ERR_SUCCESS);
 }
 
@@ -304,7 +304,7 @@ errorCode_u SSD1306_printReferentialIcon(referentialType_e type){
         *(iterator++) = *(iconIterator++);
 
     //get to printing state
-    _state = stSendingData;
+    _state = stateSendingData;
     return (ERR_SUCCESS);
 }
 
@@ -331,7 +331,7 @@ errorCode_u SSD1306_printHoldIcon(uint8_t status){
             *(iterator++) = 0x00;
 
     //get to printing state
-    _state = stSendingData;
+    _state = stateSendingData;
     return (ERR_SUCCESS);
 }
 
@@ -365,7 +365,7 @@ errorCode_u SSD1306update(){
  * @retval 1	Error while setting a configuration register
  * @retval 2	Error while requesting the screen wipe
  */
-static errorCode_u stConfiguring(){
+static errorCode_u stateConfiguring(){
     #define NB_INIT_REGISERS    8U		                                ///< Number of registers set at initialisation
     static const uint8_t initCommands[NB_INIT_REGISERS][3] = {			///< Array used to initialise the registers
         {SCAN_DIRECTION_N1_0,	0,	0x00},
@@ -396,7 +396,7 @@ static errorCode_u stConfiguring(){
     if(isError(result))
         return (pushErrorCode(result, INIT, 2));
 
-    _state = stSendingData;
+    _state = stateSendingData;
     return (ERR_SUCCESS);
 }
 
@@ -405,7 +405,7 @@ static errorCode_u stConfiguring(){
  *
  * @return Success
  */
-errorCode_u stIdle(){
+errorCode_u stateIdle(){
     return (ERR_SUCCESS);
 }
 
@@ -416,20 +416,20 @@ errorCode_u stIdle(){
  * @retval 1	Error occurred while sending the column address command
  * @retval 2	Error occurred while sending the page address command
  */
-errorCode_u stSendingData(){
+errorCode_u stateSendingData(){
     errorCode_u result;
 
     //send the set start and end column addresses
     result = sendCommand(COLUMN_ADDRESS, _limitColumns, 2);
     if(isError(result)){
-        _state = stIdle;
+        _state = stateIdle;
         return (pushErrorCode(result, SENDING_DATA, 1));
     }
 
     //send the set start and end page addresses
     result = sendCommand(PAGE_ADDRESS, _limitPages, 2);
     if(isError(result)){
-        _state = stIdle;
+        _state = stateIdle;
         return (pushErrorCode(result, SENDING_DATA, 2));
     }
 
@@ -448,7 +448,7 @@ errorCode_u stSendingData(){
     LL_SPI_EnableDMAReq_TX(_spiHandle);
 
     //get to next
-    _state = stWaitingForTXdone;
+    _state = stateWaitingForTXdone;
     return (ERR_SUCCESS);
 }
 
@@ -459,7 +459,7 @@ errorCode_u stSendingData(){
  * @retval 1	Timeout while waiting for transmission to end
  * @retval 2	Error interrupt occurred during the DMA transfer
  */
-errorCode_u stWaitingForTXdone(){
+errorCode_u stateWaitingForTXdone(){
     errorCode_u result = ERR_SUCCESS;
 
     //if timer elapsed, stop DMA and error
@@ -481,6 +481,6 @@ errorCode_u stWaitingForTXdone(){
 finalise:
     LL_DMA_DisableChannel(_dmaHandle, _dmaChannel);
     LL_SPI_Disable(_spiHandle);
-    _state = stIdle;
+    _state = stateIdle;
     return result;
 }
