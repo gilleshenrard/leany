@@ -2,7 +2,7 @@
  * @file LSM6DSO.c
  * @brief Implement the LSM6DSO MEMS sensor communication
  * @author Gilles Henrard
- * @date 25/04/2024
+ * @date 04/05/2024
  *
  * @note Additional information can be found in :
  *   - Datasheet : https://www.st.com/resource/en/datasheet/lsm6dso.pdf
@@ -257,13 +257,17 @@ static errorCode_u stWaitingDeviceID(){
  * @retval 1 Error while writing a register
  */
 static errorCode_u stConfiguring(){
+    const registerValue_t* iterator = initialisationArray;
+
     //write all registers values from the initialisation array
     for(uint8_t i = 0 ; i < NB_INIT_REG ; i++){
-        _result = writeRegister(initialisationArray[i][0], initialisationArray[i][1]);
+        _result = writeRegister(iterator->registerID, iterator->value);
         if(isError(_result)){
             _state = stError;
             return (pushErrorCode(_result, CONFIGURING, 1));
         }
+
+        iterator++;
     }
 
     lsm6dsoTimer_ms = SPI_TIMEOUT_MS;
