@@ -74,6 +74,7 @@ static inline void powerOFF(){
   */
 int main(void)
 {
+
   /* USER CODE BEGIN 1 */
   uint8_t holdingValues = 0;
   /* USER CODE END 1 */

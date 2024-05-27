@@ -63,14 +63,15 @@ Debug/
 *.project
 *.cproject
 *.scratch
-Drivers/CMSIS
-Drivers/STM32F1xx_HAL_Driver
-Core/Startup/
+cmake/
+Drivers/
 STM32F103C8TX_FLASH.ld
 startup_stm32f103xb.s
 Core/Inc/stm32_assert.h
 Core/Src/syscalls.c
 Core/Src/sysmem.c
+Core/Src/system_stm32f1xx.c
+CMakePresets.json
 
 # Doxygen files
 doxygen/
