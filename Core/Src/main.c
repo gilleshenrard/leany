@@ -55,7 +55,7 @@ static void MX_SPI1_Init(void);
 static void MX_SPI2_Init(void);
 static void MX_IWDG_Init(void);
 /* USER CODE BEGIN PFP */
-
+extern inline uint8_t isError(const errorCode_u code);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
