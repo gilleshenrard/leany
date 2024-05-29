@@ -17,7 +17,7 @@ set(WARNING_FLAGS
 	$<$<CONFIG:Debug>:-fanalyzer>
 )
 
-#gather information about STM32CubeMX auto-generated libraries
+#retrieve STM32CubeMX-generated include directories and definitions (more optimised than linking library)
 #	+ link Inc/errors to them
 get_target_property(CUBEMX_INCLUDES stm32cubemx INTERFACE_INCLUDE_DIRECTORIES)
 get_target_property(CUBEMX_DEFINITIONS stm32cubemx INTERFACE_COMPILE_DEFINITIONS)
