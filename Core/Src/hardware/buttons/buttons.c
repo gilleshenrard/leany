@@ -6,6 +6,8 @@
 #include <main.h>
 #include "buttons.h"
 
+_Static_assert((NB_BUTTONS <= UINT8_MAX), "The application supports maximum 255 buttons");
+
 #define DEBOUNCE_TIME_MS        50U;    ///< Number of milliseconds to wait for debouncing
 #define HOLDING_TIME_MS         1000U;  ///< Number of milliseconds to wait before considering a button is held down
 #define EDGEDETECTION_TIME_MS   40U;    ///< Number of milliseconds during which a falling/rising edge can be detected
@@ -51,7 +53,7 @@ static button_t buttons[NB_BUTTONS] = {
  * @brief Run each button's state machine
  */
 void buttonsUpdate(){
-    for(uint8_t i = 0 ; i < NB_BUTTONS ; i++)
+    for(uint8_t i = 0 ; i < (uint8_t)NB_BUTTONS ; i++)
         (*buttons[i].state)(i);
 }
 
