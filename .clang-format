@@ -3,7 +3,10 @@ Language: Cpp
 IndentWidth: 4
 ColumnLimit: 120
 ReflowComments: false
+IncludeBlocks: Merge
 AlignArrayOfStructures: Right
+AllowShortEnumsOnASingleLine: false
+AlignConsecutiveDeclarations: Consecutive
 AlignConsecutiveAssignments: Consecutive
 AlignConsecutiveBitFields: Consecutive
 InsertNewlineAtEOF: true
@@ -12,6 +15,7 @@ AllowShortIfStatementsOnASingleLine: Never
 IndentCaseLabels: true
 IndentCaseBlocks: true
 Cpp11BracedListStyle: true
+#SpaceAroundPointerQualifiers: Default
 SpaceBeforeParens: Custom
 SpaceBeforeParensOptions:
   AfterControlStatements: false
