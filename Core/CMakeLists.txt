@@ -1,6 +1,6 @@
 ##############################################################################################
 # file:  CMakeLists.txt
-# date:  28/05/2024
+# date:  30/05/2024
 # brief: C modules CMakeLists file
 ##############################################################################################
 #declare warning flags
@@ -17,18 +17,17 @@ set(WARNING_FLAGS
 	$<$<CONFIG:Debug>:-fanalyzer>
 )
 
-#retrieve STM32CubeMX-generated include directories and definitions (more optimised than linking library)
-#	+ link Inc/errors to them
-get_target_property(CUBEMX_INCLUDES stm32cubemx INTERFACE_INCLUDE_DIRECTORIES)
-get_target_property(CUBEMX_DEFINITIONS stm32cubemx INTERFACE_COMPILE_DEFINITIONS)
+#make sure STM32CubeMX library knows about Inc/errors/
 target_include_directories(stm32cubemx INTERFACE Inc/errors)
 
 #create the errorStack library, taking care of the error management
+#	STM32CubeMX includes and definitions are manually added instead of linking the library
+#	to avoid re-compiling STMCube libraries and optimising compilation
 add_library(errorStack
 	Src/errors/errorstack.c)
 target_include_directories(errorStack PUBLIC Inc/errors)
-target_compile_definitions(errorStack PUBLIC ${CUBEMX_DEFINITIONS})
-target_include_directories(errorStack SYSTEM INTERFACE ${CUBEMX_INCLUDES})
+target_compile_definitions(errorStack PUBLIC $<TARGET_PROPERTY:stm32cubemx,INTERFACE_COMPILE_DEFINITIONS>)
+target_include_directories(errorStack SYSTEM INTERFACE $<TARGET_PROPERTY:stm32cubemx,INTERFACE_INCLUDE_DIRECTORIES>)
 target_compile_options(errorStack PUBLIC ${WARNING_FLAGS})
 
 #create the LSM6DSO library, taking care of the MEMS sensor
