@@ -58,8 +58,8 @@
 #define ERR_LAYER1_OFFSET	8U				///< Number of bits to shift a code to reach the layer 1
 #define ERR_FUNCTION_OFFSET	16U				///< Number of bits to shift an ID to reach the function ID
 #define ERR_LEVEL_OFFSET	30U				///< Number of bits to shift an level to reach the level field
-#define ERR_FUNCTION_CLAMP	0x7F			///< Value used to clamp function ID arguments to the proper number of bits
-#define ERR_CODE_CLAMP		0x0F			///< Value used to clamp error code arguments to the proper number of bits
+#define ERR_FUNCTION_CLAMP	0x7FU			///< Value used to clamp function ID arguments to the proper number of bits
+#define ERR_CODE_CLAMP		0x0FU			///< Value used to clamp error code arguments to the proper number of bits
 
 //global variables
 const errorCode_u ERR_SUCCESS = { .dword = SUCCESS_VALUE };	///< Variable used as a success code
@@ -81,7 +81,7 @@ errorCode_u createErrorCode(uint8_t functionID, uint8_t newError, errorLevel_e l
         return (ERR_SUCCESS);
 
     //set the fields values (clamped if necessary)
-    code.dword |= (level << ERR_LEVEL_OFFSET);
+    code.dword |= (uint8_t)((uint8_t)level << ERR_LEVEL_OFFSET);
     code.dword |= ((functionID & ERR_FUNCTION_CLAMP) << ERR_FUNCTION_OFFSET);
     code.dword |= ((newError & ERR_CODE_CLAMP) << ERR_LAYER0_OFFSET);
 
@@ -107,7 +107,7 @@ errorCode_u createErrorCodeLayer1(uint8_t functionID, uint8_t newError, uint8_t 
         return (ERR_SUCCESS);
 
     //set the fields values (clamped if necessary)
-    code.dword |= (level << ERR_LEVEL_OFFSET);
+    code.dword |= (uint8_t)((uint8_t)level << ERR_LEVEL_OFFSET);
     code.dword |= ((functionID & ERR_FUNCTION_CLAMP) << ERR_FUNCTION_OFFSET);
     code.dword |= ((newError & ERR_CODE_CLAMP) << ERR_LAYER0_OFFSET);
     code.dword |= ((layer1Code & ERR_CODE_CLAMP) << ERR_LAYER1_OFFSET);
@@ -125,7 +125,7 @@ errorCode_u createErrorCodeLayer1(uint8_t functionID, uint8_t newError, uint8_t 
  * @return Formatted code
  */
 errorCode_u pushErrorCode(errorCode_u oldCode, uint8_t functionID, uint8_t newError){
-    uint32_t errorStack;
+    uint32_t errorStack = SUCCESS_VALUE;
 
     //if code means success, return success
     if(newError == SUCCESS_VALUE)
