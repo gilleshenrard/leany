@@ -1,0 +1,5 @@
+BasedOnStyle: Google
+Language: Cpp
+IndentWidth: 4
+ColumnLimit: 120
+ReflowComments: false
