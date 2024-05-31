@@ -32,7 +32,7 @@ typedef union {
         uint32_t functionID : ERR_ID_NBBITS;  ///< ID of the highest function which returns the code
         uint32_t moduleID : ERR_ID_NBBITS;    ///< ID of the module returning the code
         uint32_t level : ERR_LEVEL_NBBITS;    ///< Error level
-    } fields;
+    };
 
     uint32_t dword;  ///< All 32 bits of the code at once
 } errorCode_u;
@@ -53,7 +53,7 @@ errorCode_u pushErrorCode(errorCode_u oldCode, uint8_t functionID, uint8_t newEr
  * @return  Non-zero if error
  */
 inline uint8_t isError(const errorCode_u code) {
-    return (code.fields.layer0);
+    return (code.layer0);
 }
 
 #endif /* INC_ERRORS_ERRORS_H_ */

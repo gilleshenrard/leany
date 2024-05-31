@@ -129,12 +129,12 @@ int main(void)
 	  //update the MEMS sensor state machine
 	  result = LSM6DSOupdate();
 	  if(isError(result))
-		  result.fields.moduleID = 1;
+		  result.moduleID = 1;
 
 	  //update the screen state machine
 	  result = SSD1306update();
 	  if(isError(result))
-		  result.fields.moduleID = 2;
+		  result.moduleID = 2;
 
     //update the buttons' state machines
     buttonsUpdate();
