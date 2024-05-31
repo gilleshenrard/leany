@@ -50,13 +50,12 @@
 #include "errorstack.h"
 
 //definitions
-static const uint32_t SUCCESS_VALUE       = 0x00000000U;  ///< Value assigned to successes
-static const uint8_t  ERR_LAYER0_OFFSET   = 12U;          ///< Number of bits to shift a code to reach the layer 0
-static const uint8_t  ERR_FUNCTION_OFFSET = 16U;          ///< Number of bits to shift an ID to reach the function ID
-static const uint8_t  ERR_LEVEL_OFFSET    = 30U;          ///< Number of bits to shift an level to reach the level field
-static const uint8_t  ERR_FUNCTION_CLAMP =
-    0x7FU;  ///< Value used to clamp function ID arguments to the proper number of bits
-static const uint8_t ERR_CODE_CLAMP = 0x0FU;  ///< Value used to clamp error code arguments to the proper number of bits
+static const uint32_t SUCCESS_VALUE     = 0x00000000UL;  ///< Value assigned to successes
+static const uint8_t  LAYER0CODE_OFFSET = 12U;           ///< Number of bits to shift a code to reach the layer 0
+static const uint8_t  FUNCTIONID_OFFSET = 16U;           ///< Number of bits to shift an ID to reach the function ID
+static const uint8_t  LEVEL_OFFSET      = 30U;           ///< Number of bits to shift an level to reach the level field
+static const uint8_t  FUNCTIONID_CLAMP  = 0x7FU;  ///< Value used to clamp function ID arguments to the proper number of bits
+static const uint8_t  ERRORCODE_CLAMP   = 0x0FU;  ///< Value used to clamp error code arguments to the proper number of bits
 
 //global variables
 const errorCode_u ERR_SUCCESS = { .dword = SUCCESS_VALUE };	///< Variable used as a success code
@@ -78,9 +77,9 @@ errorCode_u createErrorCode(uint8_t functionID, uint8_t newError, errorLevel_e l
         return (ERR_SUCCESS);
 
     //set the fields values (clamped if necessary)
-    code.dword |= ((uint32_t)level << ERR_LEVEL_OFFSET);
-    code.dword |= ((uint32_t)(functionID & ERR_FUNCTION_CLAMP) << ERR_FUNCTION_OFFSET);
-    code.dword |= ((uint32_t)(newError & ERR_CODE_CLAMP) << ERR_LAYER0_OFFSET);
+    code.dword |= ((uint32_t)level << LEVEL_OFFSET);
+    code.dword |= ((uint32_t)(functionID & FUNCTIONID_CLAMP) << FUNCTIONID_OFFSET);
+    code.dword |= ((uint32_t)(newError & ERRORCODE_CLAMP) << LAYER0CODE_OFFSET);
 
     return (code);
 }
@@ -97,7 +96,7 @@ errorCode_u createErrorCode(uint8_t functionID, uint8_t newError, errorLevel_e l
  * @return New code
  */
 errorCode_u createErrorCodeLayer1(uint8_t functionID, uint8_t newError, uint8_t layer1Code, errorLevel_e level){
-    static const uint8_t ERR_LAYER1_OFFSET = 8U;  ///< Number of bits to shift a code to reach the layer 1
+    static const uint8_t LAYER1CODE_OFFSET = 8U;  ///< Number of bits to shift a code to reach the layer 1
     errorCode_u          code              = ERR_SUCCESS;
 
     //if code means success, return success
@@ -105,10 +104,10 @@ errorCode_u createErrorCodeLayer1(uint8_t functionID, uint8_t newError, uint8_t 
         return (ERR_SUCCESS);
 
     //set the fields values (clamped if necessary)
-    code.dword |= ((uint32_t)level << ERR_LEVEL_OFFSET);
-    code.dword |= ((uint32_t)(functionID & ERR_FUNCTION_CLAMP) << ERR_FUNCTION_OFFSET);
-    code.dword |= ((uint32_t)(newError & ERR_CODE_CLAMP) << ERR_LAYER0_OFFSET);
-    code.dword |= ((uint32_t)(layer1Code & ERR_CODE_CLAMP) << ERR_LAYER1_OFFSET);
+    code.dword |= ((uint32_t)level << LEVEL_OFFSET);
+    code.dword |= ((uint32_t)(functionID & FUNCTIONID_CLAMP) << FUNCTIONID_OFFSET);
+    code.dword |= ((uint32_t)(newError & ERRORCODE_CLAMP) << LAYER0CODE_OFFSET);
+    code.dword |= ((uint32_t)(layer1Code & ERRORCODE_CLAMP) << LAYER1CODE_OFFSET);
 
     return (code);
 }
@@ -123,28 +122,26 @@ errorCode_u createErrorCodeLayer1(uint8_t functionID, uint8_t newError, uint8_t 
  * @return Formatted code
  */
 errorCode_u pushErrorCode(errorCode_u oldCode, uint8_t functionID, uint8_t newError){
-    static const uint32_t ERR_STACK_MASK    = 0xFFFF0000U;  ///< Value used to erase the codes stack
-    static const uint32_t ERR_IDS_MASK      = 0xC000FFFFU;  ///< Value used to erase the IDs fields
-    static const uint32_t ERR_FUNCTION_MASK = 0xFF80FFFFU;  ///< Value used to erase the function ID
-    uint32_t              errorStack        = SUCCESS_VALUE;
+    static const uint32_t CODESTACK_MASK  = 0xFFFF0000U;  ///< Value used to erase the codes stack
+    static const uint32_t FUNCTIONID_MASK = 0xFF80FFFFU;  ///< Value used to erase the function ID
+    uint32_t              newErrorStack   = (oldCode.dword & ~CODESTACK_MASK);
 
     //if code means success, return success
     if(newError == SUCCESS_VALUE)
         return (ERR_SUCCESS);
 
     //erase and replace the function ID
-    oldCode.dword &= ERR_FUNCTION_MASK;
-    oldCode.dword |= ((uint32_t)(functionID & ERR_FUNCTION_CLAMP) << ERR_FUNCTION_OFFSET);
+    oldCode.dword &= FUNCTIONID_MASK;
+    oldCode.dword |= ((uint32_t)(functionID & FUNCTIONID_CLAMP) << FUNCTIONID_OFFSET);
 
-    //isolate the codes stack, shift it and push a new code
+    //shift the code stack and push a new code
     //	(code already in layer 3 is lost)
-    errorStack = (oldCode.dword & ERR_IDS_MASK);
-    errorStack >>= ERR_LAYER_NBBITS;
-    errorStack |= ((uint32_t)(newError & ERR_CODE_CLAMP) << ERR_LAYER0_OFFSET);
+    newErrorStack >>= ERR_LAYER_NBBITS;
+    newErrorStack |= ((uint32_t)(newError & ERRORCODE_CLAMP) << LAYER0CODE_OFFSET);
 
     //erase the codes stack and replace it with the new one
-    oldCode.dword &= ERR_STACK_MASK;
-    oldCode.dword |= errorStack;
+    oldCode.dword &= CODESTACK_MASK;
+    oldCode.dword |= newErrorStack;
 
     //return the final code
     return (oldCode);
