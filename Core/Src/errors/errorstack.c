@@ -23,7 +23,7 @@
  * - Function ID : A module assigns an ID to all of its functions and states
  * - Layers : Each function receiving an error code stacks it above all else to allow for a chaining
  *
- * Layer 0 is the highest layer called, and layer 3 is the lowest.
+ * Layer 0 is the latest layer called, and layer 3 is the earliest.
  *
  * Example :
  * A function A() calls a function B(), which in turn calls a function C(). Let's imagine C() returns an error.
