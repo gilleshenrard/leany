@@ -10,6 +10,7 @@ AlignConsecutiveDeclarations: Consecutive
 AlignConsecutiveAssignments: Consecutive
 AlignConsecutiveBitFields: Consecutive
 InsertNewlineAtEOF: true
+AllowShortFunctionsOnASingleLine: None
 AllowShortBlocksOnASingleLine: Empty
 AllowShortIfStatementsOnASingleLine: Never
 IndentCaseLabels: true
