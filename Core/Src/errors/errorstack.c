@@ -58,7 +58,7 @@ static const uint8_t  FUNCTIONID_CLAMP  = 0x7FU;  ///< Value used to clamp funct
 static const uint8_t  ERRORCODE_CLAMP   = 0x0FU;  ///< Value used to clamp error code arguments to the proper number of bits
 
 //global variables
-const errorCode_u ERR_SUCCESS = { .dword = SUCCESS_VALUE };	///< Variable used as a success code
+const errorCode_u ERR_SUCCESS = {.dword = SUCCESS_VALUE};  ///< Variable used as a success code
 
 /**
  * @brief Create a code with a layer 0
@@ -69,7 +69,7 @@ const errorCode_u ERR_SUCCESS = { .dword = SUCCESS_VALUE };	///< Variable used a
  * @param level Error level
  * @return New code
  */
-errorCode_u createErrorCode(uint8_t functionID, uint8_t newError, errorLevel_e level){
+errorCode_u createErrorCode(uint8_t functionID, uint8_t newError, errorLevel_e level) {
     errorCode_u code = ERR_SUCCESS;
 
     //if code means success, return success
@@ -95,7 +95,7 @@ errorCode_u createErrorCode(uint8_t functionID, uint8_t newError, errorLevel_e l
  * @param level Error level
  * @return New code
  */
-errorCode_u createErrorCodeLayer1(uint8_t functionID, uint8_t newError, uint8_t layer1Code, errorLevel_e level){
+errorCode_u createErrorCodeLayer1(uint8_t functionID, uint8_t newError, uint8_t layer1Code, errorLevel_e level) {
     static const uint8_t LAYER1CODE_OFFSET = 8U;  ///< Number of bits to shift a code to reach the layer 1
     errorCode_u          code              = ERR_SUCCESS;
 
@@ -121,7 +121,7 @@ errorCode_u createErrorCodeLayer1(uint8_t functionID, uint8_t newError, uint8_t 
  * @param newError Return code to push in the stack
  * @return Formatted code
  */
-errorCode_u pushErrorCode(errorCode_u oldCode, uint8_t functionID, uint8_t newError){
+errorCode_u pushErrorCode(errorCode_u oldCode, uint8_t functionID, uint8_t newError) {
     static const uint32_t CODESTACK_MASK  = 0xFFFF0000U;  ///< Value used to erase the codes stack
     static const uint32_t FUNCTIONID_MASK = 0xFF80FFFFU;  ///< Value used to erase the function ID
     uint32_t              newErrorStack   = (oldCode.dword & ~CODESTACK_MASK);
