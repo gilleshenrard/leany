@@ -137,7 +137,7 @@ errorCode_u pushErrorCode(errorCode_u oldCode, uint8_t functionID, uint8_t newEr
     //shift the code stack and push a new code
     //	(code already in layer 3 is lost)
     newErrorStack >>= ERR_LAYER_NBBITS;
-    newErrorStack |= ((uint32_t)(newError & ERRORCODE_CLAMP) << LAYER0CODE_OFFSET);
+    newErrorStack  |= ((uint32_t)(newError & ERRORCODE_CLAMP) << LAYER0CODE_OFFSET);
 
     //erase the codes stack and replace it with the new one
     oldCode.dword &= CODESTACK_MASK;

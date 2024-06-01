@@ -7,23 +7,23 @@
 /**
  * @brief Enumeration of the printable rotation axis
  */
-typedef enum{
+typedef enum {
     ROLL = 0,
     PITCH
-}rotationAxis_e;
+} rotationAxis_e;
 
 /**
  * @brief Enumeration of the referential used
  */
-typedef enum{
+typedef enum {
     ABSOLUTE = 0,
     RELATIVE
-}referentialType_e;
+} referentialType_e;
 
-extern volatile uint16_t	screenTimer_ms;
-extern volatile uint16_t	ssd1306SPITimer_ms;
+extern volatile uint16_t screenTimer_ms;
+extern volatile uint16_t ssd1306SPITimer_ms;
 
-uint8_t isScreenReady();
+uint8_t     isScreenReady();
 errorCode_u SSD1306initialise(SPI_TypeDef* handle, DMA_TypeDef* dma, uint32_t dmaChannel);
 errorCode_u SSD1306update();
 errorCode_u SSD1306drawBaseScreen();

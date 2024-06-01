@@ -2,14 +2,14 @@
 #define NUMBERS_VERDANA_16_H_INCLUDED
 #include <stdint.h>
 
-#define VERDANA_NB_BYTES_CHAR	28U	///< Number of bytes per character
-#define VERDANA_CHAR_WIDTH		14U	///< Width of a character in pixels
-#define VERDANA_NB_PAGES		2U	///< Number of SSD pages used by a character
+#define VERDANA_NB_BYTES_CHAR 28U  ///< Number of bytes per character
+#define VERDANA_CHAR_WIDTH    14U  ///< Width of a character in pixels
+#define VERDANA_NB_PAGES      2U   ///< Number of SSD pages used by a character
 
 /**
  * @brief Enumeration of all the characters available in Verdana 16
  */
-typedef enum{
+typedef enum {
     INDEX_0 = 0,
     INDEX_1,
     INDEX_2,
@@ -25,7 +25,7 @@ typedef enum{
     INDEX_DOT,
     INDEX_DEG,
     NB_NUMBERS
-}numbers_e;
+} numbers_e;
 
 extern const uint8_t verdana_16ptNumbers[NB_NUMBERS][VERDANA_NB_BYTES_CHAR];
 
