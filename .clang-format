@@ -7,8 +7,8 @@ IncludeBlocks: Merge
 AlignArrayOfStructures: Right
 AllowShortEnumsOnASingleLine: false
 AlignConsecutiveDeclarations: Consecutive
-AlignConsecutiveAssignments: Consecutive
 AlignConsecutiveBitFields: Consecutive
+AlignConsecutiveMacros: Consecutive
 InsertNewlineAtEOF: true
 AllowShortFunctionsOnASingleLine: None
 AllowShortBlocksOnASingleLine: Empty
@@ -16,8 +16,13 @@ AllowShortIfStatementsOnASingleLine: Never
 IndentCaseLabels: true
 IndentCaseBlocks: true
 Cpp11BracedListStyle: true
-#SpaceAroundPointerQualifiers: Default
 SpaceBeforeParens: Custom
 SpaceBeforeParensOptions:
   AfterControlStatements: false
   AfterFunctionDefinitionName: false
+AlignConsecutiveAssignments:
+  Enabled: true
+  AcrossEmptyLines: true
+  AcrossComments: false
+  AlignCompound: true
+  PadOperators: true

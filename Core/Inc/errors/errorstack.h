@@ -4,7 +4,7 @@
 
 //definitions
 #define ERR_LAYER_NBBITS 4U  ///< Amount of bits in a return code layer field
-#define ERR_ID_NBBITS 7U     ///< Amount of bits in function ID and module ID fields
+#define ERR_ID_NBBITS    7U  ///< Amount of bits in function ID and module ID fields
 #define ERR_LEVEL_NBBITS 2U  ///< Amount of level bits
 
 /**

@@ -13,6 +13,6 @@
 #include "LSM6DSO_config_script.h"
 
 const registerValue_t initialisationArray[NB_INIT_REG] = {
-    {CTRL1_XL,  LSM6_ODR_416HZ},   //set the accelerometer in high-performance mode
-    {CTRL2_G,   LSM6_ODR_416HZ},   //set the gyroscope in high-performance mode
+    {CTRL1_XL, LSM6_ODR_416HZ}, //set the accelerometer in high-performance mode
+    { CTRL2_G, LSM6_ODR_416HZ}, //set the gyroscope in high-performance mode
 };

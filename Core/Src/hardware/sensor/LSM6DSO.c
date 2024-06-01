@@ -11,23 +11,23 @@
  *   - DT0058 (Design tip) : https://www.st.com/resource/en/design_tip/dt0058-computing-tilt-measurement-and-tiltcompensated-ecompass-stmicroelectronics.pdf
  */
 #include "LSM6DSO.h"
-#include "LSM6DSO_registers.h"
 #include "LSM6DSO_config_script.h"
+#include "LSM6DSO_registers.h"
 
-static const uint8_t BOOT_TIME_MS = 10U;
-static const uint8_t SPI_TIMEOUT_MS = 10U;
-static const uint16_t TIMEOUT_MS = 1000U;
+static const uint8_t  BOOT_TIME_MS   = 10U;
+static const uint8_t  SPI_TIMEOUT_MS = 10U;
+static const uint16_t TIMEOUT_MS     = 1000U;
 
 /**
  * @brief Enumeration of all the function ID used in errors
  */
-typedef enum{
-    READ_REGISTERS = 1,     ///< readRegisters() function
-    WRITE_REGISTER,         ///< writeRegister() function
-    CHECK_DEVICE_ID,        ///< stateWaitingDeviceID() state
-    CONFIGURING,            ///< stateConfiguring() state
-    MEASURING,              ///< stMeasuring() state
-}LSM6DSOfunction_e;
+typedef enum {
+    READ_REGISTERS = 1,  ///< readRegisters() function
+    WRITE_REGISTER,      ///< writeRegister() function
+    CHECK_DEVICE_ID,     ///< stateWaitingDeviceID() state
+    CONFIGURING,         ///< stateConfiguring() state
+    MEASURING,           ///< stMeasuring() state
+} LSM6DSOfunction_e;
 
 /**
  * @brief State machine state prototype
@@ -44,25 +44,23 @@ static errorCode_u stateMeasuring();
 static errorCode_u stateError();
 
 //registers read/write functions
-static errorCode_u writeRegister(LSM6DSOregister_e registerNumber, uint8_t value);
-static errorCode_u readRegisters(LSM6DSOregister_e firstRegister, uint8_t value[], uint8_t size);
+static errorCode_u    writeRegister(LSM6DSOregister_e registerNumber, uint8_t value);
+static errorCode_u    readRegisters(LSM6DSOregister_e firstRegister, uint8_t value[], uint8_t size);
 static inline int16_t twoComplement(const uint8_t bytes[2]);
 
 //global variables
-volatile uint16_t	lsm6dsoTimer_ms = BOOT_TIME_MS; ///< Timer used in various states of the LSM6DSO (in ms)
-volatile uint16_t	lsm6dsoSPITimer_ms = 0;         ///< Timer used to make sure SPI does not time out (in ms)
+volatile uint16_t lsm6dsoTimer_ms    = BOOT_TIME_MS;  ///< Timer used in various states of the LSM6DSO (in ms)
+volatile uint16_t lsm6dsoSPITimer_ms = 0;             ///< Timer used to make sure SPI does not time out (in ms)
 
 //state variables
 static SPI_TypeDef* spiHandle = (void*)0;          ///< SPI handle used by the LSM6DSO device
-static lsm6dsoState state = stateWaitingBoot;      ///< State machine current state
-static errorCode_u 	result;                        ///< Variables used to store error codes
+static lsm6dsoState state     = stateWaitingBoot;  ///< State machine current state
+static errorCode_u  result;                        ///< Variables used to store error codes
 int16_t             accelerometerValues[NB_AXIS];
 int16_t             gyroscopeValues[NB_AXIS];
 
-
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
-
 
 /**
  * @brief Initialise the LSM6DSO
@@ -70,7 +68,7 @@ int16_t             gyroscopeValues[NB_AXIS];
  * @param handle	SPI handle used
  * @returns 		Success
  */
-errorCode_u LSM6DSOinitialise(const SPI_TypeDef* handle){
+errorCode_u LSM6DSOinitialise(const SPI_TypeDef* handle) {
     spiHandle = (SPI_TypeDef*)handle;
     LL_SPI_Disable(spiHandle);
 
@@ -81,8 +79,8 @@ errorCode_u LSM6DSOinitialise(const SPI_TypeDef* handle){
  * @brief Run the LSM6DSO state machine
  * @returns Current state return code
  */
-errorCode_u LSM6DSOupdate(){
-    return ( (*state)() );
+errorCode_u LSM6DSOupdate() {
+    return ((*state)());
 }
 
 /**
@@ -95,8 +93,8 @@ errorCode_u LSM6DSOupdate(){
  * @retval 1 SPI handle or value buffer NULL
  * @retval 2 Timeout
  */
-static errorCode_u readRegisters(LSM6DSOregister_e firstRegister, uint8_t value[], uint8_t size){
-    static const uint8_t SPI_RX_FILLER = 0xFFU;	///< Value to send as a filler while receiving multiple bytes
+static errorCode_u readRegisters(LSM6DSOregister_e firstRegister, uint8_t value[], uint8_t size) {
+    static const uint8_t SPI_RX_FILLER = 0xFFU;  ///< Value to send as a filler while receiving multiple bytes
 
     //if no bytes to read, success
     if(!size)
@@ -117,17 +115,17 @@ static errorCode_u readRegisters(LSM6DSOregister_e firstRegister, uint8_t value[
     *iterator = LL_SPI_ReceiveData8(spiHandle);
 
     //receive the bytes to read
-    do{
+    do {
         //send a filler byte to keep the SPI clock running, to receive the next byte
         LL_SPI_TransmitData8(spiHandle, SPI_RX_FILLER);
 
         //wait for data to be available, and read it
         while((!LL_SPI_IsActiveFlag_RXNE(spiHandle)) && lsm6dsoSPITimer_ms);
         *iterator = LL_SPI_ReceiveData8(spiHandle);
-        
+
         iterator++;
         size--;
-    }while(size && lsm6dsoSPITimer_ms);
+    } while(size && lsm6dsoSPITimer_ms);
 
     //wait for transaction to be finished and clear Overrun flag
     while(LL_SPI_IsActiveFlag_BSY(spiHandle) && lsm6dsoSPITimer_ms);
@@ -153,7 +151,7 @@ static errorCode_u readRegisters(LSM6DSOregister_e firstRegister, uint8_t value[
  * @retval 2 Register number out of range
  * @retval 3 Timeout
  */
-static errorCode_u writeRegister(LSM6DSOregister_e registerNumber, uint8_t value){
+static errorCode_u writeRegister(LSM6DSOregister_e registerNumber, uint8_t value) {
     //if handle not specified, error
     if(!spiHandle)
         return (createErrorCode(WRITE_REGISTER, 1, ERR_WARNING));
@@ -194,26 +192,24 @@ static errorCode_u writeRegister(LSM6DSOregister_e registerNumber, uint8_t value
  * @param bytes		Array of two bytes to reassemble
  * @return int16_t	16 bit resulting number
  */
-static inline int16_t twoComplement(const uint8_t bytes[2]){
+static inline int16_t twoComplement(const uint8_t bytes[2]) {
     static const uint8_t BYTE_SHIFT = 8U;
-    return (((int16_t)bytes[1] << BYTE_SHIFT) | (int16_t)bytes[0]);
+    return (int16_t)((uint16_t)((uint16_t)bytes[1] << BYTE_SHIFT) | bytes[0]);
 }
 
-
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
-
 
 /**
  * @brief State in which the program waits for the LSM6DSO to boot up
  * 
  * @return Success
  */
-static errorCode_u stateWaitingBoot(){
+static errorCode_u stateWaitingBoot() {
     //if timer elapsed, reset it and get to next state
-    if(!lsm6dsoTimer_ms){
+    if(!lsm6dsoTimer_ms) {
         lsm6dsoTimer_ms = TIMEOUT_MS;
-        state = stateWaitingDeviceID;
+        state           = stateWaitingDeviceID;
     }
 
     return (ERR_SUCCESS);
@@ -228,11 +224,11 @@ static errorCode_u stateWaitingBoot(){
  * @retval 1 Timeout while reading the manufacturer ID
  * @retval 2 Error while sending the read request
  */
-static errorCode_u stateWaitingDeviceID(){
+static errorCode_u stateWaitingDeviceID() {
     uint8_t deviceID = 0;
 
     //if 1s elapsed without reading the correct vendor ID, go error
-    if(!lsm6dsoTimer_ms){
+    if(!lsm6dsoTimer_ms) {
         state = stateError;
         return (createErrorCode(CHECK_DEVICE_ID, 1, ERR_CRITICAL));
     }
@@ -257,13 +253,13 @@ static errorCode_u stateWaitingDeviceID(){
  * @retval 0 Success
  * @retval 1 Error while writing a register
  */
-static errorCode_u stateConfiguring(){
+static errorCode_u stateConfiguring() {
     const registerValue_t* iterator = initialisationArray;
 
     //write all registers values from the initialisation array
-    for(uint8_t i = 0 ; i < NB_INIT_REG ; i++){
+    for(uint8_t i = 0; i < NB_INIT_REG; i++) {
         result = writeRegister(iterator->registerID, iterator->value);
-        if(isError(result)){
+        if(isError(result)) {
             state = stateError;
             return (pushErrorCode(result, CONFIGURING, 1));
         }
@@ -272,7 +268,7 @@ static errorCode_u stateConfiguring(){
     }
 
     lsm6dsoTimer_ms = SPI_TIMEOUT_MS;
-    state = stateMeasuring;
+    state           = stateMeasuring;
     return (ERR_SUCCESS);
 }
 
@@ -282,7 +278,7 @@ static errorCode_u stateConfiguring(){
  * @retval 0 Success
  * @retval 1 Error while reading the status register value
  */
-static errorCode_u stateMeasuring(){
+static errorCode_u stateMeasuring() {
     //if timer not elapsed, exit
     if(lsm6dsoTimer_ms)
         return (ERR_SUCCESS);
@@ -292,8 +288,8 @@ static errorCode_u stateMeasuring(){
 
     //retrieve the status register value
     uint8_t status = 0;
-    result = readRegisters(STATUS_REG, &status, 1);
-    if(isError(result)){
+    result         = readRegisters(STATUS_REG, &status, 1);
+    if(isError(result)) {
         state = stateError;
         return (pushErrorCode(result, MEASURING, 1));
     }
@@ -302,9 +298,9 @@ static errorCode_u stateMeasuring(){
     uint8_t buffer[LSM6_NB_OUT_REGISTERS];
 
     //if accelerometer data available, retrieve and format it
-    if(status & LSM6_AXL_DATA_AVAIL){
+    if(status & LSM6_AXL_DATA_AVAIL) {
         result = readRegisters(OUTX_L_A, buffer, LSM6_NB_OUT_REGISTERS);
-        if(isError(result)){
+        if(isError(result)) {
             state = stateError;
             return (pushErrorCode(result, MEASURING, 2));
         }
@@ -315,20 +311,20 @@ static errorCode_u stateMeasuring(){
     }
 
     //if gyroscope data available, retrieve and format it
-    if(status & LSM6_GYR_DATA_AVAIL){
+    if(status & LSM6_GYR_DATA_AVAIL) {
         result = readRegisters(OUTX_L_G, buffer, LSM6_NB_OUT_REGISTERS);
-        if(isError(result)){
+        if(isError(result)) {
             state = stateError;
             return (pushErrorCode(result, MEASURING, 3));
         }
-        gyroscopeValues[X_AXIS] = twoComplement(&buffer[X_AXIS << 1]);
-        gyroscopeValues[Y_AXIS] = twoComplement(&buffer[Y_AXIS << 1]);
-        gyroscopeValues[Z_AXIS] = twoComplement(&buffer[Z_AXIS << 1]);
+        gyroscopeValues[X_AXIS] = twoComplement(&buffer[(uint8_t)X_AXIS << 1U]);
+        gyroscopeValues[Y_AXIS] = twoComplement(&buffer[(uint8_t)Y_AXIS << 1U]);
+        gyroscopeValues[Z_AXIS] = twoComplement(&buffer[(uint8_t)Z_AXIS << 1U]);
     }
-    
+
     return (ERR_SUCCESS);
 }
 
-static errorCode_u stateError(){
+static errorCode_u stateError() {
     return (ERR_SUCCESS);
 }
