@@ -274,7 +274,7 @@ errorCode_u SSD1306_printAngleTenths(int16_t angleTenths, rotationAxis_e rotatio
 
     //fill the buffer with all the required bitmaps bytes (column by column, then character by character, then page by page)
     for(uint8_t page = 0; page < VERDANA_NB_PAGES; page++) {
-        for(uint8_t character = 0; character < ANGLE_NB_CHARS; character++) {
+        for(uint8_t character = 0; character < (uint8_t)ANGLE_NB_CHARS; character++) {
             for(uint8_t column = 0; column < VERDANA_CHAR_WIDTH; column++) {
                 *iterator = verdana_16ptNumbers[charIndexes[character]][(VERDANA_CHAR_WIDTH * page) + column];
                 iterator++;
