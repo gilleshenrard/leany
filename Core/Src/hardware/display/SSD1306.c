@@ -8,10 +8,16 @@
  */
 #include "SSD1306.h"
 #include <assert.h>
+#include <stdint.h>
 #include "SSD1306_registers.h"
+#include "errorstack.h"
 #include "icons.h"
+#include "main.h"
 #include "numbersVerdana16.h"
-#include "stdbool.h"
+#include "stm32f103xb.h"
+#include "stm32f1xx_ll_dma.h"
+#include "stm32f1xx_ll_gpio.h"
+#include "stm32f1xx_ll_spi.h"
 
 enum {
     SSD_LAST_COLUMN = 127U,   ///< Index of the highest column
@@ -108,14 +114,15 @@ errorCode_u SSD1306initialise(SPI_TypeDef* handle, DMA_TypeDef* dma, uint32_t dm
 
 /**
  * brief Set the Data/Command pin
- *
+ * 
  * @param function Value of the data/command pin
  */
 static inline void setDataCommandGPIO(DCgpio_e function) {
-    if(function == COMMAND)
+    if(function == COMMAND) {
         LL_GPIO_ResetOutputPin(SSD1306_DC_GPIO_Port, SSD1306_DC_Pin);
-    else
+    } else {
         LL_GPIO_SetOutputPin(SSD1306_DC_GPIO_Port, SSD1306_DC_Pin);
+    }
 }
 
 /**
@@ -137,8 +144,9 @@ errorCode_u sendCommand(SSD1306register_e regNumber, const uint8_t parameters[],
     assert(parameters || !nbParameters);  //either 0 parameters, or parameters array not null
 
     //if too many parameters, error
-    if(nbParameters > MAX_PARAMETERS)
+    if(nbParameters > MAX_PARAMETERS) {
         return (createErrorCode(SEND_CMD, 1, ERR_WARNING));
+    }
 
     //set command pin and enable SPI
     ssd1306SPITimer_ms = SPI_TIMEOUT_MS;
@@ -152,24 +160,26 @@ errorCode_u sendCommand(SSD1306register_e regNumber, const uint8_t parameters[],
     uint8_t* iterator = (uint8_t*)parameters;
     while(nbParameters && ssd1306SPITimer_ms) {
         //wait for the previous byte to be done, then send the next one
-        while(!LL_SPI_IsActiveFlag_TXE(spiHandle) && ssd1306SPITimer_ms);
-        if(ssd1306SPITimer_ms)
+        while(!LL_SPI_IsActiveFlag_TXE(spiHandle) && ssd1306SPITimer_ms) {}
+        if(ssd1306SPITimer_ms) {
             LL_SPI_TransmitData8(spiHandle, *iterator);
+        }
 
         iterator++;
         nbParameters--;
     }
 
     //wait for transaction to be finished and clear Overrun flag
-    while(LL_SPI_IsActiveFlag_BSY(spiHandle) && ssd1306SPITimer_ms);
+    while(LL_SPI_IsActiveFlag_BSY(spiHandle) && ssd1306SPITimer_ms) {}
     LL_SPI_ClearFlag_OVR(spiHandle);
 
     //disable SPI and return status
     LL_SPI_Disable(spiHandle);
 
     //if timeout, error
-    if(!ssd1306SPITimer_ms)
+    if(!ssd1306SPITimer_ms) {
         return (createErrorCode(SEND_CMD, 2, ERR_WARNING));
+    }
 
     return (result);
 }
@@ -191,12 +201,16 @@ errorCode_u SSD1306drawBaseScreen() {
     size            = MAX_DATA_SIZE;
 
     //fill the screen buffer with blank pixels value
-    for(counter = 0; counter < (uint16_t)MAX_DATA_SIZE; counter++) *(iterator++) = 0x00U;
+    for(counter = 0; counter < (uint16_t)MAX_DATA_SIZE; counter++) {
+        *(iterator++) = 0x00U;
+    }
 
     //draw the middle screen separator in the buffer (avoid drawing in the arrows icon zone)
     static const uint8_t LIGN = 0x03U;
     iterator                  = &screenBuffer[((uint16_t)MAX_DATA_SIZE >> 1U) + ARROWSICON_WIDTH];
-    for(counter = ARROWSICON_WIDTH; counter <= (uint16_t)SSD_LAST_COLUMN; counter++) *(iterator++) = LIGN;
+    for(counter = ARROWSICON_WIDTH; counter <= (uint16_t)SSD_LAST_COLUMN; counter++) {
+        *(iterator++) = LIGN;
+    }
 
     //draw the arrows icon
     for(counter = 0; counter < ARROWSICON_NB_BYTES; counter++) {
@@ -207,7 +221,9 @@ errorCode_u SSD1306drawBaseScreen() {
 
     //draw the absolute referential icon
     iterator = &screenBuffer[MAX_DATA_SIZE - REFERENCETYPE_NB_BYTES];
-    for(counter = 0; counter < REFERENCETYPE_NB_BYTES; counter++) *(iterator++) = absoluteReferentialIcon[counter];
+    for(counter = 0; counter < REFERENCETYPE_NB_BYTES; counter++) {
+        *(iterator++) = absoluteReferentialIcon[counter];
+    }
 
     state = stateSendingData;
     return (ERR_SUCCESS);
@@ -246,12 +262,14 @@ errorCode_u SSD1306_printAngleTenths(int16_t angleTenths, rotationAxis_e rotatio
     uint8_t*             iterator                    = screenBuffer;
 
     //clamp the angle to print to the min value
-    if(angleTenths < MIN_ANGLE_DEG_TENTHS)
+    if(angleTenths < MIN_ANGLE_DEG_TENTHS) {
         angleTenths = MIN_ANGLE_DEG_TENTHS;
+    }
 
     //clamp the angle to print to the max value
-    if(angleTenths > MAX_ANGLE_DEG_TENTHS)
+    if(angleTenths > MAX_ANGLE_DEG_TENTHS) {
         angleTenths = MAX_ANGLE_DEG_TENTHS;
+    }
 
     //if angle negative, replace plus sign with minus sign
     if(angleTenths < 0) {
@@ -302,7 +320,9 @@ errorCode_u SSD1306_printReferentialIcon(referentialType_e type) {
     limitPages[1]   = REFTYPE_PAGE;
     size            = REFERENCETYPE_NB_BYTES;
 
-    for(uint8_t i = 0; i < REFERENCETYPE_NB_BYTES; i++) *(iterator++) = *(iconIterator++);
+    for(uint8_t i = 0; i < REFERENCETYPE_NB_BYTES; i++) {
+        *(iterator++) = *(iconIterator++);
+    }
 
     //get to printing state
     state = stateSendingData;
@@ -325,11 +345,13 @@ errorCode_u SSD1306_printHoldIcon(uint8_t status) {
     limitPages[1]   = REFTYPE_PAGE;
     size            = REFERENCETYPE_NB_BYTES;
 
-    for(uint8_t i = 0; i < REFERENCETYPE_NB_BYTES; i++)
-        if(status)
+    for(uint8_t i = 0; i < REFERENCETYPE_NB_BYTES; i++) {
+        if(status) {
             *(iterator++) = *(iconIterator++);
-        else
+        } else {
             *(iterator++) = 0x00;
+        }
+    }
 
     //get to printing state
     state = stateSendingData;
@@ -384,13 +406,15 @@ static errorCode_u stateConfiguring() {
     //TODO test for max oscillator frequency
     for(uint8_t i = 0; i < NB_INIT_REGISERS; i++) {
         result = sendCommand(initCommands[i][0], &initCommands[i][2], initCommands[i][1]);
-        if(isError(result))
+        if(isError(result)) {
             return (pushErrorCode(result, INIT, 1));
+        }
     }
 
     result = SSD1306drawBaseScreen();
-    if(isError(result))
+    if(isError(result)) {
         return (pushErrorCode(result, INIT, 2));
+    }
 
     state = stateSendingData;
     return (ERR_SUCCESS);
@@ -469,8 +493,9 @@ errorCode_u stateWaitingForTXdone() {
     }
 
     //if transmission not complete yet, exit
-    if(!LL_DMA_IsActiveFlag_TC5(dmaHandle))
+    if(!LL_DMA_IsActiveFlag_TC5(dmaHandle)) {
         return (ERR_SUCCESS);
+    }
 
 finalise:
     LL_DMA_DisableChannel(dmaHandle, dmaChannelUsed);
