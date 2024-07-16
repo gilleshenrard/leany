@@ -1,6 +1,6 @@
 ##############################################################################################
 # file:  CMakeLists.txt
-# date:  30/05/2024
+# date:  16/07/2024
 # brief: C modules CMakeLists file
 ##############################################################################################
 #declare warning flags
@@ -10,11 +10,45 @@ set(WARNING_FLAGS
 	-Werror
 	-pedantic
 	-pedantic-errors
+	-Waggressive-loop-optimizations
+	-Wbad-function-cast
+	-Wbuiltin-macro-redefined
+	-Wdate-time
+	-Wdisabled-optimization
+	-Wdiscarded-array-qualifiers
+	-Wdiscarded-qualifiers
+	-Wdiv-by-zero
+	-Wduplicated-branches
+	-Wduplicated-cond
+	-Wfloat-equal
+	-Wignored-attributes
+	-Winline
+	-Winvalid-memory-model
+	-Winvalid-pch
+	-Wjump-misses-init
+	-Wlogical-op
+	-Wlogical-not-parentheses
+	-Wmissing-declarations
 	-Wmissing-include-dirs
+	-Wnested-externs
+	-Wnormalized=nfc
+	-Wnull-dereference
+	-Wredundant-decls
+	-Wtrampolines
+	-Wunsuffixed-float-constants
 	-Wswitch-default
+	-Wswitch-unreachable
 	-Wswitch-enum
 	-Wconversion
+	-Wshadow
+	-Wformat=2
+	-Wformat-truncation
+	-Wformat-signedness
+	-Wundef
+	-fno-common
+	-Wdouble-promotion	# only on 32-bits microcontrollers
 	$<$<CONFIG:Debug>:-fanalyzer>
+	$<$<CONFIG:Debug>:-fstack-usage>
 )
 
 #make sure STM32CubeMX library knows about Inc/errors/
