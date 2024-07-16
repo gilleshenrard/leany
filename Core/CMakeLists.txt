@@ -51,7 +51,7 @@ set(WARNING_FLAGS
 	$<$<CONFIG:Debug>:-fstack-usage>
 )
 
-#make sure STM32CubeMX library knows about Inc/errors/
+#make sure STM32CubeMX library knows about Inc/errors/ (to use it in interrupts, ...)
 target_include_directories(stm32cubemx INTERFACE Inc/errors)
 
 #create the errorStack library, taking care of the error management
