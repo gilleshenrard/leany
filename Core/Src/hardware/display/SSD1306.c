@@ -2,7 +2,7 @@
  * @file SSD1306.c
  * @brief Implement the functioning of the SSD1306 OLED screen via SPI and DMA
  * @author Gilles Henrard
- * @date 04/05/2024
+ * @date 16/07/2024
  *
  * @note Datasheet : https://cdn-shop.adafruit.com/datasheets/SSD1306.pdf
  */
@@ -21,12 +21,13 @@ enum {
 };
 
 //definitions
-#define REFTYPE_PAGE   SSD_LAST_PAGE
+#define REFTYPE_PAGE SSD_LAST_PAGE
 #define REFTYPE_COLUMN (SSD_LAST_COLUMN - REFERENCETYPE_NB_BYTES)
 static const uint8_t SPI_TIMEOUT_MS = 10U;  ///< Maximum number of milliseconds SPI traffic should last before timeout
 
 //static assertions (ran at compile time)
-_Static_assert((bool)((ANGLE_NB_CHARS * VERDANA_NB_BYTES_CHAR) <= MAX_DATA_SIZE), "SSD1306 font chosen uses too much space.");
+_Static_assert((bool)((ANGLE_NB_CHARS * VERDANA_NB_BYTES_CHAR) <= MAX_DATA_SIZE),
+               "SSD1306 font chosen uses too much space.");
 _Static_assert((bool)((ANGLE_NB_CHARS * VERDANA_CHAR_WIDTH) <= (SSD_LAST_COLUMN + 1)),
                "SSD1306 font chosen has too many columns.");
 
@@ -71,7 +72,7 @@ volatile uint16_t   screenTimer_ms     = 0;                 ///< Timer used with
 volatile uint16_t   ssd1306SPITimer_ms = 0;                 ///< Timer used to make sure SPI does not time out (in ms)
 static SPI_TypeDef* spiHandle          = (void*)0;          ///< SPI handle used with the SSD1306
 static DMA_TypeDef* dmaHandle          = (void*)0;          ///< DMA handle used with the SSD1306
-static uint32_t     dmaChannel         = 0x00000000U;       ///< DMA channel used
+static uint32_t     dmaChannelUsed     = 0x00000000U;       ///< DMA channel used
 static screenState  state              = stateConfiguring;  ///< State machine current state
 static uint8_t      screenBuffer[MAX_DATA_SIZE];            ///< Buffer used to send data to the screen
 static uint8_t      limitColumns[2];                        ///< Buffer used to set the first and last column to send
@@ -90,16 +91,16 @@ static uint16_t     size;                                   ///< Number of bytes
  * @retval 2	Error while clearing the screen
  */
 errorCode_u SSD1306initialise(SPI_TypeDef* handle, DMA_TypeDef* dma, uint32_t dmaChannel) {
-    spiHandle  = handle;
-    dmaHandle  = dma;
-    dmaChannel = dmaChannel;
+    spiHandle      = handle;
+    dmaHandle      = dma;
+    dmaChannelUsed = dmaChannel;
 
     //make sure to disable SSD1306 SPI communication
     LL_SPI_Disable(spiHandle);
-    LL_DMA_DisableChannel(dmaHandle, dmaChannel);
+    LL_DMA_DisableChannel(dmaHandle, dmaChannelUsed);
 
     //set the DMA source and destination addresses (will always use the same ones)
-    LL_DMA_ConfigAddresses(dmaHandle, dmaChannel, (uint32_t)&screenBuffer, LL_SPI_DMA_GetRegAddr(spiHandle),
+    LL_DMA_ConfigAddresses(dmaHandle, dmaChannelUsed, (uint32_t)&screenBuffer, LL_SPI_DMA_GetRegAddr(spiHandle),
                            LL_DMA_DIRECTION_MEMORY_TO_PERIPH);
 
     return (ERR_SUCCESS);
@@ -200,7 +201,7 @@ errorCode_u SSD1306drawBaseScreen() {
     //draw the arrows icon
     for(counter = 0; counter < ARROWSICON_NB_BYTES; counter++) {
         //copy a byte, while making sure to copy it at the proper page number
-        uint16_t bufferOffset                                     = (counter / ARROWSICON_WIDTH) * (SSD_LAST_COLUMN + 1);
+        uint16_t bufferOffset = (counter / ARROWSICON_WIDTH) * (SSD_LAST_COLUMN + 1);
         screenBuffer[bufferOffset + (counter % ARROWSICON_WIDTH)] = arrowsIcon_32px[counter];
     }
 
@@ -218,9 +219,7 @@ errorCode_u SSD1306drawBaseScreen() {
  * @return 0 Not ready
  * @retval 1 Ready
  */
-uint8_t isScreenReady() {
-    return (state == stateIdle);
-}
+uint8_t isScreenReady() { return (state == stateIdle); }
 
 /**
  * @brief Print an angle (in degrees, with sign) on the screen
@@ -232,17 +231,17 @@ uint8_t isScreenReady() {
  * @retval 1	Angle above maximum amplitude
  */
 errorCode_u SSD1306_printAngleTenths(int16_t angleTenths, rotationAxis_e rotationAxis) {
-    static const uint8_t ANGLE_COLUMN                = 40U;   ///< Column number of the first screen line
-    static const uint8_t ANGLE_ROLL_PAGE             = 1U;    ///< Number of the page at which display the roll axis angle
-    static const uint8_t ANGLE_PITCH_PAGE            = 5U;    ///< Number of the page at which display the pitch axis angle
-    static const int16_t MIN_ANGLE_DEG_TENTHS        = -900;  ///< Minimum angle allowed (in tenths of degrees)
-    static const int16_t MAX_ANGLE_DEG_TENTHS        = 900;   ///< Maximum angle allowed (in tenths of degrees)
-    static const uint8_t INDEX_SIGN                  = 0;     ///< Index of the sign in the angle indexes array
-    static const uint8_t INDEX_TENS                  = 1U;    ///< Index of the tens in the angle indexes array
-    static const uint8_t INDEX_UNITS                 = 2U;    ///< Index of the units in the angle indexes array
-    static const uint8_t INDEX_TENTHS                = 4U;    ///< Index of the tenths in the angle indexes array
-    static const uint8_t DIVIDE_10                   = 10U;   ///< 10 Divider (used for warnings)
-    static const uint8_t DIVIDE_100                  = 100U;  ///< 100 Divider (used for warnings)
+    static const uint8_t ANGLE_COLUMN         = 40U;   ///< Column number of the first screen line
+    static const uint8_t ANGLE_ROLL_PAGE      = 1U;    ///< Number of the page at which display the roll axis angle
+    static const uint8_t ANGLE_PITCH_PAGE     = 5U;    ///< Number of the page at which display the pitch axis angle
+    static const int16_t MIN_ANGLE_DEG_TENTHS = -900;  ///< Minimum angle allowed (in tenths of degrees)
+    static const int16_t MAX_ANGLE_DEG_TENTHS = 900;   ///< Maximum angle allowed (in tenths of degrees)
+    static const uint8_t INDEX_SIGN           = 0;     ///< Index of the sign in the angle indexes array
+    static const uint8_t INDEX_TENS           = 1U;    ///< Index of the tens in the angle indexes array
+    static const uint8_t INDEX_UNITS          = 2U;    ///< Index of the units in the angle indexes array
+    static const uint8_t INDEX_TENTHS         = 4U;    ///< Index of the tenths in the angle indexes array
+    static const uint8_t DIVIDE_10            = 10U;   ///< 10 Divider (used for warnings)
+    static const uint8_t DIVIDE_100           = 100U;  ///< 100 Divider (used for warnings)
     uint8_t              charIndexes[ANGLE_NB_CHARS] = {INDEX_PLUS, 0, 0, INDEX_DOT, 0, INDEX_DEG};
     uint8_t*             iterator                    = screenBuffer;
 
@@ -297,11 +296,11 @@ errorCode_u SSD1306_printReferentialIcon(referentialType_e type) {
     uint8_t*       iterator     = screenBuffer;
     const uint8_t* iconIterator = (type == ABSOLUTE ? absoluteReferentialIcon : relativeReferentialIcon);
 
-    limitColumns[0]             = REFTYPE_COLUMN;
-    limitColumns[1]             = REFTYPE_COLUMN + REFERENCETYPE_NB_BYTES;
-    limitPages[0]               = REFTYPE_PAGE;
-    limitPages[1]               = REFTYPE_PAGE;
-    size                        = REFERENCETYPE_NB_BYTES;
+    limitColumns[0] = REFTYPE_COLUMN;
+    limitColumns[1] = REFTYPE_COLUMN + REFERENCETYPE_NB_BYTES;
+    limitPages[0]   = REFTYPE_PAGE;
+    limitPages[1]   = REFTYPE_PAGE;
+    size            = REFERENCETYPE_NB_BYTES;
 
     for(uint8_t i = 0; i < REFERENCETYPE_NB_BYTES; i++) *(iterator++) = *(iconIterator++);
 
@@ -320,11 +319,11 @@ errorCode_u SSD1306_printHoldIcon(uint8_t status) {
     uint8_t*       iterator     = screenBuffer;
     const uint8_t* iconIterator = holdIcon;
 
-    limitColumns[0]             = REFTYPE_COLUMN - REFERENCETYPE_NB_BYTES;
-    limitColumns[1]             = REFTYPE_COLUMN;
-    limitPages[0]               = REFTYPE_PAGE;
-    limitPages[1]               = REFTYPE_PAGE;
-    size                        = REFERENCETYPE_NB_BYTES;
+    limitColumns[0] = REFTYPE_COLUMN - REFERENCETYPE_NB_BYTES;
+    limitColumns[1] = REFTYPE_COLUMN;
+    limitPages[0]   = REFTYPE_PAGE;
+    limitPages[1]   = REFTYPE_PAGE;
+    size            = REFERENCETYPE_NB_BYTES;
 
     for(uint8_t i = 0; i < REFERENCETYPE_NB_BYTES; i++)
         if(status)
@@ -342,18 +341,14 @@ errorCode_u SSD1306_printHoldIcon(uint8_t status) {
  * 
  * @return Success
  */
-errorCode_u SSD1306_turnDisplayOFF() {
-    return (sendCommand(DISPLAY_OFF, (void*)0, 0));
-}
+errorCode_u SSD1306_turnDisplayOFF() { return (sendCommand(DISPLAY_OFF, (void*)0, 0)); }
 
 /**
  * @brief Run the state machine
  *
  * @return Return code of the current state
  */
-errorCode_u SSD1306update() {
-    return ((*state)());
-}
+errorCode_u SSD1306update() { return ((*state)()); }
 
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
@@ -406,9 +401,7 @@ static errorCode_u stateConfiguring() {
  *
  * @return Success
  */
-errorCode_u stateIdle() {
-    return (ERR_SUCCESS);
-}
+errorCode_u stateIdle() { return (ERR_SUCCESS); }
 
 /**
  * @brief State in which data is sent to the screen
@@ -439,10 +432,10 @@ errorCode_u stateSendingData() {
     LL_SPI_Enable(spiHandle);
 
     //configure the DMA transaction
-    LL_DMA_DisableChannel(dmaHandle, dmaChannel);
+    LL_DMA_DisableChannel(dmaHandle, dmaChannelUsed);
     LL_DMA_ClearFlag_GI5(dmaHandle);
-    LL_DMA_SetDataLength(dmaHandle, dmaChannel, size);
-    LL_DMA_EnableChannel(dmaHandle, dmaChannel);
+    LL_DMA_SetDataLength(dmaHandle, dmaChannelUsed, size);
+    LL_DMA_EnableChannel(dmaHandle, dmaChannelUsed);
 
     //send the data
     screenTimer_ms = SPI_TIMEOUT_MS;
@@ -480,7 +473,7 @@ errorCode_u stateWaitingForTXdone() {
         return (ERR_SUCCESS);
 
 finalise:
-    LL_DMA_DisableChannel(dmaHandle, dmaChannel);
+    LL_DMA_DisableChannel(dmaHandle, dmaChannelUsed);
     LL_SPI_Disable(spiHandle);
     state = stateIdle;
     return result;
