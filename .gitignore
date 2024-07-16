@@ -51,33 +51,49 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
-# eclipse files
-.metadata/
-RemoteSystemsTempFiles/
-.settings/
-Debug/
-*.launch
-
-# STM32CubeIDE files
-*.mxproject
-*.project
-*.cproject
-*.scratch
-cmake/
+#STM32CubeMX auto-generated files
 Drivers/
-STM32F103C8TX_FLASH.ld
-startup_stm32f103xb.s
+Middlewares/
+.cproject
+.mxproject
+.project
+mx.scratch
 Core/Inc/stm32_assert.h
-Core/Src/syscalls.c
-Core/Src/sysmem.c
-Core/Src/system_stm32f1xx.c
-CMakePresets.json
+Core/Inc/adc.h
+Core/Inc/gpio.h
+Core/Inc/tim.h
+Core/Inc/usart.h
+Core/Src/sys*
+Core/Src/adc.c
+Core/Src/gpio.c
+Core/Src/tim.c
+Core/Src/usart.c
+*_FLASH.ld
+startup_*.s
+*stm32g0xx_hal*
+*stm32f1xx_hal*
 
-# Doxygen files
+#STM32CubeIDE
+.settings/
+FreeRTOS.cfg
+FreeRTOS.launch
+
+#CMake
+CMakePresets.json
+cmake/
+build/
+
+#FreeRTOS
+Core/Inc/FreeRTOSConfig.h
+Core/Src/app_freertos.c
+Core/Src/Freertos.c
+Core/Src/freertos.c
+
+#Doxygen outputs
 doxygen/
 
-# VSCode
+#VSCode files
 .vscode/
 
-# CMake
-build/
+#Clangd
+.cache/
