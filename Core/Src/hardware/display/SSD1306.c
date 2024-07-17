@@ -235,7 +235,9 @@ errorCode_u SSD1306drawBaseScreen() {
  * @return 0 Not ready
  * @retval 1 Ready
  */
-uint8_t isScreenReady() { return (state == stateIdle); }
+uint8_t isScreenReady() {
+    return (state == stateIdle);
+}
 
 /**
  * @brief Print an angle (in degrees, with sign) on the screen
@@ -363,14 +365,18 @@ errorCode_u SSD1306_printHoldIcon(uint8_t status) {
  * 
  * @return Success
  */
-errorCode_u SSD1306_turnDisplayOFF() { return (sendCommand(DISPLAY_OFF, (void*)0, 0)); }
+errorCode_u SSD1306_turnDisplayOFF() {
+    return (sendCommand(DISPLAY_OFF, (void*)0, 0));
+}
 
 /**
  * @brief Run the state machine
  *
  * @return Return code of the current state
  */
-errorCode_u SSD1306update() { return ((*state)()); }
+errorCode_u SSD1306update() {
+    return ((*state)());
+}
 
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
@@ -425,7 +431,9 @@ static errorCode_u stateConfiguring() {
  *
  * @return Success
  */
-errorCode_u stateIdle() { return (ERR_SUCCESS); }
+errorCode_u stateIdle() {
+    return (ERR_SUCCESS);
+}
 
 /**
  * @brief State in which data is sent to the screen
