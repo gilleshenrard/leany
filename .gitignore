@@ -59,18 +59,17 @@ Middlewares/
 .project
 mx.scratch
 Core/Inc/stm32_assert.h
-Core/Inc/adc.h
+Core/Inc/dma.h
 Core/Inc/gpio.h
-Core/Inc/tim.h
-Core/Inc/usart.h
+Core/Inc/iwdg.h
+Core/Inc/spi.h
 Core/Src/sys*
-Core/Src/adc.c
+Core/Src/dma.c
 Core/Src/gpio.c
-Core/Src/tim.c
-Core/Src/usart.c
+Core/Src/iwdg.c
+Core/Src/spi.c
 *_FLASH.ld
 startup_*.s
-*stm32g0xx_hal*
 *stm32f1xx_hal*
 
 #STM32CubeIDE
@@ -87,7 +86,6 @@ build/
 Core/Inc/FreeRTOSConfig.h
 Core/Src/app_freertos.c
 Core/Src/Freertos.c
-Core/Src/freertos.c
 
 #Doxygen outputs
 doxygen/
