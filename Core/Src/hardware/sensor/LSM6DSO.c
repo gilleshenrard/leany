@@ -248,6 +248,23 @@ int16_t getAngleDegreesTenths(axis_e axis) {
     return ((int16_t)angle);
 }
 
+/**
+ * @brief Set the measurements in relative mode and zero down the values
+ */
+void LSM6DSOzeroDown(void) {
+    zeroValues[X_AXIS] = -accelerometerValues[X_AXIS];
+    zeroValues[Y_AXIS] = -accelerometerValues[Y_AXIS];
+}
+
+/**
+ * @brief Set the measurements in absolute mode (no zeroing compensation)
+ */
+void LSM6DSOcancelZeroing(void) {
+    for(uint8_t axis = 0; axis < (uint8_t)NB_AXIS; axis++) {
+        zeroValues[axis] = 0;
+    }
+}
+
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
 

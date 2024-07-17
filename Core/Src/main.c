@@ -143,13 +143,13 @@ int main(void)
 
     //if zero button is pressed, zero down measurements
     if(buttonHasRisingEdge(ZERO)){
-//      ADXLzeroDown();
+     LSM6DSOzeroDown();
       SSD1306_printReferentialIcon(RELATIVE);
     }
 
     //if zero button is held down, get back to absolute measurements
     if(isButtonHeldDown(ZERO)){
-//      ADXLcancelZeroing();
+     LSM6DSOcancelZeroing();
       SSD1306_printReferentialIcon(ABSOLUTE);
     }
 
