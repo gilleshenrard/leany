@@ -2,7 +2,7 @@
  * @file LSM6DSO.c
  * @brief Implement the LSM6DSO MEMS sensor communication
  * @author Gilles Henrard
- * @date 04/05/2024
+ * @date 17/07/2024
  *
  * @note Additional information can be found in :
  *   - Datasheet : https://www.st.com/resource/en/datasheet/lsm6dso.pdf
@@ -11,8 +11,12 @@
  *   - DT0058 (Design tip) : https://www.st.com/resource/en/design_tip/dt0058-computing-tilt-measurement-and-tiltcompensated-ecompass-stmicroelectronics.pdf
  */
 #include "LSM6DSO.h"
+#include <stdint.h>
 #include "LSM6DSO_config_script.h"
 #include "LSM6DSO_registers.h"
+#include "errorstack.h"
+#include "stm32f103xb.h"
+#include "stm32f1xx_ll_spi.h"
 
 static const uint8_t  BOOT_TIME_MS   = 10U;
 static const uint8_t  SPI_TIMEOUT_MS = 10U;
@@ -97,12 +101,14 @@ static errorCode_u readRegisters(LSM6DSOregister_e firstRegister, uint8_t value[
     static const uint8_t SPI_RX_FILLER = 0xFFU;  ///< Value to send as a filler while receiving multiple bytes
 
     //if no bytes to read, success
-    if(!size)
+    if(!size) {
         return ERR_SUCCESS;
+    }
 
     //make sure neither the handle nor the buffer are NULL
-    if(!spiHandle || !value)
+    if(!spiHandle || !value) {
         return (createErrorCode(READ_REGISTERS, 1, ERR_CRITICAL));
+    }
 
     //set timeout timer and enable SPI
     lsm6dsoSPITimer_ms = SPI_TIMEOUT_MS;
@@ -111,7 +117,7 @@ static errorCode_u readRegisters(LSM6DSOregister_e firstRegister, uint8_t value[
 
     //send the read request and ignore the first byte received (reply to the write request)
     LL_SPI_TransmitData8(spiHandle, LSM6_READ | (uint8_t)firstRegister);
-    while((!LL_SPI_IsActiveFlag_RXNE(spiHandle)) && lsm6dsoSPITimer_ms);
+    while((!LL_SPI_IsActiveFlag_RXNE(spiHandle)) && lsm6dsoSPITimer_ms) {};
     *iterator = LL_SPI_ReceiveData8(spiHandle);
 
     //receive the bytes to read
@@ -120,7 +126,7 @@ static errorCode_u readRegisters(LSM6DSOregister_e firstRegister, uint8_t value[
         LL_SPI_TransmitData8(spiHandle, SPI_RX_FILLER);
 
         //wait for data to be available, and read it
-        while((!LL_SPI_IsActiveFlag_RXNE(spiHandle)) && lsm6dsoSPITimer_ms);
+        while((!LL_SPI_IsActiveFlag_RXNE(spiHandle)) && lsm6dsoSPITimer_ms) {};
         *iterator = LL_SPI_ReceiveData8(spiHandle);
 
         iterator++;
@@ -128,15 +134,16 @@ static errorCode_u readRegisters(LSM6DSOregister_e firstRegister, uint8_t value[
     } while(size && lsm6dsoSPITimer_ms);
 
     //wait for transaction to be finished and clear Overrun flag
-    while(LL_SPI_IsActiveFlag_BSY(spiHandle) && lsm6dsoSPITimer_ms);
+    while(LL_SPI_IsActiveFlag_BSY(spiHandle) && lsm6dsoSPITimer_ms) {};
     LL_SPI_ClearFlag_OVR(spiHandle);
 
     //disable SPI
     LL_SPI_Disable(spiHandle);
 
     //if timeout, error
-    if(!lsm6dsoSPITimer_ms)
+    if(!lsm6dsoSPITimer_ms) {
         return (createErrorCode(READ_REGISTERS, 2, ERR_WARNING));
+    }
 
     return (ERR_SUCCESS);
 }
@@ -153,12 +160,14 @@ static errorCode_u readRegisters(LSM6DSOregister_e firstRegister, uint8_t value[
  */
 static errorCode_u writeRegister(LSM6DSOregister_e registerNumber, uint8_t value) {
     //if handle not specified, error
-    if(!spiHandle)
+    if(!spiHandle) {
         return (createErrorCode(WRITE_REGISTER, 1, ERR_WARNING));
+    }
 
     //if register number above known or within the reserved range, error
-    if(registerNumber > MAX_REGISTER)
+    if(registerNumber > MAX_REGISTER) {
         return (createErrorCode(WRITE_REGISTER, 2, ERR_WARNING));
+    }
 
     //set timeout timer and enable SPI
     lsm6dsoSPITimer_ms = SPI_TIMEOUT_MS;
@@ -168,20 +177,22 @@ static errorCode_u writeRegister(LSM6DSOregister_e registerNumber, uint8_t value
     LL_SPI_TransmitData8(spiHandle, LSM6_WRITE | (uint8_t)registerNumber);
 
     //wait for TX buffer to be ready and send value to write
-    while(!LL_SPI_IsActiveFlag_TXE(spiHandle) && lsm6dsoSPITimer_ms);
-    if(lsm6dsoSPITimer_ms)
+    while(!LL_SPI_IsActiveFlag_TXE(spiHandle) && lsm6dsoSPITimer_ms) {};
+    if(lsm6dsoSPITimer_ms) {
         LL_SPI_TransmitData8(spiHandle, value);
+    }
 
     //wait for transaction to be finished and clear Overrun flag
-    while(LL_SPI_IsActiveFlag_BSY(spiHandle) && lsm6dsoSPITimer_ms);
+    while(LL_SPI_IsActiveFlag_BSY(spiHandle) && lsm6dsoSPITimer_ms) {};
     LL_SPI_ClearFlag_OVR(spiHandle);
 
     //disable SPI
     LL_SPI_Disable(spiHandle);
 
     //if timeout, error
-    if(!lsm6dsoSPITimer_ms)
+    if(!lsm6dsoSPITimer_ms) {
         return (createErrorCode(WRITE_REGISTER, 3, ERR_WARNING));
+    }
 
     return (ERR_SUCCESS);
 }
@@ -235,12 +246,14 @@ static errorCode_u stateWaitingDeviceID() {
 
     //if unable to read device ID, error
     result = readRegisters(WHO_AM_I, &deviceID, 1);
-    if(isError(result))
+    if(isError(result)) {
         return (pushErrorCode(result, CHECK_DEVICE_ID, 2));
+    }
 
     //if invalid device ID, exit
-    if(deviceID != LSM6_WHOAMI)
+    if(deviceID != LSM6_WHOAMI) {
         return (ERR_SUCCESS);
+    }
 
     //reset timeout timer and get to next state
     state = stateConfiguring;
@@ -280,8 +293,9 @@ static errorCode_u stateConfiguring() {
  */
 static errorCode_u stateMeasuring() {
     //if timer not elapsed, exit
-    if(lsm6dsoTimer_ms)
+    if(lsm6dsoTimer_ms) {
         return (ERR_SUCCESS);
+    }
 
     //reset the timer
     lsm6dsoTimer_ms = SPI_TIMEOUT_MS;
