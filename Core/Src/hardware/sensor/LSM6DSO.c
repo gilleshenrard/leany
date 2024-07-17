@@ -261,7 +261,7 @@ int16_t getAngleDegreesTenths(axis_e axis) {
     //	transform radians to 0.1 degrees and return result
     //	formula : degrees_tenths = (arctan(axis/Z) * 180° * 10) / PI
     static const float INVERSE_PI                = 0.318309886F;
-    static const float RADIANS_TO_DEGREES_TENTHS = 1800.0F * 10.0F * INVERSE_PI;
+    static const float RADIANS_TO_DEGREES_TENTHS = 180.0F * 10.0F * INVERSE_PI;
     angle *= RADIANS_TO_DEGREES_TENTHS;
     return ((int16_t)angle);
 }
