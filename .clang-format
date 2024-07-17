@@ -6,11 +6,12 @@ ColumnLimit: 120
 ReflowComments: false
 IncludeBlocks: Merge
 AlignArrayOfStructures: Right
-AllowShortEnumsOnASingleLine: false
 AlignConsecutiveDeclarations: Consecutive
 AlignConsecutiveAssignments: Consecutive
 AlignConsecutiveBitFields: Consecutive
 InsertNewlineAtEOF: true
+AllowShortFunctionsOnASingleLine: None
+AllowShortEnumsOnASingleLine: false
 AllowShortBlocksOnASingleLine: Empty
 AllowShortIfStatementsOnASingleLine: Never
 BreakBeforeBinaryOperators: NonAssignment
