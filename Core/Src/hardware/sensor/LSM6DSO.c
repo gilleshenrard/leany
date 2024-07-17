@@ -11,6 +11,7 @@
  *   - DT0058 (Design tip) : https://www.st.com/resource/en/design_tip/dt0058-computing-tilt-measurement-and-tiltcompensated-ecompass-stmicroelectronics.pdf
  */
 #include "LSM6DSO.h"
+#include <math.h>
 #include <stdint.h>
 #include "LSM6DSO_config_script.h"
 #include "LSM6DSO_registers.h"
@@ -61,6 +62,7 @@ static SPI_TypeDef* spiHandle = (void*)0;          ///< SPI handle used by the L
 static lsm6dsoState state     = stateWaitingBoot;  ///< State machine current state
 static errorCode_u  result;                        ///< Variables used to store error codes
 int16_t             accelerometerValues[NB_AXIS];
+static int32_t      zeroValues[NB_AXIS];
 int16_t             gyroscopeValues[NB_AXIS];
 
 /********************************************************************************************************************************************/
@@ -206,6 +208,44 @@ static errorCode_u writeRegister(LSM6DSOregister_e registerNumber, uint8_t value
 static inline int16_t twoComplement(const uint8_t bytes[2]) {
     static const uint8_t BYTE_SHIFT = 8U;
     return (int16_t)((uint16_t)((uint16_t)bytes[1] << BYTE_SHIFT) | bytes[0]);
+}
+
+/**
+ * @brief Check if angle measurements have changed
+ *
+ * @retval 0 No new values available
+ * @retval 1 New values are available
+ */
+uint8_t LSM6DSOhasChanged(axis_e axis) {
+    static int16_t previousAccelerometerValues[NB_AXIS] = {0};
+
+    uint8_t tmp                       = (accelerometerValues[axis] != previousAccelerometerValues[axis]);
+    previousAccelerometerValues[axis] = accelerometerValues[axis];
+
+    return (tmp);
+}
+
+/**
+ * @brief Transpose a measurement to an angle in tenths of degrees with the Z axis
+ *
+ * @param axis Axis for which get the angle with the Z axis
+ * @return Angle with the Z axis
+ */
+int16_t getAngleDegreesTenths(axis_e axis) {
+    static const float   INVERSE_PI                = 0.318309886F;
+    static const int16_t RIGHT_ANGLE_DEGREES       = 90;
+    static const float   RADIANS_TO_DEGREES_TENTHS = 180.0F * 10.0F * INVERSE_PI;
+
+    if(!accelerometerValues[Z_AXIS]) {
+        return (RIGHT_ANGLE_DEGREES);
+    }
+
+    //compute the angle between Z axis and the requested one
+    //	then transform radians to 0.1 degrees
+    //	formula : degrees_tenths = (arctan(axis/Z) * 180° * 10) / PI
+    float angle = atanf((float)(accelerometerValues[axis] + zeroValues[axis]) / (float)accelerometerValues[Z_AXIS]);
+    angle *= RADIANS_TO_DEGREES_TENTHS;
+    return ((int16_t)angle);
 }
 
 /********************************************************************************************************************************************/

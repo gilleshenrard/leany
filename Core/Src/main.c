@@ -1,4 +1,5 @@
 /* USER CODE BEGIN Header */
+// clang-format off
 /**
   ******************************************************************************
   * @file           : main.c
@@ -127,13 +128,15 @@ int main(void)
 
 	  //update the MEMS sensor state machine
 	  result = LSM6DSOupdate();
-	  if(isError(result))
+	  if(isError(result)){
 		  result.moduleID = 1;
+    }
 
 	  //update the screen state machine
 	  result = SSD1306update();
-	  if(isError(result))
+	  if(isError(result)){
 		  result.moduleID = 2;
+    }
 
     //update the buttons' state machines
     buttonsUpdate();
@@ -160,15 +163,16 @@ int main(void)
       SSD1306_turnDisplayOFF();
       powerOFF();
     }
-/*
+
 	  //if X axis angle changed, update the screen
-	  if(isScreenReady() && ADXL345hasChanged(X_AXIS) && !holdingValues)
+	  if(isScreenReady() && LSM6DSOhasChanged(X_AXIS) && !holdingValues){
 		  SSD1306_printAngleTenths(getAngleDegreesTenths(X_AXIS), ROLL);
+    }
 
 	  //if Y axis angle changed, update the screen
-	  if(isScreenReady() && ADXL345hasChanged(Y_AXIS) && !holdingValues)
+	  if(isScreenReady() && LSM6DSOhasChanged(Y_AXIS) && !holdingValues){
 		  SSD1306_printAngleTenths(getAngleDegreesTenths(Y_AXIS), PITCH);
-*/
+    }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
