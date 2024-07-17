@@ -232,18 +232,36 @@ uint8_t LSM6DSOhasChanged(axis_e axis) {
  * @return Angle with the Z axis
  */
 int16_t getAngleDegreesTenths(axis_e axis) {
-    static const float   INVERSE_PI                = 0.318309886F;
-    static const int16_t RIGHT_ANGLE_DEGREES       = 90;
-    static const float   RADIANS_TO_DEGREES_TENTHS = 180.0F * 10.0F * INVERSE_PI;
+    static const int16_t RIGHT_ANGLE_DEGREES = 90;
+    float                angle               = 0.0F;
 
+    //avoid dividing by zero
     if(!accelerometerValues[Z_AXIS]) {
         return (RIGHT_ANGLE_DEGREES);
     }
 
-    //compute the angle between Z axis and the requested one
-    //	then transform radians to 0.1 degrees
+    //compute the estimate accelerometer angles (in radians)
+    switch(axis) {
+        case X_AXIS:
+            angle =
+                asinf((float)(accelerometerValues[X_AXIS] + zeroValues[X_AXIS]) / (float)accelerometerValues[Z_AXIS]);
+            break;
+
+        case Y_AXIS:
+            angle =
+                atanf((float)(accelerometerValues[Y_AXIS] + zeroValues[Y_AXIS]) / (float)accelerometerValues[Z_AXIS]);
+            break;
+
+        case Z_AXIS:
+        case NB_AXIS:
+        default:
+            break;
+    }
+
+    //	transform radians to 0.1 degrees and return result
     //	formula : degrees_tenths = (arctan(axis/Z) * 180° * 10) / PI
-    float angle = atanf((float)(accelerometerValues[axis] + zeroValues[axis]) / (float)accelerometerValues[Z_AXIS]);
+    static const float INVERSE_PI                = 0.318309886F;
+    static const float RADIANS_TO_DEGREES_TENTHS = 1800.0F * 10.0F * INVERSE_PI;
     angle *= RADIANS_TO_DEGREES_TENTHS;
     return ((int16_t)angle);
 }
