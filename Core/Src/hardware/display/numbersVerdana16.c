@@ -21,7 +21,9 @@
  * 5. Encase each character bitmap in its own array (preferably marked with an index)
  * 6. Reorganise elements so that numbers are first (to match index values)
  */
+// clang-format off
 #include "numbersVerdana16.h"
+#include <stdint.h>
 
 /**
  * @brief Verdana 16 bitmaps
