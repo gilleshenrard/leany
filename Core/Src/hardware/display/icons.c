@@ -1,3 +1,4 @@
+// clang-format off
 #include "icons.h"
 
 const uint8_t arrowsIcon_32px[ARROWSICON_NB_BYTES] = {
