@@ -2,7 +2,7 @@
  * @file LSM6DSO_config_script.c
  * @brief Declare an array with all the registers and values to be sent sequentially to configure the LSM6DSO
  * @author Gilles Henrard
- * @date 04/05/2024
+ * @date 18/07/2024
  *
  * @note Additional information can be found in :
  *   - Datasheet : https://www.st.com/resource/en/datasheet/lsm6dso.pdf
@@ -11,6 +11,7 @@
  *   - DT0058 (Design tip) : https://www.st.com/resource/en/design_tip/dt0058-computing-tilt-measurement-and-tiltcompensated-ecompass-stmicroelectronics.pdf
  */
 #include "LSM6DSO_config_script.h"
+#include "LSM6DSO_registers.h"
 
 const registerValue_t initialisationArray[NB_INIT_REG] = {
     {CTRL1_XL, LSM6_ODR_416HZ}, //set the accelerometer in high-performance mode
