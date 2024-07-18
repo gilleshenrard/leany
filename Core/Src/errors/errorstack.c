@@ -54,8 +54,10 @@ static const uint32_t SUCCESS_VALUE     = 0x00000000UL;  ///< Value assigned to 
 static const uint8_t  LAYER0CODE_OFFSET = 12U;           ///< Number of bits to shift a code to reach the layer 0
 static const uint8_t  FUNCTIONID_OFFSET = 16U;           ///< Number of bits to shift an ID to reach the function ID
 static const uint8_t  LEVEL_OFFSET      = 30U;           ///< Number of bits to shift an level to reach the level field
-static const uint8_t  FUNCTIONID_CLAMP  = 0x7FU;  ///< Value used to clamp function ID arguments to the proper number of bits
-static const uint8_t  ERRORCODE_CLAMP   = 0x0FU;  ///< Value used to clamp error code arguments to the proper number of bits
+static const uint8_t  FUNCTIONID_CLAMP =
+    0x7FU;  ///< Value used to clamp function ID arguments to the proper number of bits
+static const uint8_t ERRORCODE_CLAMP =
+    0x0FU;  ///< Value used to clamp error code arguments to the proper number of bits
 
 //global variables
 const errorCode_u ERR_SUCCESS = {.dword = SUCCESS_VALUE};  ///< Variable used as a success code
@@ -137,7 +139,7 @@ errorCode_u pushErrorCode(errorCode_u oldCode, uint8_t functionID, uint8_t newEr
     //shift the code stack and push a new code
     //	(code already in layer 3 is lost)
     newErrorStack >>= ERR_LAYER_NBBITS;
-    newErrorStack  |= ((uint32_t)(newError & ERRORCODE_CLAMP) << LAYER0CODE_OFFSET);
+    newErrorStack |= ((uint32_t)(newError & ERRORCODE_CLAMP) << LAYER0CODE_OFFSET);
 
     //erase the codes stack and replace it with the new one
     oldCode.dword &= CODESTACK_MASK;
