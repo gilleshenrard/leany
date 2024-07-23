@@ -9,6 +9,10 @@ AlignArrayOfStructures: Right
 AlignConsecutiveDeclarations: Consecutive
 AlignConsecutiveAssignments: Consecutive
 AlignConsecutiveBitFields: Consecutive
+AlignConsecutiveMacros:
+  Enabled: true
+  AcrossEmptyLines: true
+  AcrossComments: false
 InsertNewlineAtEOF: true
 AllowShortFunctionsOnASingleLine: None
 AllowShortEnumsOnASingleLine: false
