@@ -1,4 +1,5 @@
 /* USER CODE BEGIN Header */
+// clang-format off
 /**
   ******************************************************************************
   * @file    stm32f1xx_it.c
@@ -186,30 +187,38 @@ void PendSV_Handler(void)
 void SysTick_Handler(void)
 {
   /* USER CODE BEGIN SysTick_IRQn 0 */
-  if(lsm6dsoTimer_ms)
+  if(lsm6dsoTimer_ms){
     lsm6dsoTimer_ms = lsm6dsoTimer_ms - 1;
+  }
 
-  if(lsm6dsoSPITimer_ms)
+  if(lsm6dsoSPITimer_ms){
     lsm6dsoSPITimer_ms = lsm6dsoSPITimer_ms - 1;
+  }
 
-	if(screenTimer_ms)
+	if(screenTimer_ms){
 		screenTimer_ms = screenTimer_ms - 1;
+  }
 
-  if(ssd1306SPITimer_ms)
+  if(ssd1306SPITimer_ms){
     ssd1306SPITimer_ms = ssd1306SPITimer_ms - 1;
+  }
 
   for(uint8_t i = 0 ; i < NB_BUTTONS ; i++){
-    if(buttonsTimers[i].debouncing_ms)
+    if(buttonsTimers[i].debouncing_ms){
       buttonsTimers[i].debouncing_ms = buttonsTimers[i].debouncing_ms - 1;
+    }
 
-    if(buttonsTimers[i].holding_ms)
+    if(buttonsTimers[i].holding_ms){
       buttonsTimers[i].holding_ms = buttonsTimers[i].holding_ms - 1;
+    }
 
-    if(buttonsTimers[i].risingEdge_ms)
+    if(buttonsTimers[i].risingEdge_ms){
       buttonsTimers[i].risingEdge_ms = buttonsTimers[i].risingEdge_ms - 1;
+    }
 
-    if(buttonsTimers[i].fallingEdge_ms)
+    if(buttonsTimers[i].fallingEdge_ms){
       buttonsTimers[i].fallingEdge_ms = buttonsTimers[i].fallingEdge_ms - 1;
+    }
   }
   /* USER CODE END SysTick_IRQn 0 */
   /* USER CODE BEGIN SysTick_IRQn 1 */
