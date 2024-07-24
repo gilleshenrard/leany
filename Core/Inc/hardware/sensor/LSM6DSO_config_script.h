@@ -9,9 +9,10 @@
  * @brief Structure representing a value to write at a specific register
  */
 typedef struct {
-    LSM6DSOregister_e   registerID; ///< Register ID to which write the value
-    uint8_t             value;      ///< Value to write
-}registerValue_t;
+    LSM6DSOregister_e registerID;  ///< Register ID to which write the value
+    uint8_t           value;       ///< Value to write
+} registerValue_t;
 
-extern const registerValue_t initialisationArray[NB_INIT_REG];      ///< Array of values to write sequentially to specific registers at initialisation
+extern const registerValue_t initialisationArray
+    [NB_INIT_REG];  ///< Array of values to write sequentially to specific registers at initialisation
 #endif
