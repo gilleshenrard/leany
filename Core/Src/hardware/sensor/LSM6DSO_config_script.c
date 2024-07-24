@@ -14,9 +14,9 @@
 #include "LSM6DSO_registers.h"
 
 const registerValue_t initialisationArray[NB_INIT_REG] = {
-    {   CTRL3_C, LSM6_REBOOT_MEMORY | LSM6_SOFTWARE_RESET}, //reboot MEMS memory and reset software
-    { INT1_CTRL,                        INT1_AXL_DATA_RDY}, //enable the accelerometer DATA READY interrupt on INT1
-    {FIFO_CTRL4,                         FIFO_MODE_BYPASS}, //disable the FIFO (bypass mode)
-    {  CTRL1_XL,                           LSM6_ODR_416HZ}, //set the accelerometer in high-performance mode
-    {   CTRL2_G,                           LSM6_ODR_416HZ}, //set the gyroscope in high-performance mode
+    {   CTRL3_C, LSM6_REBOOT_MEMORY | LSM6_SOFTWARE_RESET | LSM6_INT_ACTIVE_LOW}, //reboot MEMS memory and reset software
+    { INT1_CTRL,                                              INT1_AXL_DATA_RDY}, //enable the accelerometer DATA READY interrupt on INT1
+    {FIFO_CTRL4,                                               FIFO_MODE_BYPASS}, //disable the FIFO (bypass mode)
+    {  CTRL1_XL,                                                 LSM6_ODR_416HZ}, //set the accelerometer in high-performance mode
+    {   CTRL2_G,                                                 LSM6_ODR_416HZ}, //set the gyroscope in high-performance mode
 };
