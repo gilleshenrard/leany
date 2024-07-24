@@ -24,6 +24,26 @@
 #define LSM6_INT_ACTIVE_LOW 0x20U  ///< Bit value to set interrupts as active low (falling-edge)
 #define LSM6_SOFTWARE_RESET 0x01U  ///< Bit value to reset the LSM6DSO software
 
+// Control register 4 (0x13) values
+#define GYR_LPF1_ENABLE 0x02U  ///< Bit value to enable gyroscope LP1 filter
+
+// Control register 6 (0x15) values (valid with gyroscope 416Hz ODR)
+#define GYR_LPF1_CUTOFF_136_6HZ 0x00U  ///< Bit value to set gyroscope LPF1 cutoff freq. to 136.6Hz
+#define GYR_LPF1_CUTOFF_130_5HZ 0x01U  ///< Bit value to set gyroscope LPF1 cutoff freq. to 130.5Hz
+#define GYR_LPF1_CUTOFF_120_3HZ 0x02U  ///< Bit value to set gyroscope LPF1 cutoff freq. to 120.3Hz
+#define GYR_LPF1_CUTOFF_137_1HZ 0x03U  ///< Bit value to set gyroscope LPF1 cutoff freq. to 137.1Hz
+#define GYR_LPF1_CUTOFF_86_7HZ  0x04U  ///< Bit value to set gyroscope LPF1 cutoff freq. to 86.7Hz
+#define GYR_LPF1_CUTOFF_48HZ    0x05U  ///< Bit value to set gyroscope LPF1 cutoff freq. to 48Hz
+#define GYR_LPF1_CUTOFF_24_6HZ  0x06U  ///< Bit value to set gyroscope LPF1 cutoff freq. to 24.6Hz
+#define GYR_LPF1_CUTOFF_12_4HZ  0x07U  ///< Bit value to set gyroscope LPF1 cutoff freq. to 12.4Hz
+
+// Control register 7 (0x16) values
+#define GYR_HPF_ENABLE         0x40U  ///< Bit value to enable gyroscope HPF
+#define GYR_HPF_CUTOFF_16MHZ   0x00U  ///< Bit value to set gyroscope HPF cutoff freq. to 16mHz
+#define GYR_HPF_CUTOFF_65MHZ   0x10U  ///< Bit value to set gyroscope HPF cutoff freq. to 65mHz
+#define GYR_HPF_CUTOFF_260MHZ  0x20U  ///< Bit value to set gyroscope HPF cutoff freq. to 260mHz
+#define GYR_HPF_CUTOFF_1040MHZ 0x30U  ///< Bit value to set gyroscope HPF cutoff freq. to 1040mHz
+
 // Control register 8 (0x17) values
 #define AXL_NO_HP_FILTER 0x00U  ///< Bit value to disable the accelerometers HP filter
 #define AXL_LPF2_ODR_4   0x00U  ///< Bit value to set the accelerometer's LP filter 2 cutoff value to ODR/4

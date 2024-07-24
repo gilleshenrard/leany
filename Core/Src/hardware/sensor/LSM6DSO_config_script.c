@@ -19,5 +19,8 @@ const registerValue_t initialisationArray[NB_INIT_REG] = {
     { INT1_CTRL,                                              INT1_AXL_DATA_RDY}, //enable the accelerometer DATA READY interrupt on INT1
     {  CTRL8_XL,                              AXL_NO_HP_FILTER | AXL_LPF2_ODR_4}, //disable accererometer HP filter and set LP2 cutoff to ODR/4
     {  CTRL1_XL,                          LSM6_ODR_416HZ | LSM6_AXL_LPF2_ENABLE}, //set the accelerometer in high-performance mode + enable LPF 2
+    {   CTRL7_G,                          GYR_HPF_ENABLE | GYR_HPF_CUTOFF_65MHZ}, //enable the gyroscope HP filter with a 16mHz cutoff frequency
+    {   CTRL4_C,                                                GYR_LPF1_ENABLE}, //enable the gyroscope LP1 filter
+    {   CTRL6_C,                                        GYR_LPF1_CUTOFF_120_3HZ}, //set the gyroscope LPF1 cutoff frequency to 136.6Hz
     {   CTRL2_G,                                                 LSM6_ODR_416HZ}, //set the gyroscope in high-performance mode
 };
