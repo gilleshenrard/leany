@@ -409,6 +409,13 @@ errorCode_u stateIgnoringSamples() {
  * @retval 1 Error while reading the status register value
  */
 static errorCode_u stateMeasuring() {
+    static const uint8_t GYR_X_INDEX = 0U;
+    static const uint8_t GYR_Y_INDEX = 2U;
+    static const uint8_t GYR_Z_INDEX = 4U;
+    static const uint8_t ACC_X_INDEX = 6U;
+    static const uint8_t ACC_Y_INDEX = 8U;
+    static const uint8_t ACC_Z_INDEX = 10U;
+
     //if no interrupt occurred, exit
     if(!lsm6dsoDataReady) {
         return (ERR_SUCCESS);
@@ -417,7 +424,7 @@ static errorCode_u stateMeasuring() {
     //reset the interrupt flag
     lsm6dsoDataReady = 0;
 
-    //declare the measurements buffer
+    //read all accelerometer/gyroscope values (they are synchronised, as stated in AN5192, section 3)
     uint8_t buffer[LSM6_NB_OUT_REGISTERS];
     result = readRegisters(OUTX_L_G, buffer, LSM6_NB_OUT_REGISTERS);
     if(isError(result)) {
@@ -425,12 +432,12 @@ static errorCode_u stateMeasuring() {
         return (pushErrorCode(result, MEASURING, 2));
     }
 
-    gyroscopeValues[X_AXIS]     = twoComplement(&buffer[0]);
-    gyroscopeValues[Y_AXIS]     = twoComplement(&buffer[2]);
-    gyroscopeValues[Z_AXIS]     = twoComplement(&buffer[4]);
-    accelerometerValues[X_AXIS] = twoComplement(&buffer[6]);
-    accelerometerValues[Y_AXIS] = twoComplement(&buffer[8]);
-    accelerometerValues[Z_AXIS] = twoComplement(&buffer[10]);
+    gyroscopeValues[X_AXIS]     = twoComplement(&buffer[GYR_X_INDEX]);
+    gyroscopeValues[Y_AXIS]     = twoComplement(&buffer[GYR_Y_INDEX]);
+    gyroscopeValues[Z_AXIS]     = twoComplement(&buffer[GYR_Z_INDEX]);
+    accelerometerValues[X_AXIS] = twoComplement(&buffer[ACC_X_INDEX]);
+    accelerometerValues[Y_AXIS] = twoComplement(&buffer[ACC_Y_INDEX]);
+    accelerometerValues[Z_AXIS] = twoComplement(&buffer[ACC_Z_INDEX]);
 
     return (ERR_SUCCESS);
 }
