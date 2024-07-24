@@ -3,7 +3,7 @@
 
 #define LSM6_WRITE            0x00U  ///< Address byte value for a write operation
 #define LSM6_READ             0x80U  ///< Address byte value for a read operation
-#define LSM6_NB_OUT_REGISTERS 6U     ///< Number of output data registers for the accelerometer and the gyroscope
+#define LSM6_NB_OUT_REGISTERS 12U    ///< Number of output data registers for the accelerometer and the gyroscope
 
 // FIFO control register 4 (0x0A) values
 #define FIFO_MODE_BYPASS 0x00U  ///< Bit value to disable the FIFO
