@@ -2,7 +2,7 @@
  * @file LSM6DSO.c
  * @brief Implement the LSM6DSO MEMS sensor communication
  * @author Gilles Henrard
- * @date 17/07/2024
+ * @date 24/07/2024
  *
  * @note Additional information can be found in :
  *   - Datasheet : https://www.st.com/resource/en/datasheet/lsm6dso.pdf
@@ -56,15 +56,15 @@ static inline int16_t twoComplement(const uint8_t bytes[2]);
 //global variables
 volatile uint16_t lsm6dsoTimer_ms    = BOOT_TIME_MS;  ///< Timer used in various states of the LSM6DSO (in ms)
 volatile uint16_t lsm6dsoSPITimer_ms = 0;             ///< Timer used to make sure SPI does not time out (in ms)
-volatile uint8_t  lsm6dsoDataReady   = 0;
+volatile uint8_t  lsm6dsoDataReady   = 0;             ///< Flag indicating a data-ready interrupt occurred
 
 //state variables
 static SPI_TypeDef* spiHandle = (void*)0;          ///< SPI handle used by the LSM6DSO device
 static lsm6dsoState state     = stateWaitingBoot;  ///< State machine current state
 static errorCode_u  result;                        ///< Variables used to store error codes
-int16_t             accelerometerValues[NB_AXIS];
-static int32_t      zeroValues[NB_AXIS];
-int16_t             gyroscopeValues[NB_AXIS];
+int16_t             accelerometerValues[NB_AXIS];  ///< Array of latest accelerometer values (temporarily global)
+static int32_t      zeroValues[NB_AXIS];           ///< Array of accelerometer values at time of zeroing
+int16_t             gyroscopeValues[NB_AXIS];      ///< Array of latest gyroscope values (temporarily global)
 
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
