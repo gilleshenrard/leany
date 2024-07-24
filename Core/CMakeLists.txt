@@ -66,8 +66,7 @@ target_compile_options(errorStack PUBLIC ${WARNING_FLAGS})
 
 #create the LSM6DSO library, taking care of the MEMS sensor
 add_library(lsm6dso
-	Src/hardware/sensor/LSM6DSO.c
-	Src/hardware/sensor/LSM6DSO_config_script.c)
+	Src/hardware/sensor/LSM6DSO.c)
 target_include_directories(lsm6dso PUBLIC Inc/hardware/sensor)
 target_link_libraries(lsm6dso PRIVATE errorStack)
 
