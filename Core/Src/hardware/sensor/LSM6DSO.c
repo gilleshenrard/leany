@@ -19,9 +19,9 @@
 #include "stm32f103xb.h"
 #include "stm32f1xx_ll_spi.h"
 
-static const uint8_t  BOOT_TIME_MS   = 10U;
-static const uint8_t  SPI_TIMEOUT_MS = 10U;
-static const uint16_t TIMEOUT_MS     = 1000U;
+static const uint8_t  BOOT_TIME_MS   = 10U;    ///< Number of milliseconds to wait for the MEMS to boot
+static const uint8_t  SPI_TIMEOUT_MS = 10U;    ///< Number of milliseconds beyond which SPI is in timeout
+static const uint16_t TIMEOUT_MS     = 1000U;  ///< Max number of milliseconds to wait for the device ID
 
 /**
  * @brief Enumeration of all the function ID used in errors
@@ -31,6 +31,7 @@ typedef enum {
     WRITE_REGISTER,      ///< writeRegister() function
     CHECK_DEVICE_ID,     ///< stateWaitingDeviceID() state
     CONFIGURING,         ///< stateConfiguring() state
+    DROPPING,            ///< stateIgnoringSamples() state
     MEASURING,           ///< stMeasuring() state
 } LSM6DSOfunction_e;
 
@@ -45,6 +46,7 @@ typedef errorCode_u (*lsm6dsoState)();
 static errorCode_u stateWaitingBoot();
 static errorCode_u stateWaitingDeviceID();
 static errorCode_u stateConfiguring();
+static errorCode_u stateIgnoringSamples();
 static errorCode_u stateMeasuring();
 static errorCode_u stateError();
 
@@ -59,12 +61,13 @@ volatile uint16_t lsm6dsoSPITimer_ms = 0;             ///< Timer used to make su
 volatile uint8_t  lsm6dsoDataReady   = 0;             ///< Flag indicating a data-ready interrupt occurred
 
 //state variables
-static SPI_TypeDef* spiHandle = (void*)0;          ///< SPI handle used by the LSM6DSO device
-static lsm6dsoState state     = stateWaitingBoot;  ///< State machine current state
-static errorCode_u  result;                        ///< Variables used to store error codes
-int16_t             accelerometerValues[NB_AXIS];  ///< Array of latest accelerometer values (temporarily global)
-static int32_t      zeroValues[NB_AXIS];           ///< Array of accelerometer values at time of zeroing
-int16_t             gyroscopeValues[NB_AXIS];      ///< Array of latest gyroscope values (temporarily global)
+static SPI_TypeDef* spiHandle                   = (void*)0;          ///< SPI handle used by the LSM6DSO device
+static lsm6dsoState state                       = stateWaitingBoot;  ///< State machine current state
+static uint8_t     accelerometerSamplesToIgnore = 0;  ///< Number of samples to ignore after change of ODR or power mode
+static errorCode_u result;                            ///< Variables used to store error codes
+int16_t            accelerometerValues[NB_AXIS];      ///< Array of latest accelerometer values (temporarily global)
+static int32_t     zeroValues[NB_AXIS];               ///< Array of accelerometer values at time of zeroing
+int16_t            gyroscopeValues[NB_AXIS];          ///< Array of latest gyroscope values (temporarily global)
 
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
@@ -343,7 +346,8 @@ static errorCode_u stateWaitingDeviceID() {
  * @retval 1 Error while writing a register
  */
 static errorCode_u stateConfiguring() {
-    const registerValue_t* iterator = initialisationArray;
+    static const uint8_t   AXL_SAMPLES_TO_IGNORE = 2U;  ///< Number of samples to drop (see stateIgnoringSamples())
+    const registerValue_t* iterator              = initialisationArray;
 
     //write all registers values from the initialisation array
     for(uint8_t i = 0; i < NB_INIT_REG; i++) {
@@ -356,6 +360,44 @@ static errorCode_u stateConfiguring() {
         iterator++;
     }
 
+    //set the number of samples to ignore after changing ODR and power mode
+    accelerometerSamplesToIgnore = AXL_SAMPLES_TO_IGNORE;
+
+    state = stateIgnoringSamples;
+    return (ERR_SUCCESS);
+}
+
+/**
+ * @brief State in which the first few samples measured are dropped
+ * @note This is recommended in the document AN5192, Table 12
+ * 
+ * @retval 0 Success
+ * @retval 1 Error while reading a register
+ */
+errorCode_u stateIgnoringSamples() {
+    //if no interrupt occurred, exit
+    if(!lsm6dsoDataReady) {
+        return (ERR_SUCCESS);
+    }
+
+    //reset the interrupt flag
+    lsm6dsoDataReady = 0;
+
+    //read an accelerometer value to reset the latched interrupt
+    uint8_t dummyValue = 0;
+    result             = readRegisters(OUTX_H_A, &dummyValue, 1);
+    if(isError(result)) {
+        state = stateError;
+        return (pushErrorCode(result, DROPPING, 1));
+    }
+
+    //decrement the remaining amount to ignore and exit if still remaining
+    accelerometerSamplesToIgnore--;
+    if(accelerometerSamplesToIgnore) {
+        return (ERR_SUCCESS);
+    }
+
+    //get to measuring state
     state = stateMeasuring;
     return (ERR_SUCCESS);
 }
