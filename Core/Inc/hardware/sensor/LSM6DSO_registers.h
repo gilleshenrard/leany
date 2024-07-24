@@ -15,13 +15,25 @@
 #define LSM6_WHOAMI 0x6CU  ///< Who Am I constant value
 
 // Accelerometer Control register (0x10) values
-#define LSM6_POWER_DOWN 0x00U  ///< Accelerometer/gyroscope ODR value for power-down
-#define LSM6_ODR_416HZ  0x60U  ///< Accelerometer/gyroscope ODR value for 416Hz High-Performance
+#define LSM6_POWER_DOWN      0x00U  ///< Accelerometer/gyroscope ODR value for power-down
+#define LSM6_ODR_416HZ       0x60U  ///< Accelerometer/gyroscope ODR value for 416Hz High-Performance
+#define LSM6_AXL_LPF2_ENABLE 0x02U  ///< Bit value to enable the accelerometers LP filter 2
 
 // Control register 3 (0x12) values
 #define LSM6_REBOOT_MEMORY  0x80U  ///< Bit value to reboot the LSM6DSO memory
 #define LSM6_INT_ACTIVE_LOW 0x20U  ///< Bit value to set interrupts as active low (falling-edge)
 #define LSM6_SOFTWARE_RESET 0x01U  ///< Bit value to reset the LSM6DSO software
+
+// Control register 8 (0x17) values
+#define AXL_NO_HP_FILTER 0x00U  ///< Bit value to disable the accelerometers HP filter
+#define AXL_LPF2_ODR_4   0x00U  ///< Bit value to set the accelerometer's LP filter 2 cutoff value to ODR/4
+#define AXL_LPF2_ODR_10  0x20U  ///< Bit value to set the accelerometer's LP filter 2 cutoff value to ODR/10
+#define AXL_LPF2_ODR_20  0x40U  ///< Bit value to set the accelerometer's LP filter 2 cutoff value to ODR/20
+#define AXL_LPF2_ODR_45  0x60U  ///< Bit value to set the accelerometer's LP filter 2 cutoff value to ODR/45
+#define AXL_LPF2_ODR_100 0x80U  ///< Bit value to set the accelerometer's LP filter 2 cutoff value to ODR/100
+#define AXL_LPF2_ODR_200 0xA0U  ///< Bit value to set the accelerometer's LP filter 2 cutoff value to ODR/200
+#define AXL_LPF2_ODR_400 0xC0U  ///< Bit value to set the accelerometer's LP filter 2 cutoff value to ODR/400
+#define AXL_LPF2_ODR_800 0xE0U  ///< Bit value to set the accelerometer's LP filter 2 cutoff value to ODR/800
 
 // Status register (0x1E) values
 #define LSM6_AXL_DATA_AVAIL 0x01U  ///< Bit value indicating new accelerometer reading is available
