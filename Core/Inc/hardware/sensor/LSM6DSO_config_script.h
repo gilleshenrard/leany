@@ -3,7 +3,7 @@
 #include "LSM6DSO_registers.h"
 #include "stdint.h"
 
-#define NB_INIT_REG 2U
+#define NB_INIT_REG 5U
 
 /**
  * @brief Structure representing a value to write at a specific register

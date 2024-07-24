@@ -5,12 +5,23 @@
 #define LSM6_READ             0x80U  ///< Address byte value for a read operation
 #define LSM6_NB_OUT_REGISTERS 6U     ///< Number of output data registers for the accelerometer and the gyroscope
 
+// FIFO control register 4 (0x0A) values
+#define FIFO_MODE_BYPASS 0x00U  ///< Bit value to disable the FIFO
+
+// INT1 pin control register (0x0D) values
+#define INT1_AXL_DATA_RDY 0x01U  ///< Bit value to enable the accelerometer data-ready interrupt on INT1
+
 // WhoAmI register (0x0F) values
 #define LSM6_WHOAMI 0x6CU  ///< Who Am I constant value
 
 // Accelerometer Control register (0x10) values
 #define LSM6_POWER_DOWN 0x00U  ///< Accelerometer/gyroscope ODR value for power-down
 #define LSM6_ODR_416HZ  0x60U  ///< Accelerometer/gyroscope ODR value for 416Hz High-Performance
+
+// Control register 3 (0x12) values
+#define LSM6_REBOOT_MEMORY  0x80U  ///< Bit value to reboot the LSM6DSO memory
+#define LSM6_INT_ACTIVE_LOW 0x20U  ///< Bit value to set interrupts as active low (falling-edge)
+#define LSM6_SOFTWARE_RESET 0x01U  ///< Bit value to reset the LSM6DSO software
 
 // Status register (0x1E) values
 #define LSM6_AXL_DATA_AVAIL 0x01U  ///< Bit value indicating new accelerometer reading is available

@@ -56,6 +56,7 @@ static inline int16_t twoComplement(const uint8_t bytes[2]);
 //global variables
 volatile uint16_t lsm6dsoTimer_ms    = BOOT_TIME_MS;  ///< Timer used in various states of the LSM6DSO (in ms)
 volatile uint16_t lsm6dsoSPITimer_ms = 0;             ///< Timer used to make sure SPI does not time out (in ms)
+volatile uint8_t  lsm6dsoDataReady   = 0;
 
 //state variables
 static SPI_TypeDef* spiHandle = (void*)0;          ///< SPI handle used by the LSM6DSO device
@@ -355,8 +356,7 @@ static errorCode_u stateConfiguring() {
         iterator++;
     }
 
-    lsm6dsoTimer_ms = SPI_TIMEOUT_MS;
-    state           = stateMeasuring;
+    state = stateMeasuring;
     return (ERR_SUCCESS);
 }
 
@@ -367,13 +367,13 @@ static errorCode_u stateConfiguring() {
  * @retval 1 Error while reading the status register value
  */
 static errorCode_u stateMeasuring() {
-    //if timer not elapsed, exit
-    if(lsm6dsoTimer_ms) {
+    //if no interrupt occurred, exit
+    if(!lsm6dsoDataReady) {
         return (ERR_SUCCESS);
     }
 
-    //reset the timer
-    lsm6dsoTimer_ms = SPI_TIMEOUT_MS;
+    //reset the interrupt flag
+    lsm6dsoDataReady = 0;
 
     //retrieve the status register value
     uint8_t status = 0;
