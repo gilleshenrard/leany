@@ -13,7 +13,6 @@
 #include "LSM6DSO.h"
 #include <math.h>
 #include <stdint.h>
-#include "LSM6DSO_config_script.h"
 #include "LSM6DSO_registers.h"
 #include "errorstack.h"
 #include "stm32f103xb.h"
@@ -34,6 +33,14 @@ typedef enum {
     DROPPING,            ///< stateIgnoringSamples() state
     MEASURING,           ///< stMeasuring() state
 } LSM6DSOfunction_e;
+
+/**
+ * @brief Structure representing a value to write at a specific register
+ */
+typedef struct {
+    LSM6DSOregister_e registerID;  ///< Register ID to which write the value
+    uint8_t           value;       ///< Value to write
+} registerValue_t;
 
 /**
  * @brief State machine state prototype
@@ -346,18 +353,27 @@ static errorCode_u stateWaitingDeviceID() {
  * @retval 1 Error while writing a register
  */
 static errorCode_u stateConfiguring() {
-    static const uint8_t   AXL_SAMPLES_TO_IGNORE = 2U;  ///< Number of samples to drop (see stateIgnoringSamples())
-    const registerValue_t* iterator              = initialisationArray;
+#define NB_INIT_REG 9U
+    const uint8_t         AXL_SAMPLES_TO_IGNORE = 2U;  ///< Number of samples to drop (see stateIgnoringSamples())
+    const registerValue_t initialisationArray[NB_INIT_REG] = {
+        {   CTRL3_C, LSM6_SOFTWARE_RESET | LSM6_INT_ACTIVE_LOW}, //reboot MEMS memory and reset software
+        {FIFO_CTRL4,                          FIFO_MODE_BYPASS}, //disable the FIFO (bypass mode)
+        { INT1_CTRL,                         INT1_AXL_DATA_RDY}, //enable the accelerometer DATA READY interrupt on INT1
+        {  CTRL8_XL,         AXL_NO_HP_FILTER | AXL_LPF2_ODR_4}, //disable accererometer HP filter and set LP2 cutoff to ODR/4
+        {  CTRL1_XL,     LSM6_ODR_416HZ | LSM6_AXL_LPF2_ENABLE}, //set accelerometer in high-perf. mode + enable LPF 2
+        {   CTRL7_G,     GYR_HPF_ENABLE | GYR_HPF_CUTOFF_65MHZ}, //enable the gyroscope HP filter with 16mHz cutoff freq.
+        {   CTRL4_C,                           GYR_LPF1_ENABLE}, //enable the gyroscope LP1 filter
+        {   CTRL6_C,                   GYR_LPF1_CUTOFF_120_3HZ}, //set the gyroscope LPF1 cutoff frequency to 136.6Hz
+        {   CTRL2_G,                            LSM6_ODR_416HZ}, //set the gyroscope in high-performance mode
+    };
 
     //write all registers values from the initialisation array
     for(uint8_t i = 0; i < NB_INIT_REG; i++) {
-        result = writeRegister(iterator->registerID, iterator->value);
+        result = writeRegister(initialisationArray[i].registerID, initialisationArray[i].value);
         if(isError(result)) {
             state = stateError;
             return (pushErrorCode(result, CONFIGURING, 1));
         }
-
-        iterator++;
     }
 
     //set the number of samples to ignore after changing ODR and power mode
