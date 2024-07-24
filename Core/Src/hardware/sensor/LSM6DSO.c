@@ -417,41 +417,20 @@ static errorCode_u stateMeasuring() {
     //reset the interrupt flag
     lsm6dsoDataReady = 0;
 
-    //retrieve the status register value
-    uint8_t status = 0;
-    result         = readRegisters(STATUS_REG, &status, 1);
-    if(isError(result)) {
-        state = stateError;
-        return (pushErrorCode(result, MEASURING, 1));
-    }
-
     //declare the measurements buffer
     uint8_t buffer[LSM6_NB_OUT_REGISTERS];
-
-    //if accelerometer data available, retrieve and format it
-    if(status & LSM6_AXL_DATA_AVAIL) {
-        result = readRegisters(OUTX_L_A, buffer, LSM6_NB_OUT_REGISTERS);
-        if(isError(result)) {
-            state = stateError;
-            return (pushErrorCode(result, MEASURING, 2));
-        }
-
-        accelerometerValues[X_AXIS] = twoComplement(&buffer[(uint8_t)X_AXIS << 1U]);
-        accelerometerValues[Y_AXIS] = twoComplement(&buffer[(uint8_t)Y_AXIS << 1U]);
-        accelerometerValues[Z_AXIS] = twoComplement(&buffer[(uint8_t)Z_AXIS << 1U]);
+    result = readRegisters(OUTX_L_G, buffer, LSM6_NB_OUT_REGISTERS);
+    if(isError(result)) {
+        state = stateError;
+        return (pushErrorCode(result, MEASURING, 2));
     }
 
-    //if gyroscope data available, retrieve and format it
-    if(status & LSM6_GYR_DATA_AVAIL) {
-        result = readRegisters(OUTX_L_G, buffer, LSM6_NB_OUT_REGISTERS);
-        if(isError(result)) {
-            state = stateError;
-            return (pushErrorCode(result, MEASURING, 3));
-        }
-        gyroscopeValues[X_AXIS] = twoComplement(&buffer[(uint8_t)X_AXIS << 1U]);
-        gyroscopeValues[Y_AXIS] = twoComplement(&buffer[(uint8_t)Y_AXIS << 1U]);
-        gyroscopeValues[Z_AXIS] = twoComplement(&buffer[(uint8_t)Z_AXIS << 1U]);
-    }
+    gyroscopeValues[X_AXIS]     = twoComplement(&buffer[0]);
+    gyroscopeValues[Y_AXIS]     = twoComplement(&buffer[2]);
+    gyroscopeValues[Z_AXIS]     = twoComplement(&buffer[4]);
+    accelerometerValues[X_AXIS] = twoComplement(&buffer[6]);
+    accelerometerValues[Y_AXIS] = twoComplement(&buffer[8]);
+    accelerometerValues[Z_AXIS] = twoComplement(&buffer[10]);
 
     return (ERR_SUCCESS);
 }
