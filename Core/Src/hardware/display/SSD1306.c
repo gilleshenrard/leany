@@ -20,14 +20,13 @@
 #include "stm32f1xx_ll_spi.h"
 
 enum {
-    SSD_LAST_COLUMN = 127U,   ///< Index of the highest column
-    SSD_LAST_PAGE   = 31U,    ///< Index of the highest page
-    MAX_DATA_SIZE   = 1024U,  ///< Maximum SSD1306 data size (128 * 64 pixels / 8 pixels per byte)
-    ANGLE_NB_CHARS  = 6U,     ///< Number of characters in the angle array
+    SSD_LAST_COLUMN = 127U,  ///< Index of the highest column
+    SSD_LAST_PAGE   = 31U,   ///< Index of the highest page
+    ANGLE_NB_CHARS  = 6U,    ///< Number of characters in the angle array
 };
 
 //definitions
-#define REFTYPE_PAGE SSD_LAST_PAGE
+#define REFTYPE_PAGE   SSD_LAST_PAGE
 #define REFTYPE_COLUMN (SSD_LAST_COLUMN - REFERENCETYPE_NB_BYTES)
 static const uint8_t SPI_TIMEOUT_MS = 10U;  ///< Maximum number of milliseconds SPI traffic should last before timeout
 
@@ -190,8 +189,8 @@ errorCode_u sendCommand(SSD1306register_e regNumber, const uint8_t parameters[],
  * @return Success
  */
 errorCode_u SSD1306drawBaseScreen() {
-    uint8_t* iterator = screenBuffer;
-    uint16_t counter  = 0;
+    uint8_t*       iteratorBuffer = screenBuffer;
+    const uint8_t* iteratorIcon   = baseScreen;
 
     //define the whole screen as the drawing window
     limitColumns[0] = 0;
@@ -200,29 +199,9 @@ errorCode_u SSD1306drawBaseScreen() {
     limitPages[1]   = SSD_LAST_PAGE;
     size            = MAX_DATA_SIZE;
 
-    //fill the screen buffer with blank pixels value
-    for(counter = 0; counter < (uint16_t)MAX_DATA_SIZE; counter++) {
-        *(iterator++) = 0x00U;
-    }
-
-    //draw the middle screen separator in the buffer (avoid drawing in the arrows icon zone)
-    static const uint8_t LIGN = 0x03U;
-    iterator                  = &screenBuffer[((uint16_t)MAX_DATA_SIZE >> 1U) + ARROWSICON_WIDTH];
-    for(counter = ARROWSICON_WIDTH; counter <= (uint16_t)SSD_LAST_COLUMN; counter++) {
-        *(iterator++) = LIGN;
-    }
-
-    //draw the arrows icon
-    for(counter = 0; counter < ARROWSICON_NB_BYTES; counter++) {
-        //copy a byte, while making sure to copy it at the proper page number
-        uint16_t bufferOffset = (counter / ARROWSICON_WIDTH) * (SSD_LAST_COLUMN + 1);
-        screenBuffer[bufferOffset + (counter % ARROWSICON_WIDTH)] = arrowsIcon_32px[counter];
-    }
-
-    //draw the absolute referential icon
-    iterator = &screenBuffer[MAX_DATA_SIZE - REFERENCETYPE_NB_BYTES];
-    for(counter = 0; counter < REFERENCETYPE_NB_BYTES; counter++) {
-        *(iterator++) = absoluteReferentialIcon[counter];
+    //copy the base screen in the buffer
+    for(uint16_t counter = 0; counter < (uint16_t)MAX_DATA_SIZE; counter++) {
+        *(iteratorBuffer++) = *(iteratorIcon++);
     }
 
     state = stateSendingData;
