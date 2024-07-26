@@ -441,7 +441,7 @@ errorCode_u stateSendingData() {
     //configure the DMA transaction
     LL_DMA_DisableChannel(dmaHandle, dmaChannelUsed);
     LL_DMA_ClearFlag_GI5(dmaHandle);
-    LL_DMA_SetDataLength(dmaHandle, dmaChannelUsed, MAX_DATA);
+    LL_DMA_SetDataLength(dmaHandle, dmaChannelUsed, MAX_DATA);  //must be reset every time
     LL_DMA_EnableChannel(dmaHandle, dmaChannelUsed);
 
     //send the data
