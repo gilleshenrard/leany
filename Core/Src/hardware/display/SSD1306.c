@@ -263,7 +263,7 @@ errorCode_u SSD1306_printAngleTenths(int16_t angleTenths, rotationAxis_e rotatio
     for(uint8_t character = 0; character < (uint8_t)ANGLE_NB_CHARS; character++) {
         for(uint8_t column = 0; column < VERDANA_CHAR_WIDTH; column++) {
             for(uint8_t page = 0; page < VERDANA_NB_PAGES; page++) {
-                screenBuffer[anglePage + page][ANGLE_COLUMN + column] =
+                screenBuffer[anglePage + page][ANGLE_COLUMN + (character * VERDANA_CHAR_WIDTH) + column] =
                     verdana_16ptNumbers[charIndexes[character]][page][column];
             }
         }
