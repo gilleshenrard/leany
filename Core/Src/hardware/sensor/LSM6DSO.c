@@ -437,7 +437,7 @@ static errorCode_u stateMeasuring() {
     const uint8_t ACC_Z_INDEX            = 5U;
     const float   GYR_SENSITIVITY_125DPS = 4.375F;
     const float   AXL_SENSITIVITY_2G     = 0.061F;
-    rawValues_u   rawValues              = {0};
+    rawValues_u   LSBvalues              = {0};
 
     //if no interrupt occurred, exit
     if(!lsm6dsoDataReady) {
@@ -448,18 +448,19 @@ static errorCode_u stateMeasuring() {
     lsm6dsoDataReady = 0;
 
     //read all accelerometer/gyroscope values (they are synchronised, as stated in AN5192, section 3)
-    result = readRegisters(OUTX_L_G, rawValues.registers8bits, LSM6_NB_OUT_REGISTERS);
+    result = readRegisters(OUTX_L_G, LSBvalues.registers8bits, LSM6_NB_OUT_REGISTERS);
     if(isError(result)) {
         state = stateError;
         return (pushErrorCode(result, MEASURING, 2));
     }
 
-    gyroscopeValues_mDPS[X_AXIS]   = (float)(rawValues.values16bits[GYR_X_INDEX]) * GYR_SENSITIVITY_125DPS;
-    gyroscopeValues_mDPS[Y_AXIS]   = (float)(rawValues.values16bits[GYR_Y_INDEX]) * GYR_SENSITIVITY_125DPS;
-    gyroscopeValues_mDPS[Z_AXIS]   = (float)(rawValues.values16bits[GYR_Z_INDEX]) * GYR_SENSITIVITY_125DPS;
-    accelerometerValues_mG[X_AXIS] = (float)(rawValues.values16bits[ACC_X_INDEX]) * AXL_SENSITIVITY_2G;
-    accelerometerValues_mG[Y_AXIS] = (float)(rawValues.values16bits[ACC_Y_INDEX]) * AXL_SENSITIVITY_2G;
-    accelerometerValues_mG[Z_AXIS] = (float)(rawValues.values16bits[ACC_Z_INDEX]) * AXL_SENSITIVITY_2G;
+    //update the physical values with the ones gathered from MEMS
+    gyroscopeValues_mDPS[X_AXIS]   = (float)(LSBvalues.values16bits[GYR_X_INDEX]) * GYR_SENSITIVITY_125DPS;
+    gyroscopeValues_mDPS[Y_AXIS]   = (float)(LSBvalues.values16bits[GYR_Y_INDEX]) * GYR_SENSITIVITY_125DPS;
+    gyroscopeValues_mDPS[Z_AXIS]   = (float)(LSBvalues.values16bits[GYR_Z_INDEX]) * GYR_SENSITIVITY_125DPS;
+    accelerometerValues_mG[X_AXIS] = (float)(LSBvalues.values16bits[ACC_X_INDEX]) * AXL_SENSITIVITY_2G;
+    accelerometerValues_mG[Y_AXIS] = (float)(LSBvalues.values16bits[ACC_Y_INDEX]) * AXL_SENSITIVITY_2G;
+    accelerometerValues_mG[Z_AXIS] = (float)(LSBvalues.values16bits[ACC_Z_INDEX]) * AXL_SENSITIVITY_2G;
 
     return (ERR_SUCCESS);
 }
