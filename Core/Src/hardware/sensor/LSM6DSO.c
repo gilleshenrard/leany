@@ -18,9 +18,10 @@
 #include "stm32f103xb.h"
 #include "stm32f1xx_ll_spi.h"
 
-static const uint8_t  BOOT_TIME_MS   = 10U;    ///< Number of milliseconds to wait for the MEMS to boot
-static const uint8_t  SPI_TIMEOUT_MS = 10U;    ///< Number of milliseconds beyond which SPI is in timeout
-static const uint16_t TIMEOUT_MS     = 1000U;  ///< Max number of milliseconds to wait for the device ID
+static const float    ANGLE_DELTA_MINIMUM = 0.05F;  ///< Minimum value for angle differences to be noticed
+static const uint8_t  BOOT_TIME_MS        = 10U;    ///< Number of milliseconds to wait for the MEMS to boot
+static const uint8_t  SPI_TIMEOUT_MS      = 10U;    ///< Number of milliseconds beyond which SPI is in timeout
+static const uint16_t TIMEOUT_MS          = 1000U;  ///< Max number of milliseconds to wait for the device ID
 
 /**
  * @brief Enumeration of all the function ID used in errors
@@ -81,9 +82,9 @@ static SPI_TypeDef* spiHandle                   = (void*)0;          ///< SPI ha
 static lsm6dsoState state                       = stateWaitingBoot;  ///< State machine current state
 static uint8_t     accelerometerSamplesToIgnore = 0;  ///< Number of samples to ignore after change of ODR or power mode
 static errorCode_u result;                            ///< Variables used to store error codes
-int16_t            accelerometerValues[NB_AXIS];      ///< Array of latest accelerometer values (temporarily global)
-static int32_t     zeroValues[NB_AXIS];               ///< Array of accelerometer values at time of zeroing
-int16_t            gyroscopeValues[NB_AXIS];          ///< Array of latest gyroscope values (temporarily global)
+float              accelerometerValues_mG[NB_AXIS];   ///< Array of latest accelerometer values (temporarily global)
+static float       zeroValues[NB_AXIS];               ///< Array of accelerometer values at time of zeroing
+float              gyroscopeValues_mDPS[NB_AXIS];     ///< Array of latest gyroscope values (temporarily global)
 
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
@@ -226,10 +227,16 @@ static errorCode_u writeRegister(LSM6DSOregister_e registerNumber, uint8_t value
  * @retval 1 New values are available
  */
 uint8_t LSM6DSOhasChanged(axis_e axis) {
-    static int16_t previousAccelerometerValues[NB_AXIS] = {0};
+    static float previousAccelerometerValues[NB_AXIS] = {0.0F};
+    uint8_t      tmp                                  = 0;
 
-    uint8_t tmp                       = (accelerometerValues[axis] != previousAccelerometerValues[axis]);
-    previousAccelerometerValues[axis] = accelerometerValues[axis];
+    if(accelerometerValues_mG[axis] > previousAccelerometerValues[axis]) {
+        tmp = ((accelerometerValues_mG[axis] - previousAccelerometerValues[axis]) > ANGLE_DELTA_MINIMUM);
+    } else {
+        tmp = ((previousAccelerometerValues[axis] - accelerometerValues_mG[axis]) > ANGLE_DELTA_MINIMUM);
+    }
+
+    previousAccelerometerValues[axis] = accelerometerValues_mG[axis];
 
     return (tmp);
 }
@@ -245,20 +252,19 @@ int16_t getAngleDegreesTenths(axis_e axis) {
     float                angle               = 0.0F;
 
     //avoid dividing by zero
-    if(!accelerometerValues[Z_AXIS]) {
+    if((accelerometerValues_mG[Z_AXIS] < ANGLE_DELTA_MINIMUM)
+       && (accelerometerValues_mG[Z_AXIS] > -ANGLE_DELTA_MINIMUM)) {
         return (RIGHT_ANGLE_DEGREES);
     }
 
     //compute the estimate accelerometer angles (in radians)
     switch(axis) {
         case X_AXIS:
-            angle =
-                asinf((float)(accelerometerValues[X_AXIS] + zeroValues[X_AXIS]) / (float)accelerometerValues[Z_AXIS]);
+            angle = asinf((accelerometerValues_mG[X_AXIS] + zeroValues[X_AXIS]) / accelerometerValues_mG[Z_AXIS]);
             break;
 
         case Y_AXIS:
-            angle =
-                atanf((float)(accelerometerValues[Y_AXIS] + zeroValues[Y_AXIS]) / (float)accelerometerValues[Z_AXIS]);
+            angle = atanf((accelerometerValues_mG[Y_AXIS] + zeroValues[Y_AXIS]) / accelerometerValues_mG[Z_AXIS]);
             break;
 
         case Z_AXIS:
@@ -279,8 +285,8 @@ int16_t getAngleDegreesTenths(axis_e axis) {
  * @brief Set the measurements in relative mode and zero down the values
  */
 void LSM6DSOzeroDown(void) {
-    zeroValues[X_AXIS] = -accelerometerValues[X_AXIS];
-    zeroValues[Y_AXIS] = -accelerometerValues[Y_AXIS];
+    zeroValues[X_AXIS] = -accelerometerValues_mG[X_AXIS];
+    zeroValues[Y_AXIS] = -accelerometerValues_mG[Y_AXIS];
 }
 
 /**
@@ -423,13 +429,15 @@ errorCode_u stateIgnoringSamples() {
  * @retval 1 Error while reading the status register value
  */
 static errorCode_u stateMeasuring() {
-    const uint8_t GYR_X_INDEX = 0U;
-    const uint8_t GYR_Y_INDEX = 1U;
-    const uint8_t GYR_Z_INDEX = 2U;
-    const uint8_t ACC_X_INDEX = 3U;
-    const uint8_t ACC_Y_INDEX = 4U;
-    const uint8_t ACC_Z_INDEX = 5U;
-    rawValues_u   rawValues   = {0};
+    const uint8_t GYR_X_INDEX            = 0U;
+    const uint8_t GYR_Y_INDEX            = 1U;
+    const uint8_t GYR_Z_INDEX            = 2U;
+    const uint8_t ACC_X_INDEX            = 3U;
+    const uint8_t ACC_Y_INDEX            = 4U;
+    const uint8_t ACC_Z_INDEX            = 5U;
+    const float   GYR_SENSITIVITY_125DPS = 4.375F;
+    const float   AXL_SENSITIVITY_2G     = 0.061F;
+    rawValues_u   rawValues              = {0};
 
     //if no interrupt occurred, exit
     if(!lsm6dsoDataReady) {
@@ -446,12 +454,12 @@ static errorCode_u stateMeasuring() {
         return (pushErrorCode(result, MEASURING, 2));
     }
 
-    gyroscopeValues[X_AXIS]     = rawValues.values16bits[GYR_X_INDEX];
-    gyroscopeValues[Y_AXIS]     = rawValues.values16bits[GYR_Y_INDEX];
-    gyroscopeValues[Z_AXIS]     = rawValues.values16bits[GYR_Z_INDEX];
-    accelerometerValues[X_AXIS] = rawValues.values16bits[ACC_X_INDEX];
-    accelerometerValues[Y_AXIS] = rawValues.values16bits[ACC_Y_INDEX];
-    accelerometerValues[Z_AXIS] = rawValues.values16bits[ACC_Z_INDEX];
+    gyroscopeValues_mDPS[X_AXIS]   = (float)(rawValues.values16bits[GYR_X_INDEX]) * GYR_SENSITIVITY_125DPS;
+    gyroscopeValues_mDPS[Y_AXIS]   = (float)(rawValues.values16bits[GYR_Y_INDEX]) * GYR_SENSITIVITY_125DPS;
+    gyroscopeValues_mDPS[Z_AXIS]   = (float)(rawValues.values16bits[GYR_Z_INDEX]) * GYR_SENSITIVITY_125DPS;
+    accelerometerValues_mG[X_AXIS] = (float)(rawValues.values16bits[ACC_X_INDEX]) * AXL_SENSITIVITY_2G;
+    accelerometerValues_mG[Y_AXIS] = (float)(rawValues.values16bits[ACC_Y_INDEX]) * AXL_SENSITIVITY_2G;
+    accelerometerValues_mG[Z_AXIS] = (float)(rawValues.values16bits[ACC_Z_INDEX]) * AXL_SENSITIVITY_2G;
 
     return (ERR_SUCCESS);
 }
