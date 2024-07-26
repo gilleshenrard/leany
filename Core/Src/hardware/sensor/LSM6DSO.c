@@ -2,7 +2,7 @@
  * @file LSM6DSO.c
  * @brief Implement the LSM6DSO MEMS sensor communication
  * @author Gilles Henrard
- * @date 24/07/2024
+ * @date 26/07/2024
  *
  * @note Additional information can be found in :
  *   - Datasheet : https://www.st.com/resource/en/datasheet/lsm6dso.pdf
@@ -43,6 +43,16 @@ typedef struct {
 } registerValue_t;
 
 /**
+ * @brief Union regrouping 8-bits and 16-bits arrays
+ * @details
+ *  This allows reading all the accelerometer and gyroscope values at once, and convert them to 16 bit instantly
+ */
+typedef union {
+    uint8_t registers8bits[LSM6_NB_OUT_REGISTERS];        ///< 8-bits registers array
+    int16_t values16bits[(LSM6_NB_OUT_REGISTERS >> 1U)];  ///< 16-bits values array
+} rawValues_u;
+
+/**
  * @brief State machine state prototype
  *
  * @return Error code of the state
@@ -58,9 +68,8 @@ static errorCode_u stateMeasuring();
 static errorCode_u stateError();
 
 //registers read/write functions
-static errorCode_u    writeRegister(LSM6DSOregister_e registerNumber, uint8_t value);
-static errorCode_u    readRegisters(LSM6DSOregister_e firstRegister, uint8_t value[], uint8_t size);
-static inline int16_t twoComplement(const uint8_t bytes[2]);
+static errorCode_u writeRegister(LSM6DSOregister_e registerNumber, uint8_t value);
+static errorCode_u readRegisters(LSM6DSOregister_e firstRegister, uint8_t value[], uint8_t size);
 
 //global variables
 volatile uint16_t lsm6dsoTimer_ms    = BOOT_TIME_MS;  ///< Timer used in various states of the LSM6DSO (in ms)
@@ -208,17 +217,6 @@ static errorCode_u writeRegister(LSM6DSOregister_e registerNumber, uint8_t value
     }
 
     return (ERR_SUCCESS);
-}
-
-/**
- * @brief Reassemble a two's complement int16_t from two bytes
- * 
- * @param bytes		Array of two bytes to reassemble
- * @return int16_t	16 bit resulting number
- */
-static inline int16_t twoComplement(const uint8_t bytes[2]) {
-    static const uint8_t BYTE_SHIFT = 8U;
-    return (int16_t)((uint16_t)((uint16_t)bytes[1] << BYTE_SHIFT) | bytes[0]);
 }
 
 /**
@@ -426,11 +424,12 @@ errorCode_u stateIgnoringSamples() {
  */
 static errorCode_u stateMeasuring() {
     static const uint8_t GYR_X_INDEX = 0U;
-    static const uint8_t GYR_Y_INDEX = 2U;
-    static const uint8_t GYR_Z_INDEX = 4U;
-    static const uint8_t ACC_X_INDEX = 6U;
-    static const uint8_t ACC_Y_INDEX = 8U;
-    static const uint8_t ACC_Z_INDEX = 10U;
+    static const uint8_t GYR_Y_INDEX = 1U;
+    static const uint8_t GYR_Z_INDEX = 2U;
+    static const uint8_t ACC_X_INDEX = 3U;
+    static const uint8_t ACC_Y_INDEX = 4U;
+    static const uint8_t ACC_Z_INDEX = 5U;
+    rawValues_u          rawValues   = {0};
 
     //if no interrupt occurred, exit
     if(!lsm6dsoDataReady) {
@@ -441,19 +440,18 @@ static errorCode_u stateMeasuring() {
     lsm6dsoDataReady = 0;
 
     //read all accelerometer/gyroscope values (they are synchronised, as stated in AN5192, section 3)
-    uint8_t buffer[LSM6_NB_OUT_REGISTERS];
-    result = readRegisters(OUTX_L_G, buffer, LSM6_NB_OUT_REGISTERS);
+    result = readRegisters(OUTX_L_G, rawValues.registers8bits, LSM6_NB_OUT_REGISTERS);
     if(isError(result)) {
         state = stateError;
         return (pushErrorCode(result, MEASURING, 2));
     }
 
-    gyroscopeValues[X_AXIS]     = twoComplement(&buffer[GYR_X_INDEX]);
-    gyroscopeValues[Y_AXIS]     = twoComplement(&buffer[GYR_Y_INDEX]);
-    gyroscopeValues[Z_AXIS]     = twoComplement(&buffer[GYR_Z_INDEX]);
-    accelerometerValues[X_AXIS] = twoComplement(&buffer[ACC_X_INDEX]);
-    accelerometerValues[Y_AXIS] = twoComplement(&buffer[ACC_Y_INDEX]);
-    accelerometerValues[Z_AXIS] = twoComplement(&buffer[ACC_Z_INDEX]);
+    gyroscopeValues[X_AXIS]     = rawValues.values16bits[GYR_X_INDEX];
+    gyroscopeValues[Y_AXIS]     = rawValues.values16bits[GYR_Y_INDEX];
+    gyroscopeValues[Z_AXIS]     = rawValues.values16bits[GYR_Z_INDEX];
+    accelerometerValues[X_AXIS] = rawValues.values16bits[ACC_X_INDEX];
+    accelerometerValues[Y_AXIS] = rawValues.values16bits[ACC_Y_INDEX];
+    accelerometerValues[Z_AXIS] = rawValues.values16bits[ACC_Z_INDEX];
 
     return (ERR_SUCCESS);
 }
