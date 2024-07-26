@@ -38,11 +38,13 @@ enum {
  * @brief Enumeration of the function IDs of the SSD1306
  */
 typedef enum {
-    INIT = 0,        ///< SSD1306initialise()
-    SEND_CMD,        ///< SSD1306sendCommand()
-    PRT_ANGLE,       ///< SSD1306_printAngleTenths()
-    SENDING_DATA,    ///< stateSendingData()
-    WAITING_DMA_RDY  ///< stateWaitingForTXdone()
+    INIT = 0,         ///< SSD1306initialise()
+    SEND_CMD,         ///< SSD1306sendCommand()
+    PRT_ANGLE,        ///< SSD1306_printAngleTenths()
+    PRT_REFICON,      ///< SSD1306_printReferentialIcon()
+    PRT_HOLDICON,     ///< SSD1306_printHoldIcon()
+    SENDING_DATA,     ///< stateSendingData()
+    WAITING_DMA_RDY,  ///< stateWaitingForTXdone()
 } SSD1306functionCodes_e;
 
 /**
@@ -225,6 +227,7 @@ uint8_t isScreenReady() {
  * @param rotationAxis  Axis around which the rotation angle is to print
  *
  * @return Success
+ * @retval 1 Screen busy
  */
 errorCode_u SSD1306_printAngleTenths(int16_t angleTenths, rotationAxis_e rotationAxis) {
     const int16_t MIN_ANGLE_DEG_TENTHS        = -900;  ///< Minimum angle allowed (in tenths of degrees)
@@ -239,6 +242,11 @@ errorCode_u SSD1306_printAngleTenths(int16_t angleTenths, rotationAxis_e rotatio
     uint8_t       anglePage                   = (rotationAxis == ROLL ? ANGLE_ROLL_PAGE : ANGLE_PITCH_PAGE);
     uint8_t*      bytesToUpdate               = (void*)0;
     uint8_t       characterToPrint            = 0;
+
+    //if screen busy, error
+    if(!isScreenReady()) {
+        return (createErrorCode(PRT_ANGLE, 1, ERR_WARNING));
+    }
 
     //clamp the angle to print to the min value
     if(angleTenths < MIN_ANGLE_DEG_TENTHS) {
@@ -290,10 +298,16 @@ errorCode_u SSD1306_printAngleTenths(int16_t angleTenths, rotationAxis_e rotatio
  * 
  * @param type Referential type
  * @return Success
+ * @retval 1 Screen busy
  */
 errorCode_u SSD1306_printReferentialIcon(referentialType_e type) {
     uint8_t*       iterator     = &screenBuffer[REFICON_PAGE][REFICON_COLUMN];
     const uint8_t* iconIterator = (type == ABSOLUTE ? absoluteReferentialIcon : relativeReferentialIcon);
+
+    //if screen busy, error
+    if(!isScreenReady()) {
+        return (createErrorCode(PRT_REFICON, 1, ERR_WARNING));
+    }
 
     for(uint8_t i = 0; i < (uint8_t)REFERENCETYPE_NB_BYTES; i++) {
         *(iterator++) = *(iconIterator++);
@@ -310,10 +324,16 @@ errorCode_u SSD1306_printReferentialIcon(referentialType_e type) {
  * 
  * @param status 1 to print, 0 to erase
  * @return Success
+ * @retval 1 Screen busy
  */
 errorCode_u SSD1306_printHoldIcon(uint8_t status) {
     uint8_t*       iterator     = &screenBuffer[HOLDICON_PAGE][HOLDICON_COLUMN];
     const uint8_t* iconIterator = holdIcon;
+
+    //if screen busy, error
+    if(!isScreenReady()) {
+        return (createErrorCode(PRT_HOLDICON, 1, ERR_WARNING));
+    }
 
     for(uint8_t i = 0; i < (uint8_t)REFERENCETYPE_NB_BYTES; i++) {
         if(status) {
