@@ -423,13 +423,13 @@ errorCode_u stateIgnoringSamples() {
  * @retval 1 Error while reading the status register value
  */
 static errorCode_u stateMeasuring() {
-    static const uint8_t GYR_X_INDEX = 0U;
-    static const uint8_t GYR_Y_INDEX = 1U;
-    static const uint8_t GYR_Z_INDEX = 2U;
-    static const uint8_t ACC_X_INDEX = 3U;
-    static const uint8_t ACC_Y_INDEX = 4U;
-    static const uint8_t ACC_Z_INDEX = 5U;
-    rawValues_u          rawValues   = {0};
+    const uint8_t GYR_X_INDEX = 0U;
+    const uint8_t GYR_Y_INDEX = 1U;
+    const uint8_t GYR_Z_INDEX = 2U;
+    const uint8_t ACC_X_INDEX = 3U;
+    const uint8_t ACC_Y_INDEX = 4U;
+    const uint8_t ACC_Z_INDEX = 5U;
+    rawValues_u   rawValues   = {0};
 
     //if no interrupt occurred, exit
     if(!lsm6dsoDataReady) {
