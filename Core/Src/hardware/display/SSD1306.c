@@ -2,7 +2,7 @@
  * @file SSD1306.c
  * @brief Implement the functioning of the SSD1306 OLED screen via SPI and DMA
  * @author Gilles Henrard
- * @date 16/07/2024
+ * @date 26/07/2024
  *
  * @note Datasheet : https://cdn-shop.adafruit.com/datasheets/SSD1306.pdf
  */
@@ -19,22 +19,20 @@
 #include "stm32f1xx_ll_gpio.h"
 #include "stm32f1xx_ll_spi.h"
 
+//Definitions
 enum {
-    SSD_LAST_COLUMN = 127U,  ///< Index of the highest column
-    SSD_LAST_PAGE   = 31U,   ///< Index of the highest page
-    ANGLE_NB_CHARS  = 6U,    ///< Number of characters in the angle array
+    SSD_SCREEN_WIDTH  = 128U,                               ///< Number of columns on the screen
+    SSD_SCREEN_HEIGHT = 64U,                                ///< Number of rows (i.e. COM connections) on the screen
+    SSD_NB_PAGES     = ((uint8_t)SSD_SCREEN_HEIGHT >> 3U),  ///< Number of pages (1 page = 8 COM) present to update rows
+    REFICON_PAGE     = (SSD_NB_PAGES - 1),
+    REFICON_COLUMN   = (SSD_SCREEN_WIDTH - REFERENCETYPE_NB_BYTES - 1),
+    HOLDICON_PAGE    = REFICON_PAGE,
+    HOLDICON_COLUMN  = (REFICON_COLUMN - REFERENCETYPE_NB_BYTES),
+    ANGLE_NB_CHARS   = 6U,   ///< Number of characters in the angle array
+    ANGLE_COLUMN     = 40U,  ///< Column number of the first screen line
+    ANGLE_ROLL_PAGE  = 1U,   ///< Number of the page at which display the roll axis angle
+    ANGLE_PITCH_PAGE = 5U,   ///< Number of the page at which display the pitch axis angle
 };
-
-//definitions
-#define REFTYPE_PAGE   SSD_LAST_PAGE
-#define REFTYPE_COLUMN (SSD_LAST_COLUMN - REFERENCETYPE_NB_BYTES)
-static const uint8_t SPI_TIMEOUT_MS = 10U;  ///< Maximum number of milliseconds SPI traffic should last before timeout
-
-//static assertions (ran at compile time)
-_Static_assert((bool)((ANGLE_NB_CHARS * VERDANA_NB_BYTES_CHAR) <= MAX_DATA_SIZE),
-               "SSD1306 font chosen uses too much space.");
-_Static_assert((bool)((ANGLE_NB_CHARS * VERDANA_CHAR_WIDTH) <= (SSD_LAST_COLUMN + 1)),
-               "SSD1306 font chosen has too many columns.");
 
 /**
  * @brief Enumeration of the function IDs of the SSD1306
@@ -65,24 +63,28 @@ typedef errorCode_u (*screenState)();
 //communication functions with the SSD1306
 static inline void setDataCommandGPIO(DCgpio_e function);
 static errorCode_u sendCommand(SSD1306register_e regNumber, const uint8_t parameters[], uint8_t nbParameters);
+static errorCode_u drawBaseScreen();
 
 //state machine
-static errorCode_u stateIdle();
 static errorCode_u stateConfiguring();
+static errorCode_u stateIdle();
 static errorCode_u stateSendingData();
 static errorCode_u stateWaitingForTXdone();
 
-//state variables
-volatile uint16_t   screenTimer_ms     = 0;                 ///< Timer used with screen SPI transmissions (in ms)
-volatile uint16_t   ssd1306SPITimer_ms = 0;                 ///< Timer used to make sure SPI does not time out (in ms)
-static SPI_TypeDef* spiHandle          = (void*)0;          ///< SPI handle used with the SSD1306
-static DMA_TypeDef* dmaHandle          = (void*)0;          ///< DMA handle used with the SSD1306
-static uint32_t     dmaChannelUsed     = 0x00000000U;       ///< DMA channel used
-static screenState  state              = stateConfiguring;  ///< State machine current state
-static uint8_t      screenBuffer[MAX_DATA_SIZE];            ///< Buffer used to send data to the screen
-static uint8_t      limitColumns[2];                        ///< Buffer used to set the first and last column to send
-static uint8_t      limitPages[2];                          ///< Buffer used to set the first and last page to send
-static uint16_t     size;                                   ///< Number of bytes to send
+//Constant values
+static const uint8_t SPI_TIMEOUT_MS = 10U;  ///< Maximum number of milliseconds SPI traffic should last before timeout
+
+//Variables used in interrupts
+volatile uint16_t screenTimer_ms     = 0;  ///< Timer used with screen SPI transmissions (in ms)
+volatile uint16_t ssd1306SPITimer_ms = 0;  ///< Timer used to make sure SPI does not time out (in ms)
+
+//State variables
+static SPI_TypeDef* spiHandle         = (void*)0;          ///< SPI handle used with the SSD1306
+static DMA_TypeDef* dmaHandle         = (void*)0;          ///< DMA handle used with the SSD1306
+static uint32_t     dmaChannelUsed    = 0x00000000U;       ///< DMA channel used
+static screenState  state             = stateConfiguring;  ///< State machine current state
+static uint8_t      screenInvalidated = 0;  ///< Flag indicating the screen has been invalidated and should be updated
+static uint8_t      screenBuffer[SSD_NB_PAGES][SSD_SCREEN_WIDTH];  ///< Buffer used to send data to the screen
 
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
@@ -90,10 +92,12 @@ static uint16_t     size;                                   ///< Number of bytes
 /**
  * @brief Initialise the SSD1306
  *
- * @param handle SPI handle used
+ * @param handle        SPI handle used
+ * @param dma           DMA handle used
+ * @param dmaChannel    DMA channel used to send data to the SSD1306
  * @return Success
- * @retval 1	Error while initialising the registers
- * @retval 2	Error while clearing the screen
+ * @retval 1	        Error while initialising the registers
+ * @retval 2	        Error while clearing the screen
  */
 errorCode_u SSD1306initialise(SPI_TypeDef* handle, DMA_TypeDef* dma, uint32_t dmaChannel) {
     spiHandle      = handle;
@@ -135,8 +139,8 @@ static inline void setDataCommandGPIO(DCgpio_e function) {
  * @retval 2	Timeout while sending the command
  */
 errorCode_u sendCommand(SSD1306register_e regNumber, const uint8_t parameters[], uint8_t nbParameters) {
-    static const uint8_t MAX_PARAMETERS = 6U;  ///< Maximum number of parameters a command can have
-    errorCode_u          result         = ERR_SUCCESS;
+    const uint8_t MAX_PARAMETERS = 6U;  ///< Maximum number of parameters a command can have
+    errorCode_u   result         = ERR_SUCCESS;
 
     //assertions
     assert(spiHandle);                    //handle is not null
@@ -185,26 +189,21 @@ errorCode_u sendCommand(SSD1306register_e regNumber, const uint8_t parameters[],
 
 /**
  * @brief Wipe the screen blank and draw the separator and icons
+ * @note This function invalidates the screen
  *
  * @return Success
  */
-errorCode_u SSD1306drawBaseScreen() {
-    uint8_t*       iteratorBuffer = screenBuffer;
+errorCode_u drawBaseScreen() {
+    uint8_t*       iteratorBuffer = (uint8_t*)screenBuffer;
     const uint8_t* iteratorIcon   = baseScreen;
-
-    //define the whole screen as the drawing window
-    limitColumns[0] = 0;
-    limitColumns[1] = SSD_LAST_COLUMN;
-    limitPages[0]   = 0;
-    limitPages[1]   = SSD_LAST_PAGE;
-    size            = MAX_DATA_SIZE;
 
     //copy the base screen in the buffer
     for(uint16_t counter = 0; counter < (uint16_t)MAX_DATA_SIZE; counter++) {
         *(iteratorBuffer++) = *(iteratorIcon++);
     }
 
-    state = stateSendingData;
+    //invalidate the screen and exit
+    screenInvalidated = 1;
     return (ERR_SUCCESS);
 }
 
@@ -220,27 +219,24 @@ uint8_t isScreenReady() {
 
 /**
  * @brief Print an angle (in degrees, with sign) on the screen
+ * @note This function invalidates the screen
  *
  * @param angleTenths	Angle to print
  * @param rotationAxis  Axis around which the rotation angle is to print
  *
  * @return Success
- * @retval 1	Angle above maximum amplitude
  */
 errorCode_u SSD1306_printAngleTenths(int16_t angleTenths, rotationAxis_e rotationAxis) {
-    static const uint8_t ANGLE_COLUMN         = 40U;   ///< Column number of the first screen line
-    static const uint8_t ANGLE_ROLL_PAGE      = 1U;    ///< Number of the page at which display the roll axis angle
-    static const uint8_t ANGLE_PITCH_PAGE     = 5U;    ///< Number of the page at which display the pitch axis angle
-    static const int16_t MIN_ANGLE_DEG_TENTHS = -900;  ///< Minimum angle allowed (in tenths of degrees)
-    static const int16_t MAX_ANGLE_DEG_TENTHS = 900;   ///< Maximum angle allowed (in tenths of degrees)
-    static const uint8_t INDEX_SIGN           = 0;     ///< Index of the sign in the angle indexes array
-    static const uint8_t INDEX_TENS           = 1U;    ///< Index of the tens in the angle indexes array
-    static const uint8_t INDEX_UNITS          = 2U;    ///< Index of the units in the angle indexes array
-    static const uint8_t INDEX_TENTHS         = 4U;    ///< Index of the tenths in the angle indexes array
-    static const uint8_t DIVIDE_10            = 10U;   ///< 10 Divider (used for warnings)
-    static const uint8_t DIVIDE_100           = 100U;  ///< 100 Divider (used for warnings)
-    uint8_t              charIndexes[ANGLE_NB_CHARS] = {INDEX_PLUS, 0, 0, INDEX_DOT, 0, INDEX_DEG};
-    uint8_t*             iterator                    = screenBuffer;
+    const int16_t MIN_ANGLE_DEG_TENTHS        = -900;  ///< Minimum angle allowed (in tenths of degrees)
+    const int16_t MAX_ANGLE_DEG_TENTHS        = 900;   ///< Maximum angle allowed (in tenths of degrees)
+    const uint8_t INDEX_SIGN                  = 0;     ///< Index of the sign in the angle indexes array
+    const uint8_t INDEX_TENS                  = 1U;    ///< Index of the tens in the angle indexes array
+    const uint8_t INDEX_UNITS                 = 2U;    ///< Index of the units in the angle indexes array
+    const uint8_t INDEX_TENTHS                = 4U;    ///< Index of the tenths in the angle indexes array
+    const uint8_t DIVIDE_10                   = 10U;   ///< 10 Divider (used for magic numbers warnings)
+    const uint8_t DIVIDE_100                  = 100U;  ///< 100 Divider (used for magic numbers warnings)
+    uint8_t       charIndexes[ANGLE_NB_CHARS] = {INDEX_PLUS, 0, 0, INDEX_DOT, 0, INDEX_DEG};
+    uint8_t       anglePage                   = (rotationAxis == ROLL ? ANGLE_ROLL_PAGE : ANGLE_PITCH_PAGE);
 
     //clamp the angle to print to the min value
     if(angleTenths < MIN_ANGLE_DEG_TENTHS) {
@@ -258,75 +254,58 @@ errorCode_u SSD1306_printAngleTenths(int16_t angleTenths, rotationAxis_e rotatio
         angleTenths             = (int16_t)-angleTenths;
     }
 
-    //store the values
-    limitColumns[0] = ANGLE_COLUMN;
-    limitColumns[1] = ANGLE_COLUMN + (VERDANA_CHAR_WIDTH * ANGLE_NB_CHARS) - 1;
-    limitPages[0]   = (rotationAxis == ROLL ? ANGLE_ROLL_PAGE : ANGLE_PITCH_PAGE);
-    limitPages[1]   = (rotationAxis == ROLL ? ANGLE_ROLL_PAGE : ANGLE_PITCH_PAGE) + 1;
-    size            = ANGLE_NB_CHARS * VERDANA_NB_BYTES_CHAR;
-
     //fill the angle characters indexes array with the float values (tens, units, tenths)
     charIndexes[INDEX_TENS]   = (uint8_t)(angleTenths / DIVIDE_100);
     charIndexes[INDEX_UNITS]  = (uint8_t)((angleTenths / DIVIDE_10) % DIVIDE_10);
     charIndexes[INDEX_TENTHS] = (uint8_t)(angleTenths % DIVIDE_10);
 
-    //fill the buffer with all the required bitmaps bytes (column by column, then character by character, then page by page)
-    for(uint8_t page = 0; page < VERDANA_NB_PAGES; page++) {
-        for(uint8_t character = 0; character < (uint8_t)ANGLE_NB_CHARS; character++) {
-            for(uint8_t column = 0; column < VERDANA_CHAR_WIDTH; column++) {
-                *iterator = verdana_16ptNumbers[charIndexes[character]][(VERDANA_CHAR_WIDTH * page) + column];
-                iterator++;
+    //fill the buffer with the angle pixels
+    for(uint8_t character = 0; character < (uint8_t)ANGLE_NB_CHARS; character++) {
+        for(uint8_t column = 0; column < VERDANA_CHAR_WIDTH; column++) {
+            for(uint8_t page = 0; page < VERDANA_NB_PAGES; page++) {
+                screenBuffer[anglePage + page][ANGLE_COLUMN + column] =
+                    verdana_16ptNumbers[charIndexes[character]][page][column];
             }
         }
     }
 
-    //get to printing state
-    state = stateSendingData;
+    //invalidate the screen and exit
+    screenInvalidated = 1;
     return (ERR_SUCCESS);
 }
 
 /**
  * @brief Draw the icon representing the type of referential currently used
+ * @note This function invalidates the screen
  * 
  * @param type Referential type
  * @return Success
  */
 errorCode_u SSD1306_printReferentialIcon(referentialType_e type) {
-    uint8_t*       iterator     = screenBuffer;
+    uint8_t*       iterator     = &screenBuffer[REFICON_PAGE][REFICON_COLUMN];
     const uint8_t* iconIterator = (type == ABSOLUTE ? absoluteReferentialIcon : relativeReferentialIcon);
 
-    limitColumns[0] = REFTYPE_COLUMN;
-    limitColumns[1] = REFTYPE_COLUMN + REFERENCETYPE_NB_BYTES;
-    limitPages[0]   = REFTYPE_PAGE;
-    limitPages[1]   = REFTYPE_PAGE;
-    size            = REFERENCETYPE_NB_BYTES;
-
-    for(uint8_t i = 0; i < REFERENCETYPE_NB_BYTES; i++) {
+    for(uint8_t i = 0; i < (uint8_t)REFERENCETYPE_NB_BYTES; i++) {
         *(iterator++) = *(iconIterator++);
     }
 
-    //get to printing state
-    state = stateSendingData;
+    //invalidate the screen and exit
+    screenInvalidated = 1;
     return (ERR_SUCCESS);
 }
 
 /**
  * @brief Draw/erase the icon representing the hold function
+ * @note This function invalidates the screen
  * 
  * @param status 1 to print, 0 to erase
  * @return Success
  */
 errorCode_u SSD1306_printHoldIcon(uint8_t status) {
-    uint8_t*       iterator     = screenBuffer;
+    uint8_t*       iterator     = &screenBuffer[HOLDICON_PAGE][HOLDICON_COLUMN];
     const uint8_t* iconIterator = holdIcon;
 
-    limitColumns[0] = REFTYPE_COLUMN - REFERENCETYPE_NB_BYTES;
-    limitColumns[1] = REFTYPE_COLUMN;
-    limitPages[0]   = REFTYPE_PAGE;
-    limitPages[1]   = REFTYPE_PAGE;
-    size            = REFERENCETYPE_NB_BYTES;
-
-    for(uint8_t i = 0; i < REFERENCETYPE_NB_BYTES; i++) {
+    for(uint8_t i = 0; i < (uint8_t)REFERENCETYPE_NB_BYTES; i++) {
         if(status) {
             *(iterator++) = *(iconIterator++);
         } else {
@@ -334,15 +313,15 @@ errorCode_u SSD1306_printHoldIcon(uint8_t status) {
         }
     }
 
-    //get to printing state
-    state = stateSendingData;
+    //invalidate the screen and exit
+    screenInvalidated = 1;
     return (ERR_SUCCESS);
 }
 
 /**
  * @brief Turn the screen OFF
  * 
- * @return Success
+ * @return Return code of the send command instruction
  */
 errorCode_u SSD1306_turnDisplayOFF() {
     return (sendCommand(DISPLAY_OFF, (void*)0, 0));
@@ -365,11 +344,15 @@ errorCode_u SSD1306update() {
  * 
  * @return Success
  * @retval 1	Error while setting a configuration register
- * @retval 2	Error while requesting the screen wipe
+ * @retval 2	Error while setting the update window width
+ * @retval 3	Error while setting the update window height
+ * @retval 4	Error while requesting the screen wipe
  */
 static errorCode_u stateConfiguring() {
 #define NB_INIT_REGISERS 8U  ///< Number of registers set at initialisation
-    static const uint8_t initCommands[NB_INIT_REGISERS][3] = {
+    const uint8_t limitColumns[2]                   = {0, (SSD_SCREEN_WIDTH - 1)};
+    const uint8_t limitPages[2]                     = {0, (SSD_NB_PAGES - 1)};
+    const uint8_t initCommands[NB_INIT_REGISERS][3] = {
         ///< Array used to initialise the registers
         {SCAN_DIRECTION_N1_0, 0,                                       0x00},
         {    HARDWARE_CONFIG, 1, SSD_PIN_CONFIG_ALT | SSD_COM_REMAP_DISABLE},
@@ -396,12 +379,26 @@ static errorCode_u stateConfiguring() {
         }
     }
 
-    result = SSD1306drawBaseScreen();
+    //screen updates will be done on the whole screen width
+    result = sendCommand(COLUMN_ADDRESS, limitColumns, 2);
     if(isError(result)) {
         return (pushErrorCode(result, INIT, 2));
     }
 
-    state = stateSendingData;
+    //screen updates will be done on the whole screen height
+    result = sendCommand(PAGE_ADDRESS, limitPages, 2);
+    if(isError(result)) {
+        return (pushErrorCode(result, INIT, 3));
+    }
+
+    result = drawBaseScreen();
+    if(isError(result)) {
+        screenInvalidated = 0;
+        return (pushErrorCode(result, INIT, 4));
+    }
+
+    //get to idle state
+    state = stateIdle;
     return (ERR_SUCCESS);
 }
 
@@ -411,6 +408,11 @@ static errorCode_u stateConfiguring() {
  * @return Success
  */
 errorCode_u stateIdle() {
+    if(screenInvalidated) {
+        screenInvalidated = 0;
+        state             = stateSendingData;
+    }
+
     return (ERR_SUCCESS);
 }
 
@@ -418,25 +420,9 @@ errorCode_u stateIdle() {
  * @brief State in which data is sent to the screen
  *
  * @return Success
- * @retval 1	Error occurred while sending the column address command
- * @retval 2	Error occurred while sending the page address command
  */
 errorCode_u stateSendingData() {
-    errorCode_u result;
-
-    //send the set start and end column addresses
-    result = sendCommand(COLUMN_ADDRESS, limitColumns, 2);
-    if(isError(result)) {
-        state = stateIdle;
-        return (pushErrorCode(result, SENDING_DATA, 1));
-    }
-
-    //send the set start and end page addresses
-    result = sendCommand(PAGE_ADDRESS, limitPages, 2);
-    if(isError(result)) {
-        state = stateIdle;
-        return (pushErrorCode(result, SENDING_DATA, 2));
-    }
+    const uint16_t MAX_DATA = (SSD_SCREEN_WIDTH * SSD_NB_PAGES);  ///< Maximum data to send the screen
 
     //set data GPIO and enable SPI
     setDataCommandGPIO(DATA);
@@ -445,7 +431,7 @@ errorCode_u stateSendingData() {
     //configure the DMA transaction
     LL_DMA_DisableChannel(dmaHandle, dmaChannelUsed);
     LL_DMA_ClearFlag_GI5(dmaHandle);
-    LL_DMA_SetDataLength(dmaHandle, dmaChannelUsed, size);
+    LL_DMA_SetDataLength(dmaHandle, dmaChannelUsed, MAX_DATA);
     LL_DMA_EnableChannel(dmaHandle, dmaChannelUsed);
 
     //send the data
