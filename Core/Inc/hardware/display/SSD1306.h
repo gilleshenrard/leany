@@ -23,11 +23,10 @@ typedef enum {
 extern volatile uint16_t screenTimer_ms;
 extern volatile uint16_t ssd1306SPITimer_ms;
 
-uint8_t     isScreenReady();
 errorCode_u SSD1306initialise(SPI_TypeDef* handle, DMA_TypeDef* dma, uint32_t dmaChannel);
 errorCode_u SSD1306update();
-errorCode_u SSD1306drawBaseScreen();
-errorCode_u SSD1306_printAngleTenths(int16_t angle, rotationAxis_e rotationAxis);
+uint8_t     isScreenReady();
+errorCode_u SSD1306_printAngleTenths(int16_t angleTenths, rotationAxis_e rotationAxis);
 errorCode_u SSD1306_printReferentialIcon(referentialType_e type);
 errorCode_u SSD1306_printHoldIcon(uint8_t status);
 errorCode_u SSD1306_turnDisplayOFF();

@@ -165,12 +165,12 @@ int main(void)
     }
 
 	  //if X axis angle changed, update the screen
-	  if(isScreenReady() && LSM6DSOhasChanged(X_AXIS) && !holdingValues){
+	  if(LSM6DSOhasChanged(X_AXIS) && !holdingValues){
 		  SSD1306_printAngleTenths(getAngleDegreesTenths(X_AXIS), ROLL);
     }
 
 	  //if Y axis angle changed, update the screen
-	  if(isScreenReady() && LSM6DSOhasChanged(Y_AXIS) && !holdingValues){
+	  if(LSM6DSOhasChanged(Y_AXIS) && !holdingValues){
 		  SSD1306_printAngleTenths(getAngleDegreesTenths(Y_AXIS), PITCH);
     }
     /* USER CODE END WHILE */
