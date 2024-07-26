@@ -237,6 +237,8 @@ errorCode_u SSD1306_printAngleTenths(int16_t angleTenths, rotationAxis_e rotatio
     const uint8_t DIVIDE_100                  = 100U;  ///< 100 Divider (used for magic numbers warnings)
     uint8_t       charIndexes[ANGLE_NB_CHARS] = {INDEX_PLUS, 0, 0, INDEX_DOT, 0, INDEX_DEG};
     uint8_t       anglePage                   = (rotationAxis == ROLL ? ANGLE_ROLL_PAGE : ANGLE_PITCH_PAGE);
+    uint8_t*      bytesToUpdate               = (void*)0;
+    uint8_t       characterToPrint            = 0;
 
     //clamp the angle to print to the min value
     if(angleTenths < MIN_ANGLE_DEG_TENTHS) {
@@ -260,11 +262,19 @@ errorCode_u SSD1306_printAngleTenths(int16_t angleTenths, rotationAxis_e rotatio
     charIndexes[INDEX_TENTHS] = (uint8_t)(angleTenths % DIVIDE_10);
 
     //fill the buffer with the angle pixels
-    for(uint8_t character = 0; character < (uint8_t)ANGLE_NB_CHARS; character++) {
-        for(uint8_t column = 0; column < VERDANA_CHAR_WIDTH; column++) {
-            for(uint8_t page = 0; page < VERDANA_NB_PAGES; page++) {
-                screenBuffer[anglePage + page][ANGLE_COLUMN + (character * VERDANA_CHAR_WIDTH) + column] =
-                    verdana_16ptNumbers[charIndexes[character]][page][column];
+    for(uint8_t page = 0; page < VERDANA_NB_PAGES; page++) {
+        //point to the beginning of the section in the current page which will be updated
+        bytesToUpdate = &screenBuffer[anglePage + page][ANGLE_COLUMN];
+
+        //update each required byte in the page
+        for(uint8_t character = 0; character < (uint8_t)ANGLE_NB_CHARS; character++) {
+            //save the current character to print
+            characterToPrint = charIndexes[character];
+
+            //copy each byte from the Verdana BMP in the buffer
+            for(uint8_t column = 0; column < VERDANA_CHAR_WIDTH; column++) {
+                bytesToUpdate[(character * VERDANA_CHAR_WIDTH) + column] =
+                    verdana_16ptNumbers[characterToPrint][page][column];
             }
         }
     }
