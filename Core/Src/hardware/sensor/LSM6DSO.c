@@ -436,7 +436,7 @@ static errorCode_u stateMeasuring() {
     const uint8_t ACC_Y_INDEX            = 4U;
     const uint8_t ACC_Z_INDEX            = 5U;
     const float   GYR_SENSITIVITY_125DPS = 4.375F;
-    const float   AXL_SENSITIVITY_2G     = 0.061F;
+    const float   AXL_SENSITIVITY_2G     = 0.061F;  // = 4000mG / (2^16 LSB)
     rawValues_u   LSBvalues              = {0};
 
     //if no interrupt occurred, exit
