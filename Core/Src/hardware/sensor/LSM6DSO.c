@@ -279,29 +279,29 @@ void LSM6DSOcancelZeroing(void) {
  * @param valuesLSB Array of 16-bits accelerometer/gyroscope values
  */
 void complementaryFilter(const int16_t valuesLSB[]) {
-    const uint8_t GYR_X_INDEX                = 0U;
-    const uint8_t GYR_Y_INDEX                = 1U;
-    const uint8_t ACC_X_INDEX                = 3U;
-    const uint8_t ACC_Y_INDEX                = 4U;
-    const uint8_t ACC_Z_INDEX                = 5U;
-    const float   alpha                      = 0.02F;
-    const float   dtPeriod                   = 0.00240385F;
-    const float   RADIANS_TO_DEGREES         = 57.2957795F;  // =180/PI
-    const float   AXL_SENSITIVITY_2G         = 0.061F;       //accel. sensitivity at 2G in [mG/LSB] (datasheet p.9)
-    const float   GYR_SENSITIVITY_125DPS_DPS = 0.004375F;  //gyro. sens. @ 125DPS in [mdps/LSB] div. by 1000 (data. p.9)
-    float         accelerometer_mG[NB_AXIS];               ///< Accelerometer values in [m/s²]
-    float         gyroscope_DPS[NB_AXIS - 1];              ///< Gyroscope values in [m°/s]
-    float         AccelEstimatedX_deg = 0.0F;
-    float         AccelEstimatedY_deg = 0.0F;
+    const uint8_t GYR_X_INDEX        = 0U;           ///< Index of the gyroscope X value in the array
+    const uint8_t GYR_Y_INDEX        = 1U;           ///< Index of the gyroscope Y value in the array
+    const uint8_t ACC_X_INDEX        = 3U;           ///< Index of the accelerometer X value in the array
+    const uint8_t ACC_Y_INDEX        = 4U;           ///< Index of the accelerometer Y value in the array
+    const uint8_t ACC_Z_INDEX        = 5U;           ///< Index of the accelerometer Z value in the array
+    const float   alpha              = 0.02F;        ///< Proportion applied to the gyro. and accel. in the final result
+    const float   dtPeriod           = 0.00240385F;  ///< Time period between two updates (LSM6DSO config. at 416Hz)
+    const float   RADIANS_TO_DEGREES = 57.2957795F;  ///< Ratio between radians and degrees (= 180°/PI)
+    const float   AXL_SENSITIVITY_2G = 0.061F;       //accel. sensitivity [mG/LSB] at 2G (datasheet p.9)
+    const float   GYR_SENSITIVITY_125DPS_DPS = 0.004375F;  //gyro. sens. [mdps/LSB] @ 125DPS div. by 1000 (data. p.9)
+    float         accelerometer_mG[NB_AXIS];               ///< Accelerometer values in [mG]
+    float         gyroscope_DPS[NB_AXIS - 1];              ///< Gyroscope values in [°/s]
+    float         AccelEstimatedX_deg = 0.0F;              ///< Estimated accelerator angle on the X axis in [°]
+    float         AccelEstimatedY_deg = 0.0F;              ///< Estimated accelerator angle on the Y axis in [°]
 
-    //convert the values to mG and m°/s
+    //convert the values to mG and °/s
     gyroscope_DPS[X_AXIS]    = (float)(valuesLSB[GYR_X_INDEX]) * GYR_SENSITIVITY_125DPS_DPS;
     gyroscope_DPS[Y_AXIS]    = (float)(valuesLSB[GYR_Y_INDEX]) * GYR_SENSITIVITY_125DPS_DPS;
     accelerometer_mG[X_AXIS] = (float)(valuesLSB[ACC_X_INDEX]) * AXL_SENSITIVITY_2G;
     accelerometer_mG[Y_AXIS] = (float)(valuesLSB[ACC_Y_INDEX]) * AXL_SENSITIVITY_2G;
     accelerometer_mG[Z_AXIS] = (float)(valuesLSB[ACC_Z_INDEX]) * AXL_SENSITIVITY_2G;
 
-    //calculate the accelerometer angle estimations
+    //calculate the accelerometer angle estimations in °
     AccelEstimatedX_deg = asinf(accelerometer_mG[X_AXIS] / accelerometer_mG[Z_AXIS]) * RADIANS_TO_DEGREES;
     AccelEstimatedY_deg = atanf(accelerometer_mG[Y_AXIS] / accelerometer_mG[Z_AXIS]) * RADIANS_TO_DEGREES;
 
