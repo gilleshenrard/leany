@@ -249,7 +249,8 @@ uint8_t LSM6DSOhasChanged(axis_e axis) {
  * @return Angle with the Z axis
  */
 int16_t getAngleDegreesTenths(axis_e axis) {
-    return ((int16_t)(latestAngles[axis] * 10.0F));
+    const float ANGLE_TO_TENTHS = 10.0F;
+    return ((int16_t)(latestAngles[axis] * ANGLE_TO_TENTHS));
 }
 
 /**
