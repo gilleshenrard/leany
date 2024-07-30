@@ -75,7 +75,7 @@ static errorCode_u stateError();
 static errorCode_u writeRegister(LSM6DSOregister_e registerNumber, uint8_t value);
 static errorCode_u readRegisters(LSM6DSOregister_e firstRegister, uint8_t value[], uint8_t size);
 
-static void complementaryFilter(const float accelerometerValues_mG[], const float gyroscopeValues_dps[]);
+static void complementaryFilter(const float accelerometer_mG[], const float gyroscope_dps[]);
 
 //global variables
 volatile uint16_t lsm6dsoTimer_ms    = BOOT_TIME_MS;  ///< Timer used in various states of the LSM6DSO (in ms)
@@ -276,10 +276,10 @@ void LSM6DSOcancelZeroing(void) {
 /**
  * @brief Compute a complementary filter on accelerometer/gyroscope values
  * 
- * @param accelerometerValues_mG    Array of acceleration values in [mG] on all axis
- * @param gyroscopeValues_dps       Array of gyroscope values  in [°/s] on X and Y axis
+ * @param accelerometer_mG    Array of acceleration values in [mG] on all axis
+ * @param gyroscope_dps       Array of gyroscope values  in [°/s] on X and Y axis
  */
-void complementaryFilter(const float accelerometerValues_mG[], const float gyroscopeValues_dps[]) {
+void complementaryFilter(const float accelerometer_mG[], const float gyroscope_dps[]) {
     const float alpha               = 0.02F;        ///< Proportion applied to the gyro. and accel. in the final result
     const float dtPeriod            = 0.00240385F;  ///< Time period between two updates (LSM6DSO config. at 416Hz)
     const float RADIANS_TO_DEGREES  = 57.2957795F;  ///< Ratio between radians and degrees (= 180°/PI)
@@ -287,14 +287,14 @@ void complementaryFilter(const float accelerometerValues_mG[], const float gyros
     float       AccelEstimatedY_deg = 0.0F;         ///< Estimated accelerator angle on the Y axis in [°]
 
     //calculate the accelerometer angle estimations in °
-    AccelEstimatedX_deg = asinf(accelerometerValues_mG[X_AXIS] / accelerometerValues_mG[Z_AXIS]) * RADIANS_TO_DEGREES;
-    AccelEstimatedY_deg = atanf(accelerometerValues_mG[Y_AXIS] / accelerometerValues_mG[Z_AXIS]) * RADIANS_TO_DEGREES;
+    AccelEstimatedX_deg = asinf(accelerometer_mG[X_AXIS] / accelerometer_mG[Z_AXIS]) * RADIANS_TO_DEGREES;
+    AccelEstimatedY_deg = atanf(accelerometer_mG[Y_AXIS] / accelerometer_mG[Z_AXIS]) * RADIANS_TO_DEGREES;
 
     //apply the complementary filter on X and Y axis
-    latestAngles[X_AXIS] = ((1 - alpha) * ((latestAngles[X_AXIS] + gyroscopeValues_dps[X_AXIS] * dtPeriod)))
-                           + (alpha * AccelEstimatedX_deg);
-    latestAngles[Y_AXIS] = ((1 - alpha) * (latestAngles[Y_AXIS] + (gyroscopeValues_dps[Y_AXIS] * dtPeriod)))
-                           + (alpha * AccelEstimatedY_deg);
+    latestAngles[X_AXIS] =
+        ((1 - alpha) * (latestAngles[X_AXIS] + (gyroscope_dps[X_AXIS] * dtPeriod))) + (alpha * AccelEstimatedX_deg);
+    latestAngles[Y_AXIS] =
+        ((1 - alpha) * (latestAngles[Y_AXIS] + (gyroscope_dps[Y_AXIS] * dtPeriod))) + (alpha * AccelEstimatedY_deg);
 }
 
 /********************************************************************************************************************************************/
