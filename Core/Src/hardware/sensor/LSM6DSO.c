@@ -72,6 +72,8 @@ static errorCode_u stateError();
 static errorCode_u writeRegister(LSM6DSOregister_e registerNumber, uint8_t value);
 static errorCode_u readRegisters(LSM6DSOregister_e firstRegister, uint8_t value[], uint8_t size);
 
+static void complementaryFilter(const int16_t valuesLSB[]);
+
 //global variables
 volatile uint16_t lsm6dsoTimer_ms    = BOOT_TIME_MS;  ///< Timer used in various states of the LSM6DSO (in ms)
 volatile uint16_t lsm6dsoSPITimer_ms = 0;             ///< Timer used to make sure SPI does not time out (in ms)
@@ -267,6 +269,45 @@ void LSM6DSOcancelZeroing(void) {
     }
 }
 
+/**
+ * @brief Compute a complementary filter on 16-bits LSB accelerometer/gyroscope values
+ * 
+ * @param valuesLSB Array of 16-bits accelerometer/gyroscope values
+ */
+void complementaryFilter(const int16_t valuesLSB[]) {
+    const uint8_t GYR_X_INDEX            = 0U;
+    const uint8_t GYR_Y_INDEX            = 1U;
+    const uint8_t ACC_X_INDEX            = 3U;
+    const uint8_t ACC_Y_INDEX            = 4U;
+    const uint8_t ACC_Z_INDEX            = 5U;
+    const float   alpha                  = 0.03F;
+    const float   dtPeriod               = 0.00240385F;
+    const float   RADIANS_TO_DEGREES     = 57.2957795F;  // =180/PI
+    const float   AXL_SENSITIVITY_2G     = 0.061F;       //accel. sensitivity at 2G in [mG/LSB] (datasheet p.9)
+    const float   GYR_SENSITIVITY_125DPS = 4.375F;       //gyro. sensitivity at 125DPS in [mdps/LSB] (datasheet p.9)
+    float         accelerometer_mG[NB_AXIS];             ///< Accelerometer values in [m/s²]
+    float         gyroscope_mDPS[NB_AXIS - 1];           ///< Gyroscope values in [m°/s]
+    float         AccelEstimatedAngleX = 0.0F;
+    float         AccelEstimatedAngleY = 0.0F;
+
+    //convert the values to mG and m°/s
+    gyroscope_mDPS[X_AXIS]   = (float)(valuesLSB[GYR_X_INDEX]) * GYR_SENSITIVITY_125DPS;
+    gyroscope_mDPS[Y_AXIS]   = (float)(valuesLSB[GYR_Y_INDEX]) * GYR_SENSITIVITY_125DPS;
+    accelerometer_mG[X_AXIS] = (float)(valuesLSB[ACC_X_INDEX]) * AXL_SENSITIVITY_2G;
+    accelerometer_mG[Y_AXIS] = (float)(valuesLSB[ACC_Y_INDEX]) * AXL_SENSITIVITY_2G;
+    accelerometer_mG[Z_AXIS] = (float)(valuesLSB[ACC_Z_INDEX]) * AXL_SENSITIVITY_2G;
+
+    //calculate the accelerometer angle estimations
+    AccelEstimatedAngleX = asinf(accelerometer_mG[X_AXIS] / accelerometer_mG[Z_AXIS]) * RADIANS_TO_DEGREES;
+    AccelEstimatedAngleY = atanf(accelerometer_mG[Y_AXIS] / accelerometer_mG[Z_AXIS]) * RADIANS_TO_DEGREES;
+
+    //apply the complementary filter on X and Y axis
+    latestAngles[X_AXIS] =
+        ((1 - alpha) * ((latestAngles[X_AXIS] + gyroscope_mDPS[X_AXIS] * dtPeriod))) + (alpha * AccelEstimatedAngleX);
+    latestAngles[Y_AXIS] =
+        ((1 - alpha) * (latestAngles[X_AXIS] + (gyroscope_mDPS[Y_AXIS] * dtPeriod))) + (alpha * AccelEstimatedAngleY);
+}
+
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
 
@@ -398,26 +439,7 @@ errorCode_u stateIgnoringSamples() {
  * @retval 1 Error while reading the status register value
  */
 static errorCode_u stateMeasuring() {
-    const uint8_t      GYR_X_INDEX               = 0U;
-    const uint8_t      GYR_Y_INDEX               = 1U;
-    const uint8_t      ACC_X_INDEX               = 3U;
-    const uint8_t      ACC_Y_INDEX               = 4U;
-    const uint8_t      ACC_Z_INDEX               = 5U;
-    rawValues_u        LSBvalues                 = {0};
-    const float        alpha                     = 0.01F;
-    const float        dtPeriod                  = 0.00240385F;
-    float              AccelEstimatedAngle       = 0.0F;
-    float              accelerometerValues_ms2[NB_AXIS];  ///< Latest accelerometer values in [m/s²]
-    float              gyroscopeValues_radps2[NB_AXIS];   ///< Latest gyroscope values in [m°/s]
-    const float   RADIANS_TO_DEGREES_TENTHS = 57.2957795F;  // =180/PI
-
-    //According to datasheet p.9 : accelerometer sensitivity @ 2G = 0.061[mG/LSB]
-    //  -> ratio to m/s² = (0.061 * 9.80665[m/s² per G at sea level]) / 1000[mG/G] = 0.000598206
-    // const float AXL_LSB_TO_MS2 = 0.000598206F;
-
-    //According to datasheet p.9 : gyroscope sensitivity @ 125°/s = 4.375[m°/s per LSB]
-    //  -> ratio to rad/s = (4.375 * (180°/Pi)) / 1000[mDPS/DPS] = 0,250669
-    // const float GYR_LSB_TO_RADPS = 0.004375F;
+    rawValues_u LSBvalues = {0};
 
     //if no interrupt occurred, exit
     if(!lsm6dsoDataReady) {
@@ -434,24 +456,8 @@ static errorCode_u stateMeasuring() {
         return (pushErrorCode(result, MEASURING, 2));
     }
 
-    //convert the values read on the LSM6DSO
-    accelerometerValues_ms2[X_AXIS] = (float)(LSBvalues.values16bits[ACC_X_INDEX]);
-    accelerometerValues_ms2[Y_AXIS] = (float)(LSBvalues.values16bits[ACC_Y_INDEX]);
-    accelerometerValues_ms2[Z_AXIS] = (float)(LSBvalues.values16bits[ACC_Z_INDEX]);
-    gyroscopeValues_radps2[X_AXIS]  = (float)(LSBvalues.values16bits[GYR_X_INDEX]);
-    gyroscopeValues_radps2[Y_AXIS]  = (float)(LSBvalues.values16bits[GYR_Y_INDEX]);
-
-    //compute the accelerometer X angle estimation and apply the complementary filter
-    AccelEstimatedAngle = asinf((accelerometerValues_ms2[X_AXIS]) / accelerometerValues_ms2[Z_AXIS]);
-    AccelEstimatedAngle *= RADIANS_TO_DEGREES_TENTHS;
-    latestAngles[X_AXIS] = ((1 - alpha) * ((gyroscopeValues_radps2[X_AXIS] * dtPeriod) + latestAngles[X_AXIS]))
-                           + (alpha * AccelEstimatedAngle);
-
-    //compute the accelerometer Y angle estimation and apply the complementary filter
-    AccelEstimatedAngle = atanf((accelerometerValues_ms2[Y_AXIS]) / accelerometerValues_ms2[Z_AXIS]);
-    AccelEstimatedAngle *= RADIANS_TO_DEGREES_TENTHS;
-    latestAngles[Y_AXIS] = ((1 - alpha) * ((gyroscopeValues_radps2[Y_AXIS] * dtPeriod) + latestAngles[Y_AXIS]))
-                           + (alpha * AccelEstimatedAngle);
+    //apply a complementary filter on read values
+    complementaryFilter(LSBvalues.values16bits);
 
     return (ERR_SUCCESS);
 }
