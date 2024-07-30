@@ -407,10 +407,9 @@ static errorCode_u stateMeasuring() {
     const float        alpha                     = 0.01F;
     const float        dtPeriod                  = 0.00240385F;
     float              AccelEstimatedAngle       = 0.0F;
-    static const float INVERSE_PI                = 0.318309886F;
-    static const float RADIANS_TO_DEGREES_TENTHS = 180.0F * INVERSE_PI;
     float              accelerometerValues_ms2[NB_AXIS];  ///< Latest accelerometer values in [m/s²]
     float              gyroscopeValues_radps2[NB_AXIS];   ///< Latest gyroscope values in [m°/s]
+    const float   RADIANS_TO_DEGREES_TENTHS = 57.2957795F;  // =180/PI
 
     //According to datasheet p.9 : accelerometer sensitivity @ 2G = 0.061[mG/LSB]
     //  -> ratio to m/s² = (0.061 * 9.80665[m/s² per G at sea level]) / 1000[mG/G] = 0.000598206
