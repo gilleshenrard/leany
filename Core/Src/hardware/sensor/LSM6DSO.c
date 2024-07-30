@@ -281,32 +281,33 @@ void complementaryFilter(const int16_t valuesLSB[]) {
     const uint8_t ACC_X_INDEX            = 3U;
     const uint8_t ACC_Y_INDEX            = 4U;
     const uint8_t ACC_Z_INDEX            = 5U;
-    const float   alpha                  = 0.03F;
+    const float   alpha                  = 0.02F;
     const float   dtPeriod               = 0.00240385F;
     const float   RADIANS_TO_DEGREES     = 57.2957795F;  // =180/PI
     const float   AXL_SENSITIVITY_2G     = 0.061F;       //accel. sensitivity at 2G in [mG/LSB] (datasheet p.9)
     const float   GYR_SENSITIVITY_125DPS = 4.375F;       //gyro. sensitivity at 125DPS in [mdps/LSB] (datasheet p.9)
-    float         accelerometer_mG[NB_AXIS];             ///< Accelerometer values in [m/s²]
-    float         gyroscope_mDPS[NB_AXIS - 1];           ///< Gyroscope values in [m°/s]
-    float         AccelEstimatedAngleX = 0.0F;
-    float         AccelEstimatedAngleY = 0.0F;
+    const float   MDPS_TO_DPS            = 0.001F;
+    float         accelerometer_mG[NB_AXIS];   ///< Accelerometer values in [m/s²]
+    float         gyroscope_DPS[NB_AXIS - 1];  ///< Gyroscope values in [m°/s]
+    float         AccelEstimatedX_deg = 0.0F;
+    float         AccelEstimatedY_deg = 0.0F;
 
     //convert the values to mG and m°/s
-    gyroscope_mDPS[X_AXIS]   = (float)(valuesLSB[GYR_X_INDEX]) * GYR_SENSITIVITY_125DPS;
-    gyroscope_mDPS[Y_AXIS]   = (float)(valuesLSB[GYR_Y_INDEX]) * GYR_SENSITIVITY_125DPS;
+    gyroscope_DPS[X_AXIS]    = (float)(valuesLSB[GYR_X_INDEX]) * GYR_SENSITIVITY_125DPS * MDPS_TO_DPS;
+    gyroscope_DPS[Y_AXIS]    = (float)(valuesLSB[GYR_Y_INDEX]) * GYR_SENSITIVITY_125DPS * MDPS_TO_DPS;
     accelerometer_mG[X_AXIS] = (float)(valuesLSB[ACC_X_INDEX]) * AXL_SENSITIVITY_2G;
     accelerometer_mG[Y_AXIS] = (float)(valuesLSB[ACC_Y_INDEX]) * AXL_SENSITIVITY_2G;
     accelerometer_mG[Z_AXIS] = (float)(valuesLSB[ACC_Z_INDEX]) * AXL_SENSITIVITY_2G;
 
     //calculate the accelerometer angle estimations
-    AccelEstimatedAngleX = asinf(accelerometer_mG[X_AXIS] / accelerometer_mG[Z_AXIS]) * RADIANS_TO_DEGREES;
-    AccelEstimatedAngleY = atanf(accelerometer_mG[Y_AXIS] / accelerometer_mG[Z_AXIS]) * RADIANS_TO_DEGREES;
+    AccelEstimatedX_deg = asinf(accelerometer_mG[X_AXIS] / accelerometer_mG[Z_AXIS]) * RADIANS_TO_DEGREES;
+    AccelEstimatedY_deg = atanf(accelerometer_mG[Y_AXIS] / accelerometer_mG[Z_AXIS]) * RADIANS_TO_DEGREES;
 
     //apply the complementary filter on X and Y axis
     latestAngles[X_AXIS] =
-        ((1 - alpha) * ((latestAngles[X_AXIS] + gyroscope_mDPS[X_AXIS] * dtPeriod))) + (alpha * AccelEstimatedAngleX);
+        ((1 - alpha) * ((latestAngles[X_AXIS] + gyroscope_DPS[X_AXIS] * dtPeriod))) + (alpha * AccelEstimatedX_deg);
     latestAngles[Y_AXIS] =
-        ((1 - alpha) * (latestAngles[X_AXIS] + (gyroscope_mDPS[Y_AXIS] * dtPeriod))) + (alpha * AccelEstimatedAngleY);
+        ((1 - alpha) * (latestAngles[Y_AXIS] + (gyroscope_DPS[Y_AXIS] * dtPeriod))) + (alpha * AccelEstimatedY_deg);
 }
 
 /********************************************************************************************************************************************/
