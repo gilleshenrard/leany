@@ -22,6 +22,9 @@ static const float    ANGLE_DELTA_MINIMUM = 0.05F;  ///< Minimum value for angle
 static const uint8_t  BOOT_TIME_MS        = 10U;    ///< Number of milliseconds to wait for the MEMS to boot
 static const uint8_t  SPI_TIMEOUT_MS      = 10U;    ///< Number of milliseconds beyond which SPI is in timeout
 static const uint16_t TIMEOUT_MS          = 1000U;  ///< Max number of milliseconds to wait for the device ID
+enum {
+    REGISTER_VALUE_ALIGN = 8,
+};
 
 /**
  * @brief Enumeration of all the function ID used in errors
@@ -41,7 +44,7 @@ typedef enum {
 typedef struct {
     LSM6DSOregister_e registerID;  ///< Register ID to which write the value
     uint8_t           value;       ///< Value to write
-} registerValue_t;
+} __attribute__((aligned(REGISTER_VALUE_ALIGN))) registerValue_t;
 
 /**
  * @brief Union regrouping 8-bits and 16-bits arrays
