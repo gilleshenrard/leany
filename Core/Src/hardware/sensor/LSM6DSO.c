@@ -91,7 +91,7 @@ static lsm6dsoState state                       = stateWaitingBoot;  ///< State 
 static uint8_t     accelerometerSamplesToIgnore = 0;  ///< Number of samples to ignore after change of ODR or power mode
 static errorCode_u result;                            ///< Variables used to store error codes
 static float       zeroValues[NB_AXIS];               ///< Accelerometer values at time of zeroing in [m/s²]
-float              latestAngles[NB_AXIS - 1] = {0.0F, 0.0F};
+static float       latestAngles_deg[NB_AXIS - 1] = {0.0F, 0.0F};
 
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
@@ -237,13 +237,13 @@ uint8_t LSM6DSOhasChanged(axis_e axis) {
     static float previousAccelerometerValues[NB_AXIS - 1] = {0.0F};
     uint8_t      tmp                                      = 0;
 
-    if(latestAngles[axis] > previousAccelerometerValues[axis]) {
-        tmp = ((latestAngles[axis] - previousAccelerometerValues[axis]) > ANGLE_DELTA_MINIMUM);
+    if(latestAngles_deg[axis] > previousAccelerometerValues[axis]) {
+        tmp = ((latestAngles_deg[axis] - previousAccelerometerValues[axis]) > ANGLE_DELTA_MINIMUM);
     } else {
-        tmp = ((previousAccelerometerValues[axis] - latestAngles[axis]) > ANGLE_DELTA_MINIMUM);
+        tmp = ((previousAccelerometerValues[axis] - latestAngles_deg[axis]) > ANGLE_DELTA_MINIMUM);
     }
 
-    previousAccelerometerValues[axis] = latestAngles[axis];
+    previousAccelerometerValues[axis] = latestAngles_deg[axis];
 
     return (tmp);
 }
@@ -256,15 +256,15 @@ uint8_t LSM6DSOhasChanged(axis_e axis) {
  */
 int16_t getAngleDegreesTenths(axis_e axis) {
     const float ANGLE_TO_TENTHS = 10.0F;
-    return ((int16_t)(latestAngles[axis] * ANGLE_TO_TENTHS));
+    return ((int16_t)(latestAngles_deg[axis] * ANGLE_TO_TENTHS));
 }
 
 /**
  * @brief Set the measurements in relative mode and zero down the values
  */
 void LSM6DSOzeroDown(void) {
-    zeroValues[X_AXIS] = -latestAngles[X_AXIS];
-    zeroValues[Y_AXIS] = -latestAngles[Y_AXIS];
+    zeroValues[X_AXIS] = -latestAngles_deg[X_AXIS];
+    zeroValues[Y_AXIS] = -latestAngles_deg[Y_AXIS];
 }
 
 /**
@@ -487,7 +487,7 @@ static errorCode_u stateMeasuring() {
     accelerometer_mG[Z_AXIS] = (float)(LSBvalues.values16bits[ACC_Z_INDEX]) * AXL_SENSITIVITY_2G;
 
     //apply a complementary filter on read values
-    complementaryFilter(accelerometer_mG, gyroscope_radps, latestAngles);
+    complementaryFilter(accelerometer_mG, gyroscope_radps, latestAngles_deg);
 
     return (ERR_SUCCESS);
 }
