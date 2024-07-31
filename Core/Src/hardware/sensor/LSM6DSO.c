@@ -15,7 +15,9 @@
 #include <stdint.h>
 #include "LSM6DSO_registers.h"
 #include "errorstack.h"
+#include "main.h"
 #include "stm32f103xb.h"
+#include "stm32f1xx_ll_gpio.h"
 #include "stm32f1xx_ll_spi.h"
 
 static const float    ANGLE_DELTA_MINIMUM = 0.05F;  ///< Minimum value for angle differences to be noticed
@@ -81,7 +83,6 @@ static void complementaryFilter(const float accelerometer_mG[], const float gyro
 //global variables
 volatile uint16_t lsm6dsoTimer_ms    = BOOT_TIME_MS;  ///< Timer used in various states of the LSM6DSO (in ms)
 volatile uint16_t lsm6dsoSPITimer_ms = 0;             ///< Timer used to make sure SPI does not time out (in ms)
-volatile uint8_t  lsm6dsoDataReady   = 0;             ///< Flag indicating a data-ready interrupt occurred
 
 //state variables
 static SPI_TypeDef* spiHandle                   = (void*)0;          ///< SPI handle used by the LSM6DSO device
@@ -411,12 +412,9 @@ static errorCode_u stateConfiguring() {
  */
 errorCode_u stateIgnoringSamples() {
     //if no interrupt occurred, exit
-    if(!lsm6dsoDataReady) {
+    if(!LL_GPIO_IsInputPinSet(LSM6DSO_INT1_GPIO_Port, LSM6DSO_INT1_Pin)) {
         return (ERR_SUCCESS);
     }
-
-    //reset the interrupt flag
-    lsm6dsoDataReady = 0;
 
     //read an accelerometer value to reset the latched interrupt
     uint8_t dummyValue = 0;
@@ -458,12 +456,9 @@ static errorCode_u stateMeasuring() {
     float       gyroscope_radps[NB_AXIS];   ///< Gyroscope values in [rad/s]
 
     //if no interrupt occurred, exit
-    if(!lsm6dsoDataReady) {
+    if(!LL_GPIO_IsInputPinSet(LSM6DSO_INT1_GPIO_Port, LSM6DSO_INT1_Pin)) {
         return (ERR_SUCCESS);
     }
-
-    //reset the interrupt flag
-    lsm6dsoDataReady = 0;
 
     //read all accelerometer/gyroscope values (they are synchronised, as stated in AN5192, section 3)
     result = readRegisters(OUTX_L_G, LSBvalues.registers8bits, LSM6_NB_OUT_REGISTERS);
