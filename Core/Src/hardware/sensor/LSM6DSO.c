@@ -77,8 +77,9 @@ static errorCode_u stateError();
 static errorCode_u writeRegister(LSM6DSOregister_e registerNumber, uint8_t value);
 static errorCode_u readRegisters(LSM6DSOregister_e firstRegister, uint8_t value[], uint8_t size);
 
-static void complementaryFilter(const float accelerometer_mG[], const float gyroscope_radps[],
-                                float filteredAngles_deg[]);
+static inline uint8_t dataReady(void);
+static void           complementaryFilter(const float accelerometer_mG[], const float gyroscope_radps[],
+                                          float filteredAngles_deg[]);
 
 //global variables
 volatile uint16_t lsm6dsoTimer_ms    = BOOT_TIME_MS;  ///< Timer used in various states of the LSM6DSO (in ms)
@@ -314,6 +315,16 @@ void complementaryFilter(const float accelerometer_mG[], const float gyroscope_r
         + (alpha * AccelEstimatedY_deg);
 }
 
+/**
+ * @brief Check if an INT1 event occurred
+ * 
+ * @retval 0 INT1 did not occur
+ * @retval 1 INT1 occurred
+ */
+static inline uint8_t dataReady(void) {
+    return (uint8_t)LL_GPIO_IsInputPinSet(LSM6DSO_INT1_GPIO_Port, LSM6DSO_INT1_Pin);
+}
+
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
 
@@ -412,7 +423,7 @@ static errorCode_u stateConfiguring() {
  */
 errorCode_u stateIgnoringSamples() {
     //if no interrupt occurred, exit
-    if(!LL_GPIO_IsInputPinSet(LSM6DSO_INT1_GPIO_Port, LSM6DSO_INT1_Pin)) {
+    if(!dataReady()) {
         return (ERR_SUCCESS);
     }
 
@@ -456,7 +467,7 @@ static errorCode_u stateMeasuring() {
     float       gyroscope_radps[NB_AXIS];   ///< Gyroscope values in [rad/s]
 
     //if no interrupt occurred, exit
-    if(!LL_GPIO_IsInputPinSet(LSM6DSO_INT1_GPIO_Port, LSM6DSO_INT1_Pin)) {
+    if(!dataReady()) {
         return (ERR_SUCCESS);
     }
 
