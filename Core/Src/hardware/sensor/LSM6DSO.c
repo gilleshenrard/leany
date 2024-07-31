@@ -75,7 +75,7 @@ static errorCode_u stateError();
 static errorCode_u writeRegister(LSM6DSOregister_e registerNumber, uint8_t value);
 static errorCode_u readRegisters(LSM6DSOregister_e firstRegister, uint8_t value[], uint8_t size);
 
-static void complementaryFilter(const float accelerometer_mG[], const float gyroscope_dps[]);
+static void complementaryFilter(const float accelerometer_mG[], const float gyroscope_dps[], float filteredAngles[]);
 
 //global variables
 volatile uint16_t lsm6dsoTimer_ms    = BOOT_TIME_MS;  ///< Timer used in various states of the LSM6DSO (in ms)
@@ -276,11 +276,12 @@ void LSM6DSOcancelZeroing(void) {
 /**
  * @brief Compute a complementary filter on accelerometer/gyroscope values
  * 
- * @param accelerometer_mG    Array of acceleration values in [mG] on all axis
- * @param gyroscope_dps       Array of gyroscope values  in [°/s] on X and Y axis
+ * @param[in] accelerometer_mG    Array of acceleration values in [mG] on all axis
+ * @param[in] gyroscope_dps       Array of gyroscope values  in [°/s] on X and Y axis
+ * @param[out] filteredAngles     Array of final angle values in [°] on X and Y axis
  */
-void complementaryFilter(const float accelerometer_mG[], const float gyroscope_dps[]) {
-    const float alpha               = 0.02F;        ///< Proportion applied to the gyro. and accel. in the final result
+void complementaryFilter(const float accelerometer_mG[], const float gyroscope_dps[], float filteredAngles[]) {
+    const float alpha               = 0.03F;        ///< Proportion applied to the gyro. and accel. in the final result
     const float dtPeriod            = 0.00240385F;  ///< Time period between two updates (LSM6DSO config. at 416Hz)
     const float RADIANS_TO_DEGREES  = 57.2957795F;  ///< Ratio between radians and degrees (= 180°/PI)
     const float GRAVITATION_MG      = 1000.0F;      ///< Grativation value in mG
@@ -292,10 +293,10 @@ void complementaryFilter(const float accelerometer_mG[], const float gyroscope_d
     AccelEstimatedY_deg = atanf(accelerometer_mG[Y_AXIS] / accelerometer_mG[Z_AXIS]) * RADIANS_TO_DEGREES;
 
     //apply the complementary filter on X and Y axis
-    latestAngles[X_AXIS] =
-        ((1 - alpha) * (latestAngles[X_AXIS] + (gyroscope_dps[X_AXIS] * dtPeriod))) + (alpha * AccelEstimatedX_deg);
-    latestAngles[Y_AXIS] =
-        ((1 - alpha) * (latestAngles[Y_AXIS] + (gyroscope_dps[Y_AXIS] * dtPeriod))) + (alpha * AccelEstimatedY_deg);
+    filteredAngles[X_AXIS] =
+        ((1 - alpha) * (filteredAngles[X_AXIS] + (gyroscope_dps[X_AXIS] * dtPeriod))) + (alpha * AccelEstimatedX_deg);
+    filteredAngles[Y_AXIS] =
+        ((1 - alpha) * (filteredAngles[Y_AXIS] + (gyroscope_dps[Y_AXIS] * dtPeriod))) + (alpha * AccelEstimatedY_deg);
 }
 
 /********************************************************************************************************************************************/
@@ -463,7 +464,7 @@ static errorCode_u stateMeasuring() {
     accelerometer_mG[Z_AXIS] = (float)(LSBvalues.values16bits[ACC_Z_INDEX]) * AXL_SENSITIVITY_2G;
 
     //apply a complementary filter on read values
-    complementaryFilter(accelerometer_mG, gyroscope_DPS);
+    complementaryFilter(accelerometer_mG, gyroscope_DPS, latestAngles);
 
     return (ERR_SUCCESS);
 }
