@@ -290,8 +290,8 @@ void complementaryFilter(const float accelerometer_mG[], const float gyroscope_r
     const float GRAVITATION_MG        = 1000.0F;      ///< Grativation value in mG
     float       AccelEstimatedX_deg   = 0.0F;         ///< Estimated accelerator angle on the X axis in [°]
     float       AccelEstimatedY_deg   = 0.0F;         ///< Estimated accelerator angle on the Y axis in [°]
-    float       eulerAngleRateX_radps = 0.0F;
-    float       eulerAngleRateY_radps = 0.0F;
+    float       eulerAngleRateX_radps = 0.0F;  ///< Euler angle rate (with reference to Earth) around X axis in rad/s
+    float       eulerAngleRateY_radps = 0.0F;  ///< Euler angle rate (with reference to Earth) around Y axis in rad/s
 
     //calculate the accelerometer angle estimations in °
     AccelEstimatedX_deg = asinf(accelerometer_mG[X_AXIS] / GRAVITATION_MG) * RADIANS_TO_DEGREES;
