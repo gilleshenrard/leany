@@ -483,7 +483,7 @@ static errorCode_u stateMeasuring() {
         valueIterator++;
     }
 
-    //convert the accelerometer LSB values to mG
+    //then convert the accelerometer LSB values to mG
     //datasheet p.9 : accelerometer sensitivity at 2G = 0.061 [mG/LSB]
     const float AXL_SENSITIVITY_2G = 0.061F;
     for(axis = 0; axis < (uint8_t)NB_AXIS; axis++) {
