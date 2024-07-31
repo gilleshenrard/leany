@@ -20,7 +20,7 @@
 #include "stm32f1xx_ll_gpio.h"
 #include "stm32f1xx_ll_spi.h"
 
-static const float ANGLE_DELTA_MINIMUM = 0.05F;  ///< Minimum value for angle differences to be noticed
+#define ANGLE_DELTA_MINIMUM 0.05F  ///< Minimum value for angle differences to be noticed
 enum {
     BOOT_TIME_MS         = 10U,    ///< Number of milliseconds to wait for the MEMS to boot
     SPI_TIMEOUT_MS       = 10U,    ///< Number of milliseconds beyond which SPI is in timeout
@@ -234,18 +234,15 @@ static errorCode_u writeRegister(LSM6DSOregister_e registerNumber, uint8_t value
  * @retval 1 New values are available
  */
 uint8_t LSM6DSOhasChanged(axis_e axis) {
-    static float previousAccelerometerValues[NB_AXIS - 1] = {0.0F};
-    uint8_t      tmp                                      = 0;
+    static float previousAccelerometerValues[NB_AXIS - 1] = {0.0F, 0.0F};
+    uint8_t      comparison                               = 0;
 
-    if(latestAngles_deg[axis] > previousAccelerometerValues[axis]) {
-        tmp = ((latestAngles_deg[axis] - previousAccelerometerValues[axis]) > ANGLE_DELTA_MINIMUM);
-    } else {
-        tmp = ((previousAccelerometerValues[axis] - latestAngles_deg[axis]) > ANGLE_DELTA_MINIMUM);
+    if(fabsf(latestAngles_deg[axis] - previousAccelerometerValues[axis]) > ANGLE_DELTA_MINIMUM) {
+        previousAccelerometerValues[axis] = latestAngles_deg[axis];
+        comparison                        = 1;
     }
 
-    previousAccelerometerValues[axis] = latestAngles_deg[axis];
-
-    return (tmp);
+    return (comparison);
 }
 
 /**
