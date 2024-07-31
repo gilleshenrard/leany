@@ -2,7 +2,7 @@
  * @file LSM6DSO.c
  * @brief Implement the LSM6DSO MEMS sensor communication
  * @author Gilles Henrard
- * @date 30/07/2024
+ * @date 31/07/2024
  *
  * @note Additional information can be found in :
  *   - Datasheet : https://www.st.com/resource/en/datasheet/lsm6dso.pdf
@@ -283,11 +283,12 @@ void complementaryFilter(const float accelerometer_mG[], const float gyroscope_d
     const float alpha               = 0.02F;        ///< Proportion applied to the gyro. and accel. in the final result
     const float dtPeriod            = 0.00240385F;  ///< Time period between two updates (LSM6DSO config. at 416Hz)
     const float RADIANS_TO_DEGREES  = 57.2957795F;  ///< Ratio between radians and degrees (= 180°/PI)
+    const float GRAVITATION_MG      = 1000.0F;      ///< Grativation value in mG
     float       AccelEstimatedX_deg = 0.0F;         ///< Estimated accelerator angle on the X axis in [°]
     float       AccelEstimatedY_deg = 0.0F;         ///< Estimated accelerator angle on the Y axis in [°]
 
     //calculate the accelerometer angle estimations in °
-    AccelEstimatedX_deg = asinf(accelerometer_mG[X_AXIS] / accelerometer_mG[Z_AXIS]) * RADIANS_TO_DEGREES;
+    AccelEstimatedX_deg = asinf(accelerometer_mG[X_AXIS] / GRAVITATION_MG) * RADIANS_TO_DEGREES;
     AccelEstimatedY_deg = atanf(accelerometer_mG[Y_AXIS] / accelerometer_mG[Z_AXIS]) * RADIANS_TO_DEGREES;
 
     //apply the complementary filter on X and Y axis
