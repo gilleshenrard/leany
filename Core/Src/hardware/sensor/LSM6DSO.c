@@ -21,6 +21,7 @@
 #include "stm32f1xx_ll_spi.h"
 
 #define ANGLE_DELTA_MINIMUM 0.05F  ///< Minimum value for angle differences to be noticed
+#define ANGLE_TO_TENTHS     10.0F  ///< 10 multiplier
 enum {
     BOOT_TIME_MS         = 10U,    ///< Number of milliseconds to wait for the MEMS to boot
     SPI_TIMEOUT_MS       = 10U,    ///< Number of milliseconds beyond which SPI is in timeout
@@ -252,7 +253,6 @@ uint8_t LSM6DSOhasChanged(axis_e axis) {
  * @return Angle with the Z axis
  */
 int16_t getAngleDegreesTenths(axis_e axis) {
-    const float ANGLE_TO_TENTHS = 10.0F;
     return ((int16_t)(latestAngles_deg[axis] * ANGLE_TO_TENTHS));
 }
 
