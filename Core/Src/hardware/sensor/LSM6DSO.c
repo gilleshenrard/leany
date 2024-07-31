@@ -282,7 +282,7 @@ void LSM6DSOcancelZeroing(void) {
  * @param[out] filteredAngles_deg     Array of final angle values in [°] on X and Y axis
  */
 void complementaryFilter(const float accelerometer_mG[], const float gyroscope_radps[], float filteredAngles_deg[]) {
-    const float alpha                 = 0.03F;  ///< Proportion applied to the gyro. and accel. in the final result
+    const float alpha                 = 0.02F;  ///< Proportion applied to the gyro. and accel. in the final result
     const float dtPeriod_sec          = 0.00240385F;  ///< Time period between two updates (LSM6DSO config. at 416Hz)
     const float RADIANS_TO_DEGREES    = 57.2957795F;  ///< Ratio between radians and degrees (= 180°/PI)
     const float GRAVITATION_MG        = 1000.0F;      ///< Grativation value in mG
