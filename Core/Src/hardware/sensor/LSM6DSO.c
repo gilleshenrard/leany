@@ -282,7 +282,7 @@ void LSM6DSOcancelZeroing(void) {
  */
 void complementaryFilter(const float accelerometer_mG[], const float gyroscope_dps[], float filteredAngles[]) {
     const float alpha               = 0.03F;        ///< Proportion applied to the gyro. and accel. in the final result
-    const float dtPeriod            = 0.00240385F;  ///< Time period between two updates (LSM6DSO config. at 416Hz)
+    const float dtPeriod_sec        = 0.00240385F;  ///< Time period between two updates (LSM6DSO config. at 416Hz)
     const float RADIANS_TO_DEGREES  = 57.2957795F;  ///< Ratio between radians and degrees (= 180°/PI)
     const float GRAVITATION_MG      = 1000.0F;      ///< Grativation value in mG
     float       AccelEstimatedX_deg = 0.0F;         ///< Estimated accelerator angle on the X axis in [°]
@@ -293,10 +293,10 @@ void complementaryFilter(const float accelerometer_mG[], const float gyroscope_d
     AccelEstimatedY_deg = atanf(accelerometer_mG[Y_AXIS] / accelerometer_mG[Z_AXIS]) * RADIANS_TO_DEGREES;
 
     //apply the complementary filter on X and Y axis
-    filteredAngles[X_AXIS] =
-        ((1 - alpha) * (filteredAngles[X_AXIS] + (gyroscope_dps[X_AXIS] * dtPeriod))) + (alpha * AccelEstimatedX_deg);
-    filteredAngles[Y_AXIS] =
-        ((1 - alpha) * (filteredAngles[Y_AXIS] + (gyroscope_dps[Y_AXIS] * dtPeriod))) + (alpha * AccelEstimatedY_deg);
+    filteredAngles[X_AXIS] = ((1 - alpha) * (filteredAngles[X_AXIS] + (gyroscope_dps[X_AXIS] * dtPeriod_sec)))
+                             + (alpha * AccelEstimatedX_deg);
+    filteredAngles[Y_AXIS] = ((1 - alpha) * (filteredAngles[Y_AXIS] + (gyroscope_dps[Y_AXIS] * dtPeriod_sec)))
+                             + (alpha * AccelEstimatedY_deg);
 }
 
 /********************************************************************************************************************************************/
