@@ -20,12 +20,12 @@
 #include "stm32f1xx_ll_gpio.h"
 #include "stm32f1xx_ll_spi.h"
 
-static const float    ANGLE_DELTA_MINIMUM = 0.05F;  ///< Minimum value for angle differences to be noticed
-static const uint8_t  BOOT_TIME_MS        = 10U;    ///< Number of milliseconds to wait for the MEMS to boot
-static const uint8_t  SPI_TIMEOUT_MS      = 10U;    ///< Number of milliseconds beyond which SPI is in timeout
-static const uint16_t TIMEOUT_MS          = 1000U;  ///< Max number of milliseconds to wait for the device ID
+static const float ANGLE_DELTA_MINIMUM = 0.05F;  ///< Minimum value for angle differences to be noticed
 enum {
-    REGISTER_VALUE_ALIGN = 8,
+    BOOT_TIME_MS         = 10U,    ///< Number of milliseconds to wait for the MEMS to boot
+    SPI_TIMEOUT_MS       = 10U,    ///< Number of milliseconds beyond which SPI is in timeout
+    TIMEOUT_MS           = 1000U,  ///< Max number of milliseconds to wait for the device ID
+    REGISTER_VALUE_ALIGN = 8,      ///< Alignment of the registerValue_t struct
 };
 
 /**
@@ -453,18 +453,10 @@ errorCode_u stateIgnoringSamples() {
  * @retval 1 Error while reading the status register value
  */
 static errorCode_u stateMeasuring() {
-    const uint8_t GYR_X_INDEX        = 0U;      ///< Index of the gyroscope X value in the array
-    const uint8_t GYR_Y_INDEX        = 1U;      ///< Index of the gyroscope Y value in the array
-    const uint8_t GYR_Z_INDEX        = 2U;      ///< Index of the gyroscope Z value in the array
-    const uint8_t ACC_X_INDEX        = 3U;      ///< Index of the accelerometer X value in the array
-    const uint8_t ACC_Y_INDEX        = 4U;      ///< Index of the accelerometer Y value in the array
-    const uint8_t ACC_Z_INDEX        = 5U;      ///< Index of the accelerometer Z value in the array
-    const float   AXL_SENSITIVITY_2G = 0.061F;  //accel. sensitivity [mG/LSB] at 2G (datasheet p.9)
-    const float   GYR_SENSITIVITY_125DPS_RPS =
-        0.000076358155F;                    //(data. p.9) (4.375 [mdps/LSB] / 1000 [mdps/dps]) * (PI / 180°)
     rawValues_u LSBvalues = {0};            ///< Buffer in which read values will be stored
     float       accelerometer_mG[NB_AXIS];  ///< Accelerometer values in [mG]
     float       gyroscope_radps[NB_AXIS];   ///< Gyroscope values in [rad/s]
+    int16_t*    valueIterator = (void*)0;
 
     //if no interrupt occurred, exit
     if(!dataReady()) {
@@ -478,13 +470,26 @@ static errorCode_u stateMeasuring() {
         return (pushErrorCode(result, MEASURING, 2));
     }
 
-    //convert the LSB values to mG and rad/s
-    gyroscope_radps[X_AXIS]  = (float)(LSBvalues.values16bits[GYR_X_INDEX]) * GYR_SENSITIVITY_125DPS_RPS;
-    gyroscope_radps[Y_AXIS]  = (float)(LSBvalues.values16bits[GYR_Y_INDEX]) * GYR_SENSITIVITY_125DPS_RPS;
-    gyroscope_radps[Z_AXIS]  = (float)(LSBvalues.values16bits[GYR_Z_INDEX]) * GYR_SENSITIVITY_125DPS_RPS;
-    accelerometer_mG[X_AXIS] = (float)(LSBvalues.values16bits[ACC_X_INDEX]) * AXL_SENSITIVITY_2G;
-    accelerometer_mG[Y_AXIS] = (float)(LSBvalues.values16bits[ACC_Y_INDEX]) * AXL_SENSITIVITY_2G;
-    accelerometer_mG[Z_AXIS] = (float)(LSBvalues.values16bits[ACC_Z_INDEX]) * AXL_SENSITIVITY_2G;
+    //prepare iterator values
+    uint8_t axis  = 0;
+    valueIterator = LSBvalues.values16bits;
+
+    //convert the gyroscope LSB values to rad/s
+    //datasheet p.9 : gyroscope sensitivity at 125°/s = 4.375[mdps/LSB]
+    //      to rad/s : (sensitivity / 1000[mdps/dps]) * (PI/180°) = 0.000076358155
+    const float GYR_SENSITIVITY_125DPS_RPS = 0.000076358155F;
+    for(axis = 0; axis < (uint8_t)NB_AXIS; axis++) {
+        gyroscope_radps[axis] = (float)(*valueIterator) * GYR_SENSITIVITY_125DPS_RPS;
+        valueIterator++;
+    }
+
+    //convert the accelerometer LSB values to mG
+    //datasheet p.9 : accelerometer sensitivity at 2G = 0.061 [mG/LSB]
+    const float AXL_SENSITIVITY_2G = 0.061F;
+    for(axis = 0; axis < (uint8_t)NB_AXIS; axis++) {
+        accelerometer_mG[axis] = (float)(*valueIterator) * AXL_SENSITIVITY_2G;
+        valueIterator++;
+    }
 
     //apply a complementary filter on read values
     complementaryFilter(accelerometer_mG, gyroscope_radps, latestAngles_deg);
