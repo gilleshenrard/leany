@@ -2,7 +2,7 @@
  * @file LSM6DSO.c
  * @brief Implement the LSM6DSO MEMS sensor communication
  * @author Gilles Henrard
- * @date 31/07/2024
+ * @date 01/08/2024
  *
  * @note Additional information can be found in :
  *   - Datasheet : https://www.st.com/resource/en/datasheet/lsm6dso.pdf
@@ -22,11 +22,13 @@
 
 #define ANGLE_DELTA_MINIMUM 0.05F  ///< Minimum value for angle differences to be noticed
 #define ANGLE_TO_TENTHS     10.0F  ///< 10 multiplier
+#define BASE_TEMPERATURE    25.0F  ///Temperature at which the LSM6DSO temperature reading will give 0
 enum {
     BOOT_TIME_MS         = 10U,    ///< Number of milliseconds to wait for the MEMS to boot
     SPI_TIMEOUT_MS       = 10U,    ///< Number of milliseconds beyond which SPI is in timeout
     TIMEOUT_MS           = 1000U,  ///< Max number of milliseconds to wait for the device ID
     REGISTER_VALUE_ALIGN = 8,      ///< Alignment of the registerValue_t struct
+    NB_REGISTERS_TO_READ = LSM6_NB_OUT_REGISTERS + 2U,
 };
 
 /**
@@ -55,8 +57,8 @@ typedef struct {
  *  This allows reading all the accelerometer and gyroscope values at once, and convert them to 16 bit instantly
  */
 typedef union {
-    uint8_t registers8bits[LSM6_NB_OUT_REGISTERS];        ///< 8-bits registers array
-    int16_t values16bits[(LSM6_NB_OUT_REGISTERS >> 1U)];  ///< 16-bits values array
+    uint8_t registers8bits[NB_REGISTERS_TO_READ];                   ///< 8-bits registers array
+    int16_t values16bits[((uint8_t)(NB_REGISTERS_TO_READ) >> 1U)];  ///< 16-bits values array
 } rawValues_u;
 
 /**
@@ -92,7 +94,8 @@ static lsm6dsoState state                       = stateWaitingBoot;  ///< State 
 static uint8_t     accelerometerSamplesToIgnore = 0;  ///< Number of samples to ignore after change of ODR or power mode
 static errorCode_u result;                            ///< Variables used to store error codes
 static float       zeroValues[NB_AXIS];               ///< Accelerometer values at time of zeroing in [m/s²]
-static float       latestAngles_deg[NB_AXIS - 1] = {0.0F, 0.0F};
+static float       latestAngles_deg[NB_AXIS - 1] = {0.0F, 0.0F};      ///< Latest angles measured and filtered in [°]
+float              temperature_degC              = BASE_TEMPERATURE;  ///< Temperature of the LSM6DSO in [°C]
 
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
@@ -450,18 +453,19 @@ errorCode_u stateIgnoringSamples() {
  * @retval 1 Error while reading the status register value
  */
 static errorCode_u stateMeasuring() {
-    rawValues_u LSBvalues = {0};            ///< Buffer in which read values will be stored
-    float       accelerometer_mG[NB_AXIS];  ///< Accelerometer values in [mG]
-    float       gyroscope_radps[NB_AXIS];   ///< Gyroscope values in [rad/s]
-    int16_t*    valueIterator = (void*)0;
+    rawValues_u    LSBvalues = {0};              ///< Buffer in which read values will be stored
+    float          accelerometer_mG[NB_AXIS];    ///< Accelerometer values in [mG]
+    float          gyroscope_radps[NB_AXIS];     ///< Gyroscope values in [rad/s]
+    int16_t*       valueIterator    = (void*)0;  ///< Pointer used to browse through read values
+    static int16_t previousTemp_LSB = 0;         ///< Previously read temperature LSB values
 
     //if no interrupt occurred, exit
     if(!dataReady()) {
         return (ERR_SUCCESS);
     }
 
-    //read all accelerometer/gyroscope values (they are synchronised, as stated in AN5192, section 3)
-    result = readRegisters(OUTX_L_G, LSBvalues.registers8bits, LSM6_NB_OUT_REGISTERS);
+    //read all temp/accelerometer/gyroscope values
+    result = readRegisters(OUT_TEMP_L, LSBvalues.registers8bits, NB_REGISTERS_TO_READ);
     if(isError(result)) {
         state = stateError;
         return (pushErrorCode(result, MEASURING, 2));
@@ -470,6 +474,17 @@ static errorCode_u stateMeasuring() {
     //prepare iterator values
     uint8_t axis  = 0;
     valueIterator = LSBvalues.values16bits;
+
+    //convert the temperature LSB values to °C
+    // Sparingly calculated since the temperature readings max. freq. is 52Hz
+    // AN5192 p.113 : temperature sensitivity = 256 [LSB/°C] = 0.00390625 [°C/LSB]
+    //                + LSB = 0 @ 25°C
+    if(*valueIterator != previousTemp_LSB) {
+        const float TEMPERATURE_SENSITIVITY = 0.00390625F;
+        temperature_degC                    = BASE_TEMPERATURE + ((float)(*valueIterator) * TEMPERATURE_SENSITIVITY);
+        previousTemp_LSB                    = *valueIterator;
+    }
+    valueIterator++;
 
     //convert the gyroscope LSB values to rad/s
     //datasheet p.9 : gyroscope sensitivity at 125°/s = 4.375[mdps/LSB]
