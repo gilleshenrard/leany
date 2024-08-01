@@ -19,6 +19,9 @@
 #define LSM6_ODR_416HZ       0x60U  ///< Accelerometer/gyroscope ODR value for 416Hz High-Performance
 #define LSM6_AXL_LPF2_ENABLE 0x02U  ///< Bit value to enable the accelerometers LP filter 2
 
+// Accelerometer Control register (0x10) values
+#define GYR_FS_125_DPS 0x02U  ///< Bit value used to force gyroscope sensitivity to 125 °/s
+
 // Control register 3 (0x12) values
 #define LSM6_REBOOT_MEMORY  0x80U  ///< Bit value to reboot the LSM6DSO memory
 #define LSM6_INT_ACTIVE_LOW 0x20U  ///< Bit value to set interrupts as active low (falling-edge)
