@@ -93,7 +93,7 @@ static SPI_TypeDef* spiHandle                   = (void*)0;          ///< SPI ha
 static lsm6dsoState state                       = stateWaitingBoot;  ///< State machine current state
 static uint8_t     accelerometerSamplesToIgnore = 0;  ///< Number of samples to ignore after change of ODR or power mode
 static errorCode_u result;                            ///< Variables used to store error codes
-static float       zeroValues[NB_AXIS];               ///< Accelerometer values at time of zeroing in [m/s²]
+static float       anglesAtZeroing_rad[NB_AXIS];      ///< Accelerometer values at time of zeroing in [m/s²]
 static float       latestAngles_rad[NB_AXIS - 1] = {0.0F, 0.0F};      ///< Latest angles measured and filtered in [rad]
 float              temperature_degC              = BASE_TEMPERATURE;  ///< Temperature of the LSM6DSO in [°C]
 
@@ -256,15 +256,15 @@ uint8_t LSM6DSOhasChanged(axis_e axis) {
  * @return Angle with the Z axis
  */
 int16_t getAngleDegreesTenths(axis_e axis) {
-    return ((int16_t)(latestAngles_rad[axis] * RADIANS_TO_DEGREES_TENTHS));
+    return ((int16_t)((latestAngles_rad[axis] + anglesAtZeroing_rad[axis]) * RADIANS_TO_DEGREES_TENTHS));
 }
 
 /**
  * @brief Set the measurements in relative mode and zero down the values
  */
 void LSM6DSOzeroDown(void) {
-    zeroValues[X_AXIS] = -latestAngles_rad[X_AXIS];
-    zeroValues[Y_AXIS] = -latestAngles_rad[Y_AXIS];
+    anglesAtZeroing_rad[X_AXIS] = -latestAngles_rad[X_AXIS];
+    anglesAtZeroing_rad[Y_AXIS] = -latestAngles_rad[Y_AXIS];
 }
 
 /**
@@ -272,7 +272,7 @@ void LSM6DSOzeroDown(void) {
  */
 void LSM6DSOcancelZeroing(void) {
     for(uint8_t axis = 0; axis < (uint8_t)NB_AXIS; axis++) {
-        zeroValues[axis] = 0;
+        anglesAtZeroing_rad[axis] = 0;
     }
 }
 
