@@ -509,6 +509,11 @@ static errorCode_u stateMeasuring() {
     return (ERR_SUCCESS);
 }
 
+/**
+ * @brief State in which the LSM6DSO is in error and no further treatment is done
+ * 
+ * @return Success
+ */
 static errorCode_u stateError() {
     return (ERR_SUCCESS);
 }
