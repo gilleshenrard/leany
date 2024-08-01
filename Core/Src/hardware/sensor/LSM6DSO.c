@@ -394,7 +394,7 @@ static errorCode_u stateConfiguring() {
         {   CTRL7_G,     GYR_HPF_ENABLE | GYR_HPF_CUTOFF_65MHZ}, //enable the gyroscope HP filter with 16mHz cutoff freq.
         {   CTRL4_C,                           GYR_LPF1_ENABLE}, //enable the gyroscope LP1 filter
         {   CTRL6_C,                   GYR_LPF1_CUTOFF_120_3HZ}, //set the gyroscope LPF1 cutoff frequency to 136.6Hz
-        {   CTRL2_G,                            LSM6_ODR_416HZ}, //set the gyroscope in high-performance mode
+        {   CTRL2_G,           LSM6_ODR_416HZ | GYR_FS_125_DPS}, //set the gyroscope in high-performance mode and sens. to 125dps
     };
 
     //write all registers values from the initialisation array
