@@ -238,12 +238,12 @@ static errorCode_u writeRegister(LSM6DSOregister_e registerNumber, uint8_t value
  * @retval 1 New values are available
  */
 uint8_t LSM6DSOhasChanged(axis_e axis) {
-    static float previousAccelerometerValues[NB_AXIS - 1] = {0.0F, 0.0F};
-    uint8_t      comparison                               = 0;
+    static float previousAngles_rad[NB_AXIS - 1] = {0.0F, 0.0F};
+    uint8_t      comparison                      = 0;
 
-    if(fabsf(latestAngles_rad[axis] - previousAccelerometerValues[axis]) > ANGLE_DELTA_MINIMUM) {
-        previousAccelerometerValues[axis] = latestAngles_rad[axis];
-        comparison                        = 1;
+    if(fabsf(latestAngles_rad[axis] - previousAngles_rad[axis]) > ANGLE_DELTA_MINIMUM) {
+        previousAngles_rad[axis] = latestAngles_rad[axis];
+        comparison               = 1;
     }
 
     return (comparison);
