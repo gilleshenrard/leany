@@ -409,7 +409,8 @@ static errorCode_u stateConfiguring() {
     //set the number of samples to ignore after changing ODR and power mode
     accelerometerSamplesToIgnore = AXL_SAMPLES_TO_IGNORE;
 
-    state = stateIgnoringSamples;
+    lsm6dsoTimer_ms = TIMEOUT_MS;
+    state           = stateIgnoringSamples;
     return (ERR_SUCCESS);
 }
 
@@ -418,9 +419,16 @@ static errorCode_u stateConfiguring() {
  * @note This is recommended in the document AN5192, Table 12
  * 
  * @retval 0 Success
- * @retval 1 Error while reading a register
+ * @retval 1 No measurement received in a timely manner
+ * @retval 2 Error while reading a register
  */
 errorCode_u stateIgnoringSamples() {
+    //if 1s elapsed without getting any data ready interrupt, error
+    if(!lsm6dsoTimer_ms) {
+        state = stateError;
+        return (createErrorCode(DROPPING, 1, ERR_CRITICAL));
+    }
+
     //if no interrupt occurred, exit
     if(!dataReady()) {
         return (ERR_SUCCESS);
@@ -431,8 +439,11 @@ errorCode_u stateIgnoringSamples() {
     result             = readRegisters(OUTX_H_A, &dummyValue, 1);
     if(isError(result)) {
         state = stateError;
-        return (pushErrorCode(result, DROPPING, 1));
+        return (pushErrorCode(result, DROPPING, 2));
     }
+
+    //reset the timer
+    lsm6dsoTimer_ms = TIMEOUT_MS;
 
     //decrement the remaining amount to ignore and exit if still remaining
     accelerometerSamplesToIgnore--;
@@ -449,7 +460,8 @@ errorCode_u stateIgnoringSamples() {
  * @brief State in which the measurements are pulled from the sensor
  * 
  * @retval 0 Success
- * @retval 1 Error while reading the status register value
+ * @retval 1 No measurement received in a timely manner
+ * @retval 2 Error while reading the status register value
  */
 static errorCode_u stateMeasuring() {
     rawValues_u    LSBvalues = {0};              ///< Buffer in which read values will be stored
@@ -458,10 +470,19 @@ static errorCode_u stateMeasuring() {
     int16_t*       valueIterator    = (void*)0;  ///< Pointer used to browse through read values
     static int16_t previousTemp_LSB = 0;         ///< Previously read temperature LSB values
 
+    //if 1s elapsed without getting any data ready interrupt, error
+    if(!lsm6dsoTimer_ms) {
+        state = stateError;
+        return (createErrorCode(MEASURING, 1, ERR_CRITICAL));
+    }
+
     //if no interrupt occurred, exit
     if(!dataReady()) {
         return (ERR_SUCCESS);
     }
+
+    //reset the timer
+    lsm6dsoTimer_ms = TIMEOUT_MS;
 
     //read all temp/accelerometer/gyroscope values
     result = readRegisters(OUT_TEMP_L, LSBvalues.registers8bits, NB_REGISTERS_TO_READ);
