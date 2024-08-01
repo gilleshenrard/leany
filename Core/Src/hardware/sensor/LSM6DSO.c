@@ -20,9 +20,9 @@
 #include "stm32f1xx_ll_gpio.h"
 #include "stm32f1xx_ll_spi.h"
 
-#define ANGLE_DELTA_MINIMUM 0.05F  ///< Minimum value for angle differences to be noticed
-#define ANGLE_TO_TENTHS     10.0F  ///< 10 multiplier
-#define BASE_TEMPERATURE    25.0F  ///Temperature at which the LSM6DSO temperature reading will give 0
+#define ANGLE_DELTA_MINIMUM       0.05F        ///< Minimum value for angle differences to be noticed
+#define RADIANS_TO_DEGREES_TENTHS 572.957795F  ///< Ratio between radians and tenths of degrees (= 10 * (180°/PI))
+#define BASE_TEMPERATURE          25.0F        ///Temperature at which the LSM6DSO temperature reading will give 0
 enum {
     BOOT_TIME_MS         = 10U,    ///< Number of milliseconds to wait for the MEMS to boot
     SPI_TIMEOUT_MS       = 10U,    ///< Number of milliseconds beyond which SPI is in timeout
@@ -82,7 +82,7 @@ static errorCode_u readRegisters(LSM6DSOregister_e firstRegister, uint8_t value[
 
 static inline uint8_t dataReady(void);
 static void           complementaryFilter(const float accelerometer_mG[], const float gyroscope_radps[],
-                                          float filteredAngles_deg[]);
+                                          float filteredAngles_rad[]);
 
 //global variables
 volatile uint16_t lsm6dsoTimer_ms    = BOOT_TIME_MS;  ///< Timer used in various states of the LSM6DSO (in ms)
@@ -94,7 +94,7 @@ static lsm6dsoState state                       = stateWaitingBoot;  ///< State 
 static uint8_t     accelerometerSamplesToIgnore = 0;  ///< Number of samples to ignore after change of ODR or power mode
 static errorCode_u result;                            ///< Variables used to store error codes
 static float       zeroValues[NB_AXIS];               ///< Accelerometer values at time of zeroing in [m/s²]
-static float       latestAngles_deg[NB_AXIS - 1] = {0.0F, 0.0F};      ///< Latest angles measured and filtered in [°]
+static float       latestAngles_rad[NB_AXIS - 1] = {0.0F, 0.0F};      ///< Latest angles measured and filtered in [rad]
 float              temperature_degC              = BASE_TEMPERATURE;  ///< Temperature of the LSM6DSO in [°C]
 
 /********************************************************************************************************************************************/
@@ -241,8 +241,8 @@ uint8_t LSM6DSOhasChanged(axis_e axis) {
     static float previousAccelerometerValues[NB_AXIS - 1] = {0.0F, 0.0F};
     uint8_t      comparison                               = 0;
 
-    if(fabsf(latestAngles_deg[axis] - previousAccelerometerValues[axis]) > ANGLE_DELTA_MINIMUM) {
-        previousAccelerometerValues[axis] = latestAngles_deg[axis];
+    if(fabsf(latestAngles_rad[axis] - previousAccelerometerValues[axis]) > ANGLE_DELTA_MINIMUM) {
+        previousAccelerometerValues[axis] = latestAngles_rad[axis];
         comparison                        = 1;
     }
 
@@ -256,15 +256,15 @@ uint8_t LSM6DSOhasChanged(axis_e axis) {
  * @return Angle with the Z axis
  */
 int16_t getAngleDegreesTenths(axis_e axis) {
-    return ((int16_t)(latestAngles_deg[axis] * ANGLE_TO_TENTHS));
+    return ((int16_t)(latestAngles_rad[axis] * RADIANS_TO_DEGREES_TENTHS));
 }
 
 /**
  * @brief Set the measurements in relative mode and zero down the values
  */
 void LSM6DSOzeroDown(void) {
-    zeroValues[X_AXIS] = -latestAngles_deg[X_AXIS];
-    zeroValues[Y_AXIS] = -latestAngles_deg[Y_AXIS];
+    zeroValues[X_AXIS] = -latestAngles_rad[X_AXIS];
+    zeroValues[Y_AXIS] = -latestAngles_rad[Y_AXIS];
 }
 
 /**
@@ -281,38 +281,37 @@ void LSM6DSOcancelZeroing(void) {
  * 
  * @param[in] accelerometer_mG    Array of acceleration values in [mG] on all axis
  * @param[in] gyroscope_radps       Array of gyroscope values  in [rad/s] on X and Y axis
- * @param[out] filteredAngles_deg     Array of final angle values in [°] on X and Y axis
+ * @param[out] filteredAngles_rad     Array of final angle values in [rad] on X and Y axis
  */
-void complementaryFilter(const float accelerometer_mG[], const float gyroscope_radps[], float filteredAngles_deg[]) {
+void complementaryFilter(const float accelerometer_mG[], const float gyroscope_radps[], float filteredAngles_rad[]) {
     const float alpha                 = 0.02F;  ///< Proportion applied to the gyro. and accel. in the final result
     const float dtPeriod_sec          = 0.00240385F;  ///< Time period between two updates (LSM6DSO config. at 416Hz)
-    const float RADIANS_TO_DEGREES    = 57.2957795F;  ///< Ratio between radians and degrees (= 180°/PI)
     const float GRAVITATION_MG        = 1000.0F;      ///< Grativation value in mG
-    float       AccelEstimatedX_deg   = 0.0F;         ///< Estimated accelerator angle on the X axis in [°]
-    float       AccelEstimatedY_deg   = 0.0F;         ///< Estimated accelerator angle on the Y axis in [°]
+    float       AccelEstimatedX_rad   = 0.0F;         ///< Estimated accelerator angle on the X axis in [rad]
+    float       AccelEstimatedY_rad   = 0.0F;         ///< Estimated accelerator angle on the Y axis in [rad]
     float       eulerAngleRateX_radps = 0.0F;  ///< Euler angle rate (with reference to Earth) around X axis in rad/s
     float       eulerAngleRateY_radps = 0.0F;  ///< Euler angle rate (with reference to Earth) around Y axis in rad/s
 
     //calculate the accelerometer angle estimations in °
-    AccelEstimatedX_deg = asinf(accelerometer_mG[X_AXIS] / GRAVITATION_MG) * RADIANS_TO_DEGREES;
-    AccelEstimatedY_deg = atanf(accelerometer_mG[Y_AXIS] / accelerometer_mG[Z_AXIS]) * RADIANS_TO_DEGREES;
+    AccelEstimatedX_rad = asinf(accelerometer_mG[X_AXIS] / GRAVITATION_MG);
+    AccelEstimatedY_rad = atanf(accelerometer_mG[Y_AXIS] / accelerometer_mG[Z_AXIS]);
 
     //Transform gyroscope rates (reference is the solid body) to Euler rates (reference is Earth)
     eulerAngleRateX_radps =
         gyroscope_radps[X_AXIS]
-        + (sinf(filteredAngles_deg[X_AXIS]) * tanf(filteredAngles_deg[Y_AXIS]) * gyroscope_radps[Y_AXIS])
-        + (cosf(filteredAngles_deg[X_AXIS]) * tanf(filteredAngles_deg[Y_AXIS]) * gyroscope_radps[Z_AXIS]);
+        + (sinf(filteredAngles_rad[X_AXIS]) * tanf(filteredAngles_rad[Y_AXIS]) * gyroscope_radps[Y_AXIS])
+        + (cosf(filteredAngles_rad[X_AXIS]) * tanf(filteredAngles_rad[Y_AXIS]) * gyroscope_radps[Z_AXIS]);
 
-    eulerAngleRateY_radps = (cosf(filteredAngles_deg[X_AXIS]) * gyroscope_radps[Y_AXIS])
-                            - (sinf(filteredAngles_deg[X_AXIS]) * gyroscope_radps[Z_AXIS]);
+    eulerAngleRateY_radps = (cosf(filteredAngles_rad[X_AXIS]) * gyroscope_radps[Y_AXIS])
+                            - (sinf(filteredAngles_rad[X_AXIS]) * gyroscope_radps[Z_AXIS]);
 
     //combine accelerometer estimates with Euler angle rates estimates
-    filteredAngles_deg[X_AXIS] =
-        ((1.0F - alpha) * (filteredAngles_deg[X_AXIS] + (eulerAngleRateX_radps * dtPeriod_sec * RADIANS_TO_DEGREES)))
-        + (alpha * AccelEstimatedX_deg);
-    filteredAngles_deg[Y_AXIS] =
-        ((1.0F - alpha) * (filteredAngles_deg[Y_AXIS] + (eulerAngleRateY_radps * dtPeriod_sec * RADIANS_TO_DEGREES)))
-        + (alpha * AccelEstimatedY_deg);
+    filteredAngles_rad[X_AXIS] =
+        ((1.0F - alpha) * (filteredAngles_rad[X_AXIS] + (eulerAngleRateX_radps * dtPeriod_sec)))
+        + (alpha * AccelEstimatedX_rad);
+    filteredAngles_rad[Y_AXIS] =
+        ((1.0F - alpha) * (filteredAngles_rad[Y_AXIS] + (eulerAngleRateY_radps * dtPeriod_sec)))
+        + (alpha * AccelEstimatedY_rad);
 }
 
 /**
@@ -504,7 +503,7 @@ static errorCode_u stateMeasuring() {
     }
 
     //apply a complementary filter on read values
-    complementaryFilter(accelerometer_mG, gyroscope_radps, latestAngles_deg);
+    complementaryFilter(accelerometer_mG, gyroscope_radps, latestAngles_rad);
 
     return (ERR_SUCCESS);
 }
