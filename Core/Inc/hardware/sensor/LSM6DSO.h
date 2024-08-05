@@ -22,5 +22,6 @@ uint8_t     LSM6DSOhasChanged(axis_e axis);
 int16_t     getAngleDegreesTenths(axis_e axis);
 void        LSM6DSOzeroDown(void);
 void        LSM6DSOcancelZeroing(void);
+errorCode_u LSM6DSOhold(uint8_t value);
 
 #endif
