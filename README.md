@@ -31,16 +31,28 @@ Quote : [Wikipedia](https://en.wikipedia.org/wiki/Inclinometer)
 - The latest *.bin firmware file
 
 #### 4.3. Software (to compile with VSCode)
-I've found having **STM32CubeIDE** installed makes it easiest to configure VSCode.
+Most of the software listed below is natively shipped with **STM32CubeIDE**.
 
-It is shipped with the GNU Arm Embedded Toolchain, the STLink utilities and the STM32CubeProgrammer plugin.
-
-To compile with VSCode, the following is required :
-- CMake (minimum version 3.20)
+- STM32CubeMX
+- CMake
 - The Ninja build-system
-- VSCode extensions : C/C++ pack, Cortex-Debug, Cmake, CMake Tools
+- GNU Arm Embedded Toolchain (arm-none-eabi)
+- LLVM
+- OpenOCD
+- VSCode
+- VSCode extensions :
+    - [C/C++ Extensions pack](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools-extension-pack)
+    - [Cortex-Debug](https://marketplace.visualstudio.com/items?itemName=marus25.cortex-debug)
+    - [ARM Assembly](https://marketplace.visualstudio.com/items?itemName=dan-c-underwood.arm)
+    - [Linker Script highlighting](https://marketplace.visualstudio.com/items?itemName=ZixuanWang.linkerscript)
+    - [Doxygen Documentation Generator](https://marketplace.visualstudio.com/items?itemName=cschlosser.doxdocgen)
 
-### 5. Operation principles
+### 5. How to build
+1. Open the *.ioc file with STM32CubeMX and click "Generate Code" to add the STM32CubeMX-generated files to the directory.
+2. Hit CTRL + SHIFT + P, then launch "CMake: Configure", then select "Debug" (or simply hit F7)
+3. Once done, hit CTRL + SHIFT + P, then launch "CMake: Build" (or simply hit F5)
+
+### 6. Operation principles
 This devices functions in 4 steps :
 1. Wait for the LSM6DSO to gather measurements
     - accelerometer : linear acceleration with a digital low-pass filter on the X, Y and Z axis
@@ -49,7 +61,7 @@ This devices functions in 4 steps :
 3. Format the angles with their sign and print them on the screen (if the angle changed)
 4. Rinse and repeat
 
-### 6. Wiring
+### 7. Wiring
 
 STLink V2 pinout :
 
