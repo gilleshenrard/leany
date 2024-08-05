@@ -22,7 +22,7 @@ Quote : [Wikipedia](https://en.wikipedia.org/wiki/Inclinometer)
 ### 4. Prerequisites
 #### 4.1. Hardware
 - A Bluepill (STM32F103C8T6 ARM Cortex-M3 development board)
-- An ADXL345 accelerometer breakout board
+- An ST LSM6DSO accelerometer/gyroscope breakout board
 - An SSD1306 128x64 OLED display breakout board (with SPI pinout, not I²C)
 - An STLink programmer
 
@@ -42,10 +42,12 @@ To compile with VSCode, the following is required :
 
 ### 5. Operation principles
 This devices functions in 4 steps :
-1. Wait for the ADXL345 to gather acceleration values in the X, Y and Z axis
-2. Compute the angles between G (gravity on the Z axis) and the other axis (X and Y) with an arctangent trigonometric operation
+1. Wait for the LSM6DSO to gather measurements
+    - accelerometer : linear acceleration with a digital low-pass filter on the X, Y and Z axis
+    - gyroscope : angle rate with digital low-pass and high-pass filters on the x, y and z axis
+2. Apply a complementary filter (with Euler angles transformation) on the measurements
 3. Format the angles with their sign and print them on the screen (if the angle changed)
-4. Repeat forever
+4. Rinse and repeat
 
 ### 6. Wiring
 
@@ -65,7 +67,7 @@ STLink to Bluepill wiring :
 | GND           | 20                   |              | GND rail |
 
 Bluepill to peripherals wiring :
-| STM32/Bluepill pin | Alternate use | ADXL345 pin | SSD1306 pin | Zero button      | Hold button      | Power latch      |
+| STM32/Bluepill pin | Alternate use | LSM6DSO pin | SSD1306 pin | Zero button      | Hold button      | Power latch      |
 |:------------------:|:-------------:|:-----------:|:-----------:|:----------------:|:----------------:|:----------------:|
 | PA4                | SPI1 NSS      | CS          |             |                  |                  |                  |
 | PA5                | SPI1 SCK      | SCL         |             |                  |                  |                  |
