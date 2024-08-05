@@ -79,7 +79,7 @@ FreeRTOS.launch
 
 #CMake
 CMakePresets.json
-cmake/
+cmake/stm32cubemx/
 build/
 
 #FreeRTOS
