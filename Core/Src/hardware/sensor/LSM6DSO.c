@@ -2,7 +2,7 @@
  * @file LSM6DSO.c
  * @brief Implement the LSM6DSO MEMS sensor communication
  * @author Gilles Henrard
- * @date 01/08/2024
+ * @date 05/08/2024
  *
  * @note Additional information can be found in :
  *   - Datasheet : https://www.st.com/resource/en/datasheet/lsm6dso.pdf
@@ -74,6 +74,7 @@ static errorCode_u stateWaitingDeviceID();
 static errorCode_u stateConfiguring();
 static errorCode_u stateIgnoringSamples();
 static errorCode_u stateMeasuring();
+static errorCode_u stateHoldingValues();
 static errorCode_u stateError();
 
 //registers read/write functions
@@ -274,6 +275,44 @@ void LSM6DSOcancelZeroing(void) {
     for(uint8_t axis = 0; axis < (uint8_t)NB_AXIS; axis++) {
         anglesAtZeroing_rad[axis] = 0;
     }
+}
+
+/**
+ * @brief Hold/release the MEMS by either turning the accelerometer/gyroscope off or by reconfiguring them
+ * 
+ * @param toHold Either 1 to hold the latest values or 0 to start taking measurements again
+ * @return Success
+ * @retval 1 Error while sending shut down instructions
+ */
+errorCode_u LSM6DSOhold(uint8_t toHold) {
+    const registerValue_t configurationArray[2] = {
+        {CTRL1_XL, LSM6_POWER_DOWN}, //set accelerometer in power down mode
+        { CTRL2_G, LSM6_POWER_DOWN}, //set gyroscope in power down mode
+    };
+
+    //if holding but already held, or releasing but not yet held : nothing to do
+    if(!(toHold ^ (uint8_t)(state == stateHoldingValues))) {
+        return (ERR_SUCCESS);
+    }
+
+    if(toHold) {
+        //write all registers values from the configurationArray array
+        for(uint8_t i = 0; i < 2; i++) {
+            result = writeRegister(configurationArray[i].registerID, configurationArray[i].value);
+            if(isError(result)) {
+                state = stateError;
+                return (pushErrorCode(result, CONFIGURING, 1));
+            }
+        }
+
+        state = stateHoldingValues;
+
+    } else {
+        //back to configuring state
+        state = stateConfiguring;
+    }
+
+    return (ERR_SUCCESS);
 }
 
 /**
@@ -526,6 +565,15 @@ static errorCode_u stateMeasuring() {
     //apply a complementary filter on read values
     complementaryFilter(accelerometer_mG, gyroscope_radps, latestAngles_rad);
 
+    return (ERR_SUCCESS);
+}
+
+/**
+ * @brief State in which the MEMS is shut down and the module waits for a user release
+ * 
+ * @return Success
+ */
+static errorCode_u stateHoldingValues() {
     return (ERR_SUCCESS);
 }
 
