@@ -5,6 +5,7 @@
  */
 #include "buttons.h"
 #include <main.h>
+#include <stdbool.h>
 #include "stdint.h"
 #include "stm32f103xb.h"
 #include "stm32f1xx_ll_gpio.h"
