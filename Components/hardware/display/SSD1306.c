@@ -241,7 +241,6 @@ errorCode_u SSD1306_printAngleTenths(int16_t angleTenths, rotationAxis_e rotatio
     uint8_t       charIndexes[ANGLE_NB_CHARS] = {INDEX_PLUS, 0, 0, INDEX_DOT, 0, INDEX_DEG};
     uint8_t       anglePage                   = (rotationAxis == ROLL ? ANGLE_ROLL_PAGE : ANGLE_PITCH_PAGE);
     uint8_t*      bytesToUpdate               = (void*)0;
-    uint8_t       characterToPrint            = 0;
 
     //if screen busy, error
     if(!isScreenReady()) {
@@ -277,7 +276,7 @@ errorCode_u SSD1306_printAngleTenths(int16_t angleTenths, rotationAxis_e rotatio
         //update each required byte in the page
         for(uint8_t character = 0; character < (uint8_t)ANGLE_NB_CHARS; character++) {
             //save the current character to print
-            characterToPrint = charIndexes[character];
+            uint8_t characterToPrint = charIndexes[character];
 
             //copy each byte from the Verdana BMP in the buffer
             for(uint8_t column = 0; column < VERDANA_CHAR_WIDTH; column++) {
