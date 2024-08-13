@@ -51,35 +51,35 @@ set(WARNING_FLAGS
 	$<$<CONFIG:Debug>:-fstack-usage>
 )
 
-#make sure STM32CubeMX library knows about Inc/errors/ (to use it in interrupts, ...)
-target_include_directories(stm32cubemx INTERFACE Inc/errors)
+#make sure STM32CubeMX library knows about errors/ (to use it in interrupts, ...)
+target_include_directories(stm32cubemx INTERFACE errors/)
 
 #create the errorStack library, taking care of the error management
 #	STM32CubeMX includes and definitions are manually added instead of linking the library
 #	to avoid re-compiling STMCube libraries and optimising compilation
 add_library(errorStack
-	Src/errors/errorstack.c)
-target_include_directories(errorStack PUBLIC Inc/errors)
+	errors/errorstack.c)
+target_include_directories(errorStack PUBLIC errors/)
 target_compile_definitions(errorStack PUBLIC $<TARGET_PROPERTY:stm32cubemx,INTERFACE_COMPILE_DEFINITIONS>)
 target_include_directories(errorStack SYSTEM INTERFACE $<TARGET_PROPERTY:stm32cubemx,INTERFACE_INCLUDE_DIRECTORIES>)
 target_compile_options(errorStack PUBLIC ${WARNING_FLAGS})
 
 #create the LSM6DSO library, taking care of the MEMS sensor
 add_library(lsm6dso
-	Src/hardware/sensor/LSM6DSO.c)
-target_include_directories(lsm6dso PUBLIC Inc/hardware/sensor)
+	hardware/sensor/LSM6DSO.c)
+target_include_directories(lsm6dso PUBLIC hardware/sensor/)
 target_link_libraries(lsm6dso PRIVATE errorStack)
 
 #create the ssd1306 library, taking care of the display
 add_library(ssd1306
-	Src/hardware/display/SSD1306.c
-	Src/hardware/display/numbersVerdana16.c
-	Src/hardware/display/icons.c)
-target_include_directories(ssd1306 PUBLIC Inc/hardware/display)
+	hardware/display/SSD1306.c
+	hardware/display/numbersVerdana16.c
+	hardware/display/icons.c)
+target_include_directories(ssd1306 PUBLIC hardware/display)
 target_link_libraries(ssd1306 PRIVATE errorStack)
 
 #create the buttons library, taking care of the control buttons
 add_library(buttons
-	Src/hardware/buttons/buttons.c)
-target_include_directories(buttons PUBLIC Inc/hardware/buttons)
+	hardware/buttons/buttons.c)
+target_include_directories(buttons PUBLIC hardware/buttons)
 target_link_libraries(buttons PRIVATE errorStack)
