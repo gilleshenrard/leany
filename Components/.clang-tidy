@@ -22,7 +22,7 @@ Checks: "*,\
   -performance-no-int-to-ptr,\
   -google-readability-todo"
 
-#Check if .clang-format is respected
+#Format fixes as stated in the .clang-format file
 FormatStyle:
   file
 
