@@ -14,8 +14,14 @@ cppcheck.exe \-\-enable=all \-\-project=config_release.cppcheck
     <max-template-recursion>100</max-template-recursion>
     <exclude>
         <path name="build/"/>
-        <path name="Core/"/>
         <path name="Drivers/"/>
+        <path name="Core/Src/dma.c"/>
+        <path name="Core/Src/gpio.c"/>
+        <path name="Core/Src/iwdg.c"/>
+        <path name="Core/Src/spi.c"/>
+        <path name="Core/Src/syscalls.c"/>
+        <path name="Core/Src/sysmem.c"/>
+        <path name="Core/Src/system_stm32f1xx.c"/>
     </exclude>
     <suppressions>
         <suppression>unusedFunction</suppression>
