@@ -95,3 +95,6 @@ doxygen/
 
 #Clangd
 .cache/
+
+#CppCheck
+config-cppcheck-build-dir/
