@@ -22,6 +22,10 @@ Checks: "*,\
   -performance-no-int-to-ptr,\
   -google-readability-todo"
 
+#Promote all enabled warnings as errors
+WarningsAsErrors:
+  "*"
+
 #Format fixes as stated in the .clang-format file
 FormatStyle:
   file
