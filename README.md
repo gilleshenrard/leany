@@ -1,4 +1,4 @@
-# STM32-inclinometer
+# Leany
 ## STM32 ARM Cortex-M3 based inclinometer
 
 ### 1. Introduction
