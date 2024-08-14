@@ -1,4 +1,4 @@
-#clang-tidy example command-line : clang-tidy -p .\build\Debug --extra-arg=--sysroot="C:/Program Files (x86)/Arm GNU Toolchain arm-none-eabi/13.3 rel1/arm-none-eabi/" .\Core\Src\hardware\buttons\buttons.c
+#clang-tidy example command-line : clang-tidy -p .\build\Debug --extra-arg=--sysroot="C:/Program Files (x86)/Arm GNU Toolchain arm-none-eabi/13.3 rel1/arm-none-eabi/" .\Components\hardware\buttons\buttons.c
 ---
 #Arguments to make clang-tidy work with the cross-compiler
 ExtraArgs:
