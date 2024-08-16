@@ -1,6 +1,6 @@
 ##############################################################################################
 # file:  CMakeLists.txt
-# date:  16/07/2024
+# date:  16/08/2024
 # brief: C modules CMakeLists file
 ##############################################################################################
 #declare warning flags
@@ -66,20 +66,20 @@ target_compile_options(errorStack PUBLIC ${WARNING_FLAGS})
 
 #create the LSM6DSO library, taking care of the MEMS sensor
 add_library(lsm6dso
-	hardware/sensor/LSM6DSO.c)
-target_include_directories(lsm6dso PUBLIC hardware/sensor/)
+	sensor/LSM6DSO.c)
+target_include_directories(lsm6dso PUBLIC sensor/)
 target_link_libraries(lsm6dso PRIVATE errorStack)
 
 #create the ssd1306 library, taking care of the display
 add_library(ssd1306
-	hardware/display/SSD1306.c
-	hardware/display/numbersVerdana16.c
-	hardware/display/icons.c)
-target_include_directories(ssd1306 PUBLIC hardware/display)
+	display/SSD1306.c
+	display/numbersVerdana16.c
+	display/icons.c)
+target_include_directories(ssd1306 PUBLIC display)
 target_link_libraries(ssd1306 PRIVATE errorStack)
 
 #create the buttons library, taking care of the control buttons
 add_library(buttons
-	hardware/buttons/buttons.c)
-target_include_directories(buttons PUBLIC hardware/buttons)
+	buttons/buttons.c)
+target_include_directories(buttons PUBLIC buttons)
 target_link_libraries(buttons PRIVATE errorStack)
