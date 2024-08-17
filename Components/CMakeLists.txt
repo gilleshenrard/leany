@@ -1,7 +1,6 @@
 ##############################################################################################
-# file:  CMakeLists.txt
-# date:  16/08/2024
-# brief: C modules CMakeLists file
+# brief: User-defined modules CMakeLists file
+# date:  17/08/2024
 ##############################################################################################
 #declare warning flags
 set(WARNING_FLAGS
@@ -51,24 +50,25 @@ set(WARNING_FLAGS
 	$<$<CONFIG:Debug>:-fstack-usage>
 )
 
-#make sure STM32CubeMX library knows about errors/ (to use it in interrupts, ...)
-target_include_directories(stm32cubemx INTERFACE errors/)
+#make sure STM32CubeMX library knows about sysutils/ (to use it in interrupts, ...)
+target_include_directories(stm32cubemx INTERFACE sysutils/)
 
-#create the errorStack library, taking care of the error management
+#create the sysUtils library, taking care of the error and application tick management
 #	STM32CubeMX includes and definitions are manually added instead of linking the library
 #	to avoid re-compiling STMCube libraries and optimising compilation
-add_library(errorStack
-	errors/errorstack.c)
-target_include_directories(errorStack PUBLIC errors/)
-target_compile_definitions(errorStack PUBLIC $<TARGET_PROPERTY:stm32cubemx,INTERFACE_COMPILE_DEFINITIONS>)
-target_include_directories(errorStack SYSTEM INTERFACE $<TARGET_PROPERTY:stm32cubemx,INTERFACE_INCLUDE_DIRECTORIES>)
-target_compile_options(errorStack PUBLIC ${WARNING_FLAGS})
+add_library(sysUtils
+	sysutils/errorstack.c
+	sysutils/systick.c)
+target_include_directories(sysUtils PUBLIC sysutils/)
+target_compile_definitions(sysUtils PUBLIC $<TARGET_PROPERTY:stm32cubemx,INTERFACE_COMPILE_DEFINITIONS>)
+target_include_directories(sysUtils SYSTEM INTERFACE $<TARGET_PROPERTY:stm32cubemx,INTERFACE_INCLUDE_DIRECTORIES>)
+target_compile_options(sysUtils PUBLIC ${WARNING_FLAGS})
 
 #create the LSM6DSO library, taking care of the MEMS sensor
 add_library(lsm6dso
 	sensor/LSM6DSO.c)
 target_include_directories(lsm6dso PUBLIC sensor/)
-target_link_libraries(lsm6dso PRIVATE errorStack)
+target_link_libraries(lsm6dso PRIVATE sysUtils)
 
 #create the ssd1306 library, taking care of the display
 add_library(ssd1306
@@ -76,10 +76,10 @@ add_library(ssd1306
 	display/numbersVerdana16.c
 	display/icons.c)
 target_include_directories(ssd1306 PUBLIC display)
-target_link_libraries(ssd1306 PRIVATE errorStack)
+target_link_libraries(ssd1306 PRIVATE sysUtils)
 
 #create the buttons library, taking care of the control buttons
 add_library(buttons
 	buttons/buttons.c)
 target_include_directories(buttons PUBLIC buttons)
-target_link_libraries(buttons PRIVATE errorStack)
+target_link_libraries(buttons PRIVATE sysUtils)

@@ -19,6 +19,7 @@
 #include "stm32f103xb.h"
 #include "stm32f1xx_ll_gpio.h"
 #include "stm32f1xx_ll_spi.h"
+#include "systick.h"
 
 #define ANGLE_DELTA_MINIMUM       0.05F        ///< Minimum value for angle differences to be noticed
 #define RADIANS_TO_DEGREES_TENTHS 572.957795F  ///< Ratio between radians and tenths of degrees (= 10 * (180°/PI))
@@ -86,8 +87,7 @@ static void           complementaryFilter(const float accelerometer_mG[], const 
                                           float filteredAngles_rad[]);
 
 //global variables
-volatile uint16_t lsm6dsoTimer_ms    = BOOT_TIME_MS;  ///< Timer used in various states of the LSM6DSO (in ms)
-volatile uint16_t lsm6dsoSPITimer_ms = 0;             ///< Timer used to make sure SPI does not time out (in ms)
+static systick_t lsm6dsoTimer_ms = 0;  ///< Timer used in various states of the LSM6DSO (in ms)
 
 //state variables
 static SPI_TypeDef* spiHandle                   = (void*)0;          ///< SPI handle used by the LSM6DSO device
@@ -146,13 +146,13 @@ static errorCode_u readRegisters(LSM6DSOregister_e firstRegister, uint8_t value[
     }
 
     //set timeout timer and enable SPI
-    lsm6dsoSPITimer_ms = SPI_TIMEOUT_MS;
+    systick_t lsm6dsoSPITimer_ms = getSystick();
     LL_SPI_Enable(spiHandle);
     uint8_t* iterator = value;
 
     //send the read request and ignore the first byte received (reply to the write request)
     LL_SPI_TransmitData8(spiHandle, LSM6_READ | (uint8_t)firstRegister);
-    while((!LL_SPI_IsActiveFlag_RXNE(spiHandle)) && lsm6dsoSPITimer_ms) {};
+    while((!LL_SPI_IsActiveFlag_RXNE(spiHandle)) && !isTimeElapsed(lsm6dsoSPITimer_ms, SPI_TIMEOUT_MS)) {};
     *iterator = LL_SPI_ReceiveData8(spiHandle);
 
     //receive the bytes to read
@@ -166,17 +166,17 @@ static errorCode_u readRegisters(LSM6DSOregister_e firstRegister, uint8_t value[
 
         iterator++;
         size--;
-    } while(size && lsm6dsoSPITimer_ms);
+    } while(size && !isTimeElapsed(lsm6dsoSPITimer_ms, SPI_TIMEOUT_MS));
 
     //wait for transaction to be finished and clear Overrun flag
-    while(LL_SPI_IsActiveFlag_BSY(spiHandle) && lsm6dsoSPITimer_ms) {};
+    while(LL_SPI_IsActiveFlag_BSY(spiHandle) && !isTimeElapsed(lsm6dsoSPITimer_ms, SPI_TIMEOUT_MS)) {};
     LL_SPI_ClearFlag_OVR(spiHandle);
 
     //disable SPI
     LL_SPI_Disable(spiHandle);
 
     //if timeout, error
-    if(!lsm6dsoSPITimer_ms) {
+    if(isTimeElapsed(lsm6dsoSPITimer_ms, SPI_TIMEOUT_MS)) {
         return (createErrorCode(READ_REGISTERS, 2, ERR_WARNING));
     }
 
@@ -205,27 +205,27 @@ static errorCode_u writeRegister(LSM6DSOregister_e registerNumber, uint8_t value
     }
 
     //set timeout timer and enable SPI
-    lsm6dsoSPITimer_ms = SPI_TIMEOUT_MS;
+    systick_t lsm6dsoSPITimer_ms = getSystick();
     LL_SPI_Enable(spiHandle);
 
     //send the write instruction
     LL_SPI_TransmitData8(spiHandle, LSM6_WRITE | (uint8_t)registerNumber);
 
     //wait for TX buffer to be ready and send value to write
-    while(!LL_SPI_IsActiveFlag_TXE(spiHandle) && lsm6dsoSPITimer_ms) {};
-    if(lsm6dsoSPITimer_ms) {
+    while(!LL_SPI_IsActiveFlag_TXE(spiHandle) && !isTimeElapsed(lsm6dsoSPITimer_ms, SPI_TIMEOUT_MS)) {};
+    if(!isTimeElapsed(lsm6dsoSPITimer_ms, SPI_TIMEOUT_MS)) {
         LL_SPI_TransmitData8(spiHandle, value);
     }
 
     //wait for transaction to be finished and clear Overrun flag
-    while(LL_SPI_IsActiveFlag_BSY(spiHandle) && lsm6dsoSPITimer_ms) {};
+    while(LL_SPI_IsActiveFlag_BSY(spiHandle) && !isTimeElapsed(lsm6dsoSPITimer_ms, SPI_TIMEOUT_MS)) {};
     LL_SPI_ClearFlag_OVR(spiHandle);
 
     //disable SPI
     LL_SPI_Disable(spiHandle);
 
     //if timeout, error
-    if(!lsm6dsoSPITimer_ms) {
+    if(isTimeElapsed(lsm6dsoSPITimer_ms, SPI_TIMEOUT_MS)) {
         return (createErrorCode(WRITE_REGISTER, 3, ERR_WARNING));
     }
 
@@ -373,8 +373,8 @@ static inline uint8_t dataReady(void) {
  */
 static errorCode_u stateWaitingBoot() {
     //if timer elapsed, reset it and get to next state
-    if(!lsm6dsoTimer_ms) {
-        lsm6dsoTimer_ms = TIMEOUT_MS;
+    if(isTimeElapsed(lsm6dsoTimer_ms, BOOT_TIME_MS)) {
+        lsm6dsoTimer_ms = getSystick();
         state           = stateWaitingDeviceID;
     }
 
@@ -394,7 +394,7 @@ static errorCode_u stateWaitingDeviceID() {
     uint8_t deviceID = 0;
 
     //if 1s elapsed without reading the correct vendor ID, go error
-    if(!lsm6dsoTimer_ms) {
+    if(isTimeElapsed(lsm6dsoTimer_ms, TIMEOUT_MS)) {
         state = stateError;
         return (createErrorCode(CHECK_DEVICE_ID, 1, ERR_CRITICAL));
     }
@@ -448,7 +448,7 @@ static errorCode_u stateConfiguring() {
     //set the number of samples to ignore after changing ODR and power mode
     accelerometerSamplesToIgnore = AXL_SAMPLES_TO_IGNORE;
 
-    lsm6dsoTimer_ms = TIMEOUT_MS;
+    lsm6dsoTimer_ms = getSystick();
     state           = stateIgnoringSamples;
     return (ERR_SUCCESS);
 }
@@ -463,7 +463,7 @@ static errorCode_u stateConfiguring() {
  */
 errorCode_u stateIgnoringSamples() {
     //if 1s elapsed without getting any data ready interrupt, error
-    if(!lsm6dsoTimer_ms) {
+    if(isTimeElapsed(lsm6dsoTimer_ms, TIMEOUT_MS)) {
         state = stateError;
         return (createErrorCode(DROPPING, 1, ERR_CRITICAL));
     }
@@ -482,7 +482,7 @@ errorCode_u stateIgnoringSamples() {
     }
 
     //reset the timer
-    lsm6dsoTimer_ms = TIMEOUT_MS;
+    lsm6dsoTimer_ms = getSystick();
 
     //decrement the remaining amount to ignore and exit if still remaining
     accelerometerSamplesToIgnore--;
@@ -510,7 +510,7 @@ static errorCode_u stateMeasuring() {
     static int16_t previousTemp_LSB = 0;         ///< Previously read temperature LSB values
 
     //if 1s elapsed without getting any data ready interrupt, error
-    if(!lsm6dsoTimer_ms) {
+    if(isTimeElapsed(lsm6dsoTimer_ms, TIMEOUT_MS)) {
         state = stateError;
         return (createErrorCode(MEASURING, 1, ERR_CRITICAL));
     }
@@ -521,7 +521,7 @@ static errorCode_u stateMeasuring() {
     }
 
     //reset the timer
-    lsm6dsoTimer_ms = TIMEOUT_MS;
+    lsm6dsoTimer_ms = getSystick();
 
     //read all temp/accelerometer/gyroscope values
     result = readRegisters(OUT_TEMP_L, LSBvalues.registers8bits, NB_REGISTERS_TO_READ);

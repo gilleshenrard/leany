@@ -20,9 +20,6 @@ typedef enum {
     RELATIVE
 } referentialType_e;
 
-extern volatile uint16_t screenTimer_ms;
-extern volatile uint16_t ssd1306SPITimer_ms;
-
 errorCode_u SSD1306initialise(SPI_TypeDef* handle, DMA_TypeDef* dma, uint32_t dmaChannel);
 errorCode_u SSD1306update();
 uint8_t     isScreenReady();
