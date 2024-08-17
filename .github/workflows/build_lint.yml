@@ -33,3 +33,6 @@ jobs:
       
       - name: Configure CMake
         run: cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_TOOLCHAIN_FILE=${{github.workspace}}/cmake/gcc-arm-none-eabi.cmake -B ${{github.workspace}}/build/${{env.BUILD_TYPE}} -G Ninja
+
+      - name: Compile the firmware
+        run: cmake --build ${{github.workspace}}/build/${{env.BUILD_TYPE}}
