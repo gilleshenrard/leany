@@ -15,6 +15,7 @@ jobs:
     strategy:
       matrix:
         gcc: ['latest']
+        ninja: [1.12.1]
   
     steps:
       - name: Install Install GNU Arm Embedded Toolchain - ${{ matrix.gcc }}
@@ -24,6 +25,11 @@ jobs:
           release: ${{ matrix.gcc }}
       # - name: Output the `path` to the toolchain executables
       #   run: echo "The output path is ${{ steps.arm-none-eabi-gcc-action.outputs.path }}"
+
+      - name: Install Ninja Build
+        uses: ashutoshvarma/setup-ninja@master
+        with:
+          version: ${{ matrix.ninja }}
 
       - name: Checkout the repository
         uses: actions/checkout@v4
