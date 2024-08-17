@@ -22,17 +22,19 @@
 
 //Definitions
 enum {
-    SSD_SCREEN_WIDTH  = 128U,                               ///< Number of columns on the screen
-    SSD_SCREEN_HEIGHT = 64U,                                ///< Number of rows (i.e. COM connections) on the screen
-    SSD_NB_PAGES     = ((uint8_t)SSD_SCREEN_HEIGHT >> 3U),  ///< Number of pages (1 page = 8 COM) present to update rows
-    REFICON_PAGE     = (SSD_NB_PAGES - 1),
-    REFICON_COLUMN   = (SSD_SCREEN_WIDTH - REFERENCETYPE_NB_BYTES - 1),
-    HOLDICON_PAGE    = REFICON_PAGE,
-    HOLDICON_COLUMN  = (REFICON_COLUMN - REFERENCETYPE_NB_BYTES),
-    ANGLE_NB_CHARS   = 6U,   ///< Number of characters in the angle array
-    ANGLE_COLUMN     = 40U,  ///< Column number of the first screen line
-    ANGLE_ROLL_PAGE  = 1U,   ///< Number of the page at which display the roll axis angle
-    ANGLE_PITCH_PAGE = 5U,   ///< Number of the page at which display the pitch axis angle
+    SSD_SCREEN_WIDTH  = 128U,                           ///< Number of columns on the screen
+    SSD_SCREEN_HEIGHT = 64U,                            ///< Number of rows (i.e. COM connections) on the screen
+    SSD_NB_PAGES = ((uint8_t)SSD_SCREEN_HEIGHT >> 3U),  ///< Number of pages (1 page = 8 COM) present to update rows
+    REFICON_PAGE = (SSD_NB_PAGES - 1),                  ///< Page at which the system reference type icon is
+    REFICON_COLUMN =
+        (SSD_SCREEN_WIDTH - REFERENCETYPE_NB_BYTES - 1),  ///< Column at which the system reference type icon is
+    HOLDICON_PAGE    = REFICON_PAGE,                      ///< Page at which the hold icon is
+    HOLDICON_COLUMN  = (REFICON_COLUMN - REFERENCETYPE_NB_BYTES),  ///< Column at which the hold icon is
+    ANGLE_NB_CHARS   = 6U,                                         ///< Number of characters in the angle array
+    ANGLE_COLUMN     = 40U,                                        ///< Column number of the first screen line
+    ANGLE_ROLL_PAGE  = 1U,  ///< Number of the page at which display the roll axis angle
+    ANGLE_PITCH_PAGE = 5U,  ///< Number of the page at which display the pitch axis angle
+    NB_INIT_REGISERS = 8U   ///< Number of registers set at initialisation
 };
 
 /**
@@ -52,8 +54,8 @@ typedef enum {
  * @brief SPI Data/command pin status enumeration
  */
 typedef enum {
-    COMMAND = 0,
-    DATA,
+    COMMAND = 0,  ///< Command is to be sent
+    DATA,         ///< Data is to be sent
 } DCgpio_e;
 
 /**
@@ -101,7 +103,7 @@ static uint8_t      screenBuffer[SSD_NB_PAGES][SSD_SCREEN_WIDTH];  ///< Buffer u
  * @retval 1	        Error while initialising the registers
  * @retval 2	        Error while clearing the screen
  */
-errorCode_u SSD1306initialise(SPI_TypeDef* handle, DMA_TypeDef* dma, uint32_t dmaChannel) {
+errorCode_u ssd1306Initialise(SPI_TypeDef* handle, DMA_TypeDef* dma, uint32_t dmaChannel) {
     spiHandle      = handle;
     dmaHandle      = dma;
     dmaChannelUsed = dmaChannel;
@@ -159,7 +161,7 @@ errorCode_u sendCommand(SSD1306register_e regNumber, const uint8_t parameters[],
     LL_SPI_Enable(spiHandle);
 
     //send the command byte
-    LL_SPI_TransmitData8(spiHandle, regNumber);
+    LL_SPI_TransmitData8(spiHandle, (uint8_t)regNumber);
 
     //send the parameters
     uint8_t* iterator = (uint8_t*)parameters;
@@ -229,7 +231,7 @@ uint8_t isScreenReady() {
  * @return Success
  * @retval 1 Screen busy
  */
-errorCode_u SSD1306_printAngleTenths(int16_t angleTenths, rotationAxis_e rotationAxis) {
+errorCode_u ssd1306PrintAngleTenths(int16_t angleTenths, rotationAxis_e rotationAxis) {
     const int16_t MIN_ANGLE_DEG_TENTHS        = -900;  ///< Minimum angle allowed (in tenths of degrees)
     const int16_t MAX_ANGLE_DEG_TENTHS        = 900;   ///< Maximum angle allowed (in tenths of degrees)
     const uint8_t INDEX_SIGN                  = 0;     ///< Index of the sign in the angle indexes array
@@ -269,7 +271,7 @@ errorCode_u SSD1306_printAngleTenths(int16_t angleTenths, rotationAxis_e rotatio
     charIndexes[INDEX_TENTHS] = (uint8_t)(angleTenths % DIVIDE_10);
 
     //fill the buffer with the angle pixels
-    for(uint8_t page = 0; page < VERDANA_NB_PAGES; page++) {
+    for(uint8_t page = 0; page < (uint8_t)VERDANA_NB_PAGES; page++) {
         //point to the beginning of the section in the current page which will be updated
         bytesToUpdate = &screenBuffer[anglePage + page][ANGLE_COLUMN];
 
@@ -279,7 +281,7 @@ errorCode_u SSD1306_printAngleTenths(int16_t angleTenths, rotationAxis_e rotatio
             uint8_t characterToPrint = charIndexes[character];
 
             //copy each byte from the Verdana BMP in the buffer
-            for(uint8_t column = 0; column < VERDANA_CHAR_WIDTH; column++) {
+            for(uint8_t column = 0; column < (uint8_t)VERDANA_CHAR_WIDTH; column++) {
                 bytesToUpdate[(character * VERDANA_CHAR_WIDTH) + column] =
                     verdana_16ptNumbers[characterToPrint][page][column];
             }
@@ -299,7 +301,7 @@ errorCode_u SSD1306_printAngleTenths(int16_t angleTenths, rotationAxis_e rotatio
  * @return Success
  * @retval 1 Screen busy
  */
-errorCode_u SSD1306_printReferentialIcon(referentialType_e type) {
+errorCode_u ssd1306PrintReferentialIcon(referentialType_e type) {
     uint8_t*       iterator     = &screenBuffer[REFICON_PAGE][REFICON_COLUMN];
     const uint8_t* iconIterator = (type == ABSOLUTE ? absoluteReferentialIcon : relativeReferentialIcon);
 
@@ -325,7 +327,7 @@ errorCode_u SSD1306_printReferentialIcon(referentialType_e type) {
  * @return Success
  * @retval 1 Screen busy
  */
-errorCode_u SSD1306_printHoldIcon(uint8_t status) {
+errorCode_u ssd1306PrintHoldIcon(uint8_t status) {
     uint8_t*       iterator     = &screenBuffer[HOLDICON_PAGE][HOLDICON_COLUMN];
     const uint8_t* iconIterator = holdIcon;
 
@@ -352,7 +354,7 @@ errorCode_u SSD1306_printHoldIcon(uint8_t status) {
  * 
  * @return Return code of the send command instruction
  */
-errorCode_u SSD1306_turnDisplayOFF() {
+errorCode_u ssd1306TurnDisplayOFF() {
     return (sendCommand(DISPLAY_OFF, (void*)0, 0));
 }
 
@@ -361,7 +363,7 @@ errorCode_u SSD1306_turnDisplayOFF() {
  *
  * @return Return code of the current state
  */
-errorCode_u SSD1306update() {
+errorCode_u ssd1306Update() {
     return ((*state)());
 }
 
@@ -378,7 +380,6 @@ errorCode_u SSD1306update() {
  * @retval 4	Error while requesting the screen wipe
  */
 static errorCode_u stateConfiguring() {
-#define NB_INIT_REGISERS 8U  ///< Number of registers set at initialisation
     const uint8_t limitColumns[2]                   = {0, (SSD_SCREEN_WIDTH - 1)};
     const uint8_t limitPages[2]                     = {0, (SSD_NB_PAGES - 1)};
     const uint8_t initCommands[NB_INIT_REGISERS][3] = {
@@ -401,7 +402,7 @@ static errorCode_u stateConfiguring() {
     //initialisation taken from PDF p. 64 (Application Example)
     //	values which don't change from reset values aren't modified
     //TODO test for max oscillator frequency
-    for(uint8_t i = 0; i < NB_INIT_REGISERS; i++) {
+    for(uint8_t i = 0; i < (uint8_t)NB_INIT_REGISERS; i++) {
         result = sendCommand(initCommands[i][0], &initCommands[i][2], initCommands[i][1]);
         if(isError(result)) {
             return (pushErrorCode(result, INIT, 1));

@@ -2,9 +2,11 @@
 #define NUMBERS_VERDANA_16_H_INCLUDED
 #include <stdint.h>
 
-#define VERDANA_NB_BYTES_CHAR 28U  ///< Number of bytes per character
-#define VERDANA_CHAR_WIDTH    14U  ///< Width of a character in pixels
-#define VERDANA_NB_PAGES      2U   ///< Number of SSD pages used by a character
+enum {
+    VERDANA_NB_BYTES_CHAR = 28U,  ///< Number of bytes per character
+    VERDANA_CHAR_WIDTH    = 14U,  ///< Width of a character in pixels
+    VERDANA_NB_PAGES      = 2U,   ///< Number of SSD pages used by a character
+};
 
 /**
  * @brief Enumeration of all the characters available in Verdana 16
