@@ -23,9 +23,7 @@
 #include "stm32f1xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "LSM6DSO.h"
-#include "SSD1306.h"
-#include "buttons.h"
+#include "systick.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -187,39 +185,7 @@ void PendSV_Handler(void)
 void SysTick_Handler(void)
 {
   /* USER CODE BEGIN SysTick_IRQn 0 */
-  if(lsm6dsoTimer_ms){
-    lsm6dsoTimer_ms = lsm6dsoTimer_ms - 1;
-  }
-
-  if(lsm6dsoSPITimer_ms){
-    lsm6dsoSPITimer_ms = lsm6dsoSPITimer_ms - 1;
-  }
-
-	if(screenTimer_ms){
-		screenTimer_ms = screenTimer_ms - 1;
-  }
-
-  if(ssd1306SPITimer_ms){
-    ssd1306SPITimer_ms = ssd1306SPITimer_ms - 1;
-  }
-
-  for(uint8_t i = 0 ; i < NB_BUTTONS ; i++){
-    if(buttonsTimers[i].debouncing_ms){
-      buttonsTimers[i].debouncing_ms = buttonsTimers[i].debouncing_ms - 1;
-    }
-
-    if(buttonsTimers[i].holding_ms){
-      buttonsTimers[i].holding_ms = buttonsTimers[i].holding_ms - 1;
-    }
-
-    if(buttonsTimers[i].risingEdge_ms){
-      buttonsTimers[i].risingEdge_ms = buttonsTimers[i].risingEdge_ms - 1;
-    }
-
-    if(buttonsTimers[i].fallingEdge_ms){
-      buttonsTimers[i].fallingEdge_ms = buttonsTimers[i].fallingEdge_ms - 1;
-    }
-  }
+  incrementSysTick();
   /* USER CODE END SysTick_IRQn 0 */
   /* USER CODE BEGIN SysTick_IRQn 1 */
 

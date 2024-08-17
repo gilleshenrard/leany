@@ -18,6 +18,7 @@
 #include "stm32f1xx_ll_dma.h"
 #include "stm32f1xx_ll_gpio.h"
 #include "stm32f1xx_ll_spi.h"
+#include "systick.h"
 
 //Definitions
 enum {
@@ -76,9 +77,8 @@ static errorCode_u stateWaitingForTXdone();
 //Constant values
 static const uint8_t SPI_TIMEOUT_MS = 10U;  ///< Maximum number of milliseconds SPI traffic should last before timeout
 
-//Variables used in interrupts
-volatile uint16_t screenTimer_ms     = 0;  ///< Timer used with screen SPI transmissions (in ms)
-volatile uint16_t ssd1306SPITimer_ms = 0;  ///< Timer used to make sure SPI does not time out (in ms)
+//Variables used in interrupts  ///< Timer used to make sure SPI does not time out (in ms)
+static systick_t TXtick = 0;
 
 //State variables
 static SPI_TypeDef* spiHandle         = (void*)0;          ///< SPI handle used with the SSD1306
@@ -154,7 +154,7 @@ errorCode_u sendCommand(SSD1306register_e regNumber, const uint8_t parameters[],
     }
 
     //set command pin and enable SPI
-    ssd1306SPITimer_ms = SPI_TIMEOUT_MS;
+    systick_t tickAtStart_ms = getSystick();
     setDataCommandGPIO(COMMAND);
     LL_SPI_Enable(spiHandle);
 
@@ -163,10 +163,10 @@ errorCode_u sendCommand(SSD1306register_e regNumber, const uint8_t parameters[],
 
     //send the parameters
     uint8_t* iterator = (uint8_t*)parameters;
-    while(nbParameters && ssd1306SPITimer_ms) {
+    while(nbParameters && !isTimeElapsed(tickAtStart_ms, SPI_TIMEOUT_MS)) {
         //wait for the previous byte to be done, then send the next one
-        while(!LL_SPI_IsActiveFlag_TXE(spiHandle) && ssd1306SPITimer_ms) {}
-        if(ssd1306SPITimer_ms) {
+        while(!LL_SPI_IsActiveFlag_TXE(spiHandle) && !isTimeElapsed(tickAtStart_ms, SPI_TIMEOUT_MS)) {}
+        if(!isTimeElapsed(tickAtStart_ms, SPI_TIMEOUT_MS)) {
             LL_SPI_TransmitData8(spiHandle, *iterator);
         }
 
@@ -175,14 +175,14 @@ errorCode_u sendCommand(SSD1306register_e regNumber, const uint8_t parameters[],
     }
 
     //wait for transaction to be finished and clear Overrun flag
-    while(LL_SPI_IsActiveFlag_BSY(spiHandle) && ssd1306SPITimer_ms) {}
+    while(LL_SPI_IsActiveFlag_BSY(spiHandle) && !isTimeElapsed(tickAtStart_ms, SPI_TIMEOUT_MS)) {}
     LL_SPI_ClearFlag_OVR(spiHandle);
 
     //disable SPI and return status
     LL_SPI_Disable(spiHandle);
 
     //if timeout, error
-    if(!ssd1306SPITimer_ms) {
+    if(isTimeElapsed(tickAtStart_ms, SPI_TIMEOUT_MS)) {
         return (createErrorCode(SEND_CMD, 2, ERR_WARNING));
     }
 
@@ -464,7 +464,7 @@ errorCode_u stateSendingData() {
     LL_DMA_EnableChannel(dmaHandle, dmaChannelUsed);
 
     //send the data
-    screenTimer_ms = SPI_TIMEOUT_MS;
+    TXtick = getSystick();
     LL_SPI_EnableDMAReq_TX(spiHandle);
 
     //get to next
@@ -483,7 +483,7 @@ errorCode_u stateWaitingForTXdone() {
     errorCode_u result = ERR_SUCCESS;
 
     //if timer elapsed, stop DMA and error
-    if(!screenTimer_ms) {
+    if(isTimeElapsed(TXtick, SPI_TIMEOUT_MS)) {
         result = createErrorCode(WAITING_DMA_RDY, 1, ERR_ERROR);
         goto finalise;
     }
