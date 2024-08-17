@@ -5,8 +5,11 @@ on:
   pull_request:
     branches: [dev]
 
+env:
+  BUILD_TYPE: Debug
+
 jobs:
-  build-and-lint:
+  build:
     runs-on: ubuntu-latest
 
     strategy:
@@ -19,9 +22,11 @@ jobs:
         id: arm-none-eabi-gcc-action
         with:
           release: ${{ matrix.gcc }}
-      - name: Output the `path` to the toolchain executables
-        run: echo "The output path is ${{ steps.arm-none-eabi-gcc-action.outputs.path }}"
+      # - name: Output the `path` to the toolchain executables
+      #   run: echo "The output path is ${{ steps.arm-none-eabi-gcc-action.outputs.path }}"
 
       - name: Checkout the repository
         uses: actions/checkout@v4
       
+      - name: Configure CMake
+        run: cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_TOOLCHAIN_FILE=${{github.workspace}}/cmake/gcc-arm-none-eabi.cmake -B ${{github.workspace}}/build/${{env.BUILD_TYPE}} -G Ninja
