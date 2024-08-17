@@ -1,0 +1,151 @@
+name: Build and lint
+on: 
+  push:
+    branches: [dev]
+  pull_request:
+    branches: [dev]
+
+env:
+  BUILD_TYPE: Debug
+
+jobs:
+  build:
+    name: Build the firmware
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v4
+
+      - name: Install GNU Arm Embedded Toolchain - latest
+        uses: carlosperate/arm-none-eabi-gcc-action@v1
+        id: arm-none-eabi-gcc-action
+        with:
+          release: latest
+
+      - name: Install Ninja Build
+        uses: turtlesec-no/get-ninja@main
+      
+      - name: Configure CMake
+        run: cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_TOOLCHAIN_FILE=${{github.workspace}}/cmake/gcc-arm-none-eabi.cmake -B ${{github.workspace}}/build/${{env.BUILD_TYPE}} -G Ninja
+
+      - name: Compile the firmware
+        run: cmake --build ${{github.workspace}}/build/${{env.BUILD_TYPE}}
+
+      - name: Save the CMake configuration folder
+        uses: actions/upload-artifact@v4
+        with:
+          name: build
+          path: ${{github.workspace}}/build/${{env.BUILD_TYPE}}
+          if-no-files-found: error
+
+  clang-tidy:
+    name: Lint (clang-tidy)
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v4
+
+      - name: Download the saved CMake configuration folder
+        uses: actions/download-artifact@v4
+        with:
+          name: build
+          path: ${{github.workspace}}/build/${{env.BUILD_TYPE}}
+
+      - name: Install GNU Arm Embedded Toolchain - latest
+        uses: carlosperate/arm-none-eabi-gcc-action@v1
+        id: arm-none-eabi-gcc-action
+        with:
+          release: latest
+
+      - name: Check the GNU Arm Embedded Toolchain triplet
+        run: ls -la ${{ steps.arm-none-eabi-gcc-action.outputs.path }}/../arm-none-eabi
+
+      - name: Install clang-tidy
+        run: sudo apt-get install -y clang clang-tidy
+
+      - name: run clang-tidy
+        run:  >
+              /usr/bin/run-clang-tidy
+              -quiet
+              -p ${{github.workspace}}/build/${{env.BUILD_TYPE}}/
+              -extra-arg=--sysroot=${{ steps.arm-none-eabi-gcc-action.outputs.path }}/../arm-none-eabi
+              -extra-arg=--target=arm-none-eabi
+              files "Components"
+
+  cppcheck:
+    name: Coding constructs (Cppcheck)
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v4
+
+      - name: Download the saved CMake configuration folder
+        uses: actions/download-artifact@v4
+        with:
+          name: build
+          path: ${{github.workspace}}/build/${{env.BUILD_TYPE}}
+
+      - name: Install CppCheck
+        run: sudo apt-get install -y cppcheck
+
+      - name: Run CppCheck
+        run:  >
+              cppcheck
+              --enable=all
+              --language=c
+              --inconclusive
+              --error-exitcode=2
+              --project=${{github.workspace}}/build/${{env.BUILD_TYPE}}/compile_commands.json
+              --cppcheck-build-dir=${{github.workspace}}/config-cppcheck-build-dir/
+              -i${{github.workspace}}/build/
+              -i${{github.workspace}}/Drivers/
+              -i${{github.workspace}}/Core/Src/dma.c/
+              -i${{github.workspace}}/Core/Src/gpio.c/
+              -i${{github.workspace}}/Core/Src/iwdg.c/
+              -i${{github.workspace}}/Core/Src/spi.c/
+              -i${{github.workspace}}/Core/Src/syscalls.c/
+              -i${{github.workspace}}/Core/Src/sysmem.c/
+              -i${{github.workspace}}/Core/Src/system_stm32f1xx.c/
+
+  flawfinder:
+    name: Security weakness (Flawfinder)
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v4
+
+      - name: Run flawfinder
+        uses: david-a-wheeler/flawfinder@2.0.19
+        with:
+          arguments: Components/
+
+  lizard:
+    name: Cyclomatic complexity (Lizard)
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v4
+
+      - name: Run Lizard
+        uses: Uno-Takashi/Lizard-Runner@v3
+        with:
+          path: Components/
+          language: cpp
+
+  doxygen:
+    name: Documentation (Doxygen)
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v4
+
+      - name: Install Doxygen
+        run: sudo apt-get install -y doxygen
+
+      - name: Run Doxygen
+        run: doxygen Doxyfile

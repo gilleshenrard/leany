@@ -23,13 +23,14 @@
 
 #define ANGLE_DELTA_MINIMUM       0.05F        ///< Minimum value for angle differences to be noticed
 #define RADIANS_TO_DEGREES_TENTHS 572.957795F  ///< Ratio between radians and tenths of degrees (= 10 * (180°/PI))
-#define BASE_TEMPERATURE          25.0F        ///Temperature at which the LSM6DSO temperature reading will give 0
+#define BASE_TEMPERATURE          25.0F        ///< Temperature at which the LSM6DSO temperature reading will give 0
 enum {
-    BOOT_TIME_MS         = 10U,    ///< Number of milliseconds to wait for the MEMS to boot
-    SPI_TIMEOUT_MS       = 10U,    ///< Number of milliseconds beyond which SPI is in timeout
-    TIMEOUT_MS           = 1000U,  ///< Max number of milliseconds to wait for the device ID
-    REGISTER_VALUE_ALIGN = 8,      ///< Alignment of the registerValue_t struct
-    NB_REGISTERS_TO_READ = LSM6_NB_OUT_REGISTERS + 2U,
+    BOOT_TIME_MS         = 10U,                         ///< Number of milliseconds to wait for the MEMS to boot
+    SPI_TIMEOUT_MS       = 10U,                         ///< Number of milliseconds beyond which SPI is in timeout
+    TIMEOUT_MS           = 1000U,                       ///< Max number of milliseconds to wait for the device ID
+    REGISTER_VALUE_ALIGN = 8,                           ///< Alignment of the registerValue_t struct
+    NB_REGISTERS_TO_READ = LSM6_NB_OUT_REGISTERS + 2U,  ///< Numbers of data registers to read
+    NB_INIT_REG          = 9U,                          ///< Number of initialisation registers
 };
 
 /**
@@ -107,7 +108,7 @@ float              temperature_degC              = BASE_TEMPERATURE;  ///< Tempe
  * @param handle	SPI handle used
  * @returns 		Success
  */
-errorCode_u LSM6DSOinitialise(const SPI_TypeDef* handle) {
+errorCode_u lsm6dsoInitialise(const SPI_TypeDef* handle) {
     spiHandle = (SPI_TypeDef*)handle;
     LL_SPI_Disable(spiHandle);
 
@@ -118,7 +119,7 @@ errorCode_u LSM6DSOinitialise(const SPI_TypeDef* handle) {
  * @brief Run the LSM6DSO state machine
  * @returns Current state return code
  */
-errorCode_u LSM6DSOupdate() {
+errorCode_u lsm6dsoUpdate() {
     return ((*state)());
 }
 
@@ -235,10 +236,11 @@ static errorCode_u writeRegister(LSM6DSOregister_e registerNumber, uint8_t value
 /**
  * @brief Check if angle measurements have changed
  *
+ * @param axis Axis to check for a change
  * @retval 0 No new values available
  * @retval 1 New values are available
  */
-uint8_t LSM6DSOhasChanged(axis_e axis) {
+uint8_t lsm6dsoHasChanged(axis_e axis) {
     static float previousAngles_rad[NB_AXIS - 1] = {0.0F, 0.0F};
     uint8_t      comparison                      = 0;
 
@@ -263,7 +265,7 @@ int16_t getAngleDegreesTenths(axis_e axis) {
 /**
  * @brief Set the measurements in relative mode and zero down the values
  */
-void LSM6DSOzeroDown(void) {
+void lsm6dsoZeroDown(void) {
     anglesAtZeroing_rad[X_AXIS] = -latestAngles_rad[X_AXIS];
     anglesAtZeroing_rad[Y_AXIS] = -latestAngles_rad[Y_AXIS];
 }
@@ -271,7 +273,7 @@ void LSM6DSOzeroDown(void) {
 /**
  * @brief Set the measurements in absolute mode (no zeroing compensation)
  */
-void LSM6DSOcancelZeroing(void) {
+void lsm6dsoCancelZeroing(void) {
     for(uint8_t axis = 0; axis < (uint8_t)NB_AXIS; axis++) {
         anglesAtZeroing_rad[axis] = 0;
     }
@@ -284,7 +286,7 @@ void LSM6DSOcancelZeroing(void) {
  * @return Success
  * @retval 1 Error while sending shut down instructions
  */
-errorCode_u LSM6DSOhold(uint8_t toHold) {
+errorCode_u lsm6dsoHold(uint8_t toHold) {
     const registerValue_t configurationArray[2] = {
         {CTRL1_XL, LSM6_POWER_DOWN}, //set accelerometer in power down mode
         { CTRL2_G, LSM6_POWER_DOWN}, //set gyroscope in power down mode
@@ -322,6 +324,7 @@ errorCode_u LSM6DSOhold(uint8_t toHold) {
  * @param[in] gyroscope_radps       Array of gyroscope values  in [rad/s] on X and Y axis
  * @param[out] filteredAngles_rad     Array of final angle values in [rad] on X and Y axis
  */
+//NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 void complementaryFilter(const float accelerometer_mG[], const float gyroscope_radps[], float filteredAngles_rad[]) {
     const float alpha                 = 0.02F;  ///< Proportion applied to the gyro. and accel. in the final result
     const float dtPeriod_sec          = 0.00240385F;  ///< Time period between two updates (LSM6DSO config. at 416Hz)
@@ -422,7 +425,6 @@ static errorCode_u stateWaitingDeviceID() {
  * @retval 1 Error while writing a register
  */
 static errorCode_u stateConfiguring() {
-#define NB_INIT_REG 9U
     const uint8_t         AXL_SAMPLES_TO_IGNORE = 2U;  ///< Number of samples to drop (see stateIgnoringSamples())
     const registerValue_t initialisationArray[NB_INIT_REG] = {
         {   CTRL3_C, LSM6_SOFTWARE_RESET | LSM6_INT_ACTIVE_LOW}, //reboot MEMS memory and reset software
@@ -437,7 +439,7 @@ static errorCode_u stateConfiguring() {
     };
 
     //write all registers values from the initialisation array
-    for(uint8_t i = 0; i < NB_INIT_REG; i++) {
+    for(uint8_t i = 0; i < (uint8_t)NB_INIT_REG; i++) {
         result = writeRegister(initialisationArray[i].registerID, initialisationArray[i].value);
         if(isError(result)) {
             state = stateError;
