@@ -34,4 +34,4 @@ jobs:
         run: cmake --build ${{github.workspace}}/build/${{env.BUILD_TYPE}}
 
       - name: Run CppCheck
-        run: cppcheck --enable=all --project=${{github.workspace}}/config_debug.cppcheck
+        run: apt-get install -y cppcheck && cppcheck --enable=all --project=${{github.workspace}}/config_debug.cppcheck
