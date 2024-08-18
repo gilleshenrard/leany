@@ -11,17 +11,13 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        gcc: ['latest']
   
     steps:
-      - name: Install Install GNU Arm Embedded Toolchain - ${{ matrix.gcc }}
+      - name: Install Install GNU Arm Embedded Toolchain - latest
         uses: carlosperate/arm-none-eabi-gcc-action@v1
         id: arm-none-eabi-gcc-action
         with:
-          release: ${{ matrix.gcc }}
+          release: latest
       # - name: Output the `path` to the toolchain executables
       #   run: echo "The output path is ${{ steps.arm-none-eabi-gcc-action.outputs.path }}"
 
