@@ -33,13 +33,5 @@ jobs:
       - name: Compile the firmware
         run: cmake --build ${{github.workspace}}/build/${{env.BUILD_TYPE}}
 
-      - name: Compile the firmware
-        run: cat ${{github.workspace}}/config_debug.cppcheck
-
       - name: Run CppCheck
-        uses: deep5050/cppcheck-action@main
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN}}
-          force_language: c
-          enable: all
-          other_options: --project=${{github.workspace}}/config_debug.cppcheck
+        run: cppcheck --enable=all --project=${{github.workspace}}/config_debug.cppcheck
