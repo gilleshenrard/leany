@@ -33,8 +33,8 @@ jobs:
       - name: Compile the firmware
         run: cmake --build ${{github.workspace}}/build/${{env.BUILD_TYPE}}
 
-      - name: Install CppCheck
-        run:  sudo apt-get install -y cppcheck
+      - name: Install linters
+        run:  sudo apt-get install -y cppcheck clang clang-tidy
 
       - name: Run CppCheck
         run:  >
