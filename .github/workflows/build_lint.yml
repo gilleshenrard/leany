@@ -48,7 +48,6 @@ jobs:
               --error-exitcode=2
               --project=${{github.workspace}}/build/${{env.BUILD_TYPE}}/compile_commands.json
               --cppcheck-build-dir=${{github.workspace}}/config-cppcheck-build-dir/
-              --suppress-xml=${{github.workspace}}/cppcheck_suppressions.xml
               -i${{github.workspace}}/build/
               -i${{github.workspace}}/Drivers/
               -i${{github.workspace}}/Core/Src/dma.c/
