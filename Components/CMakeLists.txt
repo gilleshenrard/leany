@@ -46,7 +46,7 @@ set(WARNING_FLAGS
 	-Wundef
 	-fno-common
 	-Wdouble-promotion	# only on 32-bits microcontrollers
-	$<$<CONFIG:Debug>:-fanalyzer>
+	# $<$<CONFIG:Debug>:-fanalyzer>
 	$<$<CONFIG:Debug>:-fstack-usage>
 )
 
