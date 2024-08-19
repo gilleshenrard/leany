@@ -58,7 +58,7 @@ jobs:
 
       - name: Run clang-tidy
         run:  >
-              sysroot=$(Run clang-tidy)/..
+              sysroot=$(Run clang-tidy)/..;
               /usr/bin/run-clang-tidy
               -p ${{github.workspace}}/build/${{env.BUILD_TYPE}}/
               -extra-arg "--sysroot=$sysroot"
