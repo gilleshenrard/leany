@@ -56,11 +56,9 @@ jobs:
               -i${{github.workspace}}/Core/Src/sysmem.c/
               -i${{github.workspace}}/Core/Src/system_stm32f1xx.c/
 
-      - name: Check for arm-none-eabi sysroot
-        run:  which arm-none-eabi-gcc
-
       - name: Run clang-tidy
         run:  >
+              sysroot=$(Run clang-tidy)/..
               /usr/bin/run-clang-tidy
               -p ${{github.workspace}}/build/${{env.BUILD_TYPE}}/
-              -extra-arg "--sysroot=`which arm-none-eabi-gcc`/.."
+              -extra-arg "--sysroot=$sysroot"
