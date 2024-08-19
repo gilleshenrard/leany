@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <suppressions>
-    <suppress>
+    <!-- <suppress>
         <id>unusedFunction</id>
-    </suppress>
+    </suppress> -->
     <suppress>
         <id>missingIncludeSystem</id>
     </suppress>
