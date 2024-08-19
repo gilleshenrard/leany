@@ -42,6 +42,7 @@ jobs:
               --enable=all
               --language=c
               --inconclusive
+              --error-exitcode=2
               --project=${{github.workspace}}/build/${{env.BUILD_TYPE}}/compile_commands.json
               --cppcheck-build-dir=${{github.workspace}}/config-cppcheck-build-dir/
               --suppress-xml=${{github.workspace}}/cppcheck_suppressions.xml
