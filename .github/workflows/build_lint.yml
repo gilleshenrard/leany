@@ -24,6 +24,9 @@ jobs:
       - name: Install Ninja Build
         uses: turtlesec-no/get-ninja@main
 
+      - name: Install CppCheck
+        uses: sudo apt-get install -y cppcheck
+
       - name: Checkout the repository
         uses: actions/checkout@v4
       
@@ -34,4 +37,4 @@ jobs:
         run: cmake --build ${{github.workspace}}/build/${{env.BUILD_TYPE}}
 
       - name: Run CppCheck
-        run: sudo apt-get install -y cppcheck && cppcheck --enable=all --project=${{github.workspace}}/config_debug.cppcheck
+        run:  cppcheck --enable=all --project=${{github.workspace}}/config_debug.cppcheck
