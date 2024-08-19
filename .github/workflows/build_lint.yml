@@ -18,8 +18,6 @@ jobs:
         id: arm-none-eabi-gcc-action
         with:
           release: latest
-      # - name: Output the `path` to the toolchain executables
-      #   run: echo "The output path is ${{ steps.arm-none-eabi-gcc-action.outputs.path }}"
 
       - name: Install Ninja Build
         uses: turtlesec-no/get-ninja@main
@@ -58,7 +56,6 @@ jobs:
 
       - name: Run clang-tidy
         run:  >
-              sysroot=$(Run clang-tidy)/..;
               /usr/bin/run-clang-tidy
               -p ${{github.workspace}}/build/${{env.BUILD_TYPE}}/
-              -extra-arg "--sysroot=$sysroot"
+              -extra-arg "--sysroot=${{ steps.arm-none-eabi-gcc-action.outputs.path }}/.."
