@@ -37,6 +37,9 @@ jobs:
         run:  sudo apt-get install -y cppcheck
 
       - name: Run CppCheck
-        run:  cppcheck --enable=all --project=${{github.workspace}}/config_${{env.BUILD_TYPE}}.cppcheck
+        run:  cppcheck \
+              --enable=all \
+              --language=c \
+              --project=${{github.workspace}}/config_${{env.BUILD_TYPE}}.cppcheck
 
     
