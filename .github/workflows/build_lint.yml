@@ -31,11 +31,16 @@ jobs:
       - name: Compile the firmware
         run: cmake --build ${{github.workspace}}/build/${{env.BUILD_TYPE}}
 
-      - name: Install linters
-        run:  sudo apt-get install -y cppcheck clang clang-tidy
-
-      - name: Run CppCheck
+      - name: Install and run clang-tidy
         run:  >
+              sudo apt-get install -y clang clang-tidy &&
+              /usr/bin/run-clang-tidy
+              -extra-arg "--sysroot=${{ steps.arm-none-eabi-gcc-action.outputs.path }}/.."
+              -p ${{github.workspace}}/build/${{env.BUILD_TYPE}}/
+
+      - name: Install and run CppCheck
+        run:  >
+              sudo apt-get install -y cppcheck &&
               cppcheck
               --enable=all
               --language=c
@@ -53,9 +58,3 @@ jobs:
               -i${{github.workspace}}/Core/Src/syscalls.c/
               -i${{github.workspace}}/Core/Src/sysmem.c/
               -i${{github.workspace}}/Core/Src/system_stm32f1xx.c/
-
-      - name: Run clang-tidy
-        run:  >
-              /usr/bin/run-clang-tidy
-              -p ${{github.workspace}}/build/${{env.BUILD_TYPE}}/
-              -extra-arg "--sysroot=${{ steps.arm-none-eabi-gcc-action.outputs.path }}/.."
