@@ -41,4 +41,16 @@ jobs:
               cppcheck
               --enable=all
               --language=c
-              --project=${{github.workspace}}/config_${{env.BUILD_TYPE}}.cppcheck
+              --inconclusive
+              --project=${{github.workspace}}/build/${{env.BUILD_TYPE}}/compile_commands.json
+              --cppcheck-build-dir=config-cppcheck-build-dir
+              --suppress-xml=cppcheck_suppressions.xml
+              -i${{github.workspace}}/build/
+              -i${{github.workspace}}/Drivers/
+              -i${{github.workspace}}/Core/Src/dma.c/
+              -i${{github.workspace}}/Core/Src/gpio.c/
+              -i${{github.workspace}}/Core/Src/iwdg.c/
+              -i${{github.workspace}}/Core/Src/spi.c/
+              -i${{github.workspace}}/Core/Src/syscalls.c/
+              -i${{github.workspace}}/Core/Src/sysmem.c/
+              -i${{github.workspace}}/Core/Src/system_stm32f1xx.c/
