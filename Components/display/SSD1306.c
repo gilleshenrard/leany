@@ -105,7 +105,6 @@ errorCode_u SSD1306initialise(SPI_TypeDef* handle, DMA_TypeDef* dma, uint32_t dm
     spiHandle      = handle;
     dmaHandle      = dma;
     dmaChannelUsed = dmaChannel;
-    uint8_t test;
 
     //make sure to disable SSD1306 SPI communication
     LL_SPI_Disable(spiHandle);
