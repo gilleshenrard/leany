@@ -5,7 +5,6 @@ cppcheck.exe \-\-enable=all \-\-project=config_debug.cppcheck
 -->
 <project version="1">
     <builddir>config-cppcheck-build-dir</builddir>
-    <platform>arm32-wchar_t2.xml</platform>
     <importproject>build/Debug/compile_commands.json</importproject>
     <analyze-all-vs-configs>false</analyze-all-vs-configs>
     <check-headers>true</check-headers>
