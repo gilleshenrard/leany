@@ -36,7 +36,7 @@ jobs:
               sudo apt-get install -y clang clang-tidy &&
               /usr/bin/run-clang-tidy
               -p ${{github.workspace}}/build/${{env.BUILD_TYPE}}/
-              -extra-arg --sysroot=${{ steps.arm-none-eabi-gcc-action.outputs.path }}/..
+              -extra-arg "--sysroot=${{ steps.arm-none-eabi-gcc-action.outputs.path }}/.."
 
       - name: Install and run CppCheck
         run:  >
