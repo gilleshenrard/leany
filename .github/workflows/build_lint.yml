@@ -63,4 +63,4 @@ jobs:
         run:  >
               /usr/bin/run-clang-tidy
               -p ${{github.workspace}}/build/${{env.BUILD_TYPE}}/
-              -extra-arg "--sysroot=${which arm-none-eabi-gcc}"
+              -extra-arg "--sysroot=$(which arm-none-eabi-gcc)/.."
