@@ -37,6 +37,7 @@ jobs:
               /usr/bin/run-clang-tidy
               -p ${{github.workspace}}/build/${{env.BUILD_TYPE}}/
               -extra-arg "--sysroot=${{ steps.arm-none-eabi-gcc-action.outputs.path }}/.."
+              -extra-arg "--target=arm-none-eabi"
 
       - name: Install and run CppCheck
         run:  >
