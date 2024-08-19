@@ -25,7 +25,7 @@ jobs:
         uses: turtlesec-no/get-ninja@main
 
       - name: Install CppCheck
-        uses: sudo apt-get install -y cppcheck
+        run:  sudo apt-get install -y cppcheck
 
       - name: Checkout the repository
         uses: actions/checkout@v4
