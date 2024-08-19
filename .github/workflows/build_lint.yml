@@ -55,3 +55,15 @@ jobs:
               -i${{github.workspace}}/Core/Src/syscalls.c/
               -i${{github.workspace}}/Core/Src/sysmem.c/
               -i${{github.workspace}}/Core/Src/system_stm32f1xx.c/
+
+      - name: Check for arm-none-eabi sysroot
+        run:  ls -la /home/runner/gcc-arm-none-eabi-13.3.1-linux-x64/arm-gnu-toolchain-13.3.rel1-x86_64-arm-none-eabi/
+
+      - name: Run clang-tidy
+        run:  >
+              python
+              /usr/bin/run-clang-tidy.py
+              -quiet
+              -p ${{github.workspace}}/build/${{env.BUILD_TYPE}}/
+              --extra-arg=--sysroot="/home/runner/gcc-arm-none-eabi-13.3.1-linux-x64/arm-gnu-toolchain-13.3.rel1-x86_64-arm-none-eabi/"
+              -checks = "*"
