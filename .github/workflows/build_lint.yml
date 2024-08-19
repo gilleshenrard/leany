@@ -24,9 +24,6 @@ jobs:
       - name: Install Ninja Build
         uses: turtlesec-no/get-ninja@main
 
-      - name: Install CppCheck
-        run:  sudo apt-get install -y cppcheck
-
       - name: Checkout the repository
         uses: actions/checkout@v4
       
@@ -36,5 +33,15 @@ jobs:
       - name: Compile the firmware
         run: cmake --build ${{github.workspace}}/build/${{env.BUILD_TYPE}}
 
+  lint:
+    needs: [build]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install CppCheck
+        run:  sudo apt-get install -y cppcheck
+
       - name: Run CppCheck
         run:  cppcheck --enable=all --project=${{github.workspace}}/config_debug.cppcheck
+
+    
