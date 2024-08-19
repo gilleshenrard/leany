@@ -41,6 +41,12 @@ jobs:
       - name: Install CppCheck
         run:  sudo apt-get install -y cppcheck
 
+      - name: Check if compilation database exists
+        run:  cat ${{github.workspace}}/build/${{env.BUILD_TYPE}}/compile_commands.json
+
+      - name: Check if cppcheck config file exists
+        run:  cat ${{github.workspace}}/config_debug.cppcheck
+
       - name: Run CppCheck
         run:  cppcheck --enable=all --project=${{github.workspace}}/config_debug.cppcheck
 
