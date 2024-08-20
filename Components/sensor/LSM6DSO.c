@@ -322,6 +322,7 @@ errorCode_u lsm6dsoHold(uint8_t toHold) {
  * @param[in] gyroscope_radps       Array of gyroscope values  in [rad/s] on X and Y axis
  * @param[out] filteredAngles_rad     Array of final angle values in [rad] on X and Y axis
  */
+//NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 void complementaryFilter(const float accelerometer_mG[], const float gyroscope_radps[], float filteredAngles_rad[]) {
     const float alpha                 = 0.02F;  ///< Proportion applied to the gyro. and accel. in the final result
     const float dtPeriod_sec          = 0.00240385F;  ///< Time period between two updates (LSM6DSO config. at 416Hz)
