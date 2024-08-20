@@ -30,6 +30,7 @@ Checks: "*,\
 WarningsAsErrors:
   "*"
 
+#Include headers located in Components/ during linting
 HeaderFilterRegex:
   "Components/*"
 
