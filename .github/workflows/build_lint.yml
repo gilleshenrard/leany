@@ -32,14 +32,14 @@ jobs:
         run: cmake --build ${{github.workspace}}/build/${{env.BUILD_TYPE}}
 
       - name: Check the GNU Arm Embedded Toolchain triplet
-        run: ls -la ${{ steps.arm-none-eabi-gcc-action.outputs.path }}/..
+        run: ls -la ${{ steps.arm-none-eabi-gcc-action.outputs.path }}/../arm-none-eabi
 
       - name: Install and run clang-tidy
         run:  >
               sudo apt-get install -y clang clang-tidy &&
               /usr/bin/run-clang-tidy
               -p ${{github.workspace}}/build/${{env.BUILD_TYPE}}/
-              -extra-arg=--sysroot=${{ steps.arm-none-eabi-gcc-action.outputs.path }}/..
+              -extra-arg=--sysroot=${{ steps.arm-none-eabi-gcc-action.outputs.path }}/../arm-none-eabi
               -extra-arg=--target=arm-none-eabi
 
       - name: Install and run CppCheck
