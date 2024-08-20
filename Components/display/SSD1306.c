@@ -159,7 +159,7 @@ errorCode_u sendCommand(SSD1306register_e regNumber, const uint8_t parameters[],
     LL_SPI_Enable(spiHandle);
 
     //send the command byte
-    LL_SPI_TransmitData8(spiHandle, regNumber);
+    LL_SPI_TransmitData8(spiHandle, (uint8_t)regNumber);
 
     //send the parameters
     uint8_t* iterator = (uint8_t*)parameters;
@@ -269,7 +269,7 @@ errorCode_u ssd1306PrintAngleTenths(int16_t angleTenths, rotationAxis_e rotation
     charIndexes[INDEX_TENTHS] = (uint8_t)(angleTenths % DIVIDE_10);
 
     //fill the buffer with the angle pixels
-    for(uint8_t page = 0; page < VERDANA_NB_PAGES; page++) {
+    for(uint8_t page = 0; page < (uint8_t)VERDANA_NB_PAGES; page++) {
         //point to the beginning of the section in the current page which will be updated
         bytesToUpdate = &screenBuffer[anglePage + page][ANGLE_COLUMN];
 
@@ -279,7 +279,7 @@ errorCode_u ssd1306PrintAngleTenths(int16_t angleTenths, rotationAxis_e rotation
             uint8_t characterToPrint = charIndexes[character];
 
             //copy each byte from the Verdana BMP in the buffer
-            for(uint8_t column = 0; column < VERDANA_CHAR_WIDTH; column++) {
+            for(uint8_t column = 0; column < (uint8_t)VERDANA_CHAR_WIDTH; column++) {
                 bytesToUpdate[(character * VERDANA_CHAR_WIDTH) + column] =
                     verdana_16ptNumbers[characterToPrint][page][column];
             }
