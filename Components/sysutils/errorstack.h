@@ -3,9 +3,12 @@
 #include <stdint.h>
 
 //definitions
-#define ERR_LAYER_NBBITS 4U  ///< Amount of bits in a return code layer field
-#define ERR_ID_NBBITS    7U  ///< Amount of bits in function ID and module ID fields
-#define ERR_LEVEL_NBBITS 2U  ///< Amount of level bits
+enum {
+    ERR_LAYER_NBBITS = 4U,   ///< Amount of bits in a return code layer field
+    ERR_ID_NBBITS    = 7U,   ///< Amount of bits in function ID and module ID fields
+    ERR_LEVEL_NBBITS = 2U,   ///< Amount of level bits
+    STACK_ALIGNMENT  = 32U,  ///< Memory alignment of the error stack structure
+};
 
 /**
  * @brief Error levels possible
@@ -32,7 +35,7 @@ typedef union {
         uint32_t functionID : ERR_ID_NBBITS;  ///< ID of the highest function which returns the code
         uint32_t moduleID : ERR_ID_NBBITS;    ///< ID of the module returning the code
         uint32_t level : ERR_LEVEL_NBBITS;    ///< Error level
-    };
+    } __attribute__((aligned(STACK_ALIGNMENT)));
 
     uint32_t dword;  ///< All 32 bits of the code at once
 } errorCode_u;
@@ -41,9 +44,11 @@ typedef union {
 extern const errorCode_u ERR_SUCCESS;
 
 //error management functions
+//NOLINTBEGIN(bugprone-easily-swappable-parameters)
 errorCode_u createErrorCode(uint8_t functionID, uint8_t newError, errorLevel_e level);
 errorCode_u createErrorCodeLayer1(uint8_t functionID, uint8_t newError, uint8_t layer1Code, errorLevel_e level);
 errorCode_u pushErrorCode(errorCode_u oldCode, uint8_t functionID, uint8_t newError);
+//NOLINTEND(bugprone-easily-swappable-parameters)
 
 /**
  * @brief Check if a code represents an error

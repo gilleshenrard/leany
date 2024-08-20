@@ -2,7 +2,7 @@
  * @file errors.c
  * @brief Implement a structure to create a crude error codes stack trace.
  * @author Gilles Henrard
- * @date 31/05/2024
+ * @date 20/08/2024
  *
  * @details
  * This library allows users to trace an error through several function calls back to its source.
@@ -48,6 +48,7 @@
  * @note When pushing a code in the stack. Any code already stored in layer 3 is lost.
  */
 #include "errorstack.h"
+#include <stdint.h>
 
 //definitions
 static const uint32_t SUCCESS_VALUE     = 0x00000000UL;  ///< Value assigned to successes
@@ -71,12 +72,14 @@ const errorCode_u ERR_SUCCESS = {.dword = SUCCESS_VALUE};  ///< Variable used as
  * @param level Error level
  * @return New code
  */
+//NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 errorCode_u createErrorCode(uint8_t functionID, uint8_t newError, errorLevel_e level) {
     errorCode_u code = ERR_SUCCESS;
 
     //if code means success, return success
-    if(newError == SUCCESS_VALUE)
+    if(newError == SUCCESS_VALUE) {
         return (ERR_SUCCESS);
+    }
 
     //set the fields values (clamped if necessary)
     code.dword |= ((uint32_t)level << LEVEL_OFFSET);
@@ -97,13 +100,15 @@ errorCode_u createErrorCode(uint8_t functionID, uint8_t newError, errorLevel_e l
  * @param level Error level
  * @return New code
  */
+//NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 errorCode_u createErrorCodeLayer1(uint8_t functionID, uint8_t newError, uint8_t layer1Code, errorLevel_e level) {
     static const uint8_t LAYER1CODE_OFFSET = 8U;  ///< Number of bits to shift a code to reach the layer 1
     errorCode_u          code              = ERR_SUCCESS;
 
     //if code means success, return success
-    if(newError == SUCCESS_VALUE)
+    if(newError == SUCCESS_VALUE) {
         return (ERR_SUCCESS);
+    }
 
     //set the fields values (clamped if necessary)
     code.dword |= ((uint32_t)level << LEVEL_OFFSET);
@@ -123,14 +128,16 @@ errorCode_u createErrorCodeLayer1(uint8_t functionID, uint8_t newError, uint8_t 
  * @param newError Return code to push in the stack
  * @return Formatted code
  */
+//NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 errorCode_u pushErrorCode(errorCode_u oldCode, uint8_t functionID, uint8_t newError) {
     static const uint32_t CODESTACK_MASK  = 0xFFFF0000U;  ///< Value used to erase the codes stack
     static const uint32_t FUNCTIONID_MASK = 0xFF80FFFFU;  ///< Value used to erase the function ID
     uint32_t              newErrorStack   = (oldCode.dword & ~CODESTACK_MASK);
 
     //if code means success, return success
-    if(newError == SUCCESS_VALUE)
+    if(newError == SUCCESS_VALUE) {
         return (ERR_SUCCESS);
+    }
 
     //erase and replace the function ID
     oldCode.dword &= FUNCTIONID_MASK;
@@ -138,7 +145,7 @@ errorCode_u pushErrorCode(errorCode_u oldCode, uint8_t functionID, uint8_t newEr
 
     //shift the code stack and push a new code
     //	(code already in layer 3 is lost)
-    newErrorStack >>= ERR_LAYER_NBBITS;
+    newErrorStack >>= (uint32_t)ERR_LAYER_NBBITS;
     newErrorStack |= ((uint32_t)(newError & ERRORCODE_CLAMP) << LAYER0CODE_OFFSET);
 
     //erase the codes stack and replace it with the new one
