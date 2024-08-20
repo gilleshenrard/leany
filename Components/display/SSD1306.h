@@ -20,12 +20,12 @@ typedef enum {
     RELATIVE
 } referentialType_e;
 
-errorCode_u SSD1306initialise(SPI_TypeDef* handle, DMA_TypeDef* dma, uint32_t dmaChannel);
-errorCode_u SSD1306update();
+errorCode_u ssd1306Initialise(SPI_TypeDef* handle, DMA_TypeDef* dma, uint32_t dmaChannel);
+errorCode_u ssd1306Update();
 uint8_t     isScreenReady();
-errorCode_u SSD1306_printAngleTenths(int16_t angleTenths, rotationAxis_e rotationAxis);
-errorCode_u SSD1306_printReferentialIcon(referentialType_e type);
-errorCode_u SSD1306_printHoldIcon(uint8_t status);
-errorCode_u SSD1306_turnDisplayOFF();
+errorCode_u ssd1306PrintAngleTenths(int16_t angleTenths, rotationAxis_e rotationAxis);
+errorCode_u ssd1306PrintReferentialIcon(referentialType_e type);
+errorCode_u ssd1306PrintHoldIcon(uint8_t status);
+errorCode_u ssd1306TurnDisplayOFF();
 
 #endif /* INC_HARDWARE_SCREEN_SSD1306_H_ */

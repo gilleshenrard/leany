@@ -107,7 +107,7 @@ float              temperature_degC              = BASE_TEMPERATURE;  ///< Tempe
  * @param handle	SPI handle used
  * @returns 		Success
  */
-errorCode_u LSM6DSOinitialise(const SPI_TypeDef* handle) {
+errorCode_u lsm6dsoInitialise(const SPI_TypeDef* handle) {
     spiHandle = (SPI_TypeDef*)handle;
     LL_SPI_Disable(spiHandle);
 
@@ -118,7 +118,7 @@ errorCode_u LSM6DSOinitialise(const SPI_TypeDef* handle) {
  * @brief Run the LSM6DSO state machine
  * @returns Current state return code
  */
-errorCode_u LSM6DSOupdate() {
+errorCode_u lsm6dsoUpdate() {
     return ((*state)());
 }
 
@@ -238,7 +238,7 @@ static errorCode_u writeRegister(LSM6DSOregister_e registerNumber, uint8_t value
  * @retval 0 No new values available
  * @retval 1 New values are available
  */
-uint8_t LSM6DSOhasChanged(axis_e axis) {
+uint8_t lsm6dsoHasChanged(axis_e axis) {
     static float previousAngles_rad[NB_AXIS - 1] = {0.0F, 0.0F};
     uint8_t      comparison                      = 0;
 
@@ -263,7 +263,7 @@ int16_t getAngleDegreesTenths(axis_e axis) {
 /**
  * @brief Set the measurements in relative mode and zero down the values
  */
-void LSM6DSOzeroDown(void) {
+void lsm6dsoZeroDown(void) {
     anglesAtZeroing_rad[X_AXIS] = -latestAngles_rad[X_AXIS];
     anglesAtZeroing_rad[Y_AXIS] = -latestAngles_rad[Y_AXIS];
 }
@@ -271,7 +271,7 @@ void LSM6DSOzeroDown(void) {
 /**
  * @brief Set the measurements in absolute mode (no zeroing compensation)
  */
-void LSM6DSOcancelZeroing(void) {
+void lsm6dsoCancelZeroing(void) {
     for(uint8_t axis = 0; axis < (uint8_t)NB_AXIS; axis++) {
         anglesAtZeroing_rad[axis] = 0;
     }
@@ -284,7 +284,7 @@ void LSM6DSOcancelZeroing(void) {
  * @return Success
  * @retval 1 Error while sending shut down instructions
  */
-errorCode_u LSM6DSOhold(uint8_t toHold) {
+errorCode_u lsm6dsoHold(uint8_t toHold) {
     const registerValue_t configurationArray[2] = {
         {CTRL1_XL, LSM6_POWER_DOWN}, //set accelerometer in power down mode
         { CTRL2_G, LSM6_POWER_DOWN}, //set gyroscope in power down mode

@@ -101,7 +101,7 @@ static uint8_t      screenBuffer[SSD_NB_PAGES][SSD_SCREEN_WIDTH];  ///< Buffer u
  * @retval 1	        Error while initialising the registers
  * @retval 2	        Error while clearing the screen
  */
-errorCode_u SSD1306initialise(SPI_TypeDef* handle, DMA_TypeDef* dma, uint32_t dmaChannel) {
+errorCode_u ssd1306Initialise(SPI_TypeDef* handle, DMA_TypeDef* dma, uint32_t dmaChannel) {
     spiHandle      = handle;
     dmaHandle      = dma;
     dmaChannelUsed = dmaChannel;
@@ -229,7 +229,7 @@ uint8_t isScreenReady() {
  * @return Success
  * @retval 1 Screen busy
  */
-errorCode_u SSD1306_printAngleTenths(int16_t angleTenths, rotationAxis_e rotationAxis) {
+errorCode_u ssd1306PrintAngleTenths(int16_t angleTenths, rotationAxis_e rotationAxis) {
     const int16_t MIN_ANGLE_DEG_TENTHS        = -900;  ///< Minimum angle allowed (in tenths of degrees)
     const int16_t MAX_ANGLE_DEG_TENTHS        = 900;   ///< Maximum angle allowed (in tenths of degrees)
     const uint8_t INDEX_SIGN                  = 0;     ///< Index of the sign in the angle indexes array
@@ -299,7 +299,7 @@ errorCode_u SSD1306_printAngleTenths(int16_t angleTenths, rotationAxis_e rotatio
  * @return Success
  * @retval 1 Screen busy
  */
-errorCode_u SSD1306_printReferentialIcon(referentialType_e type) {
+errorCode_u ssd1306PrintReferentialIcon(referentialType_e type) {
     uint8_t*       iterator     = &screenBuffer[REFICON_PAGE][REFICON_COLUMN];
     const uint8_t* iconIterator = (type == ABSOLUTE ? absoluteReferentialIcon : relativeReferentialIcon);
 
@@ -325,7 +325,7 @@ errorCode_u SSD1306_printReferentialIcon(referentialType_e type) {
  * @return Success
  * @retval 1 Screen busy
  */
-errorCode_u SSD1306_printHoldIcon(uint8_t status) {
+errorCode_u ssd1306PrintHoldIcon(uint8_t status) {
     uint8_t*       iterator     = &screenBuffer[HOLDICON_PAGE][HOLDICON_COLUMN];
     const uint8_t* iconIterator = holdIcon;
 
@@ -352,7 +352,7 @@ errorCode_u SSD1306_printHoldIcon(uint8_t status) {
  * 
  * @return Return code of the send command instruction
  */
-errorCode_u SSD1306_turnDisplayOFF() {
+errorCode_u ssd1306TurnDisplayOFF() {
     return (sendCommand(DISPLAY_OFF, (void*)0, 0));
 }
 
@@ -361,7 +361,7 @@ errorCode_u SSD1306_turnDisplayOFF() {
  *
  * @return Return code of the current state
  */
-errorCode_u SSD1306update() {
+errorCode_u ssd1306Update() {
     return ((*state)());
 }
 
