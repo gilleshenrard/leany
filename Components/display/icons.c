@@ -1,5 +1,6 @@
 // clang-format off
 #include "icons.h"
+#include <stdint.h>
 
 const uint8_t baseScreen[MAX_DATA_SIZE] = {
     //                               ##                                                                                                 //Page 0

@@ -23,6 +23,7 @@
  */
 // clang-format off
 #include "numbersVerdana16.h"
+#include <stdint.h>
 
 /**
  * @brief Verdana 16 bitmaps
