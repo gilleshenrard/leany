@@ -27,15 +27,15 @@ jobs:
       - name: Configure CMake
         run: cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_TOOLCHAIN_FILE=${{github.workspace}}/cmake/gcc-arm-none-eabi.cmake -B ${{github.workspace}}/build/${{env.BUILD_TYPE}} -G Ninja
 
+      - name: Compile the firmware
+        run: cmake --build ${{github.workspace}}/build/${{env.BUILD_TYPE}}
+
       - name: Save the CMake configuration folder
         uses: actions/upload-artifact@v4
         with:
           name: build
           path: ${{github.workspace}}/build/${{env.BUILD_TYPE}}
           if-no-files-found: error
-
-      - name: Compile the firmware
-        run: cmake --build ${{github.workspace}}/build/${{env.BUILD_TYPE}}
 
   clang-tidy:
     runs-on: ubuntu-latest
