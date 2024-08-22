@@ -59,9 +59,11 @@ jobs:
       - name: Check the GNU Arm Embedded Toolchain triplet
         run: ls -la ${{ steps.arm-none-eabi-gcc-action.outputs.path }}/../arm-none-eabi
 
-      - name: Install and run clang-tidy
+      - name: Install clang-tidy
+        run: sudo apt-get install -y clang clang-tidy
+
+      - name: run clang-tidy
         run:  >
-              sudo apt-get install -y clang clang-tidy &&
               /usr/bin/run-clang-tidy
               -quiet
               -p ${{github.workspace}}/build/${{env.BUILD_TYPE}}/
@@ -82,9 +84,11 @@ jobs:
           name: build
           path: ${{github.workspace}}/build/${{env.BUILD_TYPE}}
 
-      - name: Install and run CppCheck
+      - name: Install CppCheck
+        run: sudo apt-get install -y cppcheck
+
+      - name: Run CppCheck
         run:  >
-              sudo apt-get install -y cppcheck &&
               cppcheck
               --enable=all
               --language=c
