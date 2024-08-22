@@ -9,7 +9,7 @@ env:
   BUILD_TYPE: Debug
 
 jobs:
-  cmake-configure:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repository
@@ -34,34 +34,12 @@ jobs:
           path: ${{github.workspace}}/build/${{env.BUILD_TYPE}}
           if-no-files-found: error
 
-  build:
-    runs-on: ubuntu-latest
-    needs: cmake-configure
-    steps:
-      - name: Checkout the repository
-        uses: actions/checkout@v4
-
-      - name: Download the saved CMake configuration folder
-        uses: actions/download-artifact@v4
-        with:
-          name: build
-          path: ${{github.workspace}}/build/${{env.BUILD_TYPE}}
-
-      - name: Install GNU Arm Embedded Toolchain - latest
-        uses: carlosperate/arm-none-eabi-gcc-action@v1
-        id: arm-none-eabi-gcc-action
-        with:
-          release: latest
-
-      - name: Install Ninja Build
-        uses: turtlesec-no/get-ninja@main
-
       - name: Compile the firmware
         run: cmake --build ${{github.workspace}}/build/${{env.BUILD_TYPE}}
 
   clang-tidy:
     runs-on: ubuntu-latest
-    needs: cmake-configure
+    needs: build
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v4
@@ -92,7 +70,7 @@ jobs:
 
   cppcheck:
     runs-on: ubuntu-latest
-    needs: cmake-configure
+    needs: build
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v4
