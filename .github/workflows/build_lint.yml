@@ -67,7 +67,7 @@ jobs:
               -p ${{github.workspace}}/build/${{env.BUILD_TYPE}}/
               -extra-arg=--sysroot=${{ steps.arm-none-eabi-gcc-action.outputs.path }}/../arm-none-eabi
               -extra-arg=--target=arm-none-eabi
-              files ".*(?<!\.s)$"
+              files "Components"
 
   cppcheck:
     runs-on: ubuntu-latest
