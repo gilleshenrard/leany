@@ -1,5 +1,5 @@
 /**
- * @file errors.c
+ * @file errorstack.c
  * @brief Implement a structure to create a crude error codes stack trace.
  * @author Gilles Henrard
  * @date 20/08/2024
