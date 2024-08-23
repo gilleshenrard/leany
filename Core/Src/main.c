@@ -19,9 +19,11 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "adc.h"
 #include "dma.h"
 #include "iwdg.h"
 #include "spi.h"
+#include "usart.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
@@ -112,6 +114,8 @@ int main(void)
   MX_SPI2_Init();
   MX_IWDG_Init();
   MX_SPI1_Init();
+  MX_USART1_UART_Init();
+  MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
   LL_SYSTICK_EnableIT();
   lsm6dsoInitialise(SPI1);
@@ -225,6 +229,7 @@ void SystemClock_Config(void)
   }
   LL_Init1msTick(72000000);
   LL_SetSystemCoreClock(72000000);
+  LL_RCC_SetADCClockSource(LL_RCC_ADC_CLKSRC_PCLK2_DIV_6);
 }
 
 /* USER CODE BEGIN 4 */

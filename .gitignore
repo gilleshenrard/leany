@@ -74,3 +74,12 @@ doxygen/
 
 #CppCheck
 config-cppcheck-build-dir/
+
+#KiCad
+schematics/KiCad/*.lck
+schematics/KiCad/*.bak
+schematics/KiCad/*.rpt
+schematics/KiCad/*.json
+schematics/KiCad/*.net
+schematics/KiCad/leany-backups
+schematics/KiCad/fp-info-cache

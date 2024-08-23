@@ -1,17 +1,24 @@
 name: Build and lint
 on: 
   push:
-    branches: [dev]
+    paths-ignore:
+      - 'schematics/**'
+      - '.gitignore'
+      - '.github/workflows/verify_kicad.yml'
   pull_request:
-    branches: [dev]
-
-env:
-  BUILD_TYPE: Debug
+    paths-ignore:
+      - 'schematics/**'
+      - '.gitignore'
+      - '.github/workflows/verify_kicad.yml'
 
 jobs:
   build:
     name: Build the firmware
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        configuration: [Debug, Release]
+
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v4
@@ -26,20 +33,20 @@ jobs:
         uses: turtlesec-no/get-ninja@main
       
       - name: Configure CMake
-        run: cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_TOOLCHAIN_FILE=${{github.workspace}}/cmake/gcc-arm-none-eabi.cmake -B ${{github.workspace}}/build/${{env.BUILD_TYPE}} -G Ninja
+        run: cmake -DCMAKE_BUILD_TYPE=${{ matrix.configuration }} -DCMAKE_TOOLCHAIN_FILE=${{github.workspace}}/cmake/gcc-arm-none-eabi.cmake -B ${{github.workspace}}/build/${{ matrix.configuration }} -G Ninja
 
       - name: Compile the firmware
-        run: cmake --build ${{github.workspace}}/build/${{env.BUILD_TYPE}}
+        run: cmake --build ${{github.workspace}}/build/${{ matrix.configuration }}
 
       - name: Save the CMake configuration folder
         uses: actions/upload-artifact@v4
         with:
-          name: build
-          path: ${{github.workspace}}/build/${{env.BUILD_TYPE}}
+          name: build-${{ matrix.configuration }}
+          path: ${{github.workspace}}/build/${{ matrix.configuration }}
           if-no-files-found: error
 
   clang-tidy:
-    name: Lint (clang-tidy)
+    name: Code Quality (clang-tidy)
     runs-on: ubuntu-latest
     needs: build
     steps:
@@ -49,8 +56,8 @@ jobs:
       - name: Download the saved CMake configuration folder
         uses: actions/download-artifact@v4
         with:
-          name: build
-          path: ${{github.workspace}}/build/${{env.BUILD_TYPE}}
+          name: build-Debug
+          path: ${{github.workspace}}/build/Debug
 
       - name: Install GNU Arm Embedded Toolchain - latest
         uses: carlosperate/arm-none-eabi-gcc-action@v1
@@ -68,7 +75,7 @@ jobs:
         run:  >
               /usr/bin/run-clang-tidy
               -quiet
-              -p ${{github.workspace}}/build/${{env.BUILD_TYPE}}/
+              -p ${{github.workspace}}/build/Debug/
               -extra-arg=--sysroot=${{ steps.arm-none-eabi-gcc-action.outputs.path }}/../arm-none-eabi
               -extra-arg=--target=arm-none-eabi
               files "Components"
@@ -84,8 +91,8 @@ jobs:
       - name: Download the saved CMake configuration folder
         uses: actions/download-artifact@v4
         with:
-          name: build
-          path: ${{github.workspace}}/build/${{env.BUILD_TYPE}}
+          name: build-Debug
+          path: ${{github.workspace}}/build/Debug
 
       - name: Install CppCheck
         run: sudo apt-get install -y cppcheck
@@ -97,7 +104,7 @@ jobs:
               --language=c
               --inconclusive
               --error-exitcode=2
-              --project=${{github.workspace}}/build/${{env.BUILD_TYPE}}/compile_commands.json
+              --project=${{github.workspace}}/build/Debug/compile_commands.json
               --cppcheck-build-dir=${{github.workspace}}/config-cppcheck-build-dir/
               -i${{github.workspace}}/build/
               -i${{github.workspace}}/Drivers/
@@ -135,6 +142,39 @@ jobs:
         with:
           path: Components/
           language: cpp
+
+  sonarcloud:
+    name: Code Quality (SonarCloud)
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
+
+      - name: Download the saved CMake configuration folder
+        uses: actions/download-artifact@v4
+        with:
+          name: build-Debug
+          path: ${{github.workspace}}/build/Debug
+
+      - name: Install GNU Arm Embedded Toolchain - latest
+        uses: carlosperate/arm-none-eabi-gcc-action@v1
+        id: arm-none-eabi-gcc-action
+        with:
+          release: latest
+
+      - name: Install sonar-scanner and build-wrapper
+        uses: SonarSource/sonarcloud-github-c-cpp@v3
+
+      - name: Run sonar-scanner
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: >
+          sonar-scanner
+          --define sonar.cfamily.compile-commands="${{github.workspace}}/build/Debug/compile_commands.json"
 
   doxygen:
     name: Documentation (Doxygen)
