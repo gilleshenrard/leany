@@ -113,11 +113,10 @@ jobs:
       - name: Checkout the repository
         uses: actions/checkout@v4
 
-      - name: Install Flawfinder
-        run: sudo apt-get install -y flawfinder
-
-      - name: Run Flawfinder
-        run: flawfinder Components/
+      - name: Run flawfinder
+        uses: david-a-wheeler/flawfinder@2.0.19
+        with:
+          arguments: Components/
 
   doxygen:
     runs-on: ubuntu-latest
