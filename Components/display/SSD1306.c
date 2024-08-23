@@ -402,7 +402,7 @@ static errorCode_u stateConfiguring() {
     //initialisation taken from PDF p. 64 (Application Example)
     //	values which don't change from reset values aren't modified
     //TODO test for max oscillator frequency
-    for(uint8_t i = 0; i < NB_INIT_REGISERS; i++) {
+    for(uint8_t i = 0; i < (uint8_t)NB_INIT_REGISERS; i++) {
         result = sendCommand(initCommands[i][0], &initCommands[i][2], initCommands[i][1]);
         if(isError(result)) {
             return (pushErrorCode(result, INIT, 1));
