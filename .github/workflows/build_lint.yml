@@ -10,6 +10,7 @@ env:
 
 jobs:
   build:
+    name: Build the firmware
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repository
@@ -38,6 +39,7 @@ jobs:
           if-no-files-found: error
 
   clang-tidy:
+    name: Lint (clang-tidy)
     runs-on: ubuntu-latest
     needs: build
     steps:
@@ -72,6 +74,7 @@ jobs:
               files "Components"
 
   cppcheck:
+    name: Check Coding constructs (Cppcheck)
     runs-on: ubuntu-latest
     needs: build
     steps:
@@ -107,6 +110,7 @@ jobs:
               -i${{github.workspace}}/Core/Src/system_stm32f1xx.c/
 
   flawfinder:
+    name: Check Security weakness (Flawfinder)
     runs-on: ubuntu-latest
     needs: build
     steps:
@@ -119,6 +123,7 @@ jobs:
           arguments: Components/
 
   lizard:
+    name: Cyclomatic complexity (Lizard)
     runs-on: ubuntu-latest
     needs: build
     steps:
@@ -132,6 +137,7 @@ jobs:
           language: cpp
 
   doxygen:
+    name: Check Documentation (Doxygen)
     runs-on: ubuntu-latest
     needs: build
     steps:
