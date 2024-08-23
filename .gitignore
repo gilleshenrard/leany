@@ -76,4 +76,5 @@ doxygen/
 config-cppcheck-build-dir/
 
 #KiCad
+schematics/KiCad/*.bak
 schematics/KiCad/leany-backups
