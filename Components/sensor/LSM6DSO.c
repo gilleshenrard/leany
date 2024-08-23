@@ -23,13 +23,14 @@
 
 #define ANGLE_DELTA_MINIMUM       0.05F        ///< Minimum value for angle differences to be noticed
 #define RADIANS_TO_DEGREES_TENTHS 572.957795F  ///< Ratio between radians and tenths of degrees (= 10 * (180°/PI))
-#define BASE_TEMPERATURE          25.0F        ///Temperature at which the LSM6DSO temperature reading will give 0
+#define BASE_TEMPERATURE          25.0F        ///< Temperature at which the LSM6DSO temperature reading will give 0
 enum {
-    BOOT_TIME_MS         = 10U,    ///< Number of milliseconds to wait for the MEMS to boot
-    SPI_TIMEOUT_MS       = 10U,    ///< Number of milliseconds beyond which SPI is in timeout
-    TIMEOUT_MS           = 1000U,  ///< Max number of milliseconds to wait for the device ID
-    REGISTER_VALUE_ALIGN = 8,      ///< Alignment of the registerValue_t struct
-    NB_REGISTERS_TO_READ = LSM6_NB_OUT_REGISTERS + 2U,
+    BOOT_TIME_MS         = 10U,                         ///< Number of milliseconds to wait for the MEMS to boot
+    SPI_TIMEOUT_MS       = 10U,                         ///< Number of milliseconds beyond which SPI is in timeout
+    TIMEOUT_MS           = 1000U,                       ///< Max number of milliseconds to wait for the device ID
+    REGISTER_VALUE_ALIGN = 8,                           ///< Alignment of the registerValue_t struct
+    NB_REGISTERS_TO_READ = LSM6_NB_OUT_REGISTERS + 2U,  ///< Numbers of data registers to read
+    NB_INIT_REG          = 9U,                          ///< Number of initialisation registers
 };
 
 /**
@@ -235,6 +236,7 @@ static errorCode_u writeRegister(LSM6DSOregister_e registerNumber, uint8_t value
 /**
  * @brief Check if angle measurements have changed
  *
+ * @param axis Axis to check for a change
  * @retval 0 No new values available
  * @retval 1 New values are available
  */
@@ -423,7 +425,6 @@ static errorCode_u stateWaitingDeviceID() {
  * @retval 1 Error while writing a register
  */
 static errorCode_u stateConfiguring() {
-#define NB_INIT_REG 9U
     const uint8_t         AXL_SAMPLES_TO_IGNORE = 2U;  ///< Number of samples to drop (see stateIgnoringSamples())
     const registerValue_t initialisationArray[NB_INIT_REG] = {
         {   CTRL3_C, LSM6_SOFTWARE_RESET | LSM6_INT_ACTIVE_LOW}, //reboot MEMS memory and reset software

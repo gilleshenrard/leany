@@ -22,17 +22,19 @@
 
 //Definitions
 enum {
-    SSD_SCREEN_WIDTH  = 128U,                               ///< Number of columns on the screen
-    SSD_SCREEN_HEIGHT = 64U,                                ///< Number of rows (i.e. COM connections) on the screen
-    SSD_NB_PAGES     = ((uint8_t)SSD_SCREEN_HEIGHT >> 3U),  ///< Number of pages (1 page = 8 COM) present to update rows
-    REFICON_PAGE     = (SSD_NB_PAGES - 1),
-    REFICON_COLUMN   = (SSD_SCREEN_WIDTH - REFERENCETYPE_NB_BYTES - 1),
-    HOLDICON_PAGE    = REFICON_PAGE,
-    HOLDICON_COLUMN  = (REFICON_COLUMN - REFERENCETYPE_NB_BYTES),
-    ANGLE_NB_CHARS   = 6U,   ///< Number of characters in the angle array
-    ANGLE_COLUMN     = 40U,  ///< Column number of the first screen line
-    ANGLE_ROLL_PAGE  = 1U,   ///< Number of the page at which display the roll axis angle
-    ANGLE_PITCH_PAGE = 5U,   ///< Number of the page at which display the pitch axis angle
+    SSD_SCREEN_WIDTH  = 128U,                           ///< Number of columns on the screen
+    SSD_SCREEN_HEIGHT = 64U,                            ///< Number of rows (i.e. COM connections) on the screen
+    SSD_NB_PAGES = ((uint8_t)SSD_SCREEN_HEIGHT >> 3U),  ///< Number of pages (1 page = 8 COM) present to update rows
+    REFICON_PAGE = (SSD_NB_PAGES - 1),                  ///< Page at which the system reference type icon is
+    REFICON_COLUMN =
+        (SSD_SCREEN_WIDTH - REFERENCETYPE_NB_BYTES - 1),  ///< Column at which the system reference type icon is
+    HOLDICON_PAGE    = REFICON_PAGE,                      ///< Page at which the hold icon is
+    HOLDICON_COLUMN  = (REFICON_COLUMN - REFERENCETYPE_NB_BYTES),  ///< Column at which the hold icon is
+    ANGLE_NB_CHARS   = 6U,                                         ///< Number of characters in the angle array
+    ANGLE_COLUMN     = 40U,                                        ///< Column number of the first screen line
+    ANGLE_ROLL_PAGE  = 1U,  ///< Number of the page at which display the roll axis angle
+    ANGLE_PITCH_PAGE = 5U,  ///< Number of the page at which display the pitch axis angle
+    NB_INIT_REGISERS = 8U   ///< Number of registers set at initialisation
 };
 
 /**
@@ -52,8 +54,8 @@ typedef enum {
  * @brief SPI Data/command pin status enumeration
  */
 typedef enum {
-    COMMAND = 0,
-    DATA,
+    COMMAND = 0,  ///< Command is to be sent
+    DATA,         ///< Data is to be sent
 } DCgpio_e;
 
 /**
@@ -378,7 +380,6 @@ errorCode_u ssd1306Update() {
  * @retval 4	Error while requesting the screen wipe
  */
 static errorCode_u stateConfiguring() {
-#define NB_INIT_REGISERS 8U  ///< Number of registers set at initialisation
     const uint8_t limitColumns[2]                   = {0, (SSD_SCREEN_WIDTH - 1)};
     const uint8_t limitPages[2]                     = {0, (SSD_NB_PAGES - 1)};
     const uint8_t initCommands[NB_INIT_REGISERS][3] = {

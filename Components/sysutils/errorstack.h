@@ -26,6 +26,8 @@ typedef enum {
 typedef union {
     /**
      * @brief Structure defining the discrete fields of an error code
+     *
+     * @return Value with an optimised alignment
      */
     struct {
         uint32_t layer3 : ERR_LAYER_NBBITS;   ///< Layer 3 return code (lowest layer)
