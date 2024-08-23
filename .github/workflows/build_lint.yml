@@ -74,7 +74,7 @@ jobs:
               files "Components"
 
   cppcheck:
-    name: Check Coding constructs (Cppcheck)
+    name: Coding constructs (Cppcheck)
     runs-on: ubuntu-latest
     needs: build
     steps:
@@ -110,7 +110,7 @@ jobs:
               -i${{github.workspace}}/Core/Src/system_stm32f1xx.c/
 
   flawfinder:
-    name: Check Security weakness (Flawfinder)
+    name: Security weakness (Flawfinder)
     runs-on: ubuntu-latest
     needs: build
     steps:
@@ -137,7 +137,7 @@ jobs:
           language: cpp
 
   doxygen:
-    name: Check Documentation (Doxygen)
+    name: Documentation (Doxygen)
     runs-on: ubuntu-latest
     needs: build
     steps:
