@@ -116,3 +116,6 @@ jobs:
 
       - name: Install Doxygen
         run: sudo apt-get install -y doxygen
+
+      - name: Run Doxygen
+        run: doxygen Doxyfile
