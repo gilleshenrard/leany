@@ -439,7 +439,7 @@ static errorCode_u stateConfiguring() {
     };
 
     //write all registers values from the initialisation array
-    for(uint8_t i = 0; i < NB_INIT_REG; i++) {
+    for(uint8_t i = 0; i < (uint8_t)NB_INIT_REG; i++) {
         result = writeRegister(initialisationArray[i].registerID, initialisationArray[i].value);
         if(isError(result)) {
             state = stateError;
