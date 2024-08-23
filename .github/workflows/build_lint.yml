@@ -4,10 +4,12 @@ on:
     branches: [dev]
     paths-ignore:
       - 'schematics/**'
+      - '.gitignore'
   pull_request:
     branches: [dev]
     paths-ignore:
       - 'schematics/**'
+      - '.gitignore'
 
 env:
   BUILD_TYPE: Debug
