@@ -1,0 +1,4 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "leany-symbols")(type "KiCad")(uri "${KIPRJMOD}/leany-symbols.kicad_sym")(options "")(descr ""))
+)
