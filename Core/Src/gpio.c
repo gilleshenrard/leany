@@ -56,7 +56,8 @@ void MX_GPIO_Init(void)
   LL_GPIO_ResetOutputPin(GPIOA, SSD1306_DC_Pin|SSD1306_RES_Pin);
 
   /**/
-  GPIO_InitStruct.Pin = LSM6DSO_INT1_Pin|POWER_BUTTON_Pin|ZERO_BUTTON_Pin|HOLD_BUTTON_Pin;
+  GPIO_InitStruct.Pin = LSM6DSO_INT1_Pin|POWER_BUTTON_Pin|LSM6DSO_INT2_Pin|ZERO_BUTTON_Pin
+                          |HOLD_BUTTON_Pin;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
   LL_GPIO_Init(GPIOB, &GPIO_InitStruct);
