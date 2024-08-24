@@ -16,3 +16,10 @@ jobs:
         with:
           sch_pdf: true
           sch_pdf_file: ${{github.workspace}}/schematics/KiCad/schematics.pdf
+
+      - name: Save the PDF file
+        uses: actions/upload-artifact@v4
+        with:
+          name: schematics.pdf
+          path: ${{github.workspace}}/schematics/KiCad/schematics.pdf
+          if-no-files-found: error
