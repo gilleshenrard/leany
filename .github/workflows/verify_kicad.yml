@@ -1,0 +1,34 @@
+name: Check KiCad schematics
+on: 
+  push:
+    branches: [dev]
+    paths:
+      - 'schematics/KiCad/*'
+  pull_request:
+    branches: [dev]
+    paths:
+      - 'schematics/KiCad/*'
+
+env:
+  SCH_PATH: ${{github.workspace}}/schematics/KiCad/leany.kicad_sch
+
+jobs:
+    install:
+        name: Install KiCad
+        runs-on: ubuntu-latest
+        steps:
+          - name: Checkout the repository
+            uses: actions/checkout@v4
+
+          - name: Export production files
+            id: production
+            uses: sparkengineering/kicad-action@v2
+            with:
+                kicad_sch: ${{env.SCH_PATH}}
+
+          - name: Run Electrical Rules Check
+            id: erc
+            uses: sparkengineering/kicad-action@v2
+            with:
+                kicad_sch: ${{env.SCH_PATH}}
+                sch_erc: true
