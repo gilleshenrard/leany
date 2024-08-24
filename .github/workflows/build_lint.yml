@@ -6,12 +6,14 @@ on:
       - 'schematics/**'
       - '.gitignore'
       - '.github/workflows/verify_kicad.yml'
+      - '.github/workflows/generate_kicad_pdf.yml'
   pull_request:
     branches: [dev]
     paths-ignore:
       - 'schematics/**'
       - '.gitignore'
       - '.github/workflows/verify_kicad.yml'
+      - '.github/workflows/generate_kicad_pdf.yml'
 
 env:
   BUILD_TYPE: Debug

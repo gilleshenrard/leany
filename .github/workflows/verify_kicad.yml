@@ -13,8 +13,8 @@ env:
   SCH_PATH: ${{github.workspace}}/schematics/KiCad/leany.kicad_sch
 
 jobs:
-    install:
-        name: Install KiCad
+    run_checks:
+        name: Run KiCad checks
         runs-on: ubuntu-latest
         steps:
           - name: Checkout the repository
@@ -27,7 +27,7 @@ jobs:
             with:
                 kicad_sch: ${{env.SCH_PATH}}
 
-          - name: Run Electrical Rules Check
+          - name: Run Electrical Rules Check (ERC)
             id: erc
             uses: sparkengineering/kicad-action@v2
             if: '!cancelled()'
