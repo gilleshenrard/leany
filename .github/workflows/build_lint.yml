@@ -43,7 +43,7 @@ jobs:
       - name: Save the CMake configuration folder
         uses: actions/upload-artifact@v4
         with:
-          name: build
+          name: build-${{ matrix.configuration }}
           path: ${{github.workspace}}/build/${{ matrix.configuration }}
           if-no-files-found: error
 
