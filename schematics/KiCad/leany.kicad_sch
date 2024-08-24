@@ -6818,7 +6818,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "SW_Push"
+		(property "Value" "POWER_BTN"
 			(at 67.31 68.5799 90)
 			(effects
 				(font
