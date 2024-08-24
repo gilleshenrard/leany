@@ -58,7 +58,7 @@ jobs:
       - name: Download the saved CMake configuration folder
         uses: actions/download-artifact@v4
         with:
-          name: build
+          name: build-Debug
           path: ${{github.workspace}}/build/Debug
 
       - name: Install GNU Arm Embedded Toolchain - latest
@@ -93,7 +93,7 @@ jobs:
       - name: Download the saved CMake configuration folder
         uses: actions/download-artifact@v4
         with:
-          name: build
+          name: build-Debug
           path: ${{github.workspace}}/build/Debug
 
       - name: Install CppCheck
