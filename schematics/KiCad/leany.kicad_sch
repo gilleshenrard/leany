@@ -3985,10 +3985,6 @@
 		(uuid "f9c71943-fb43-48fb-b1cd-582c92aed5d6")
 	)
 	(no_connect
-		(at 153.67 115.57)
-		(uuid "1b574723-a552-42ec-902c-9870b8deb8c8")
-	)
-	(no_connect
 		(at 186.69 90.17)
 		(uuid "30767c85-f5fe-4bcb-b6da-4aa130476232")
 	)
@@ -4011,10 +4007,6 @@
 	(no_connect
 		(at 186.69 100.33)
 		(uuid "68f2034c-641f-49b6-9806-b2a4a5592b55")
-	)
-	(no_connect
-		(at 153.67 118.11)
-		(uuid "9cb94d2e-9670-4e6c-91eb-58b6f5b6677d")
 	)
 	(no_connect
 		(at 153.67 110.49)
@@ -4676,6 +4668,16 @@
 	)
 	(wire
 		(pts
+			(xy 114.3 115.57) (xy 153.67 115.57)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "7e4ebabb-548e-429f-9ee5-22906cce2c82")
+	)
+	(wire
+		(pts
 			(xy 166.37 57.15) (xy 166.37 54.61)
 		)
 		(stroke
@@ -4803,6 +4805,16 @@
 			(type default)
 		)
 		(uuid "99ef2364-91a3-4e52-b048-0f29f22667f1")
+	)
+	(wire
+		(pts
+			(xy 132.08 118.11) (xy 153.67 118.11)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "9dc7022f-db5b-46aa-9f03-37049d8a5457")
 	)
 	(wire
 		(pts
@@ -4983,6 +4995,16 @@
 			(type default)
 		)
 		(uuid "c96a0786-0800-421e-a221-c0eb85936c66")
+	)
+	(wire
+		(pts
+			(xy 114.3 118.11) (xy 114.3 115.57)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ca90d9df-5aac-4e3a-b11d-73f353ea587d")
 	)
 	(wire
 		(pts
@@ -6044,6 +6066,71 @@
 		)
 	)
 	(symbol
+		(lib_id "power:GND")
+		(at 114.3 128.27 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "21d7d0bc-c369-43b2-b7ba-386dae93ac3f")
+		(property "Reference" "#PWR023"
+			(at 114.3 134.62 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 114.3 132.588 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 114.3 128.27 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 114.3 128.27 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 114.3 128.27 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "dd853e3b-1b83-42c3-a370-e59e8201ec5e")
+		)
+		(instances
+			(project "leany"
+				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5"
+					(reference "#PWR023")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Device:C_Small")
 		(at 69.85 125.73 0)
 		(unit 1)
@@ -6807,10 +6894,9 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "49a68bfa-d6a3-407b-8c60-1ca14e8b4720")
 		(property "Reference" "SW1"
-			(at 67.31 66.0399 90)
+			(at 67.818 67.564 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6818,7 +6904,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "POWER_BTN"
+		(property "Value" "~"
 			(at 67.31 68.5799 90)
 			(effects
 				(font
@@ -7483,6 +7569,71 @@
 			(project "leany"
 				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5"
 					(reference "R2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 132.08 128.27 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "826c1d14-7a01-45e2-bd06-1239152350be")
+		(property "Reference" "#PWR022"
+			(at 132.08 134.62 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 132.08 132.588 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 132.08 128.27 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 132.08 128.27 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 132.08 128.27 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "e62e891f-816a-4688-9748-f80c1139c2a9")
+		)
+		(instances
+			(project "leany"
+				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5"
+					(reference "#PWR022")
 					(unit 1)
 				)
 			)
@@ -8332,6 +8483,76 @@
 		)
 	)
 	(symbol
+		(lib_id "Switch:SW_Push")
+		(at 114.3 123.19 90)
+		(mirror x)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "b67591ea-309b-472a-bdcb-ac9a3c775037")
+		(property "Reference" "SW2"
+			(at 110.49 121.9199 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "ZERO_BTN"
+			(at 110.49 124.4599 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 109.22 123.19 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 109.22 123.19 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Push button switch, generic, two pins"
+			(at 114.3 123.19 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "17a8417d-e27f-4c99-a1b7-991bcd52c048")
+		)
+		(pin "2"
+			(uuid "fbfbc57c-b154-4fe2-9ca4-17070e7baf6a")
+		)
+		(instances
+			(project "leany"
+				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5"
+					(reference "SW2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Connector:TestPoint_Small")
 		(at 57.15 26.67 0)
 		(unit 1)
@@ -9003,6 +9224,76 @@
 			(project ""
 				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5"
 					(reference "U2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Switch:SW_Push")
+		(at 132.08 123.19 90)
+		(mirror x)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "f1ea12e0-7eef-46cd-bf26-3d0471b5ca79")
+		(property "Reference" "SW3"
+			(at 128.27 121.9199 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "HOLD_BTN"
+			(at 128.27 124.4599 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 127 123.19 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 127 123.19 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Push button switch, generic, two pins"
+			(at 132.08 123.19 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "c97a2577-1862-4524-9c64-13f21c5dd3bd")
+		)
+		(pin "2"
+			(uuid "dd0e2cc9-dc41-4ab3-a494-677bd6305c73")
+		)
+		(instances
+			(project "leany"
+				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5"
+					(reference "SW3")
 					(unit 1)
 				)
 			)
