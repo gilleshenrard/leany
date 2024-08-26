@@ -99,18 +99,18 @@ void Error_Handler(void);
 #define POWER_ON_GPIO_Port GPIOB
 #define SSD1306_D1_Pin LL_GPIO_PIN_15
 #define SSD1306_D1_GPIO_Port GPIOB
-#define SSD1306_DC_Pin LL_GPIO_PIN_9
+#define FTDI_TX_Pin LL_GPIO_PIN_9
+#define FTDI_TX_GPIO_Port GPIOA
+#define FTDI_RX_Pin LL_GPIO_PIN_10
+#define FTDI_RX_GPIO_Port GPIOA
+#define SSD1306_DC_Pin LL_GPIO_PIN_11
 #define SSD1306_DC_GPIO_Port GPIOA
-#define SSD1306_RES_Pin LL_GPIO_PIN_10
+#define SSD1306_RES_Pin LL_GPIO_PIN_12
 #define SSD1306_RES_GPIO_Port GPIOA
 #define DEBUG_SWDIO_Pin LL_GPIO_PIN_13
 #define DEBUG_SWDIO_GPIO_Port GPIOA
 #define DEBUG_SWCLK_Pin LL_GPIO_PIN_14
 #define DEBUG_SWCLK_GPIO_Port GPIOA
-#define FTDI_TX_Pin LL_GPIO_PIN_6
-#define FTDI_TX_GPIO_Port GPIOB
-#define FTDI_RX_Pin LL_GPIO_PIN_7
-#define FTDI_RX_GPIO_Port GPIOB
 #ifndef NVIC_PRIORITYGROUP_0
 #define NVIC_PRIORITYGROUP_0         ((uint32_t)0x00000007) /*!< 0 bit  for pre-emption priority,
                                                                  4 bits for subpriority */

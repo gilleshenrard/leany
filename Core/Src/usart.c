@@ -40,10 +40,10 @@ void MX_USART1_UART_Init(void)
   /* Peripheral clock enable */
   LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_USART1);
 
-  LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_GPIOB);
+  LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_GPIOA);
   /**USART1 GPIO Configuration
-  PB6   ------> USART1_TX
-  PB7   ------> USART1_RX
+  PA9   ------> USART1_TX
+  PA10   ------> USART1_RX
   */
   GPIO_InitStruct.Pin = FTDI_TX_Pin;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
@@ -54,8 +54,6 @@ void MX_USART1_UART_Init(void)
   GPIO_InitStruct.Pin = FTDI_RX_Pin;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_FLOATING;
   LL_GPIO_Init(FTDI_RX_GPIO_Port, &GPIO_InitStruct);
-
-  LL_GPIO_AF_EnableRemap_USART1();
 
   /* USER CODE BEGIN USART1_Init 1 */
 
