@@ -38,6 +38,7 @@ extern "C" {
 #include "stm32f1xx_ll_utils.h"
 #include "stm32f1xx_ll_pwr.h"
 #include "stm32f1xx_ll_spi.h"
+#include "stm32f1xx_ll_usart.h"
 #include "stm32f1xx_ll_gpio.h"
 
 #if defined(USE_FULL_ASSERT)
@@ -106,6 +107,10 @@ void Error_Handler(void);
 #define DEBUG_SWDIO_GPIO_Port GPIOA
 #define DEBUG_SWCLK_Pin LL_GPIO_PIN_14
 #define DEBUG_SWCLK_GPIO_Port GPIOA
+#define FTDI_TX_Pin LL_GPIO_PIN_6
+#define FTDI_TX_GPIO_Port GPIOB
+#define FTDI_RX_Pin LL_GPIO_PIN_7
+#define FTDI_RX_GPIO_Port GPIOB
 #ifndef NVIC_PRIORITYGROUP_0
 #define NVIC_PRIORITYGROUP_0         ((uint32_t)0x00000007) /*!< 0 bit  for pre-emption priority,
                                                                  4 bits for subpriority */
