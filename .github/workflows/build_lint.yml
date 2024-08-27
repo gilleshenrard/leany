@@ -161,6 +161,12 @@ jobs:
           name: build-Debug
           path: ${{github.workspace}}/build/Debug
 
+      - name: Install GNU Arm Embedded Toolchain - latest
+        uses: carlosperate/arm-none-eabi-gcc-action@v1
+        id: arm-none-eabi-gcc-action
+        with:
+          release: latest
+
       - name: Install sonar-scanner and build-wrapper
         uses: SonarSource/sonarcloud-github-c-cpp@v3
 
