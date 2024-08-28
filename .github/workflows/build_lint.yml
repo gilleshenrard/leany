@@ -5,13 +5,11 @@ on:
       - 'schematics/**'
       - '.gitignore'
       - '.github/workflows/verify_kicad.yml'
-      - '.github/workflows/generate_kicad_pdf.yml'
   pull_request:
     paths-ignore:
       - 'schematics/**'
       - '.gitignore'
       - '.github/workflows/verify_kicad.yml'
-      - '.github/workflows/generate_kicad_pdf.yml'
 
 jobs:
   build:
