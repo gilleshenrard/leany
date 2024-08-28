@@ -5377,6 +5377,12 @@
 		(uuid "197c506d-c3ac-46c9-aadb-118f9bfb40f6")
 	)
 	(junction
+		(at 133.35 93.98)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "2a0a3886-c02b-4122-95f9-073cf925d7ef")
+	)
+	(junction
 		(at 57.15 156.21)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -5645,6 +5651,16 @@
 			(type default)
 		)
 		(uuid "013441d6-e61c-4725-90ad-41107c4bf9fa")
+	)
+	(wire
+		(pts
+			(xy 133.35 91.44) (xy 133.35 93.98)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "020d6333-2bcd-40bf-9b22-c2caccd83e13")
 	)
 	(wire
 		(pts
@@ -6288,6 +6304,16 @@
 	)
 	(wire
 		(pts
+			(xy 137.16 91.44) (xy 133.35 91.44)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "6b3eff92-3cf1-4eed-b51b-c3f35f310cfd")
+	)
+	(wire
+		(pts
 			(xy 254 109.22) (xy 254 110.49)
 		)
 		(stroke
@@ -6418,7 +6444,7 @@
 	)
 	(wire
 		(pts
-			(xy 130.81 91.44) (xy 167.64 91.44)
+			(xy 147.32 91.44) (xy 167.64 91.44)
 		)
 		(stroke
 			(width 0)
@@ -6648,7 +6674,7 @@
 	)
 	(wire
 		(pts
-			(xy 146.05 93.98) (xy 167.64 93.98)
+			(xy 147.32 93.98) (xy 167.64 93.98)
 		)
 		(stroke
 			(width 0)
@@ -6765,6 +6791,16 @@
 			(type default)
 		)
 		(uuid "b3ab6f5d-90e7-40c5-91a1-31a12ef700ef")
+	)
+	(wire
+		(pts
+			(xy 133.35 93.98) (xy 137.16 93.98)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b4efbe24-ccf8-48f5-8f28-ec105b4ee010")
 	)
 	(wire
 		(pts
@@ -6895,16 +6931,6 @@
 			(type default)
 		)
 		(uuid "c96a0786-0800-421e-a221-c0eb85936c66")
-	)
-	(wire
-		(pts
-			(xy 130.81 93.98) (xy 130.81 91.44)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "ca90d9df-5aac-4e3a-b11d-73f353ea587d")
 	)
 	(wire
 		(pts
@@ -8222,71 +8248,6 @@
 			(project "leany"
 				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5"
 					(reference "C8")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:GND")
-		(at 130.81 104.14 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "21d7d0bc-c369-43b2-b7ba-386dae93ac3f")
-		(property "Reference" "#PWR023"
-			(at 130.81 110.49 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "GND"
-			(at 130.81 108.458 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 130.81 104.14 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 130.81 104.14 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 130.81 104.14 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "dd853e3b-1b83-42c3-a370-e59e8201ec5e")
-		)
-		(instances
-			(project "leany"
-				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5"
-					(reference "#PWR023")
 					(unit 1)
 				)
 			)
@@ -10247,7 +10208,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 146.05 104.14 0)
+		(at 133.35 93.98 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -10255,7 +10216,7 @@
 		(dnp no)
 		(uuid "826c1d14-7a01-45e2-bd06-1239152350be")
 		(property "Reference" "#PWR022"
-			(at 146.05 110.49 0)
+			(at 133.35 100.33 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10264,7 +10225,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 146.05 108.458 0)
+			(at 133.35 98.298 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10272,7 +10233,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 146.05 104.14 0)
+			(at 133.35 93.98 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10281,7 +10242,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 146.05 104.14 0)
+			(at 133.35 93.98 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10290,7 +10251,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 146.05 104.14 0)
+			(at 133.35 93.98 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11291,8 +11252,8 @@
 	)
 	(symbol
 		(lib_id "Switch:SW_Push")
-		(at 130.81 99.06 90)
-		(mirror x)
+		(at 142.24 91.44 0)
+		(mirror y)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -11300,7 +11261,7 @@
 		(dnp no)
 		(uuid "b67591ea-309b-472a-bdcb-ac9a3c775037")
 		(property "Reference" "SW2"
-			(at 128.016 97.536 90)
+			(at 144.272 84.836 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11309,7 +11270,7 @@
 			)
 		)
 		(property "Value" "ZERO_BTN"
-			(at 128.27 101.092 90)
+			(at 146.558 86.868 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11318,7 +11279,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 125.73 99.06 0)
+			(at 142.24 86.36 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11327,7 +11288,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 125.73 99.06 0)
+			(at 142.24 86.36 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11336,7 +11297,7 @@
 			)
 		)
 		(property "Description" "Push button switch, generic, two pins"
-			(at 130.81 99.06 0)
+			(at 142.24 91.44 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12368,7 +12329,7 @@
 	)
 	(symbol
 		(lib_id "Switch:SW_Push")
-		(at 146.05 99.06 90)
+		(at 142.24 93.98 0)
 		(mirror x)
 		(unit 1)
 		(exclude_from_sim no)
@@ -12377,7 +12338,7 @@
 		(dnp no)
 		(uuid "f1ea12e0-7eef-46cd-bf26-3d0471b5ca79")
 		(property "Reference" "SW3"
-			(at 143.256 97.282 90)
+			(at 140.208 100.838 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12386,7 +12347,7 @@
 			)
 		)
 		(property "Value" "HOLD_BTN"
-			(at 143.764 100.838 90)
+			(at 137.414 98.552 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12395,7 +12356,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 140.97 99.06 0)
+			(at 142.24 99.06 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12404,7 +12365,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 140.97 99.06 0)
+			(at 142.24 99.06 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12413,7 +12374,7 @@
 			)
 		)
 		(property "Description" "Push button switch, generic, two pins"
-			(at 146.05 99.06 0)
+			(at 142.24 93.98 0)
 			(effects
 				(font
 					(size 1.27 1.27)
