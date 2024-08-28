@@ -5587,14 +5587,6 @@
 		(uuid "f9c71943-fb43-48fb-b1cd-582c92aed5d6")
 	)
 	(no_connect
-		(at 40.64 111.76)
-		(uuid "09b8ad58-f8cf-48ca-9cc8-8c888c66eb6d")
-	)
-	(no_connect
-		(at 30.48 111.76)
-		(uuid "296420f0-af4e-4fc9-b38f-8f0603a742b1")
-	)
-	(no_connect
 		(at 200.66 45.72)
 		(uuid "34d88b62-b8a8-4789-a773-13b883e3c555")
 	)
@@ -5607,20 +5599,12 @@
 		(uuid "4b72099f-4211-4d8f-a97a-390e1516397d")
 	)
 	(no_connect
-		(at 200.66 38.1)
-		(uuid "5dc356e1-b1d6-462f-b7cd-cc7180ef1170")
-	)
-	(no_connect
 		(at 167.64 58.42)
 		(uuid "63b50ce8-9e8a-4842-b4e7-b78af47e1186")
 	)
 	(no_connect
 		(at 200.66 76.2)
 		(uuid "68f2034c-641f-49b6-9806-b2a4a5592b55")
-	)
-	(no_connect
-		(at 30.48 116.84)
-		(uuid "7ff4ada4-5e0f-44e1-9d36-fb53ffb83c2c")
 	)
 	(no_connect
 		(at 86.36 166.37)
@@ -5633,14 +5617,6 @@
 	(no_connect
 		(at 167.64 81.28)
 		(uuid "a24ff9eb-5beb-462c-81b8-db14ccf28aba")
-	)
-	(no_connect
-		(at 200.66 43.18)
-		(uuid "a8b700f1-c9cb-4c20-ac90-b62be5cba014")
-	)
-	(no_connect
-		(at 200.66 40.64)
-		(uuid "ab286bf3-5657-4e7a-8788-7e3d43e75916")
 	)
 	(no_connect
 		(at 167.64 55.88)
@@ -5665,10 +5641,6 @@
 	(no_connect
 		(at 200.66 58.42)
 		(uuid "c46e84ff-7af8-482b-ad46-1641bc0ba101")
-	)
-	(no_connect
-		(at 30.48 106.68)
-		(uuid "cbb8eb8a-0d79-4361-bd20-6a7aa51d3420")
 	)
 	(no_connect
 		(at 167.64 73.66)
@@ -5719,6 +5691,26 @@
 			(type default)
 		)
 		(uuid "0428e3eb-56be-4034-b039-3a6d2f54a872")
+	)
+	(wire
+		(pts
+			(xy 43.18 105.41) (xy 49.53 105.41)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "05b18f2c-6a6d-4759-9f8f-596e1d27f31f")
+	)
+	(wire
+		(pts
+			(xy 200.66 40.64) (xy 203.2 40.64)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "0748290e-dc9b-4bf7-a016-c9fbae2d6e8e")
 	)
 	(wire
 		(pts
@@ -6242,6 +6234,16 @@
 	)
 	(wire
 		(pts
+			(xy 200.66 43.18) (xy 203.2 43.18)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "58f0f1f8-4518-4761-a902-f2ae5aa68fc6")
+	)
+	(wire
+		(pts
 			(xy 254 109.22) (xy 259.08 109.22)
 		)
 		(stroke
@@ -6249,6 +6251,16 @@
 			(type default)
 		)
 		(uuid "595efd4d-f22f-4b00-bb51-c7aca99cc152")
+	)
+	(wire
+		(pts
+			(xy 25.4 105.41) (xy 25.4 110.49)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5cd9908e-12f4-45be-91cb-a1357a1c7a9a")
 	)
 	(wire
 		(pts
@@ -6379,6 +6391,16 @@
 			(type default)
 		)
 		(uuid "716885b3-1c73-48dd-8f9c-b284b877b1f0")
+	)
+	(wire
+		(pts
+			(xy 25.4 110.49) (xy 27.94 110.49)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "71d7539e-9168-4979-aaaa-206438aea3e3")
 	)
 	(wire
 		(pts
@@ -6702,6 +6724,16 @@
 	)
 	(wire
 		(pts
+			(xy 203.2 38.1) (xy 200.66 38.1)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a5566132-1f05-4973-a123-cb8a7795ad58")
+	)
+	(wire
+		(pts
 			(xy 24.13 29.21) (xy 30.48 29.21)
 		)
 		(stroke
@@ -6729,6 +6761,16 @@
 			(type default)
 		)
 		(uuid "acece55c-dafa-471c-b944-b0774fa47338")
+	)
+	(wire
+		(pts
+			(xy 43.18 110.49) (xy 49.53 110.49)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "adb2d4e1-0a04-415c-b3ea-6f2998b4872f")
 	)
 	(wire
 		(pts
@@ -7122,6 +7164,16 @@
 	)
 	(wire
 		(pts
+			(xy 43.18 115.57) (xy 49.53 115.57)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e9d5ebd9-f8d2-4e7a-a00f-8909d3297f7c")
+	)
+	(wire
+		(pts
 			(xy 149.86 55.88) (xy 149.86 58.42)
 		)
 		(stroke
@@ -7261,6 +7313,18 @@
 		(uuid "fffd4385-2a47-4ea8-8569-5e0368dc63b2")
 	)
 	(rectangle
+		(start 17.78 92.71)
+		(end 62.23 123.19)
+		(stroke
+			(width 0)
+			(type dash)
+		)
+		(fill
+			(type none)
+		)
+		(uuid 082698f9-827f-43af-8db7-2a72582884b1)
+	)
+	(rectangle
 		(start 213.36 101.6)
 		(end 279.4 163.83)
 		(stroke
@@ -7339,6 +7403,16 @@
 			)
 		)
 		(uuid "a5f38412-eb14-4cc6-b805-96cba205df46")
+	)
+	(text "RGB status LED"
+		(exclude_from_sim no)
+		(at 26.162 121.666 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "aa5db097-2192-49b4-9091-60ae12cc840b")
 	)
 	(text "Power latch + voltage regulator"
 		(exclude_from_sim no)
@@ -7479,6 +7553,17 @@
 		)
 		(uuid "2b096910-a6b1-4d97-bbc8-b9f69b0d7162")
 	)
+	(label "LED_BLUE"
+		(at 49.53 115.57 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "5353afef-557d-4039-9c5d-86a2b065cc03")
+	)
 	(label "SSD1306_D0"
 		(at 162.56 99.06 180)
 		(fields_autoplaced yes)
@@ -7523,6 +7608,17 @@
 		)
 		(uuid "71e10d1a-35b3-4094-8080-58fa48660f42")
 	)
+	(label "LED_GREEN"
+		(at 49.53 110.49 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "7217b4b9-2371-43aa-aeda-b9eab5433ab8")
+	)
 	(label "SSD1306_D1"
 		(at 255.27 80.01 0)
 		(fields_autoplaced yes)
@@ -7533,6 +7629,17 @@
 			(justify left bottom)
 		)
 		(uuid "7370a1c6-ee19-4ed6-88b2-5ef824354c2f")
+	)
+	(label "LED_GREEN"
+		(at 203.2 40.64 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "757a0bb1-03b2-46b3-a119-82f0deb6a7c4")
 	)
 	(label "POWER_ON"
 		(at 162.56 101.6 180)
@@ -7643,6 +7750,28 @@
 			(justify left bottom)
 		)
 		(uuid "af7ccc29-4dcf-4133-a8b0-5faf65ae92ba")
+	)
+	(label "LED_BLUE"
+		(at 203.2 43.18 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "b1019ced-2e95-412f-be3d-2231c39f8934")
+	)
+	(label "LED_RED"
+		(at 49.53 105.41 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "b3c9750b-7953-4549-a02a-1eeda5fc9893")
 	)
 	(label "SWDIO"
 		(at 203.2 71.12 0)
@@ -7776,6 +7905,17 @@
 		)
 		(uuid "fbc6a49d-438c-4cf2-8b41-9bce599ef8dd")
 	)
+	(label "LED_RED"
+		(at 203.2 38.1 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "fc2098dd-1e06-44a8-adb0-08df1683e3da")
+	)
 	(symbol
 		(lib_id "power:GND")
 		(at 261.62 43.18 0)
@@ -7843,7 +7983,8 @@
 	)
 	(symbol
 		(lib_id "LED:ASMB-MTB1-0A3A2")
-		(at 35.56 111.76 0)
+		(at 33.02 110.49 0)
+		(mirror y)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -7852,7 +7993,7 @@
 		(fields_autoplaced yes)
 		(uuid "093fa951-649a-41e4-ad30-f7f8fce07872")
 		(property "Reference" "D2"
-			(at 35.56 96.52 0)
+			(at 33.02 95.25 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7860,7 +8001,7 @@
 			)
 		)
 		(property "Value" "ASMB-MTB1-0B3A2"
-			(at 35.56 99.06 0)
+			(at 33.02 97.79 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7868,7 +8009,7 @@
 			)
 		)
 		(property "Footprint" "LED_SMD:LED_Avago_PLCC4_3.2x2.8mm_CW"
-			(at 35.56 96.52 0)
+			(at 33.02 95.25 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7877,7 +8018,7 @@
 			)
 		)
 		(property "Datasheet" "https://docs.broadcom.com/doc/ASMB-MTB1-0B3A2-PLCC-4-Tricolor-Black-Surface-LED-DS"
-			(at 35.56 123.19 0)
+			(at 33.02 121.92 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7886,7 +8027,7 @@
 			)
 		)
 		(property "Description" "Tricolor Black Surface LED, Common Anode Pin 4, PLCC-4"
-			(at 35.56 111.76 0)
+			(at 33.02 110.49 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8106,6 +8247,75 @@
 			(project "leany"
 				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5"
 					(reference "#PWR014")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R_Small")
+		(at 40.64 115.57 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "15dc1b7a-94b2-4ac3-a6a4-e5fb38f5ef1c")
+		(property "Reference" "R10"
+			(at 42.418 113.792 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "820R"
+			(at 48.006 114.554 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+			(at 40.64 115.57 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 40.64 115.57 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor, small symbol"
+			(at 40.64 115.57 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "09823ecc-fe50-4987-8dc7-89a4184ab958")
+		)
+		(pin "2"
+			(uuid "605d7775-105c-4b03-a156-9f19aac79a8a")
+		)
+		(instances
+			(project "leany"
+				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5"
+					(reference "R10")
 					(unit 1)
 				)
 			)
@@ -9503,6 +9713,75 @@
 		)
 	)
 	(symbol
+		(lib_id "Device:R_Small")
+		(at 40.64 110.49 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed37e87-24df-46bd-a5df-b564ba277984")
+		(property "Reference" "R9"
+			(at 41.148 108.712 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "820R"
+			(at 48.006 109.474 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+			(at 40.64 110.49 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 40.64 110.49 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor, small symbol"
+			(at 40.64 110.49 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "778585b5-7b0a-46ce-aab1-404f3325603d")
+		)
+		(pin "2"
+			(uuid "76ac59bf-6d4a-4cfa-a121-49b0b923ef93")
+		)
+		(instances
+			(project "leany"
+				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5"
+					(reference "R9")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "leany-symbols:DMG6601LVT-7")
 		(at 45.72 62.23 0)
 		(mirror y)
@@ -10190,6 +10469,72 @@
 			(project "leany"
 				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5"
 					(reference "#PWR022")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+3V3")
+		(at 25.4 105.41 0)
+		(mirror y)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "83dfda57-f4cd-4896-b42b-7d0fd645f368")
+		(property "Reference" "#PWR031"
+			(at 25.4 109.22 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+3V3"
+			(at 21.59 103.632 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 25.4 105.41 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 25.4 105.41 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+3V3\""
+			(at 25.4 105.41 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "1e3dc142-b680-49b7-8082-cdbf9a75aeae")
+		)
+		(instances
+			(project "leany"
+				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5"
+					(reference "#PWR031")
 					(unit 1)
 				)
 			)
@@ -10968,6 +11313,75 @@
 			(project "leany"
 				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5"
 					(reference "C12")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R_Small")
+		(at 40.64 105.41 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "b05e32f1-fa07-4120-a392-3dc5fae7f57b")
+		(property "Reference" "R8"
+			(at 41.148 103.632 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "820R"
+			(at 48.006 104.394 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+			(at 40.64 105.41 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 40.64 105.41 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor, small symbol"
+			(at 40.64 105.41 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "b671d97d-ece1-4cb7-9deb-e66e9caa77fb")
+		)
+		(pin "2"
+			(uuid "f62f7c92-ca74-4c44-b510-49736c38a4c6")
+		)
+		(instances
+			(project "leany"
+				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5"
+					(reference "R8")
 					(unit 1)
 				)
 			)
