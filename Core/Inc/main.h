@@ -73,6 +73,10 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define BAT_ACOK_Pin LL_GPIO_PIN_14
+#define BAT_ACOK_GPIO_Port GPIOC
+#define BAT_CHGOK_Pin LL_GPIO_PIN_15
+#define BAT_CHGOK_GPIO_Port GPIOC
 #define LED_RED_Pin LL_GPIO_PIN_0
 #define LED_RED_GPIO_Port GPIOA
 #define LED_GREEN_Pin LL_GPIO_PIN_1
