@@ -1,13 +1,13 @@
 name: Check KiCad schematics
 on: 
   push:
-    branches: [dev]
     paths:
       - 'schematics/KiCad/*'
+      - '.github/workflows/verify_kicad.yml'
   pull_request:
-    branches: [dev]
     paths:
       - 'schematics/KiCad/*'
+      - '.github/workflows/verify_kicad.yml'
 
 env:
   SCH_PATH: ${{github.workspace}}/schematics/KiCad/leany.kicad_sch
@@ -22,14 +22,14 @@ jobs:
 
           - name: Export production files
             id: production
-            uses: sparkengineering/kicad-action@v2
+            uses: gilleshenrard/kicad-action@v2
             if: '!cancelled()'
             with:
                 kicad_sch: ${{env.SCH_PATH}}
 
           - name: Run Electrical Rules Check (ERC)
             id: erc
-            uses: sparkengineering/kicad-action@v2
+            uses: gilleshenrard/kicad-action@v2
             if: '!cancelled()'
             with:
                 kicad_sch: ${{env.SCH_PATH}}
