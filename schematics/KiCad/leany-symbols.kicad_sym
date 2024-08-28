@@ -890,7 +890,7 @@
 				)
 			)
 			(pin power_out line
-				(at 0 -13.97 90)
+				(at 0 -12.7 90)
 				(length 2.54)
 				(name "PGND"
 					(effects
@@ -1067,7 +1067,7 @@
 				)
 			)
 			(pin no_connect line
-				(at 0 -13.97 90)
+				(at 2.54 -12.7 90)
 				(length 2.54) hide
 				(name "NC"
 					(effects

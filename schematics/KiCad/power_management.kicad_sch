@@ -2073,7 +2073,7 @@
 					)
 				)
 				(pin power_out line
-					(at 0 -13.97 90)
+					(at 0 -12.7 90)
 					(length 2.54)
 					(name "PGND"
 						(effects
@@ -2250,7 +2250,7 @@
 					)
 				)
 				(pin no_connect line
-					(at 0 -13.97 90)
+					(at 2.54 -12.7 90)
 					(length 2.54) hide
 					(name "NC"
 						(effects
@@ -2683,6 +2683,62 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "f39bcf17-fbf4-45a3-80f3-62e76348f8fa")
+	)
+	(no_connect
+		(at 252.73 91.44)
+		(uuid "02472abd-2aae-47d5-aaca-425bcb15b44a")
+	)
+	(no_connect
+		(at 227.33 99.06)
+		(uuid "0dd0ca37-2346-4f98-a77c-30eed02f63b3")
+	)
+	(no_connect
+		(at 227.33 91.44)
+		(uuid "12405422-b6fd-455f-8c3e-3a743b1c8d9b")
+	)
+	(no_connect
+		(at 227.33 88.9)
+		(uuid "36097c5f-ba77-46b3-a4c5-71e159d90faa")
+	)
+	(no_connect
+		(at 252.73 86.36)
+		(uuid "42c57c2a-89dd-4047-8a9f-6f912fc89826")
+	)
+	(no_connect
+		(at 227.33 96.52)
+		(uuid "7e074b8b-78c4-4f8f-94d5-9d6de4159db0")
+	)
+	(no_connect
+		(at 252.73 96.52)
+		(uuid "95b0cc6c-2855-4622-a0c1-66ef329761a4")
+	)
+	(no_connect
+		(at 252.73 88.9)
+		(uuid "b8b08452-2995-4367-94b4-d44854d2399a")
+	)
+	(no_connect
+		(at 252.73 93.98)
+		(uuid "bfc94bd1-bf82-46a7-a29f-398ff50f5344")
+	)
+	(no_connect
+		(at 227.33 86.36)
+		(uuid "c21f0916-c65f-4dad-8a2f-0ef3a56a6b92")
+	)
+	(no_connect
+		(at 252.73 99.06)
+		(uuid "c3edd9ac-7c70-4689-a6d2-5c0cc9b6dd07")
+	)
+	(no_connect
+		(at 227.33 93.98)
+		(uuid "d013bfa4-45c3-4915-9622-0b493aeed065")
+	)
+	(no_connect
+		(at 227.33 101.6)
+		(uuid "e7da633d-6cde-4ea0-b6b3-b2073c1534c2")
+	)
+	(no_connect
+		(at 252.73 101.6)
+		(uuid "ea2fa3fb-0052-4e11-98fb-bbb0c672d361")
 	)
 	(wire
 		(pts
@@ -3374,6 +3430,116 @@
 		)
 	)
 	(symbol
+		(lib_id "leany-symbols:MP2615AGQ-Z")
+		(at 240.03 93.98 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "12347606-7a84-413d-8184-c31700393f4d")
+		(property "Reference" "U5"
+			(at 240.03 78.74 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "MP2615AGQ-Z"
+			(at 240.03 81.28 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 240.03 93.98 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://www.monolithicpower.com/en/documentview/productdocument/index/version/2/document_type/Datasheet/lang/en/sku/MP2615GQ-Z/document_id/1423"
+			(at 240.03 93.98 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "2A, 1- CELL OR 2- CELL LI-ION BATTERY CHARGER"
+			(at 240.03 93.98 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "14"
+			(uuid "513af81f-31d2-49d4-a03b-c319616666f7")
+		)
+		(pin "4"
+			(uuid "fc8e1d4c-bd8c-486d-9565-8e3584596238")
+		)
+		(pin "5"
+			(uuid "0c379903-b452-4f07-97ba-9e1a011b5346")
+		)
+		(pin "11"
+			(uuid "b17e4ab0-64d5-48ba-aa20-5d3404a2c2e3")
+		)
+		(pin "8"
+			(uuid "751fb0f5-4f0e-48a1-94a8-fa3b1cec8f4f")
+		)
+		(pin "13"
+			(uuid "a0a2886f-b23e-41b2-a0cb-803e263cc455")
+		)
+		(pin "9"
+			(uuid "d4731e33-7d1f-4feb-a958-35bacc0e45b4")
+		)
+		(pin "7"
+			(uuid "75c1f302-6527-4f50-aae6-443b280641e8")
+		)
+		(pin "10"
+			(uuid "8aab4ac7-861b-460f-9284-c1e13d738ac7")
+		)
+		(pin "12"
+			(uuid "071c3c3a-b696-49d5-8b05-3da8666baf10")
+		)
+		(pin "1"
+			(uuid "491c45cb-40bc-4ef0-8833-7d0958286843")
+		)
+		(pin "2"
+			(uuid "2f11097f-3c7d-4d09-8d69-c37812ddbf62")
+		)
+		(pin "6"
+			(uuid "648a160a-9402-47af-82ae-8bc42efd7739")
+		)
+		(pin "3"
+			(uuid "3e939a02-bfda-47ae-b025-ab86ebab06e2")
+		)
+		(pin "15"
+			(uuid "a5fae422-936b-4da5-93da-901f9930a232")
+		)
+		(pin "16"
+			(uuid "cc66480e-7346-4bca-a3f1-77ce281e622d")
+		)
+		(instances
+			(project ""
+				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72"
+					(reference "U5")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "leany-symbols:DMG6601LVT-7")
 		(at 139.7 72.39 270)
 		(mirror x)
@@ -3519,116 +3685,6 @@
 			(project "leany"
 				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72"
 					(reference "R4")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "leany-symbols:MP2615AGQ-Z")
-		(at 240.03 93.98 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "2640d911-e841-442b-829e-a8cc2b81ebe6")
-		(property "Reference" "U5"
-			(at 240.03 78.74 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "MP2615AGQ-Z"
-			(at 240.03 81.28 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 240.03 93.98 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "https://www.monolithicpower.com/en/documentview/productdocument/index/version/2/document_type/Datasheet/lang/en/sku/MP2615GQ-Z/document_id/1423"
-			(at 240.03 93.98 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "2A, 1- CELL OR 2- CELL LI-ION BATTERY CHARGER"
-			(at 240.03 93.98 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "4"
-			(uuid "c0852f92-8452-49a9-866d-5948500ad289")
-		)
-		(pin "7"
-			(uuid "72261c2a-e80a-470d-a35d-9ea76c148338")
-		)
-		(pin "9"
-			(uuid "15c50d69-ce58-40a9-928c-305602de647b")
-		)
-		(pin "15"
-			(uuid "ea9d5e87-17ad-41ef-a6c0-24c8d2035569")
-		)
-		(pin "10"
-			(uuid "08618cf5-d509-4379-bb2d-27e298bd70fa")
-		)
-		(pin "2"
-			(uuid "8e84f253-7cfa-4b3a-89dd-71df0c82cf30")
-		)
-		(pin "1"
-			(uuid "7ae74a47-e8c6-46d8-a483-41f443135b48")
-		)
-		(pin "12"
-			(uuid "4731d5bf-d2c6-4fca-ba4e-e2f25e6f1279")
-		)
-		(pin "14"
-			(uuid "7ed2de33-b4cb-4341-af1f-17dc76fa12ac")
-		)
-		(pin "8"
-			(uuid "960984ce-3eac-4d56-8ff2-15e4ab88e379")
-		)
-		(pin "13"
-			(uuid "2e4e3743-c3ac-4af1-8274-ed16e44ec6c7")
-		)
-		(pin "16"
-			(uuid "9703b7cd-2434-4c88-aaa8-328012cf02a9")
-		)
-		(pin "6"
-			(uuid "dbd86ccd-5d06-40e2-a926-f4913ba7de70")
-		)
-		(pin "11"
-			(uuid "eaf6a226-95b8-44ca-8a9a-b7d5194a22d1")
-		)
-		(pin "3"
-			(uuid "9ec83990-b736-48f4-b3c0-39c9adb2dca8")
-		)
-		(pin "5"
-			(uuid "3e06b7e9-4fbe-4057-8292-edea03056bbc")
-		)
-		(instances
-			(project "leany"
-				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72"
-					(reference "U5")
 					(unit 1)
 				)
 			)
@@ -4443,6 +4499,71 @@
 			(project "leany"
 				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72"
 					(reference "TP3")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 240.03 106.68 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "8da35132-bee8-4257-8383-e69b69ea5297")
+		(property "Reference" "#PWR028"
+			(at 240.03 113.03 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 240.03 110.998 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 240.03 106.68 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 240.03 106.68 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 240.03 106.68 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "4e7bb03c-973c-4b36-b291-caef0c473f1a")
+		)
+		(instances
+			(project "leany"
+				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72"
+					(reference "#PWR028")
 					(unit 1)
 				)
 			)
