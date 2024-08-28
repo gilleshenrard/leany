@@ -6,7 +6,7 @@
 	(paper "A4")
 	(title_block
 		(title "Leany")
-		(date "2024-08-26")
+		(date "2024-08-28")
 		(comment 1 "MIT License")
 		(comment 2 "Copyright (c) 2023 Gilles Henrard")
 	)
@@ -10123,8 +10123,8 @@
 				)
 			)
 		)
-		(property "Value" "BOOT"
-			(at 144.526 28.956 0)
+		(property "Value" "BOOTMODE_SW"
+			(at 148.336 28.956 0)
 			(effects
 				(font
 					(size 1.27 1.27)
