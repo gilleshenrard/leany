@@ -5377,12 +5377,6 @@
 		(uuid "197c506d-c3ac-46c9-aadb-118f9bfb40f6")
 	)
 	(junction
-		(at 166.37 38.1)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "27e0db5a-7376-4f1f-b92b-1358b4bbce7e")
-	)
-	(junction
 		(at 57.15 156.21)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -5569,6 +5563,10 @@
 	(no_connect
 		(at 167.64 78.74)
 		(uuid "3bf28cfd-1d80-4988-b1f5-575aed111578")
+	)
+	(no_connect
+		(at 86.36 171.45)
+		(uuid "3f580a59-5252-40f0-bd4a-e54ee138b6ca")
 	)
 	(no_connect
 		(at 167.64 83.82)
@@ -5820,16 +5818,6 @@
 	)
 	(wire
 		(pts
-			(xy 163.83 38.1) (xy 166.37 38.1)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "2035baed-d58e-42e6-8205-7b42c2359240")
-	)
-	(wire
-		(pts
 			(xy 57.15 29.21) (xy 57.15 31.75)
 		)
 		(stroke
@@ -5897,16 +5885,6 @@
 			(type default)
 		)
 		(uuid "282c8dc2-e897-4b8b-b754-b92bdc8699a6")
-	)
-	(wire
-		(pts
-			(xy 86.36 171.45) (xy 88.9 171.45)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "29e55acd-f5e8-4a62-aeb5-5ad42e8f521a")
 	)
 	(wire
 		(pts
@@ -7730,17 +7708,6 @@
 		)
 		(uuid "be1d6f55-23b9-42b6-a9b0-b551fa2fe0cb")
 	)
-	(label "RESET"
-		(at 93.98 171.45 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "be52b327-1267-4c2b-983e-6c3ae1be72df")
-	)
 	(label "LSM6DSO_SDO"
 		(at 229.87 129.54 180)
 		(fields_autoplaced yes)
@@ -7773,17 +7740,6 @@
 			(justify left bottom)
 		)
 		(uuid "d1ffe2ba-a39a-47fe-9e87-897175660b59")
-	)
-	(label "RESET"
-		(at 163.83 38.1 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right bottom)
-		)
-		(uuid "d3abb788-3805-4673-9b11-bd6b59ca3e2b")
 	)
 	(label "FTDI_TX"
 		(at 88.9 156.21 0)
@@ -9530,7 +9486,7 @@
 	)
 	(symbol
 		(lib_id "power:+3V3")
-		(at 166.37 30.48 0)
+		(at 166.37 35.56 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -9538,7 +9494,7 @@
 		(dnp no)
 		(uuid "538a1b81-512f-49d7-afa0-5cd26b5efae8")
 		(property "Reference" "#PWR016"
-			(at 166.37 34.29 0)
+			(at 166.37 39.37 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9547,7 +9503,7 @@
 			)
 		)
 		(property "Value" "+3V3"
-			(at 166.37 26.416 0)
+			(at 166.37 31.496 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9555,7 +9511,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 166.37 30.48 0)
+			(at 166.37 35.56 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9564,7 +9520,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 166.37 30.48 0)
+			(at 166.37 35.56 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9573,7 +9529,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"+3V3\""
-			(at 166.37 30.48 0)
+			(at 166.37 35.56 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11133,73 +11089,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Device:C_Small")
-		(at 91.44 171.45 90)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "ae8c884b-f82f-4a46-bd17-0fc3effaaedd")
-		(property "Reference" "C12"
-			(at 91.44 168.656 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "100nF"
-			(at 91.948 166.624 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "Capacitor_SMD:C_0201_0603Metric"
-			(at 91.44 171.45 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 91.44 171.45 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Unpolarized capacitor, small symbol"
-			(at 91.44 171.45 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "2"
-			(uuid "b28c946c-d830-4641-b82b-3807d169d069")
-		)
-		(pin "1"
-			(uuid "56d36c48-8fc4-43c6-8689-4dbfea390068")
-		)
-		(instances
-			(project "leany"
-				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5"
-					(reference "C12")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Device:R_Small")
 		(at 40.64 105.41 90)
 		(unit 1)
@@ -11532,75 +11421,6 @@
 			(project "leany"
 				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5"
 					(reference "C11")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Device:R_Small")
-		(at 166.37 33.02 180)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "bade698a-7fad-4897-aa96-219bac07d815")
-		(property "Reference" "R7"
-			(at 168.402 30.734 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "10k"
-			(at 170.18 29.464 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
-			(at 166.37 33.02 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 166.37 33.02 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Resistor, small symbol"
-			(at 166.37 33.02 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "a3857520-71c4-4eee-8a76-72228af6c78a")
-		)
-		(pin "2"
-			(uuid "a677760d-081f-4112-98d7-8989f6277de4")
-		)
-		(instances
-			(project "leany"
-				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5"
-					(reference "R7")
 					(unit 1)
 				)
 			)
