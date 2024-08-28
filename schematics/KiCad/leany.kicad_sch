@@ -9881,10 +9881,9 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "64522c94-c681-4389-b0d3-d4b59cd2db38")
 		(property "Reference" "D1"
-			(at 69.85 45.72 0)
+			(at 69.85 46.99 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9892,7 +9891,7 @@
 			)
 		)
 		(property "Value" "D_Dual_CommonCathode_AAK"
-			(at 69.85 48.26 0)
+			(at 69.85 48.768 0)
 			(effects
 				(font
 					(size 1.27 1.27)
