@@ -3240,6 +3240,12 @@
 		(uuid "84e9a5b7-ca25-4fc4-a896-e9296bff02e3")
 	)
 	(junction
+		(at 113.03 144.78)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "890e89a2-04d4-4a7f-afa0-a18bac29ad75")
+	)
+	(junction
 		(at 118.11 59.69)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -3374,6 +3380,16 @@
 			(type default)
 		)
 		(uuid "1536d117-f981-4274-9155-d8b4bcb29b14")
+	)
+	(wire
+		(pts
+			(xy 113.03 144.78) (xy 116.84 144.78)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "1a540202-5df5-4596-9e31-c023f064e5a9")
 	)
 	(wire
 		(pts
@@ -3517,7 +3533,7 @@
 	)
 	(wire
 		(pts
-			(xy 107.95 144.78) (xy 116.84 144.78)
+			(xy 107.95 144.78) (xy 113.03 144.78)
 		)
 		(stroke
 			(width 0)
@@ -4034,6 +4050,16 @@
 			(type default)
 		)
 		(uuid "e1e83e0d-c30b-4749-a2c3-2b6f94f35646")
+	)
+	(wire
+		(pts
+			(xy 113.03 139.7) (xy 113.03 144.78)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e234bb4e-2365-4606-a237-3711c8a23a4a")
 	)
 	(wire
 		(pts
@@ -5252,71 +5278,6 @@
 			(project ""
 				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72"
 					(reference "#PWR031")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:VBUS")
-		(at 113.03 139.7 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "522d6d18-7514-4bb1-b5e1-1424f89c9302")
-		(property "Reference" "#PWR037"
-			(at 113.03 143.51 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "VBUS"
-			(at 113.03 136.144 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 113.03 139.7 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 113.03 139.7 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"VBUS\""
-			(at 113.03 139.7 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "8ef9dbc1-8d7f-4ac3-9a06-b85a2b9496c9")
-		)
-		(instances
-			(project "leany"
-				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72"
-					(reference "#PWR037")
 					(unit 1)
 				)
 			)
