@@ -729,7 +729,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(property "Reference" "U"
-			(at 2.54 13.716 0)
+			(at 0 19.558 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -737,7 +737,7 @@
 			)
 		)
 		(property "Value" "MP2615AGQ-Z"
-			(at 3.048 11.43 0)
+			(at 0.508 17.272 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -782,7 +782,7 @@
 		)
 		(symbol "MP2615AGQ-Z_0_0"
 			(pin power_out line
-				(at 12.7 7.62 180)
+				(at 12.7 11.43 180)
 				(length 2.54)
 				(name "SW"
 					(effects
@@ -800,7 +800,7 @@
 				)
 			)
 			(pin passive line
-				(at 12.7 2.54 180)
+				(at 12.7 3.81 180)
 				(length 2.54)
 				(name "CSP"
 					(effects
@@ -818,7 +818,7 @@
 				)
 			)
 			(pin open_collector line
-				(at -12.7 2.54 0)
+				(at -12.7 3.81 0)
 				(length 2.54)
 				(name "~ACOK"
 					(effects
@@ -836,7 +836,7 @@
 				)
 			)
 			(pin passive line
-				(at -12.7 -2.54 0)
+				(at -12.7 -3.81 0)
 				(length 2.54)
 				(name "NTC"
 					(effects
@@ -854,7 +854,7 @@
 				)
 			)
 			(pin passive line
-				(at 12.7 -2.54 180)
+				(at 12.7 -3.81 180)
 				(length 2.54)
 				(name "TMR"
 					(effects
@@ -872,7 +872,7 @@
 				)
 			)
 			(pin passive line
-				(at 12.7 5.08 180)
+				(at 12.7 7.62 180)
 				(length 2.54)
 				(name "BST"
 					(effects
@@ -890,7 +890,7 @@
 				)
 			)
 			(pin power_in line
-				(at 0 -12.7 90)
+				(at 0 -17.78 90)
 				(length 2.54)
 				(name "PGND"
 					(effects
@@ -908,7 +908,7 @@
 				)
 			)
 			(pin power_in line
-				(at -12.7 7.62 0)
+				(at -12.7 11.43 0)
 				(length 2.54)
 				(name "VIN"
 					(effects
@@ -944,7 +944,7 @@
 				)
 			)
 			(pin input line
-				(at 12.7 -7.62 180)
+				(at 12.7 -11.43 180)
 				(length 2.54)
 				(name "CELL"
 					(effects
@@ -962,7 +962,7 @@
 				)
 			)
 			(pin input line
-				(at 12.7 -5.08 180)
+				(at 12.7 -7.62 180)
 				(length 2.54)
 				(name "SEL"
 					(effects
@@ -980,7 +980,7 @@
 				)
 			)
 			(pin passive line
-				(at -12.7 -5.08 0)
+				(at -12.7 -7.62 0)
 				(length 2.54)
 				(name "~EN"
 					(effects
@@ -998,7 +998,7 @@
 				)
 			)
 			(pin power_in line
-				(at -12.7 -7.62 0)
+				(at -12.7 -11.43 0)
 				(length 2.54)
 				(name "AGND"
 					(effects
@@ -1036,8 +1036,8 @@
 		)
 		(symbol "MP2615AGQ-Z_0_1"
 			(rectangle
-				(start -10.16 10.16)
-				(end 10.16 -10.16)
+				(start -10.16 15.24)
+				(end 10.16 -15.24)
 				(stroke
 					(width 0)
 					(type default)
@@ -1049,7 +1049,7 @@
 		)
 		(symbol "MP2615AGQ-Z_1_0"
 			(pin open_collector line
-				(at -12.7 5.08 0)
+				(at -12.7 7.62 0)
 				(length 2.54)
 				(name "~CHGOK"
 					(effects
@@ -1067,7 +1067,7 @@
 				)
 			)
 			(pin no_connect line
-				(at 2.54 -12.7 90)
+				(at 3.81 -17.78 90)
 				(length 2.54) hide
 				(name "NC"
 					(effects
