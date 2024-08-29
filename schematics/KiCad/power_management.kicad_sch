@@ -6865,7 +6865,7 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "~"
+		(property "Datasheet" "https://search.kemet.com/component-documentation/download/specsheet/MPX1D0530L6R8"
 			(at 167.64 115.57 0)
 			(effects
 				(font
