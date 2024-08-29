@@ -7371,7 +7371,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "613bce09-9044-4c7f-86bd-f663b53f4aa0")
-		(property "Reference" "C15"
+		(property "Reference" "C1"
 			(at 233.68 29.464 0)
 			(effects
 				(font
@@ -7425,7 +7425,7 @@
 		(instances
 			(project "leany"
 				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5"
-					(reference "C15")
+					(reference "C1")
 					(unit 1)
 				)
 			)
