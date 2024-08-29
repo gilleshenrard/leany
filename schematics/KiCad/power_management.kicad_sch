@@ -4259,7 +4259,7 @@
 		)
 		(uuid "2f8e1b2f-a76c-4842-8d04-c98700cb9e03")
 	)
-	(text "Li-ION battery charge manager"
+	(text "Li-ION cell charge controller"
 		(exclude_from_sim no)
 		(at 120.396 153.67 0)
 		(effects
