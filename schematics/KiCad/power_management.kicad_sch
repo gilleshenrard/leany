@@ -3373,7 +3373,7 @@
 		(uuid "0a4b2c1a-90e0-4715-b285-5cf063cd0ba5")
 	)
 	(junction
-		(at 181.61 83.82)
+		(at 181.61 88.9)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "0ac296ec-b37f-4c11-a273-fcd4f8db6da7")
@@ -3487,7 +3487,7 @@
 		(uuid "72c7814d-d6b3-4cef-a09a-c27c5a9fb92b")
 	)
 	(junction
-		(at 189.23 121.92)
+		(at 189.23 127)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "787c2e4a-8847-4c0f-9e4b-3637740eb6ae")
@@ -3529,7 +3529,7 @@
 		(uuid "99d913b7-4a8a-4506-9de8-17ca4139921e")
 	)
 	(junction
-		(at 181.61 99.06)
+		(at 181.61 104.14)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "a1d17a39-391b-4ef7-bf40-acf36f936203")
@@ -3595,12 +3595,6 @@
 		(uuid "cc0ef7b8-d21b-4d8c-aaa7-c682aa7d6cf0")
 	)
 	(junction
-		(at 175.26 83.82)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "cfa92b2d-2876-4b87-9469-60c538f736ee")
-	)
-	(junction
 		(at 120.65 119.38)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -3617,6 +3611,12 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "dc7bdaa3-080e-4c0d-99ff-3a658cf5cd8e")
+	)
+	(junction
+		(at 175.26 88.9)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "e48b91e0-19bc-4343-bc29-3bba08d0fd63")
 	)
 	(junction
 		(at 48.26 46.99)
@@ -3637,7 +3637,7 @@
 		(uuid "f43bb6d9-0860-4a4a-9092-c0b3483ddef0")
 	)
 	(junction
-		(at 189.23 99.06)
+		(at 189.23 104.14)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "f463ca1f-9d46-4b79-a558-142c4d594402")
@@ -3680,7 +3680,7 @@
 	)
 	(wire
 		(pts
-			(xy 189.23 99.06) (xy 198.12 99.06)
+			(xy 189.23 104.14) (xy 198.12 104.14)
 		)
 		(stroke
 			(width 0)
@@ -3710,7 +3710,7 @@
 	)
 	(wire
 		(pts
-			(xy 189.23 114.3) (xy 189.23 121.92)
+			(xy 189.23 119.38) (xy 189.23 127)
 		)
 		(stroke
 			(width 0)
@@ -3830,7 +3830,7 @@
 	)
 	(wire
 		(pts
-			(xy 181.61 83.82) (xy 184.15 83.82)
+			(xy 181.61 88.9) (xy 184.15 88.9)
 		)
 		(stroke
 			(width 0)
@@ -3910,7 +3910,7 @@
 	)
 	(wire
 		(pts
-			(xy 181.61 109.22) (xy 181.61 115.57)
+			(xy 181.61 114.3) (xy 181.61 120.65)
 		)
 		(stroke
 			(width 0)
@@ -3950,7 +3950,7 @@
 	)
 	(wire
 		(pts
-			(xy 203.2 99.06) (xy 204.47 99.06)
+			(xy 203.2 104.14) (xy 204.47 104.14)
 		)
 		(stroke
 			(width 0)
@@ -4050,7 +4050,7 @@
 	)
 	(wire
 		(pts
-			(xy 175.26 96.52) (xy 175.26 99.06)
+			(xy 175.26 101.6) (xy 175.26 104.14)
 		)
 		(stroke
 			(width 0)
@@ -4270,7 +4270,7 @@
 	)
 	(wire
 		(pts
-			(xy 193.04 127) (xy 189.23 127)
+			(xy 193.04 132.08) (xy 189.23 132.08)
 		)
 		(stroke
 			(width 0)
@@ -4300,7 +4300,7 @@
 	)
 	(wire
 		(pts
-			(xy 189.23 127) (xy 189.23 121.92)
+			(xy 189.23 132.08) (xy 189.23 127)
 		)
 		(stroke
 			(width 0)
@@ -4380,7 +4380,7 @@
 	)
 	(wire
 		(pts
-			(xy 189.23 99.06) (xy 189.23 104.14)
+			(xy 189.23 104.14) (xy 189.23 109.22)
 		)
 		(stroke
 			(width 0)
@@ -4450,7 +4450,7 @@
 	)
 	(wire
 		(pts
-			(xy 181.61 83.82) (xy 181.61 91.44)
+			(xy 181.61 88.9) (xy 181.61 96.52)
 		)
 		(stroke
 			(width 0)
@@ -4490,7 +4490,7 @@
 	)
 	(wire
 		(pts
-			(xy 181.61 96.52) (xy 181.61 99.06)
+			(xy 181.61 101.6) (xy 181.61 104.14)
 		)
 		(stroke
 			(width 0)
@@ -4580,7 +4580,17 @@
 	)
 	(wire
 		(pts
-			(xy 189.23 121.92) (xy 200.66 121.92)
+			(xy 156.21 88.9) (xy 175.26 88.9)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a5b824c4-ac56-40bc-be36-e885c7566861")
+	)
+	(wire
+		(pts
+			(xy 189.23 127) (xy 200.66 127)
 		)
 		(stroke
 			(width 0)
@@ -4590,7 +4600,7 @@
 	)
 	(wire
 		(pts
-			(xy 181.61 121.92) (xy 181.61 120.65)
+			(xy 181.61 127) (xy 181.61 125.73)
 		)
 		(stroke
 			(width 0)
@@ -4650,7 +4660,7 @@
 	)
 	(wire
 		(pts
-			(xy 189.23 91.44) (xy 189.23 99.06)
+			(xy 189.23 96.52) (xy 189.23 104.14)
 		)
 		(stroke
 			(width 0)
@@ -4730,7 +4740,7 @@
 	)
 	(wire
 		(pts
-			(xy 175.26 83.82) (xy 175.26 91.44)
+			(xy 175.26 88.9) (xy 175.26 96.52)
 		)
 		(stroke
 			(width 0)
@@ -4750,7 +4760,7 @@
 	)
 	(wire
 		(pts
-			(xy 181.61 99.06) (xy 189.23 99.06)
+			(xy 181.61 104.14) (xy 189.23 104.14)
 		)
 		(stroke
 			(width 0)
@@ -4760,7 +4770,7 @@
 	)
 	(wire
 		(pts
-			(xy 181.61 121.92) (xy 189.23 121.92)
+			(xy 181.61 127) (xy 189.23 127)
 		)
 		(stroke
 			(width 0)
@@ -4770,7 +4780,7 @@
 	)
 	(wire
 		(pts
-			(xy 204.47 46.99) (xy 204.47 83.82)
+			(xy 204.47 46.99) (xy 204.47 88.9)
 		)
 		(stroke
 			(width 0)
@@ -4860,7 +4870,7 @@
 	)
 	(wire
 		(pts
-			(xy 175.26 99.06) (xy 181.61 99.06)
+			(xy 175.26 104.14) (xy 181.61 104.14)
 		)
 		(stroke
 			(width 0)
@@ -4910,7 +4920,7 @@
 	)
 	(wire
 		(pts
-			(xy 175.26 83.82) (xy 181.61 83.82)
+			(xy 175.26 88.9) (xy 181.61 88.9)
 		)
 		(stroke
 			(width 0)
@@ -4930,7 +4940,7 @@
 	)
 	(wire
 		(pts
-			(xy 194.31 83.82) (xy 204.47 83.82)
+			(xy 194.31 88.9) (xy 204.47 88.9)
 		)
 		(stroke
 			(width 0)
@@ -4961,8 +4971,8 @@
 		(uuid 2b1e5533-b60b-43d4-9378-5a8a6088c5d4)
 	)
 	(rectangle
-		(start 166.37 73.66)
-		(end 220.98 133.35)
+		(start 166.37 78.74)
+		(end 220.98 138.43)
 		(stroke
 			(width 0)
 			(type dash)
@@ -5020,7 +5030,7 @@
 	)
 	(text "Power latch + voltage regulator"
 		(exclude_from_sim no)
-		(at 190.754 130.556 0)
+		(at 190.754 135.636 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -5212,7 +5222,7 @@
 	)
 	(global_label "POWER_ON"
 		(shape input)
-		(at 181.61 109.22 180)
+		(at 181.61 114.3 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -5222,7 +5232,7 @@
 		)
 		(uuid "daa6d2d2-bd69-4f79-82bc-3be22883b4c7")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 168.5253 109.22 0)
+			(at 168.5253 114.3 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5234,7 +5244,7 @@
 	)
 	(global_label "POWER_BTN"
 		(shape output)
-		(at 204.47 99.06 0)
+		(at 204.47 104.14 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -5244,7 +5254,7 @@
 		)
 		(uuid "fd2db2a8-7d74-4996-8089-c9eebad271eb")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 218.4618 99.06 0)
+			(at 218.4618 104.14 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5629,7 +5639,7 @@
 	)
 	(symbol
 		(lib_id "leany-symbols:DMG6601LVT-7")
-		(at 189.23 83.82 270)
+		(at 189.23 88.9 270)
 		(mirror x)
 		(unit 2)
 		(exclude_from_sim no)
@@ -5638,7 +5648,7 @@
 		(dnp no)
 		(uuid "243a4a0b-bbcb-4d09-8719-36720c7e0466")
 		(property "Reference" "Q2"
-			(at 189.23 77.47 90)
+			(at 189.23 82.55 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5646,7 +5656,7 @@
 			)
 		)
 		(property "Value" "DMG6601LVT-7"
-			(at 189.23 80.01 90)
+			(at 189.23 85.09 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5654,7 +5664,7 @@
 			)
 		)
 		(property "Footprint" "Package_TO_SOT_SMD:TSOT-23-6"
-			(at 187.325 81.28 0)
+			(at 187.325 86.36 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5664,7 +5674,7 @@
 			)
 		)
 		(property "Datasheet" "https://www.diodes.com/assets/Datasheets/DMG6601LVT.pdf"
-			(at 185.42 81.28 0)
+			(at 185.42 86.36 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5674,7 +5684,7 @@
 			)
 		)
 		(property "Description" "3.6A/-2.1A Id, 30V Vds, Complementary pair enhancement mode P-Channel and N-Channel MOSFET, TSOT-23-6"
-			(at 189.23 83.82 0)
+			(at 189.23 88.9 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5711,7 +5721,7 @@
 	)
 	(symbol
 		(lib_id "Device:R_Small")
-		(at 181.61 118.11 0)
+		(at 181.61 123.19 0)
 		(mirror x)
 		(unit 1)
 		(exclude_from_sim no)
@@ -5720,7 +5730,7 @@
 		(dnp no)
 		(uuid "25296785-6fd7-4157-9580-3199b68a611a")
 		(property "Reference" "R18"
-			(at 185.674 116.84 90)
+			(at 185.674 121.92 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5729,7 +5739,7 @@
 			)
 		)
 		(property "Value" "1M"
-			(at 183.642 116.586 90)
+			(at 183.642 121.666 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5738,7 +5748,7 @@
 			)
 		)
 		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
-			(at 181.61 118.11 0)
+			(at 181.61 123.19 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5747,7 +5757,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 181.61 118.11 0)
+			(at 181.61 123.19 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5756,7 +5766,7 @@
 			)
 		)
 		(property "Description" "Resistor, small symbol"
-			(at 181.61 118.11 0)
+			(at 181.61 123.19 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6453,7 +6463,7 @@
 	)
 	(symbol
 		(lib_id "Device:R_Small")
-		(at 181.61 93.98 0)
+		(at 181.61 99.06 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -6461,7 +6471,7 @@
 		(dnp no)
 		(uuid "5a6cb1c1-8901-43b3-95f1-3ac6ac9eba1b")
 		(property "Reference" "R17"
-			(at 183.134 93.218 0)
+			(at 183.134 98.298 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6470,7 +6480,7 @@
 			)
 		)
 		(property "Value" "100k"
-			(at 182.88 94.996 0)
+			(at 182.88 100.076 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6479,7 +6489,7 @@
 			)
 		)
 		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
-			(at 181.61 93.98 0)
+			(at 181.61 99.06 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6488,7 +6498,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 181.61 93.98 0)
+			(at 181.61 99.06 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6497,7 +6507,7 @@
 			)
 		)
 		(property "Description" "Resistor, small symbol"
-			(at 181.61 93.98 0)
+			(at 181.61 99.06 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6797,7 +6807,7 @@
 	)
 	(symbol
 		(lib_id "power:-BATT")
-		(at 193.04 127 0)
+		(at 193.04 132.08 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -6805,7 +6815,7 @@
 		(dnp no)
 		(uuid "748ffc05-8fe0-49f8-92c2-8f4245ff4fb8")
 		(property "Reference" "#PWR028"
-			(at 193.04 130.81 0)
+			(at 193.04 135.89 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6814,7 +6824,7 @@
 			)
 		)
 		(property "Value" "-BATT"
-			(at 193.294 123.444 0)
+			(at 193.294 128.524 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6822,7 +6832,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 193.04 127 0)
+			(at 193.04 132.08 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6831,7 +6841,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 193.04 127 0)
+			(at 193.04 132.08 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6840,7 +6850,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"-BATT\""
-			(at 193.04 127 0)
+			(at 193.04 132.08 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6997,71 +7007,6 @@
 		)
 	)
 	(symbol
-		(lib_id "power:+BATT")
-		(at 175.26 83.82 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "7f498326-dea5-4ca7-be8d-1367a8a4226a")
-		(property "Reference" "#PWR035"
-			(at 175.26 87.63 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "+BATT"
-			(at 175.26 80.01 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 175.26 83.82 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 175.26 83.82 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"+BATT\""
-			(at 175.26 83.82 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "fc1aa72d-4d5d-4470-b93f-a2aff5e7b6c4")
-		)
-		(instances
-			(project "leany"
-				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72"
-					(reference "#PWR035")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "power:GND")
 		(at 229.87 54.61 0)
 		(unit 1)
@@ -7128,7 +7073,7 @@
 	)
 	(symbol
 		(lib_id "power:+BATT")
-		(at 156.21 88.9 0)
+		(at 175.26 88.9 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -7136,7 +7081,7 @@
 		(dnp no)
 		(uuid "8445c3ce-1dae-449b-b41c-bbf5e395b052")
 		(property "Reference" "#PWR025"
-			(at 156.21 92.71 0)
+			(at 175.26 92.71 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7145,7 +7090,7 @@
 			)
 		)
 		(property "Value" "+BATT"
-			(at 156.21 85.09 0)
+			(at 175.26 85.09 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7153,7 +7098,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 156.21 88.9 0)
+			(at 175.26 88.9 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7162,7 +7107,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 156.21 88.9 0)
+			(at 175.26 88.9 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7171,7 +7116,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"+BATT\""
-			(at 156.21 88.9 0)
+			(at 175.26 88.9 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7193,7 +7138,7 @@
 	)
 	(symbol
 		(lib_id "Device:C_Small")
-		(at 175.26 93.98 0)
+		(at 175.26 99.06 0)
 		(mirror y)
 		(unit 1)
 		(exclude_from_sim no)
@@ -7202,7 +7147,7 @@
 		(dnp no)
 		(uuid "86649bcc-ec53-4587-9a2f-b6f3ebdb966e")
 		(property "Reference" "C22"
-			(at 173.228 93.472 0)
+			(at 173.228 98.552 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7211,7 +7156,7 @@
 			)
 		)
 		(property "Value" "100n"
-			(at 174.752 96.012 0)
+			(at 174.752 101.092 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7220,7 +7165,7 @@
 			)
 		)
 		(property "Footprint" "Capacitor_SMD:C_0201_0603Metric"
-			(at 175.26 93.98 0)
+			(at 175.26 99.06 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7229,7 +7174,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 175.26 93.98 0)
+			(at 175.26 99.06 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7238,7 +7183,7 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor, small symbol"
-			(at 175.26 93.98 0)
+			(at 175.26 99.06 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7397,7 +7342,7 @@
 	)
 	(symbol
 		(lib_id "Switch:SW_Push")
-		(at 200.66 116.84 270)
+		(at 200.66 121.92 270)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -7405,7 +7350,7 @@
 		(dnp no)
 		(uuid "8ea6c4dd-764a-4516-bc27-91e15566ec68")
 		(property "Reference" "SW4"
-			(at 204.978 117.094 90)
+			(at 204.978 122.174 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7414,7 +7359,7 @@
 			)
 		)
 		(property "Value" "TL1105SF160R"
-			(at 202.946 119.38 90)
+			(at 202.946 124.46 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7423,7 +7368,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 205.74 116.84 0)
+			(at 205.74 121.92 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7432,7 +7377,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 205.74 116.84 0)
+			(at 205.74 121.92 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7441,7 +7386,7 @@
 			)
 		)
 		(property "Description" "Push button switch, generic, two pins"
-			(at 200.66 116.84 0)
+			(at 200.66 121.92 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8404,7 +8349,7 @@
 	)
 	(symbol
 		(lib_id "dk_Diodes-Rectifiers-Arrays:BAT54C-7-F")
-		(at 200.66 104.14 270)
+		(at 200.66 109.22 270)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -8412,7 +8357,7 @@
 		(dnp no)
 		(uuid "cc0a83b9-d24f-48a7-8671-50ee4b27e52e")
 		(property "Reference" "D4"
-			(at 204.978 104.14 90)
+			(at 204.978 109.22 90)
 			(effects
 				(font
 					(size 1.524 1.524)
@@ -8421,7 +8366,7 @@
 			)
 		)
 		(property "Value" "BAT54C-7-F"
-			(at 203.454 107.188 90)
+			(at 203.454 112.268 90)
 			(effects
 				(font
 					(size 1.524 1.524)
@@ -8430,7 +8375,7 @@
 			)
 		)
 		(property "Footprint" "digikey-footprints:SOT-23-3"
-			(at 205.74 109.22 0)
+			(at 205.74 114.3 0)
 			(effects
 				(font
 					(size 1.524 1.524)
@@ -8440,7 +8385,7 @@
 			)
 		)
 		(property "Datasheet" "https://www.diodes.com/assets/Datasheets/ds11005.pdf"
-			(at 208.28 109.22 0)
+			(at 208.28 114.3 0)
 			(effects
 				(font
 					(size 1.524 1.524)
@@ -8450,7 +8395,7 @@
 			)
 		)
 		(property "Description" "DIODE ARRAY SCHOTTKY 30V SOT23-3"
-			(at 200.66 104.14 0)
+			(at 200.66 109.22 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8459,7 +8404,7 @@
 			)
 		)
 		(property "Digi-Key_PN" "BAT54C-FDICT-ND"
-			(at 210.82 109.22 0)
+			(at 210.82 114.3 0)
 			(effects
 				(font
 					(size 1.524 1.524)
@@ -8469,7 +8414,7 @@
 			)
 		)
 		(property "MPN" "BAT54C-7-F"
-			(at 213.36 109.22 0)
+			(at 213.36 114.3 0)
 			(effects
 				(font
 					(size 1.524 1.524)
@@ -8479,7 +8424,7 @@
 			)
 		)
 		(property "Category" "Discrete Semiconductor Products"
-			(at 215.9 109.22 0)
+			(at 215.9 114.3 0)
 			(effects
 				(font
 					(size 1.524 1.524)
@@ -8489,7 +8434,7 @@
 			)
 		)
 		(property "Family" "Diodes - Rectifiers - Arrays"
-			(at 218.44 109.22 0)
+			(at 218.44 114.3 0)
 			(effects
 				(font
 					(size 1.524 1.524)
@@ -8499,7 +8444,7 @@
 			)
 		)
 		(property "DK_Datasheet_Link" "https://www.diodes.com/assets/Datasheets/ds11005.pdf"
-			(at 220.98 109.22 0)
+			(at 220.98 114.3 0)
 			(effects
 				(font
 					(size 1.524 1.524)
@@ -8509,7 +8454,7 @@
 			)
 		)
 		(property "DK_Detail_Page" "/product-detail/en/diodes-incorporated/BAT54C-7-F/BAT54C-FDICT-ND/717821"
-			(at 223.52 109.22 0)
+			(at 223.52 114.3 0)
 			(effects
 				(font
 					(size 1.524 1.524)
@@ -8519,7 +8464,7 @@
 			)
 		)
 		(property "Description_1" "DIODE ARRAY SCHOTTKY 30V SOT23-3"
-			(at 226.06 109.22 0)
+			(at 226.06 114.3 0)
 			(effects
 				(font
 					(size 1.524 1.524)
@@ -8529,7 +8474,7 @@
 			)
 		)
 		(property "Manufacturer" "Diodes Incorporated"
-			(at 228.6 109.22 0)
+			(at 228.6 114.3 0)
 			(effects
 				(font
 					(size 1.524 1.524)
@@ -8539,7 +8484,7 @@
 			)
 		)
 		(property "Status" "Active"
-			(at 231.14 109.22 0)
+			(at 231.14 114.3 0)
 			(effects
 				(font
 					(size 1.524 1.524)
@@ -8635,7 +8580,7 @@
 	)
 	(symbol
 		(lib_id "leany-symbols:DMG6601LVT-7")
-		(at 189.23 109.22 0)
+		(at 189.23 114.3 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -8643,7 +8588,7 @@
 		(dnp no)
 		(uuid "d47ab827-e0a7-4a36-a99e-55d0e58028ed")
 		(property "Reference" "Q2"
-			(at 194.564 111.252 90)
+			(at 194.564 116.332 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8652,7 +8597,7 @@
 			)
 		)
 		(property "Value" "DMG6601LVT-7"
-			(at 192.532 116.332 90)
+			(at 192.532 121.412 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8661,7 +8606,7 @@
 			)
 		)
 		(property "Footprint" "Package_TO_SOT_SMD:TSOT-23-6"
-			(at 191.77 111.125 0)
+			(at 191.77 116.205 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8671,7 +8616,7 @@
 			)
 		)
 		(property "Datasheet" "https://www.diodes.com/assets/Datasheets/DMG6601LVT.pdf"
-			(at 191.77 113.03 0)
+			(at 191.77 118.11 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8681,7 +8626,7 @@
 			)
 		)
 		(property "Description" "3.6A/-2.1A Id, 30V Vds, Complementary pair enhancement mode P-Channel and N-Channel MOSFET, TSOT-23-6"
-			(at 189.23 109.22 0)
+			(at 189.23 114.3 0)
 			(effects
 				(font
 					(size 1.27 1.27)
