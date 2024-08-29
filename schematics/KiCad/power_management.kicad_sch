@@ -3223,6 +3223,12 @@
 		)
 	)
 	(junction
+		(at 124.46 127)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "0a4b2c1a-90e0-4715-b285-5cf063cd0ba5")
+	)
+	(junction
 		(at 118.11 40.64)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -3361,6 +3367,12 @@
 		(uuid "a525a873-3693-42a4-9ab7-c0823bf244ad")
 	)
 	(junction
+		(at 116.84 127)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "ae61b5e6-937c-4c22-b1f0-09b2423b586b")
+	)
+	(junction
 		(at 179.07 134.62)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -3377,6 +3389,12 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "bc5a4bb3-53f2-4fa7-bcb9-ff43d995f95a")
+	)
+	(junction
+		(at 110.49 146.05)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "c1d8146b-e0db-48f5-adf6-94049f2809c2")
 	)
 	(junction
 		(at 257.81 54.61)
@@ -3419,10 +3437,6 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "ed8e1e84-1fef-49f1-b12d-791ca89d5cea")
-	)
-	(no_connect
-		(at 124.46 130.81)
-		(uuid "123dc41b-8a3f-47ce-b7e4-88b84fd682c5")
 	)
 	(wire
 		(pts
@@ -3536,6 +3550,16 @@
 	)
 	(wire
 		(pts
+			(xy 123.19 127) (xy 124.46 127)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "20b4ca71-45ef-44fa-bc7e-6183b54ef906")
+	)
+	(wire
+		(pts
 			(xy 158.75 119.38) (xy 163.83 119.38)
 		)
 		(stroke
@@ -3586,6 +3610,16 @@
 	)
 	(wire
 		(pts
+			(xy 116.84 127) (xy 118.11 127)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "25d05399-a4f2-4312-8f05-b596a6e45641")
+	)
+	(wire
+		(pts
 			(xy 91.44 40.64) (xy 91.44 74.93)
 		)
 		(stroke
@@ -3633,6 +3667,26 @@
 			(type default)
 		)
 		(uuid "32276fb3-0a54-4a7e-8955-8e6716355665")
+	)
+	(wire
+		(pts
+			(xy 110.49 146.05) (xy 114.3 146.05)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "328c4827-203d-4e65-937c-de37fb5d7b73")
+	)
+	(wire
+		(pts
+			(xy 110.49 127) (xy 110.49 146.05)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "32b3031a-9934-4af8-b575-086e0fba4a5c")
 	)
 	(wire
 		(pts
@@ -3726,7 +3780,7 @@
 	)
 	(wire
 		(pts
-			(xy 110.49 146.05) (xy 114.3 146.05)
+			(xy 107.95 146.05) (xy 110.49 146.05)
 		)
 		(stroke
 			(width 0)
@@ -3956,6 +4010,16 @@
 	)
 	(wire
 		(pts
+			(xy 124.46 124.46) (xy 124.46 127)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "73b75776-de3c-4beb-b140-a97d9024857f")
+	)
+	(wire
+		(pts
 			(xy 63.5 80.01) (xy 68.58 80.01)
 		)
 		(stroke
@@ -3963,6 +4027,16 @@
 			(type default)
 		)
 		(uuid "74e0f86b-de06-4e74-ab0c-84f0dfdc1cc8")
+	)
+	(wire
+		(pts
+			(xy 124.46 121.92) (xy 124.46 123.19)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "76840592-7279-413f-8a27-8a094dd129bb")
 	)
 	(wire
 		(pts
@@ -3976,7 +4050,7 @@
 	)
 	(wire
 		(pts
-			(xy 110.49 135.89) (xy 110.49 146.05)
+			(xy 107.95 135.89) (xy 107.95 146.05)
 		)
 		(stroke
 			(width 0)
@@ -4003,6 +4077,16 @@
 			(type default)
 		)
 		(uuid "7e9ad0e7-9266-4ff1-a504-2699b310c6fc")
+	)
+	(wire
+		(pts
+			(xy 116.84 127) (xy 116.84 130.81)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "80dcb3b9-ee0e-4862-8715-0ba9e7c3d750")
 	)
 	(wire
 		(pts
@@ -4056,7 +4140,7 @@
 	)
 	(wire
 		(pts
-			(xy 124.46 127) (xy 110.49 127)
+			(xy 124.46 124.46) (xy 107.95 124.46)
 		)
 		(stroke
 			(width 0)
@@ -4246,7 +4330,7 @@
 	)
 	(wire
 		(pts
-			(xy 110.49 127) (xy 110.49 130.81)
+			(xy 107.95 124.46) (xy 107.95 130.81)
 		)
 		(stroke
 			(width 0)
@@ -4386,6 +4470,16 @@
 	)
 	(wire
 		(pts
+			(xy 116.84 130.81) (xy 124.46 130.81)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e5a1cfb7-e72f-42d1-947a-ab46d1c463db")
+	)
+	(wire
+		(pts
 			(xy 114.3 59.69) (xy 118.11 59.69)
 		)
 		(stroke
@@ -4403,6 +4497,16 @@
 			(type default)
 		)
 		(uuid "e947e366-9eb2-4f9a-b102-5a59396640d2")
+	)
+	(wire
+		(pts
+			(xy 115.57 127) (xy 116.84 127)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ec89796c-4b56-4a76-9007-522b9dfd845c")
 	)
 	(wire
 		(pts
@@ -4596,7 +4700,7 @@
 	)
 	(global_label "BAT_ACOK"
 		(shape output)
-		(at 124.46 123.19 180)
+		(at 124.46 121.92 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -4606,7 +4710,7 @@
 		)
 		(uuid "102691ae-90d8-44e8-ac17-2433119be2a2")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 112.2219 123.19 0)
+			(at 112.2219 121.92 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5891,7 +5995,7 @@
 	)
 	(symbol
 		(lib_id "Device:C_Small")
-		(at 110.49 133.35 180)
+		(at 107.95 133.35 180)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -5899,7 +6003,7 @@
 		(dnp no)
 		(uuid "6466b79b-a15e-4b2c-a208-314ce98bb576")
 		(property "Reference" "C19"
-			(at 105.918 131.572 90)
+			(at 106.68 128.27 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5908,7 +6012,7 @@
 			)
 		)
 		(property "Value" "1uF"
-			(at 107.696 131.572 90)
+			(at 106.68 134.62 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5917,7 +6021,7 @@
 			)
 		)
 		(property "Footprint" "Capacitor_SMD:C_0201_0603Metric"
-			(at 110.49 133.35 0)
+			(at 107.95 133.35 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5926,7 +6030,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 110.49 133.35 0)
+			(at 107.95 133.35 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5935,7 +6039,7 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor, small symbol"
-			(at 110.49 133.35 0)
+			(at 107.95 133.35 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5953,6 +6057,75 @@
 			(project "leany"
 				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72"
 					(reference "C19")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R_Small")
+		(at 120.65 127 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "6e747e2d-daa3-4b90-a3cd-cb2daf09ff57")
+		(property "Reference" "R17"
+			(at 121.92 125.476 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "10k"
+			(at 122.682 128.778 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+			(at 120.65 127 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 120.65 127 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor, small symbol"
+			(at 120.65 127 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "178c31ba-72d0-42d3-b1c0-a08c2bc8cbd1")
+		)
+		(pin "2"
+			(uuid "eb543cb9-ebe5-4d1f-a747-da23060564c9")
+		)
+		(instances
+			(project "leany"
+				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72"
+					(reference "R17")
 					(unit 1)
 				)
 			)
@@ -6486,6 +6659,75 @@
 			(project "leany"
 				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72"
 					(reference "C16")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R_Small")
+		(at 113.03 127 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "888e2770-4c0e-4f5d-8f57-76b29b084c92")
+		(property "Reference" "R18"
+			(at 114.3 125.476 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "10k"
+			(at 115.316 129.032 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+			(at 113.03 127 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 113.03 127 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor, small symbol"
+			(at 113.03 127 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "6170b247-91bc-4f67-9da9-9a02ca1d4135")
+		)
+		(pin "2"
+			(uuid "182cc558-8816-4fc3-a8fc-69916454ea31")
+		)
+		(instances
+			(project "leany"
+				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72"
+					(reference "R18")
 					(unit 1)
 				)
 			)
