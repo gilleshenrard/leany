@@ -4164,6 +4164,16 @@
 	)
 	(wire
 		(pts
+			(xy 114.3 91.44) (xy 118.11 91.44)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "0d9c42fb-18ed-46f0-b69d-7fb4781158c3")
+	)
+	(wire
+		(pts
 			(xy 213.36 53.34) (xy 215.9 53.34)
 		)
 		(stroke
@@ -4371,6 +4381,16 @@
 			(type default)
 		)
 		(uuid "4a344239-5f1d-48b8-b812-1791cb831716")
+	)
+	(wire
+		(pts
+			(xy 111.76 130.81) (xy 114.3 130.81)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "4abfb3cc-e331-45e8-9ce6-e3cfb900104a")
 	)
 	(wire
 		(pts
@@ -4644,6 +4664,16 @@
 	)
 	(wire
 		(pts
+			(xy 114.3 130.81) (xy 114.3 132.08)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "8903a2ed-036c-45e5-9dc9-746a76b8564c")
+	)
+	(wire
+		(pts
 			(xy 242.57 106.68) (xy 243.84 106.68)
 		)
 		(stroke
@@ -4661,6 +4691,16 @@
 			(type default)
 		)
 		(uuid "8cd6288c-db0f-4397-9e5a-7c27f3e0be5c")
+	)
+	(wire
+		(pts
+			(xy 114.3 132.08) (xy 118.11 132.08)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "8d13c193-d1c2-4d41-927d-6147236f4bfa")
 	)
 	(wire
 		(pts
@@ -4714,16 +4754,6 @@
 	)
 	(wire
 		(pts
-			(xy 113.03 130.81) (xy 113.03 132.08)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "976dfd55-651c-426f-8d11-2ba464db4800")
-	)
-	(wire
-		(pts
 			(xy 135.89 60.96) (xy 138.43 60.96)
 		)
 		(stroke
@@ -4741,16 +4771,6 @@
 			(type default)
 		)
 		(uuid "9dc7022f-db5b-46aa-9f03-37049d8a5457")
-	)
-	(wire
-		(pts
-			(xy 113.03 132.08) (xy 118.11 132.08)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "9fac4efd-1ebe-4fcf-bfd0-02365341f384")
 	)
 	(wire
 		(pts
@@ -5031,6 +5051,16 @@
 			(type default)
 		)
 		(uuid "e42eac4f-3b34-4708-963a-643952ecbb3b")
+	)
+	(wire
+		(pts
+			(xy 114.3 88.9) (xy 118.11 88.9)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e50ec771-c95b-438e-a200-b1228e82a497")
 	)
 	(wire
 		(pts
@@ -5710,7 +5740,7 @@
 	)
 	(global_label "BAT_CHGOK"
 		(shape input)
-		(at 118.11 91.44 180)
+		(at 114.3 91.44 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -5720,7 +5750,7 @@
 		)
 		(uuid "606d0d9b-2e4d-454b-9372-f4a68a6ef747")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 104.36 91.44 0)
+			(at 100.55 91.44 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5732,7 +5762,7 @@
 	)
 	(global_label "BAT_ACOK"
 		(shape input)
-		(at 118.11 88.9 180)
+		(at 114.3 88.9 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -5742,7 +5772,7 @@
 		)
 		(uuid "64a64143-dbef-46e0-a157-c69c50f802ba")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 105.8719 88.9 0)
+			(at 102.0619 88.9 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5753,7 +5783,7 @@
 		)
 	)
 	(global_label "USB_D+"
-		(shape input)
+		(shape bidirectional)
 		(at 226.06 125.73 0)
 		(fields_autoplaced yes)
 		(effects
@@ -5764,7 +5794,7 @@
 		)
 		(uuid "a6a98807-cc97-48af-a022-f7b2e29fe876")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 236.6652 125.73 0)
+			(at 237.7765 125.73 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5775,7 +5805,7 @@
 		)
 	)
 	(global_label "USB_D-"
-		(shape input)
+		(shape bidirectional)
 		(at 226.06 128.27 0)
 		(fields_autoplaced yes)
 		(effects
@@ -5786,7 +5816,7 @@
 		)
 		(uuid "a6f45b4f-a714-44ad-b0cf-00e5d8a1f116")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 236.6652 128.27 0)
+			(at 237.7765 128.27 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5797,8 +5827,8 @@
 		)
 	)
 	(global_label "POWER_ON"
-		(shape input)
-		(at 113.03 130.81 180)
+		(shape output)
+		(at 111.76 130.81 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -5808,7 +5838,7 @@
 		)
 		(uuid "f9c45caf-fb24-4e83-a386-78b76056f5a7")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 99.9453 130.81 0)
+			(at 98.6753 130.81 0)
 			(effects
 				(font
 					(size 1.27 1.27)

@@ -880,204 +880,6 @@
 				)
 			)
 		)
-		(symbol "Device:D_Dual_CommonCathode_AAK"
-			(pin_names
-				(offset 0.762) hide)
-			(exclude_from_sim no)
-			(in_bom yes)
-			(on_board yes)
-			(property "Reference" "D"
-				(at 1.27 -2.54 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Value" "D_Dual_CommonCathode_AAK"
-				(at 0 2.54 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Footprint" ""
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Datasheet" "~"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Description" "Dual diode, common cathode on pin 3"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "ki_keywords" "diode"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(symbol "D_Dual_CommonCathode_AAK_0_1"
-				(polyline
-					(pts
-						(xy -3.81 0) (xy 3.81 0)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 0 0) (xy 0 -2.54)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy -1.27 -1.27) (xy -1.27 1.27) (xy -1.27 1.27)
-					)
-					(stroke
-						(width 0.254)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 1.27 -1.27) (xy 1.27 1.27) (xy 1.27 1.27)
-					)
-					(stroke
-						(width 0.254)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy -3.81 1.27) (xy -1.27 0) (xy -3.81 -1.27) (xy -3.81 1.27) (xy -3.81 1.27) (xy -3.81 1.27)
-					)
-					(stroke
-						(width 0.254)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 3.81 -1.27) (xy 1.27 0) (xy 3.81 1.27) (xy 3.81 -1.27) (xy 3.81 -1.27) (xy 3.81 -1.27)
-					)
-					(stroke
-						(width 0.254)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(circle
-					(center 0 0)
-					(radius 0.254)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type outline)
-					)
-				)
-				(pin passive line
-					(at -7.62 0 0)
-					(length 3.81)
-					(name "A"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 7.62 0 180)
-					(length 3.81)
-					(name "A"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 0 -5.08 90)
-					(length 2.54)
-					(name "K"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "3"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-			)
-		)
 		(symbol "Device:L_Small"
 			(pin_numbers hide)
 			(pin_names
@@ -1671,6 +1473,276 @@
 						)
 					)
 					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+		)
+		(symbol "dk_Diodes-Rectifiers-Arrays:BAT54C-7-F"
+			(pin_names
+				(offset 0.0254)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "D"
+				(at 0 6.35 0)
+				(effects
+					(font
+						(size 1.524 1.524)
+					)
+				)
+			)
+			(property "Value" "BAT54C-7-F"
+				(at 0 -5.08 0)
+				(effects
+					(font
+						(size 1.524 1.524)
+					)
+				)
+			)
+			(property "Footprint" "digikey-footprints:SOT-23-3"
+				(at 5.08 5.08 0)
+				(effects
+					(font
+						(size 1.524 1.524)
+					)
+					(justify left)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "https://www.diodes.com/assets/Datasheets/ds11005.pdf"
+				(at 5.08 7.62 0)
+				(effects
+					(font
+						(size 1.524 1.524)
+					)
+					(justify left)
+					(hide yes)
+				)
+			)
+			(property "Description" "DIODE ARRAY SCHOTTKY 30V SOT23-3"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Digi-Key_PN" "BAT54C-FDICT-ND"
+				(at 5.08 10.16 0)
+				(effects
+					(font
+						(size 1.524 1.524)
+					)
+					(justify left)
+					(hide yes)
+				)
+			)
+			(property "MPN" "BAT54C-7-F"
+				(at 5.08 12.7 0)
+				(effects
+					(font
+						(size 1.524 1.524)
+					)
+					(justify left)
+					(hide yes)
+				)
+			)
+			(property "Category" "Discrete Semiconductor Products"
+				(at 5.08 15.24 0)
+				(effects
+					(font
+						(size 1.524 1.524)
+					)
+					(justify left)
+					(hide yes)
+				)
+			)
+			(property "Family" "Diodes - Rectifiers - Arrays"
+				(at 5.08 17.78 0)
+				(effects
+					(font
+						(size 1.524 1.524)
+					)
+					(justify left)
+					(hide yes)
+				)
+			)
+			(property "DK_Datasheet_Link" "https://www.diodes.com/assets/Datasheets/ds11005.pdf"
+				(at 5.08 20.32 0)
+				(effects
+					(font
+						(size 1.524 1.524)
+					)
+					(justify left)
+					(hide yes)
+				)
+			)
+			(property "DK_Detail_Page" "/product-detail/en/diodes-incorporated/BAT54C-7-F/BAT54C-FDICT-ND/717821"
+				(at 5.08 22.86 0)
+				(effects
+					(font
+						(size 1.524 1.524)
+					)
+					(justify left)
+					(hide yes)
+				)
+			)
+			(property "Description_1" "DIODE ARRAY SCHOTTKY 30V SOT23-3"
+				(at 5.08 25.4 0)
+				(effects
+					(font
+						(size 1.524 1.524)
+					)
+					(justify left)
+					(hide yes)
+				)
+			)
+			(property "Manufacturer" "Diodes Incorporated"
+				(at 5.08 27.94 0)
+				(effects
+					(font
+						(size 1.524 1.524)
+					)
+					(justify left)
+					(hide yes)
+				)
+			)
+			(property "Status" "Active"
+				(at 5.08 30.48 0)
+				(effects
+					(font
+						(size 1.524 1.524)
+					)
+					(justify left)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "BAT54C-FDICT-ND"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "BAT54C-7-F_0_1"
+				(polyline
+					(pts
+						(xy 1.27 -1.27) (xy 1.27 -3.81)
+					)
+					(stroke
+						(width 0)
+						(type solid)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.27 1.27) (xy 1.27 3.81)
+					)
+					(stroke
+						(width 0)
+						(type solid)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -1.27 -1.27) (xy -1.27 -3.81) (xy 1.27 -2.54) (xy -1.27 -1.27)
+					)
+					(stroke
+						(width 0)
+						(type solid)
+					)
+					(fill
+						(type outline)
+					)
+				)
+				(polyline
+					(pts
+						(xy -1.27 3.81) (xy -1.27 1.27) (xy 1.27 2.54) (xy -1.27 3.81)
+					)
+					(stroke
+						(width 0)
+						(type solid)
+					)
+					(fill
+						(type outline)
+					)
+				)
+			)
+			(symbol "BAT54C-7-F_1_1"
+				(polyline
+					(pts
+						(xy 1.27 2.54) (xy 3.81 2.54) (xy 3.81 -2.54) (xy 1.27 -2.54)
+					)
+					(stroke
+						(width 0)
+						(type solid)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(pin passive line
+					(at -5.08 2.54 0)
+					(length 3.81)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -5.08 -2.54 0)
+					(length 3.81)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 7.62 0 180)
+					(length 3.81)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "3"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -3156,10 +3228,22 @@
 		(uuid "79b7838c-2910-4086-9844-92bad4e8e63a")
 	)
 	(junction
+		(at 130.81 59.69)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "81dd0d35-1134-4086-b5d2-88d3b3909c95")
+	)
+	(junction
 		(at 55.88 95.25)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "84e9a5b7-ca25-4fc4-a896-e9296bff02e3")
+	)
+	(junction
+		(at 118.11 59.69)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "a1d17a39-391b-4ef7-bf40-acf36f936203")
 	)
 	(junction
 		(at 151.13 40.64)
@@ -3178,12 +3262,6 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "a525a873-3693-42a4-9ab7-c0823bf244ad")
-	)
-	(junction
-		(at 118.11 63.5)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "b6ac0969-26a3-4065-a3c7-9ea2e048c4c0")
 	)
 	(junction
 		(at 179.07 40.64)
@@ -3226,12 +3304,6 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "ed8e1e84-1fef-49f1-b12d-791ca89d5cea")
-	)
-	(junction
-		(at 130.81 63.5)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "f39bcf17-fbf4-45a3-80f3-62e76348f8fa")
 	)
 	(junction
 		(at 161.29 120.65)
@@ -3315,16 +3387,6 @@
 	)
 	(wire
 		(pts
-			(xy 118.11 63.5) (xy 130.81 63.5)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "1cefd5e9-6cb8-4374-8402-14adc5a4fcc9")
-	)
-	(wire
-		(pts
 			(xy 168.91 120.65) (xy 168.91 134.62)
 		)
 		(stroke
@@ -3395,13 +3457,13 @@
 	)
 	(wire
 		(pts
-			(xy 118.11 53.34) (xy 118.11 63.5)
+			(xy 158.75 59.69) (xy 163.83 59.69)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "38600b46-82e7-41cd-a82f-d6a08ca75fe2")
+		(uuid "36ba8ff4-ef2f-408b-9743-11566e06caef")
 	)
 	(wire
 		(pts
@@ -3425,7 +3487,7 @@
 	)
 	(wire
 		(pts
-			(xy 114.3 53.34) (xy 114.3 63.5)
+			(xy 114.3 53.34) (xy 114.3 59.69)
 		)
 		(stroke
 			(width 0)
@@ -3625,6 +3687,16 @@
 	)
 	(wire
 		(pts
+			(xy 130.81 59.69) (xy 130.81 68.58)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "782ad0a5-c271-4e37-b882-eabd47ecae39")
+	)
+	(wire
+		(pts
 			(xy 107.95 140.97) (xy 107.95 144.78)
 		)
 		(stroke
@@ -3685,13 +3757,13 @@
 	)
 	(wire
 		(pts
-			(xy 156.21 68.58) (xy 156.21 72.39)
+			(xy 118.11 53.34) (xy 118.11 59.69)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "8ab06fa4-ab66-4166-8e80-148f37d482d2")
+		(uuid "870bf290-171c-42b3-acd0-3aaaf85fc959")
 	)
 	(wire
 		(pts
@@ -3815,16 +3887,6 @@
 	)
 	(wire
 		(pts
-			(xy 130.81 63.5) (xy 130.81 68.58)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "bdd2f83b-15eb-4a2a-b292-a7bb508d62ba")
-	)
-	(wire
-		(pts
 			(xy 140.97 85.09) (xy 156.21 85.09)
 		)
 		(stroke
@@ -3845,7 +3907,7 @@
 	)
 	(wire
 		(pts
-			(xy 130.81 48.26) (xy 130.81 63.5)
+			(xy 130.81 48.26) (xy 130.81 59.69)
 		)
 		(stroke
 			(width 0)
@@ -3925,6 +3987,16 @@
 	)
 	(wire
 		(pts
+			(xy 118.11 59.69) (xy 130.81 59.69)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d44558ff-5087-44ee-8aa1-7ee8438a51fe")
+	)
+	(wire
+		(pts
 			(xy 172.72 125.73) (xy 172.72 120.65)
 		)
 		(stroke
@@ -3935,7 +4007,7 @@
 	)
 	(wire
 		(pts
-			(xy 130.81 63.5) (xy 148.59 63.5)
+			(xy 130.81 59.69) (xy 153.67 59.69)
 		)
 		(stroke
 			(width 0)
@@ -3995,7 +4067,7 @@
 	)
 	(wire
 		(pts
-			(xy 114.3 63.5) (xy 118.11 63.5)
+			(xy 114.3 59.69) (xy 118.11 59.69)
 		)
 		(stroke
 			(width 0)
@@ -4140,7 +4212,7 @@
 		(uuid "5a74fc7c-e86c-4142-bd25-511d9b884bca")
 	)
 	(global_label "BAT_ACOK"
-		(shape input)
+		(shape output)
 		(at 121.92 132.08 180)
 		(fields_autoplaced yes)
 		(effects
@@ -4162,7 +4234,7 @@
 		)
 	)
 	(global_label "USB_D-"
-		(shape input)
+		(shape bidirectional)
 		(at 57.15 90.17 0)
 		(fields_autoplaced yes)
 		(effects
@@ -4173,7 +4245,7 @@
 		)
 		(uuid "5e3910ed-defd-4a8c-a25e-0544f200724a")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 67.7552 90.17 0)
+			(at 68.8665 90.17 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4184,7 +4256,7 @@
 		)
 	)
 	(global_label "USB_D+"
-		(shape input)
+		(shape bidirectional)
 		(at 57.15 95.25 0)
 		(fields_autoplaced yes)
 		(effects
@@ -4195,7 +4267,7 @@
 		)
 		(uuid "78676d83-285c-4198-9426-634365a77053")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 67.7552 95.25 0)
+			(at 68.8665 95.25 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4206,7 +4278,7 @@
 		)
 	)
 	(global_label "BAT_CHGOK"
-		(shape input)
+		(shape output)
 		(at 121.92 129.54 180)
 		(fields_autoplaced yes)
 		(effects
@@ -4250,8 +4322,8 @@
 		)
 	)
 	(global_label "POWER_BTN"
-		(shape input)
-		(at 163.83 63.5 0)
+		(shape output)
+		(at 163.83 59.69 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -4261,7 +4333,7 @@
 		)
 		(uuid "fd2db2a8-7d74-4996-8089-c9eebad271eb")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 177.8218 63.5 0)
+			(at 177.8218 59.69 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5385,76 +5457,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Device:D_Dual_CommonCathode_AAK")
-		(at 156.21 63.5 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "5b03f3e1-cf28-4759-a0ba-3dd682973d8f")
-		(property "Reference" "D2"
-			(at 156.21 58.42 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "D_Dual_CommonCathode_AAK"
-			(at 156.21 60.198 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 156.21 63.5 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 156.21 63.5 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Dual diode, common cathode on pin 3"
-			(at 156.21 63.5 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "2"
-			(uuid "24870b03-4443-4929-b6fe-32aaccea8ea7")
-		)
-		(pin "1"
-			(uuid "fc685df0-44b2-4435-8cd1-ba30dfc72181")
-		)
-		(pin "3"
-			(uuid "5f87b15e-c566-4721-ab31-08513533f41c")
-		)
-		(instances
-			(project "leany"
-				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72"
-					(reference "D2")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Device:C_Small")
 		(at 107.95 138.43 180)
 		(unit 1)
@@ -6340,8 +6342,8 @@
 				(justify left)
 			)
 		)
-		(property "Value" "~"
-			(at 160.02 78.7399 90)
+		(property "Value" "TL1105SF160R"
+			(at 158.496 80.01 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7051,6 +7053,170 @@
 			(project "leany"
 				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72"
 					(reference "#PWR038")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "dk_Diodes-Rectifiers-Arrays:BAT54C-7-F")
+		(at 156.21 64.77 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "cc0a83b9-d24f-48a7-8671-50ee4b27e52e")
+		(property "Reference" "D3"
+			(at 160.528 64.77 90)
+			(effects
+				(font
+					(size 1.524 1.524)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "BAT54C-7-F"
+			(at 160.274 67.31 90)
+			(effects
+				(font
+					(size 1.524 1.524)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "digikey-footprints:SOT-23-3"
+			(at 161.29 69.85 0)
+			(effects
+				(font
+					(size 1.524 1.524)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://www.diodes.com/assets/Datasheets/ds11005.pdf"
+			(at 163.83 69.85 0)
+			(effects
+				(font
+					(size 1.524 1.524)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Description" "DIODE ARRAY SCHOTTKY 30V SOT23-3"
+			(at 156.21 64.77 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Digi-Key_PN" "BAT54C-FDICT-ND"
+			(at 166.37 69.85 0)
+			(effects
+				(font
+					(size 1.524 1.524)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "MPN" "BAT54C-7-F"
+			(at 168.91 69.85 0)
+			(effects
+				(font
+					(size 1.524 1.524)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Category" "Discrete Semiconductor Products"
+			(at 171.45 69.85 0)
+			(effects
+				(font
+					(size 1.524 1.524)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Family" "Diodes - Rectifiers - Arrays"
+			(at 173.99 69.85 0)
+			(effects
+				(font
+					(size 1.524 1.524)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "DK_Datasheet_Link" "https://www.diodes.com/assets/Datasheets/ds11005.pdf"
+			(at 176.53 69.85 0)
+			(effects
+				(font
+					(size 1.524 1.524)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "DK_Detail_Page" "/product-detail/en/diodes-incorporated/BAT54C-7-F/BAT54C-FDICT-ND/717821"
+			(at 179.07 69.85 0)
+			(effects
+				(font
+					(size 1.524 1.524)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Description_1" "DIODE ARRAY SCHOTTKY 30V SOT23-3"
+			(at 181.61 69.85 0)
+			(effects
+				(font
+					(size 1.524 1.524)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer" "Diodes Incorporated"
+			(at 184.15 69.85 0)
+			(effects
+				(font
+					(size 1.524 1.524)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Status" "Active"
+			(at 186.69 69.85 0)
+			(effects
+				(font
+					(size 1.524 1.524)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "36b6f9d3-447e-42f2-82ce-31db53be1d3e")
+		)
+		(pin "1"
+			(uuid "7370573e-d24e-4519-a109-04f860347302")
+		)
+		(pin "3"
+			(uuid "54bb446d-1aca-4c14-8281-8628dec4ae62")
+		)
+		(instances
+			(project ""
+				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72"
+					(reference "D3")
 					(unit 1)
 				)
 			)
