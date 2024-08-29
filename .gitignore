@@ -79,3 +79,4 @@ config-cppcheck-build-dir/
 schematics/KiCad/*.lck
 schematics/KiCad/*.bak
 schematics/KiCad/leany-backups
+schematics/KiCad/fp-info-cache
