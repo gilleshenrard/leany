@@ -4156,10 +4156,6 @@
 		(uuid "1eace95e-326e-44e6-b2bc-a49fc75dfdac")
 	)
 	(no_connect
-		(at 151.13 76.2)
-		(uuid "34d88b62-b8a8-4789-a773-13b883e3c555")
-	)
-	(no_connect
 		(at 118.11 109.22)
 		(uuid "3bf28cfd-1d80-4988-b1f5-575aed111578")
 	)
@@ -4206,10 +4202,6 @@
 	(no_connect
 		(at 118.11 106.68)
 		(uuid "ba37a843-8795-4b85-95ec-a2152693db3c")
-	)
-	(no_connect
-		(at 151.13 88.9)
-		(uuid "c46e84ff-7af8-482b-ad46-1641bc0ba101")
 	)
 	(no_connect
 		(at 226.06 120.65)
@@ -4278,6 +4270,16 @@
 			(type default)
 		)
 		(uuid "09334dab-f8e8-4d19-ab72-8af2871ba3d8")
+	)
+	(wire
+		(pts
+			(xy 152.4 76.2) (xy 151.13 76.2)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "096eb88c-0fd7-41ca-a35f-60c181b537d1")
 	)
 	(wire
 		(pts
@@ -4571,6 +4573,16 @@
 	)
 	(wire
 		(pts
+			(xy 152.4 74.93) (xy 152.4 76.2)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "4f57dd83-ec0e-4349-9a68-958a48517c1d")
+	)
+	(wire
+		(pts
 			(xy 157.48 49.53) (xy 151.13 49.53)
 		)
 		(stroke
@@ -4698,6 +4710,16 @@
 			(type default)
 		)
 		(uuid "701fd530-0f54-44e7-81a9-3ba580bd5dd2")
+	)
+	(wire
+		(pts
+			(xy 151.13 88.9) (xy 153.67 88.9)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "7089595a-151d-4f8c-8cb3-6054f3d1dc69")
 	)
 	(wire
 		(pts
@@ -5891,6 +5913,50 @@
 					(size 1.27 1.27)
 				)
 				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "BATT_EN"
+		(shape output)
+		(at 153.67 88.9 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "4051a6bc-d709-41d9-81dd-b4f78e0854f4")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 164.3961 88.9 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "BATT_VOLT"
+		(shape input)
+		(at 152.4 74.93 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "5c1f10dc-63ef-4473-aa31-b1500eaf1950")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 165.0614 74.93 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
 				(hide yes)
 			)
 		)
@@ -7332,7 +7398,7 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "~"
+		(property "Datasheet" "https://www.mouser.be/datasheet/2/212/KEM_A4003_EXV-1094684.pdf"
 			(at 238.76 31.75 0)
 			(effects
 				(font

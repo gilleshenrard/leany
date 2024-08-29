@@ -28,6 +28,7 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 
+#include "stm32f1xx_ll_adc.h"
 #include "stm32f1xx_ll_dma.h"
 #include "stm32f1xx_ll_iwdg.h"
 #include "stm32f1xx_ll_rcc.h"
@@ -83,6 +84,8 @@ void Error_Handler(void);
 #define LED_GREEN_GPIO_Port GPIOA
 #define LED_BLUE_Pin LL_GPIO_PIN_2
 #define LED_BLUE_GPIO_Port GPIOA
+#define BATT_VOLT_Pin LL_GPIO_PIN_3
+#define BATT_VOLT_GPIO_Port GPIOA
 #define LSM6DSO_CS_Pin LL_GPIO_PIN_4
 #define LSM6DSO_CS_GPIO_Port GPIOA
 #define LSM6DSO_SCL_Pin LL_GPIO_PIN_5
@@ -109,6 +112,8 @@ void Error_Handler(void);
 #define POWER_ON_GPIO_Port GPIOB
 #define SSD1306_D1_Pin LL_GPIO_PIN_15
 #define SSD1306_D1_GPIO_Port GPIOB
+#define BATT_EN_Pin LL_GPIO_PIN_8
+#define BATT_EN_GPIO_Port GPIOA
 #define FTDI_TX_Pin LL_GPIO_PIN_9
 #define FTDI_TX_GPIO_Port GPIOA
 #define FTDI_RX_Pin LL_GPIO_PIN_10
