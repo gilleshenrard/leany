@@ -4017,6 +4017,12 @@
 		(uuid "40c74288-fdc7-4052-8616-1519c2677364")
 	)
 	(junction
+		(at 74.93 147.32)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "40f5fcd7-455b-4bb8-9843-3576de04be2f")
+	)
+	(junction
 		(at 118.11 149.86)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -4059,6 +4065,12 @@
 		(uuid "787c2e4a-8847-4c0f-9e4b-3637740eb6ae")
 	)
 	(junction
+		(at 48.26 156.21)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "7b851bc9-c57c-4ff7-a222-4f2f6127af00")
+	)
+	(junction
 		(at 43.18 50.8)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -4093,6 +4105,12 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "8d385682-a105-4aef-9cf1-10c1d6e44e34")
+	)
+	(junction
+		(at 54.61 156.21)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "9ee1c58a-8063-4450-8be7-5d4c23581dcf")
 	)
 	(junction
 		(at 171.45 68.58)
@@ -4201,6 +4219,12 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "e48b91e0-19bc-4343-bc29-3bba08d0fd63")
+	)
+	(junction
+		(at 64.77 148.59)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "e8b5a70f-785b-4e52-bbe4-261f402ac0d7")
 	)
 	(junction
 		(at 43.18 45.72)
@@ -4325,6 +4349,16 @@
 			(type default)
 		)
 		(uuid "139070ee-e9c2-4296-80c6-dcc00d456d2f")
+	)
+	(wire
+		(pts
+			(xy 48.26 156.21) (xy 54.61 156.21)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "14e095b1-9ae2-4ad5-a812-9e16ab6d0b40")
 	)
 	(wire
 		(pts
@@ -4738,6 +4772,16 @@
 	)
 	(wire
 		(pts
+			(xy 74.93 147.32) (xy 74.93 148.59)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "476243bb-1ec2-4a03-821f-3600b9db175e")
+	)
+	(wire
+		(pts
 			(xy 50.8 38.1) (xy 55.88 38.1)
 		)
 		(stroke
@@ -4765,6 +4809,16 @@
 			(type default)
 		)
 		(uuid "4ceb013e-3224-499d-a3f7-42abde3f837f")
+	)
+	(wire
+		(pts
+			(xy 54.61 151.13) (xy 54.61 148.59)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "4f05eaae-9da4-4da5-9d74-beb3641f367e")
 	)
 	(wire
 		(pts
@@ -4988,7 +5042,7 @@
 	)
 	(wire
 		(pts
-			(xy 44.45 156.21) (xy 59.69 156.21)
+			(xy 44.45 156.21) (xy 48.26 156.21)
 		)
 		(stroke
 			(width 0)
@@ -5055,6 +5109,16 @@
 			(type default)
 		)
 		(uuid "76840592-7279-413f-8a27-8a094dd129bb")
+	)
+	(wire
+		(pts
+			(xy 54.61 148.59) (xy 64.77 148.59)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "77121a6b-a7e7-4c24-9326-5e5eedc45aa0")
 	)
 	(wire
 		(pts
@@ -5165,6 +5229,16 @@
 			(type default)
 		)
 		(uuid "870bf290-171c-42b3-acd0-3aaaf85fc959")
+	)
+	(wire
+		(pts
+			(xy 48.26 151.13) (xy 48.26 147.32)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "894c52e8-6e86-466c-b012-da0a3c2edd68")
 	)
 	(wire
 		(pts
@@ -5428,6 +5502,16 @@
 	)
 	(wire
 		(pts
+			(xy 54.61 156.21) (xy 59.69 156.21)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "cdac3aff-247f-47fc-8242-0f2fb4bf7db8")
+	)
+	(wire
+		(pts
 			(xy 76.2 62.23) (xy 76.2 68.58)
 		)
 		(stroke
@@ -5498,13 +5582,23 @@
 	)
 	(wire
 		(pts
-			(xy 74.93 140.97) (xy 74.93 148.59)
+			(xy 74.93 140.97) (xy 74.93 147.32)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
 		(uuid "d80c9d8b-bf71-46c4-8b40-b00f1f7ff9e5")
+	)
+	(wire
+		(pts
+			(xy 48.26 147.32) (xy 74.93 147.32)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ddf0c6c9-eeb7-4d49-93a9-1e4e09fb5e14")
 	)
 	(wire
 		(pts
@@ -6938,7 +7032,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "3ca3030d-68a3-41af-a358-e7548b4be913")
-		(property "Reference" "R19"
+		(property "Reference" "R21"
 			(at 143.256 156.21 90)
 			(effects
 				(font
@@ -6992,7 +7086,7 @@
 		(instances
 			(project "leany"
 				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72"
-					(reference "R19")
+					(reference "R21")
 					(unit 1)
 				)
 			)
@@ -7139,7 +7233,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "483d4c59-82cc-4282-924e-e40e254b88fd")
-		(property "Reference" "R20"
+		(property "Reference" "R22"
 			(at 122.174 160.02 90)
 			(effects
 				(font
@@ -7193,7 +7287,7 @@
 		(instances
 			(project "leany"
 				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72"
-					(reference "R20")
+					(reference "R22")
 					(unit 1)
 				)
 			)
@@ -8656,6 +8750,75 @@
 		)
 	)
 	(symbol
+		(lib_id "Device:R_Small")
+		(at 54.61 153.67 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "8f32a475-633c-45c9-b3de-f6d58da65654")
+		(property "Reference" "R20"
+			(at 53.34 151.892 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "5M"
+			(at 56.642 155.448 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+			(at 54.61 153.67 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 54.61 153.67 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor, small symbol"
+			(at 54.61 153.67 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "88f0f9f6-1314-4d01-b859-493d7f51d471")
+		)
+		(pin "2"
+			(uuid "93b51f2d-8340-403c-88a7-b29b3f6a5b16")
+		)
+		(instances
+			(project "leany"
+				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72"
+					(reference "R20")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Device:L_Small")
 		(at 135.89 53.34 90)
 		(unit 1)
@@ -9812,6 +9975,75 @@
 			(project "leany"
 				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72"
 					(reference "#PWR029")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R_Small")
+		(at 48.26 153.67 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "d05caf51-31d1-4457-ba30-505ad55599c4")
+		(property "Reference" "R19"
+			(at 47.244 151.638 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "5M"
+			(at 50.292 155.194 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+			(at 48.26 153.67 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 48.26 153.67 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor, small symbol"
+			(at 48.26 153.67 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "907a2827-ba3b-4132-ad2a-416bafbc1675")
+		)
+		(pin "2"
+			(uuid "74210728-5285-452c-850f-b47a5ab03eb0")
+		)
+		(instances
+			(project "leany"
+				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72"
+					(reference "R19")
 					(unit 1)
 				)
 			)
