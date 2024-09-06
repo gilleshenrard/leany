@@ -9422,9 +9422,8 @@
 		)
 	)
 	(sheet
-		(at 26.67 21.59)
-		(size 12.7 3.81)
-		(fields_autoplaced yes)
+		(at 25.4 20.32)
+		(size 35.56 6.35)
 		(stroke
 			(width 0.1524)
 			(type solid)
@@ -9434,7 +9433,7 @@
 		)
 		(uuid "702fc064-eab2-4b82-8f62-a654ccd28f72")
 		(property "Sheetname" "Power management"
-			(at 26.67 20.8784 0)
+			(at 25.908 22.606 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9443,7 +9442,7 @@
 			)
 		)
 		(property "Sheetfile" "power_management.kicad_sch"
-			(at 26.67 25.9846 0)
+			(at 25.908 24.13 0)
 			(effects
 				(font
 					(size 1.27 1.27)
