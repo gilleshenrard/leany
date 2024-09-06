@@ -1783,27 +1783,29 @@
 				)
 			)
 		)
-		(symbol "dk_Diodes-Rectifiers-Arrays:BAT54C-7-F"
+		(symbol "leany-symbols:BAT54C-7-F"
 			(pin_names
 				(offset 0.0254)
 			)
 			(exclude_from_sim no)
 			(in_bom yes)
 			(on_board yes)
-			(property "Reference" "D"
-				(at 0 6.35 0)
+			(property "Reference" "D4"
+				(at 0 4.318 90)
 				(effects
 					(font
 						(size 1.524 1.524)
 					)
+					(justify left)
 				)
 			)
 			(property "Value" "BAT54C-7-F"
-				(at 0 -5.08 0)
+				(at 3.048 2.794 90)
 				(effects
 					(font
 						(size 1.524 1.524)
 					)
+					(justify left)
 				)
 			)
 			(property "Footprint" "digikey-footprints:SOT-23-3"
@@ -3041,114 +3043,6 @@
 				)
 			)
 		)
-		(symbol "power:-BATT"
-			(power)
-			(pin_numbers hide)
-			(pin_names
-				(offset 0) hide)
-			(exclude_from_sim no)
-			(in_bom yes)
-			(on_board yes)
-			(property "Reference" "#PWR"
-				(at 0 -3.81 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Value" "-BATT"
-				(at 0 3.556 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Footprint" ""
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Datasheet" ""
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Description" "Power symbol creates a global label with name \"-BATT\""
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "ki_keywords" "global power battery"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(symbol "-BATT_0_1"
-				(polyline
-					(pts
-						(xy 0 0) (xy 0 2.54)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 0.762 1.27) (xy -0.762 1.27) (xy 0 2.54) (xy 0.762 1.27)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type outline)
-					)
-				)
-			)
-			(symbol "-BATT_1_1"
-				(pin power_in line
-					(at 0 0 90)
-					(length 0)
-					(name "~"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-			)
-		)
 		(symbol "power:GND"
 			(power)
 			(pin_numbers hide)
@@ -3391,12 +3285,6 @@
 		(uuid "0c7b4ebf-e17e-45fd-a328-865402235efa")
 	)
 	(junction
-		(at 133.35 175.26)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "21171cb7-f47d-4bed-bd85-4589064c6a68")
-	)
-	(junction
 		(at 248.92 52.07)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -3595,12 +3483,6 @@
 		(uuid "cc0ef7b8-d21b-4d8c-aaa7-c682aa7d6cf0")
 	)
 	(junction
-		(at 111.76 105.41)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "cfa9b0f4-5e5f-46f8-a373-74bbed119104")
-	)
-	(junction
 		(at 105.41 105.41)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -3660,7 +3542,7 @@
 	)
 	(wire
 		(pts
-			(xy 111.76 105.41) (xy 125.73 105.41)
+			(xy 105.41 105.41) (xy 125.73 105.41)
 		)
 		(stroke
 			(width 0)
@@ -3990,23 +3872,13 @@
 	)
 	(wire
 		(pts
-			(xy 133.35 175.26) (xy 144.78 175.26)
+			(xy 127 175.26) (xy 144.78 175.26)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
 		(uuid "37df8ed7-b84d-4977-b639-50284f5d3640")
-	)
-	(wire
-		(pts
-			(xy 105.41 105.41) (xy 111.76 105.41)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "38477f0b-bd8e-4ea8-a666-ab3a84e2cc7e")
 	)
 	(wire
 		(pts
@@ -4260,16 +4132,6 @@
 	)
 	(wire
 		(pts
-			(xy 182.88 118.11) (xy 179.07 118.11)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "68ef67c0-8256-42e8-92cb-732cc9f10d3b")
-	)
-	(wire
-		(pts
 			(xy 114.3 142.24) (xy 118.11 142.24)
 		)
 		(stroke
@@ -4287,16 +4149,6 @@
 			(type default)
 		)
 		(uuid "6daf239c-991b-4761-bd80-842950cc151c")
-	)
-	(wire
-		(pts
-			(xy 179.07 118.11) (xy 179.07 113.03)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "6fb68d6e-7ed2-4eb4-9698-3c5346252625")
 	)
 	(wire
 		(pts
@@ -4780,16 +4632,6 @@
 	)
 	(wire
 		(pts
-			(xy 127 175.26) (xy 133.35 175.26)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "e1aa87dd-cfbb-48ff-8733-c63a731cf313")
-	)
-	(wire
-		(pts
 			(xy 128.27 142.24) (xy 144.78 142.24)
 		)
 		(stroke
@@ -4962,7 +4804,7 @@
 	)
 	(rectangle
 		(start 156.21 64.77)
-		(end 210.82 124.46)
+		(end 210.82 123.19)
 		(stroke
 			(width 0)
 			(type dash)
@@ -4986,7 +4828,7 @@
 	)
 	(rectangle
 		(start 97.79 132.08)
-		(end 161.29 182.88)
+		(end 161.29 186.69)
 		(stroke
 			(width 0)
 			(type dash)
@@ -5020,7 +4862,7 @@
 	)
 	(text "Power latch + voltage regulator"
 		(exclude_from_sim no)
-		(at 180.594 121.666 0)
+		(at 180.594 120.65 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -5050,7 +4892,7 @@
 	)
 	(text "Battery voltage ADC measure point"
 		(exclude_from_sim no)
-		(at 116.078 178.816 0)
+		(at 116.078 182.118 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -5070,7 +4912,7 @@
 	)
 	(text "Avoids draining the battery when not reading its voltage"
 		(exclude_from_sim no)
-		(at 126.492 181.356 0)
+		(at 126.492 184.658 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -5788,7 +5630,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "2f2a4dd1-a74a-4bab-abea-4401ac5efa1f")
-		(property "Reference" "#PWR026"
+		(property "Reference" "#PWR024"
 			(at 276.86 53.34 0)
 			(effects
 				(font
@@ -5838,7 +5680,7 @@
 		(instances
 			(project "leany"
 				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72"
-					(reference "#PWR026")
+					(reference "#PWR024")
 					(unit 1)
 				)
 			)
@@ -6127,7 +5969,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "47887382-bd35-4a9f-bfa5-ffb96a59780c")
-		(property "Reference" "#PWR038"
+		(property "Reference" "#PWR037"
 			(at 107.95 146.05 0)
 			(effects
 				(font
@@ -6177,7 +6019,7 @@
 		(instances
 			(project "leany"
 				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72"
-					(reference "#PWR038")
+					(reference "#PWR037")
 					(unit 1)
 				)
 			)
@@ -6192,7 +6034,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "47b18c8e-608b-467b-84eb-a493b01b52d5")
-		(property "Reference" "#PWR024"
+		(property "Reference" "#PWR025"
 			(at 44.45 54.61 0)
 			(effects
 				(font
@@ -6242,7 +6084,7 @@
 		(instances
 			(project ""
 				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72"
-					(reference "#PWR024")
+					(reference "#PWR025")
 					(unit 1)
 				)
 			)
@@ -6312,71 +6154,6 @@
 			(project "leany"
 				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72"
 					(reference "R18")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:-BATT")
-		(at 133.35 175.26 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "55683ec2-e3c0-4cee-98bc-a1adb846a3b4")
-		(property "Reference" "#PWR039"
-			(at 133.35 179.07 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "-BATT"
-			(at 133.604 171.704 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 133.35 175.26 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 133.35 175.26 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"-BATT\""
-			(at 133.35 175.26 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "30320891-edf1-407f-abd8-85860d0333e4")
-		)
-		(instances
-			(project "leany"
-				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72"
-					(reference "#PWR039")
 					(unit 1)
 				)
 			)
@@ -6599,7 +6376,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "6dbb5aa0-ca57-4aee-b32c-c8f9f599b73a")
-		(property "Reference" "TP1"
+		(property "Reference" "TP2"
 			(at 46.736 49.022 90)
 			(effects
 				(font
@@ -6651,7 +6428,7 @@
 		(instances
 			(project "leany"
 				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72"
-					(reference "TP1")
+					(reference "TP2")
 					(unit 1)
 				)
 			)
@@ -6790,71 +6567,6 @@
 			(project "leany"
 				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72"
 					(reference "R12")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:-BATT")
-		(at 182.88 118.11 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "748ffc05-8fe0-49f8-92c2-8f4245ff4fb8")
-		(property "Reference" "#PWR037"
-			(at 182.88 121.92 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "-BATT"
-			(at 183.134 114.554 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 182.88 118.11 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 182.88 118.11 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"-BATT\""
-			(at 182.88 118.11 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "70cae813-043b-429b-8144-3e901d0a8958")
-		)
-		(instances
-			(project "leany"
-				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72"
-					(reference "#PWR037")
 					(unit 1)
 				)
 			)
@@ -7070,7 +6782,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "8445c3ce-1dae-449b-b41c-bbf5e395b052")
-		(property "Reference" "#PWR034"
+		(property "Reference" "#PWR033"
 			(at 165.1 78.74 0)
 			(effects
 				(font
@@ -7120,7 +6832,7 @@
 		(instances
 			(project ""
 				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72"
-					(reference "#PWR034")
+					(reference "#PWR033")
 					(unit 1)
 				)
 			)
@@ -7197,6 +6909,170 @@
 		)
 	)
 	(symbol
+		(lib_id "leany-symbols:BAT54C-7-F")
+		(at 190.5 95.25 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "8875a8e6-7cff-4492-be51-12665610c9df")
+		(property "Reference" "D4"
+			(at 194.564 95.25 90)
+			(effects
+				(font
+					(size 1.524 1.524)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "BAT54C-7-F"
+			(at 194.564 97.79 90)
+			(effects
+				(font
+					(size 1.524 1.524)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "digikey-footprints:SOT-23-3"
+			(at 195.58 100.33 0)
+			(effects
+				(font
+					(size 1.524 1.524)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://www.diodes.com/assets/Datasheets/ds11005.pdf"
+			(at 198.12 100.33 0)
+			(effects
+				(font
+					(size 1.524 1.524)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Description" "DIODE ARRAY SCHOTTKY 30V SOT23-3"
+			(at 190.5 95.25 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Digi-Key_PN" "BAT54C-FDICT-ND"
+			(at 200.66 100.33 0)
+			(effects
+				(font
+					(size 1.524 1.524)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "MPN" "BAT54C-7-F"
+			(at 203.2 100.33 0)
+			(effects
+				(font
+					(size 1.524 1.524)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Category" "Discrete Semiconductor Products"
+			(at 205.74 100.33 0)
+			(effects
+				(font
+					(size 1.524 1.524)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Family" "Diodes - Rectifiers - Arrays"
+			(at 208.28 100.33 0)
+			(effects
+				(font
+					(size 1.524 1.524)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "DK_Datasheet_Link" "https://www.diodes.com/assets/Datasheets/ds11005.pdf"
+			(at 210.82 100.33 0)
+			(effects
+				(font
+					(size 1.524 1.524)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "DK_Detail_Page" "/product-detail/en/diodes-incorporated/BAT54C-7-F/BAT54C-FDICT-ND/717821"
+			(at 213.36 100.33 0)
+			(effects
+				(font
+					(size 1.524 1.524)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Description_1" "DIODE ARRAY SCHOTTKY 30V SOT23-3"
+			(at 215.9 100.33 0)
+			(effects
+				(font
+					(size 1.524 1.524)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer" "Diodes Incorporated"
+			(at 218.44 100.33 0)
+			(effects
+				(font
+					(size 1.524 1.524)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Status" "Active"
+			(at 220.98 100.33 0)
+			(effects
+				(font
+					(size 1.524 1.524)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(pin "3"
+			(uuid "aa30468b-7995-4b76-97f3-0b9cd608b79e")
+		)
+		(pin "2"
+			(uuid "17efda47-e084-496c-8aad-0a6c1162e3d0")
+		)
+		(pin "1"
+			(uuid "8cb3894a-1414-45b3-bdc2-508277652f43")
+		)
+		(instances
+			(project ""
+				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72"
+					(reference "D4")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Device:R_Small")
 		(at 81.28 86.36 90)
 		(unit 1)
@@ -7260,6 +7136,71 @@
 			(project "leany"
 				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72"
 					(reference "R10")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 179.07 113.03 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "8ac07cf2-4f03-4b63-ba32-c3bf29106e48")
+		(property "Reference" "#PWR036"
+			(at 179.07 119.38 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 179.07 116.586 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 179.07 113.03 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 179.07 113.03 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 179.07 113.03 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "129d6712-7e2e-4a7e-8707-3e286bc62b11")
+		)
+		(instances
+			(project "leany"
+				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72"
+					(reference "#PWR036")
 					(unit 1)
 				)
 			)
@@ -7728,71 +7669,6 @@
 		)
 	)
 	(symbol
-		(lib_id "power:-BATT")
-		(at 111.76 105.41 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "97c57246-5142-4c52-9251-769852ac8191")
-		(property "Reference" "#PWR036"
-			(at 111.76 109.22 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "-BATT"
-			(at 115.316 103.124 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 111.76 105.41 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 111.76 105.41 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"-BATT\""
-			(at 111.76 105.41 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "6e630a09-d7f2-42c9-b82b-f1043b6ff24b")
-		)
-		(instances
-			(project ""
-				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72"
-					(reference "#PWR036")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Device:R_Small")
 		(at 144.78 156.21 180)
 		(unit 1)
@@ -8008,7 +7884,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "a285c4cf-96de-44d8-968a-986b2e15f384")
-		(property "Reference" "#PWR033"
+		(property "Reference" "#PWR034"
 			(at 24.13 96.52 0)
 			(effects
 				(font
@@ -8058,7 +7934,7 @@
 		(instances
 			(project "leany"
 				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72"
-					(reference "#PWR033")
+					(reference "#PWR034")
 					(unit 1)
 				)
 			)
@@ -8273,6 +8149,71 @@
 	)
 	(symbol
 		(lib_id "power:GND")
+		(at 123.19 175.26 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "c2541de3-88f4-4c03-9132-68e9bfe5ac31")
+		(property "Reference" "#PWR038"
+			(at 123.19 181.61 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 123.19 178.816 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 123.19 175.26 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 123.19 175.26 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 123.19 175.26 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "fef67f88-86ab-4a20-a971-eb620aff2b83")
+		)
+		(instances
+			(project "leany"
+				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72"
+					(reference "#PWR038")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
 		(at 276.86 59.69 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -8331,170 +8272,6 @@
 			(project "leany"
 				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72"
 					(reference "#PWR031")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "dk_Diodes-Rectifiers-Arrays:BAT54C-7-F")
-		(at 190.5 95.25 270)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "cc0a83b9-d24f-48a7-8671-50ee4b27e52e")
-		(property "Reference" "D4"
-			(at 194.818 95.25 90)
-			(effects
-				(font
-					(size 1.524 1.524)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "BAT54C-7-F"
-			(at 193.294 98.298 90)
-			(effects
-				(font
-					(size 1.524 1.524)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "digikey-footprints:SOT-23-3"
-			(at 195.58 100.33 0)
-			(effects
-				(font
-					(size 1.524 1.524)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "https://www.diodes.com/assets/Datasheets/ds11005.pdf"
-			(at 198.12 100.33 0)
-			(effects
-				(font
-					(size 1.524 1.524)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-		(property "Description" "DIODE ARRAY SCHOTTKY 30V SOT23-3"
-			(at 190.5 95.25 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Digi-Key_PN" "BAT54C-FDICT-ND"
-			(at 200.66 100.33 0)
-			(effects
-				(font
-					(size 1.524 1.524)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-		(property "MPN" "BAT54C-7-F"
-			(at 203.2 100.33 0)
-			(effects
-				(font
-					(size 1.524 1.524)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-		(property "Category" "Discrete Semiconductor Products"
-			(at 205.74 100.33 0)
-			(effects
-				(font
-					(size 1.524 1.524)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-		(property "Family" "Diodes - Rectifiers - Arrays"
-			(at 208.28 100.33 0)
-			(effects
-				(font
-					(size 1.524 1.524)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-		(property "DK_Datasheet_Link" "https://www.diodes.com/assets/Datasheets/ds11005.pdf"
-			(at 210.82 100.33 0)
-			(effects
-				(font
-					(size 1.524 1.524)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-		(property "DK_Detail_Page" "/product-detail/en/diodes-incorporated/BAT54C-7-F/BAT54C-FDICT-ND/717821"
-			(at 213.36 100.33 0)
-			(effects
-				(font
-					(size 1.524 1.524)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-		(property "Description_1" "DIODE ARRAY SCHOTTKY 30V SOT23-3"
-			(at 215.9 100.33 0)
-			(effects
-				(font
-					(size 1.524 1.524)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-		(property "Manufacturer" "Diodes Incorporated"
-			(at 218.44 100.33 0)
-			(effects
-				(font
-					(size 1.524 1.524)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-		(property "Status" "Active"
-			(at 220.98 100.33 0)
-			(effects
-				(font
-					(size 1.524 1.524)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-		(pin "2"
-			(uuid "36b6f9d3-447e-42f2-82ce-31db53be1d3e")
-		)
-		(pin "1"
-			(uuid "7370573e-d24e-4519-a109-04f860347302")
-		)
-		(pin "3"
-			(uuid "54bb446d-1aca-4c14-8281-8628dec4ae62")
-		)
-		(instances
-			(project ""
-				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72"
-					(reference "D4")
 					(unit 1)
 				)
 			)
@@ -9085,7 +8862,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "ea7b300b-ba34-4d37-a219-6f3d416c746d")
-		(property "Reference" "#PWR025"
+		(property "Reference" "#PWR026"
 			(at 62.23 57.15 0)
 			(effects
 				(font
@@ -9135,7 +8912,7 @@
 		(instances
 			(project "leany"
 				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72"
-					(reference "#PWR025")
+					(reference "#PWR026")
 					(unit 1)
 				)
 			)
@@ -9218,7 +8995,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "ec02fa99-14ef-4bad-a7da-4c2e7bab954e")
-		(property "Reference" "TP2"
+		(property "Reference" "TP1"
 			(at 247.396 48.006 0)
 			(effects
 				(font
@@ -9270,7 +9047,7 @@
 		(instances
 			(project "leany"
 				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72"
-					(reference "TP2")
+					(reference "TP1")
 					(unit 1)
 				)
 			)
