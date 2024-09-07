@@ -6,7 +6,7 @@
 	(paper "A4")
 	(title_block
 		(title "Leany")
-		(date "2024-09-06")
+		(date "2024-09-07")
 		(comment 1 "MIT License")
 		(comment 2 "Copyright (c) 2023 Gilles Henrard")
 	)
@@ -5489,6 +5489,17 @@
 		)
 		(uuid "2b096910-a6b1-4d97-bbc8-b9f69b0d7162")
 	)
+	(label "FTDI_RX"
+		(at 187.96 118.11 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "44f4bfb0-f687-4ce1-a4f3-857e65327669")
+	)
 	(label "LED_BLUE"
 		(at 50.8 148.59 0)
 		(fields_autoplaced yes)
@@ -5620,6 +5631,17 @@
 			(justify left bottom)
 		)
 		(uuid "8c8a1f36-ae98-4f68-98fe-75e169b81120")
+	)
+	(label "FTDI_TX"
+		(at 187.96 120.65 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "9e429502-fb5e-413d-bb35-43b72e71dd36")
 	)
 	(label "LSM6DSO_INT2"
 		(at 247.65 50.8 0)
