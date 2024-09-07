@@ -4442,6 +4442,16 @@
 	)
 	(wire
 		(pts
+			(xy 26.67 156.21) (xy 29.21 156.21)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "1fe98f30-fae1-4097-a474-0199846c2488")
+	)
+	(wire
+		(pts
 			(xy 91.44 64.77) (xy 92.71 64.77)
 		)
 		(stroke
@@ -4449,16 +4459,6 @@
 			(type default)
 		)
 		(uuid "20b4ca71-45ef-44fa-bc7e-6183b54ef906")
-	)
-	(wire
-		(pts
-			(xy 29.21 156.21) (xy 29.21 158.75)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "2101b3b1-b11e-4981-8c5c-1ebe49017de6")
 	)
 	(wire
 		(pts
@@ -10695,7 +10695,7 @@
 	)
 	(symbol
 		(lib_id "Connector:TestPoint_Small")
-		(at 29.21 158.75 180)
+		(at 26.67 156.21 180)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -10703,7 +10703,7 @@
 		(dnp no)
 		(uuid "eedc1933-8842-48b8-9af4-5b06873e8d9e")
 		(property "Reference" "TP8"
-			(at 30.734 160.274 0)
+			(at 24.892 154.686 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10712,7 +10712,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 27.94 157.4801 0)
+			(at 25.4 154.9401 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10722,7 +10722,7 @@
 			)
 		)
 		(property "Footprint" "TestPoint:TestPoint_Pad_1.0x1.0mm"
-			(at 24.13 158.75 0)
+			(at 21.59 156.21 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10731,7 +10731,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 24.13 158.75 0)
+			(at 21.59 156.21 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10740,7 +10740,7 @@
 			)
 		)
 		(property "Description" "test point"
-			(at 29.21 158.75 0)
+			(at 26.67 156.21 0)
 			(effects
 				(font
 					(size 1.27 1.27)
