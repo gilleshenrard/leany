@@ -8032,7 +8032,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "7f00fbf1-9985-4fba-bffa-7fbe52a7f7f3")
-		(property "Reference" "TP7"
+		(property "Reference" "TP8"
 			(at 82.296 157.988 90)
 			(effects
 				(font
@@ -8084,7 +8084,7 @@
 		(instances
 			(project "leany"
 				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72"
-					(reference "TP7")
+					(reference "TP8")
 					(unit 1)
 				)
 			)
@@ -10744,7 +10744,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "eedc1933-8842-48b8-9af4-5b06873e8d9e")
-		(property "Reference" "TP8"
+		(property "Reference" "TP7"
 			(at 24.892 154.686 90)
 			(effects
 				(font
@@ -10796,7 +10796,7 @@
 		(instances
 			(project "leany"
 				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72"
-					(reference "TP8")
+					(reference "TP7")
 					(unit 1)
 				)
 			)
