@@ -27,9 +27,11 @@ extern "C" {
 #endif
 
 /* Includes ------------------------------------------------------------------*/
+#include "stm32f1xx_hal.h"
 
 #include "stm32f1xx_ll_adc.h"
 #include "stm32f1xx_ll_dma.h"
+#include "stm32f1xx_ll_i2c.h"
 #include "stm32f1xx_ll_iwdg.h"
 #include "stm32f1xx_ll_rcc.h"
 #include "stm32f1xx_ll_bus.h"
@@ -41,10 +43,6 @@ extern "C" {
 #include "stm32f1xx_ll_spi.h"
 #include "stm32f1xx_ll_usart.h"
 #include "stm32f1xx_ll_gpio.h"
-
-#if defined(USE_FULL_ASSERT)
-#include "stm32_assert.h"
-#endif /* USE_FULL_ASSERT */
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -74,10 +72,6 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define BAT_ACOK_Pin LL_GPIO_PIN_14
-#define BAT_ACOK_GPIO_Port GPIOC
-#define BAT_CHGOK_Pin LL_GPIO_PIN_15
-#define BAT_CHGOK_GPIO_Port GPIOC
 #define LED_RED_Pin LL_GPIO_PIN_0
 #define LED_RED_GPIO_Port GPIOA
 #define LED_GREEN_Pin LL_GPIO_PIN_1
@@ -96,48 +90,43 @@ void Error_Handler(void);
 #define LSM6DSO_SDA_GPIO_Port GPIOA
 #define LSM6DSO_INT1_Pin LL_GPIO_PIN_0
 #define LSM6DSO_INT1_GPIO_Port GPIOB
-#define POWER_BUTTON_Pin LL_GPIO_PIN_1
-#define POWER_BUTTON_GPIO_Port GPIOB
+#define LSM6DSO_INT1_EXTI_IRQn EXTI0_IRQn
+#define CHG_INT_Pin LL_GPIO_PIN_1
+#define CHG_INT_GPIO_Port GPIOB
+#define CHG_INT_EXTI_IRQn EXTI1_IRQn
 #define LSM6DSO_INT2_Pin LL_GPIO_PIN_2
 #define LSM6DSO_INT2_GPIO_Port GPIOB
+#define LSM6DSO_INT2_EXTI_IRQn EXTI2_IRQn
 #define ZERO_BUTTON_Pin LL_GPIO_PIN_10
 #define ZERO_BUTTON_GPIO_Port GPIOB
 #define HOLD_BUTTON_Pin LL_GPIO_PIN_11
 #define HOLD_BUTTON_GPIO_Port GPIOB
-#define SSD1306_CS_Pin LL_GPIO_PIN_12
-#define SSD1306_CS_GPIO_Port GPIOB
-#define SSD1306_D0_Pin LL_GPIO_PIN_13
-#define SSD1306_D0_GPIO_Port GPIOB
-#define POWER_ON_Pin LL_GPIO_PIN_14
-#define POWER_ON_GPIO_Port GPIOB
-#define SSD1306_D1_Pin LL_GPIO_PIN_15
-#define SSD1306_D1_GPIO_Port GPIOB
+#define ST7735S_CS_Pin LL_GPIO_PIN_12
+#define ST7735S_CS_GPIO_Port GPIOB
+#define ST7735S_SCL_Pin LL_GPIO_PIN_13
+#define ST7735S_SCL_GPIO_Port GPIOB
+#define ST7735S_MOSI_Pin LL_GPIO_PIN_15
+#define ST7735S_MOSI_GPIO_Port GPIOB
 #define BATT_EN_Pin LL_GPIO_PIN_8
 #define BATT_EN_GPIO_Port GPIOA
 #define FTDI_TX_Pin LL_GPIO_PIN_9
 #define FTDI_TX_GPIO_Port GPIOA
 #define FTDI_RX_Pin LL_GPIO_PIN_10
 #define FTDI_RX_GPIO_Port GPIOA
-#define SSD1306_DC_Pin LL_GPIO_PIN_11
-#define SSD1306_DC_GPIO_Port GPIOA
-#define SSD1306_RES_Pin LL_GPIO_PIN_12
-#define SSD1306_RES_GPIO_Port GPIOA
+#define ST7735S_DC_Pin LL_GPIO_PIN_11
+#define ST7735S_DC_GPIO_Port GPIOA
+#define ST7735S_RST_Pin LL_GPIO_PIN_12
+#define ST7735S_RST_GPIO_Port GPIOA
 #define DEBUG_SWDIO_Pin LL_GPIO_PIN_13
 #define DEBUG_SWDIO_GPIO_Port GPIOA
 #define DEBUG_SWCLK_Pin LL_GPIO_PIN_14
 #define DEBUG_SWCLK_GPIO_Port GPIOA
-#ifndef NVIC_PRIORITYGROUP_0
-#define NVIC_PRIORITYGROUP_0         ((uint32_t)0x00000007) /*!< 0 bit  for pre-emption priority,
-                                                                 4 bits for subpriority */
-#define NVIC_PRIORITYGROUP_1         ((uint32_t)0x00000006) /*!< 1 bit  for pre-emption priority,
-                                                                 3 bits for subpriority */
-#define NVIC_PRIORITYGROUP_2         ((uint32_t)0x00000005) /*!< 2 bits for pre-emption priority,
-                                                                 2 bits for subpriority */
-#define NVIC_PRIORITYGROUP_3         ((uint32_t)0x00000004) /*!< 3 bits for pre-emption priority,
-                                                                 1 bit  for subpriority */
-#define NVIC_PRIORITYGROUP_4         ((uint32_t)0x00000003) /*!< 4 bits for pre-emption priority,
-                                                                 0 bit  for subpriority */
-#endif
+#define ST7735S_BL_Pin LL_GPIO_PIN_15
+#define ST7735S_BL_GPIO_Port GPIOA
+#define CHG_SCL_Pin LL_GPIO_PIN_6
+#define CHG_SCL_GPIO_Port GPIOB
+#define CHG_SDA_Pin LL_GPIO_PIN_7
+#define CHG_SDA_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 

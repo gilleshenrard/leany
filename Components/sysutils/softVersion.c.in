@@ -1,0 +1,12 @@
+/**
+ * @file softVersion.c.in
+ * @author Gilles Henrard
+ * @brief File used as template to softVersion.c for CMake to populate with the git commit hash
+ * @date 26/09/2024
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
+#include "softversion.h"
+
+const char GIT_COMMIT_HASH[] = "@GIT_COMMIT_HASH@";  ///< Short hash code of the latest git commit

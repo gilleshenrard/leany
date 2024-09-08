@@ -37,9 +37,9 @@
         "other_text_thickness": 0.15,
         "other_text_upright": false,
         "pads": {
-          "drill": 0.762,
-          "height": 1.524,
-          "width": 1.524
+          "drill": 0.2,
+          "height": 0.5,
+          "width": 0.5
         },
         "silk_line_width": 0.1,
         "silk_text_italic": false,
@@ -48,11 +48,13 @@
         "silk_text_thickness": 0.1,
         "silk_text_upright": false,
         "zones": {
-          "min_clearance": 0.5
+          "min_clearance": 0.2
         }
       },
       "diff_pair_dimensions": [],
-      "drc_exclusions": [],
+      "drc_exclusions": [
+        "starved_thermal|110650000|120950000|95b3f96e-8578-4ad4-be1f-e46c9851690f|29188169-bf30-45d0-90b8-14a79fdaa0e8|F.Cu"
+      ],
       "meta": {
         "version": 2
       },
@@ -70,7 +72,7 @@
         "extra_footprint": "warning",
         "footprint": "error",
         "footprint_symbol_mismatch": "warning",
-        "footprint_type_mismatch": "ignore",
+        "footprint_type_mismatch": "warning",
         "hole_clearance": "error",
         "hole_near_hole": "error",
         "holes_co_located": "warning",
@@ -83,12 +85,12 @@
         "lib_footprint_mismatch": "warning",
         "malformed_courtyard": "error",
         "microvia_drill_out_of_range": "error",
-        "missing_courtyard": "ignore",
+        "missing_courtyard": "warning",
         "missing_footprint": "warning",
         "net_conflict": "warning",
-        "npth_inside_courtyard": "ignore",
+        "npth_inside_courtyard": "warning",
         "padstack": "warning",
-        "pth_inside_courtyard": "ignore",
+        "pth_inside_courtyard": "warning",
         "shorting_items": "error",
         "silk_edge_clearance": "warning",
         "silk_over_copper": "warning",
@@ -217,7 +219,8 @@
   },
   "erc": {
     "erc_exclusions": [
-      "pin_to_pin|2222500|1130300|a95aad55-403a-4632-9c8c-6788ca92f178|8e0c11ee-9a43-481a-8717-fe5c94f6b488|/e47b2519-93ca-4a48-9414-ecc253dd35f5|/e47b2519-93ca-4a48-9414-ecc253dd35f5|/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72"
+      "power_pin_not_driven|1587500|444500|11cec4b2-367e-4439-8a58-0fe871d7ed69|00000000-0000-0000-0000-000000000000|/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72|/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72|",
+      "power_pin_not_driven|406400|1066800|0171e895-4554-4f73-979e-32c73a37f3a8|00000000-0000-0000-0000-000000000000|/e47b2519-93ca-4a48-9414-ecc253dd35f5|/e47b2519-93ca-4a48-9414-ecc253dd35f5|"
     ],
     "meta": {
       "version": 0
@@ -419,9 +422,9 @@
       "pin_not_connected": "error",
       "pin_not_driven": "error",
       "pin_to_pin": "error",
-      "power_pin_not_driven": "ignore",
+      "power_pin_not_driven": "warning",
       "similar_labels": "warning",
-      "simulation_model_issue": "ignore",
+      "simulation_model_issue": "warning",
       "unannotated": "error",
       "unit_value_mismatch": "error",
       "unresolved_variable": "error",
@@ -468,8 +471,8 @@
       "gencad": "",
       "idf": "",
       "netlist": "",
-      "plot": "",
-      "pos_files": "",
+      "plot": "gerbers/",
+      "pos_files": "production_files/",
       "specctra_dsn": "",
       "step": "",
       "svg": "",
@@ -479,7 +482,7 @@
   },
   "schematic": {
     "annotate_start_num": 0,
-    "bom_export_filename": "",
+    "bom_export_filename": "production_files/BOM-leany.csv",
     "bom_fmt_presets": [],
     "bom_fmt_settings": {
       "field_delimiter": ",",
@@ -490,20 +493,163 @@
       "ref_range_delimiter": "",
       "string_delimiter": "\""
     },
-    "bom_presets": [],
+    "bom_presets": [
+      {
+        "exclude_dnp": true,
+        "fields_ordered": [
+          {
+            "group_by": true,
+            "label": "Comment",
+            "name": "Value",
+            "show": true
+          },
+          {
+            "group_by": false,
+            "label": "Designator",
+            "name": "Reference",
+            "show": true
+          },
+          {
+            "group_by": false,
+            "label": "Datasheet",
+            "name": "Datasheet",
+            "show": false
+          },
+          {
+            "group_by": true,
+            "label": "Footprint",
+            "name": "Footprint",
+            "show": true
+          },
+          {
+            "group_by": false,
+            "label": "LCSC",
+            "name": "LCSC",
+            "show": true
+          },
+          {
+            "group_by": false,
+            "label": "Do Not Place",
+            "name": "${DNP}",
+            "show": false
+          },
+          {
+            "group_by": false,
+            "label": "Exclude from BOM",
+            "name": "${EXCLUDE_FROM_BOM}",
+            "show": false
+          },
+          {
+            "group_by": false,
+            "label": "Exclude from Board",
+            "name": "${EXCLUDE_FROM_BOARD}",
+            "show": false
+          },
+          {
+            "group_by": false,
+            "label": "Exclude from Simulation",
+            "name": "${EXCLUDE_FROM_SIM}",
+            "show": false
+          },
+          {
+            "group_by": false,
+            "label": "Quantity",
+            "name": "${QUANTITY}",
+            "show": true
+          },
+          {
+            "group_by": false,
+            "label": "#",
+            "name": "${ITEM_NUMBER}",
+            "show": false
+          },
+          {
+            "group_by": false,
+            "label": "Description",
+            "name": "Description",
+            "show": false
+          },
+          {
+            "group_by": false,
+            "label": "Digi-Key_PN",
+            "name": "Digi-Key_PN",
+            "show": false
+          },
+          {
+            "group_by": false,
+            "label": "Family",
+            "name": "Family",
+            "show": false
+          },
+          {
+            "group_by": false,
+            "label": "MPN",
+            "name": "MPN",
+            "show": false
+          },
+          {
+            "group_by": false,
+            "label": "Manufacturer",
+            "name": "Manufacturer",
+            "show": false
+          },
+          {
+            "group_by": false,
+            "label": "Status",
+            "name": "Status",
+            "show": false
+          },
+          {
+            "group_by": false,
+            "label": "Description_1",
+            "name": "Description_1",
+            "show": false
+          },
+          {
+            "group_by": false,
+            "label": "DK_Datasheet_Link",
+            "name": "DK_Datasheet_Link",
+            "show": false
+          },
+          {
+            "group_by": false,
+            "label": "DK_Detail_Page",
+            "name": "DK_Detail_Page",
+            "show": false
+          },
+          {
+            "group_by": false,
+            "label": "Category",
+            "name": "Category",
+            "show": false
+          },
+          {
+            "group_by": false,
+            "label": "FOOTPRINT_NAME",
+            "name": "${FOOTPRINT_NAME}",
+            "show": false
+          }
+        ],
+        "filter_string": "",
+        "group_symbols": true,
+        "name": "JLCPCB",
+        "sort_asc": true,
+        "sort_field": "Value"
+      }
+    ],
     "bom_settings": {
-      "exclude_dnp": false,
+      "exclude_dnp": true,
       "fields_ordered": [
         {
-          "group_by": false,
-          "label": "Reference",
-          "name": "Reference",
+          "group_by": true,
+          "label": "Comment",
+          "name": "Value",
           "show": true
         },
         {
-          "group_by": true,
-          "label": "Value",
-          "name": "Value",
+          "group_by": false,
+          "label": "Designator",
+          "name": "Reference",
           "show": true
         },
         {
@@ -516,37 +662,43 @@
           "group_by": true,
           "label": "Footprint",
           "name": "Footprint",
-          "show": false
+          "show": true
+        },
+        {
+          "group_by": false,
+          "label": "LCSC",
+          "name": "LCSC",
+          "show": true
         },
         {
           "group_by": false,
           "label": "Do Not Place",
           "name": "${DNP}",
-          "show": true
+          "show": false
         },
         {
           "group_by": false,
           "label": "Exclude from BOM",
           "name": "${EXCLUDE_FROM_BOM}",
-          "show": true
+          "show": false
         },
         {
           "group_by": false,
           "label": "Exclude from Board",
           "name": "${EXCLUDE_FROM_BOARD}",
-          "show": true
+          "show": false
         },
         {
           "group_by": false,
           "label": "Exclude from Simulation",
           "name": "${EXCLUDE_FROM_SIM}",
-          "show": true
+          "show": false
         },
         {
           "group_by": false,
-          "label": "Qty",
+          "label": "Quantity",
           "name": "${QUANTITY}",
-          "show": false
+          "show": true
         },
         {
           "group_by": false,
@@ -613,13 +765,19 @@
           "label": "Category",
           "name": "Category",
           "show": false
+        },
+        {
+          "group_by": false,
+          "label": "FOOTPRINT_NAME",
+          "name": "${FOOTPRINT_NAME}",
+          "show": false
         }
       ],
       "filter_string": "",
       "group_symbols": true,
       "name": "",
       "sort_asc": true,
-      "sort_field": "Reference"
+      "sort_field": "Value"
     },
     "connection_grid_size": 50.0,
     "drawing": {
@@ -649,6 +807,14 @@
       "version": 1
     },
     "net_format_name": "",
+    "ngspice": {
+      "fix_include_paths": true,
+      "meta": {
+        "version": 0
+      },
+      "model_mode": 4,
+      "workbook_filename": ""
+    },
     "page_layout_descr_file": "",
     "plot_directory": "",
     "spice_current_sheet_as_root": false,

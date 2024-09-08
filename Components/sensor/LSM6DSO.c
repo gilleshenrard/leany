@@ -2,7 +2,7 @@
  * @file LSM6DSO.c
  * @brief Implement the LSM6DSO MEMS sensor communication
  * @author Gilles Henrard
- * @date 05/08/2024
+ * @date 03/10/2024
  *
  * @note Additional information can be found in :
  *   - Datasheet : https://www.st.com/resource/en/datasheet/lsm6dso.pdf
@@ -12,19 +12,26 @@
  */
 #include "LSM6DSO.h"
 #include <math.h>
+#include <stddef.h>
 #include <stdint.h>
+#include "FreeRTOS.h"
 #include "LSM6DSO_registers.h"
 #include "errorstack.h"
 #include "main.h"
+#include "portmacro.h"
+#include "projdefs.h"
+#include "semphr.h"
 #include "stm32f103xb.h"
-#include "stm32f1xx_ll_gpio.h"
+#include "stm32f1xx_hal.h"
+#include "stm32f1xx_hal_def.h"
 #include "stm32f1xx_ll_spi.h"
-#include "systick.h"
+#include "task.h"
 
-#define ANGLE_DELTA_MINIMUM       0.05F        ///< Minimum value for angle differences to be noticed
 #define RADIANS_TO_DEGREES_TENTHS 572.957795F  ///< Ratio between radians and tenths of degrees (= 10 * (180°/PI))
 #define BASE_TEMPERATURE          25.0F        ///< Temperature at which the LSM6DSO temperature reading will give 0
 enum {
+    STACK_SIZE           = 128U,                        ///< Amount of words in the task stack
+    TASK_LOW_PRIORITY    = 8U,                          ///< FreeRTOS number for a low priority task
     BOOT_TIME_MS         = 10U,                         ///< Number of milliseconds to wait for the MEMS to boot
     SPI_TIMEOUT_MS       = 10U,                         ///< Number of milliseconds beyond which SPI is in timeout
     TIMEOUT_MS           = 1000U,                       ///< Max number of milliseconds to wait for the device ID
@@ -39,10 +46,10 @@ enum {
 typedef enum {
     READ_REGISTERS = 1,  ///< readRegisters() function
     WRITE_REGISTER,      ///< writeRegister() function
-    CHECK_DEVICE_ID,     ///< stateWaitingDeviceID() state
+    CHECK_DEVICE_ID,     ///< stateStartup() state
     CONFIGURING,         ///< stateConfiguring() state
     DROPPING,            ///< stateIgnoringSamples() state
-    MEASURING,           ///< stMeasuring() state
+    MEASURING,           ///< stateMeasuring() state
 } LSM6DSOfunction_e;
 
 /**
@@ -68,59 +75,98 @@ typedef union {
  *
  * @return Error code of the state
  */
-typedef errorCode_u (*lsm6dsoState)();
+typedef errorCode_u (*lsm6dsoState)(void);
 
 //machine state
-static errorCode_u stateWaitingBoot();
-static errorCode_u stateWaitingDeviceID();
-static errorCode_u stateConfiguring();
-static errorCode_u stateIgnoringSamples();
-static errorCode_u stateMeasuring();
-static errorCode_u stateHoldingValues();
-static errorCode_u stateError();
+static errorCode_u stateStartup(void);
+static errorCode_u stateConfiguring(void);
+static errorCode_u stateIgnoringSamples(void);
+static errorCode_u stateMeasuring(void);
+static errorCode_u stateHoldingValues(void);
+static errorCode_u stateError(void);
 
 //registers read/write functions
+static void        taskLSM6DSO(void* argument);
 static errorCode_u writeRegister(LSM6DSOregister_e registerNumber, uint8_t value);
 static errorCode_u readRegisters(LSM6DSOregister_e firstRegister, uint8_t value[], uint8_t size);
-
-static inline uint8_t dataReady(void);
-static void           complementaryFilter(const float accelerometer_mG[], const float gyroscope_radps[],
-                                          float filteredAngles_rad[]);
-
-//global variables
-static systick_t lsm6dsoTimer_ms = 0;  ///< Timer used in various states of the LSM6DSO (in ms)
+static void        complementaryFilter(const float accelerometer_mG[], const float gyroscope_radps[],
+                                       float filteredAngles_rad[]);
 
 //state variables
-static SPI_TypeDef* spiHandle                   = (void*)0;          ///< SPI handle used by the LSM6DSO device
-static lsm6dsoState state                       = stateWaitingBoot;  ///< State machine current state
-static uint8_t     accelerometerSamplesToIgnore = 0;  ///< Number of samples to ignore after change of ODR or power mode
-static errorCode_u result;                            ///< Variables used to store error codes
-static float       anglesAtZeroing_rad[NB_AXIS];      ///< Accelerometer values at time of zeroing in [m/s²]
-static float       latestAngles_rad[NB_AXIS - 1] = {0.0F, 0.0F};      ///< Latest angles measured and filtered in [rad]
-float              temperature_degC              = BASE_TEMPERATURE;  ///< Temperature of the LSM6DSO in [°C]
+static volatile TaskHandle_t taskHandle  = NULL;            ///< handle of the FreeRTOS task
+static SemaphoreHandle_t     anglesMutex = NULL;            ///< handle of the mutex used to protect angles measurements
+static SPI_TypeDef*          spiHandle   = (void*)0;        ///< SPI handle used by the LSM6DSO device
+static lsm6dsoState          state       = stateStartup;    ///< State machine current state
+static errorCode_u           result;                        ///< Variables used to store error codes
+static float                 anglesAtZeroing_rad[NB_AXIS];  ///< Accelerometer values at time of zeroing in [m/s²]
+static float latestAngles_rad[NB_AXIS - 1] = {0.0F, 0.0F};  ///< Latest angles measured and filtered in [rad]
+float        temperature_degC              = BASE_TEMPERATURE;  ///< Temperature of the LSM6DSO in [°C]
 
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
 
 /**
- * @brief Initialise the LSM6DSO
- *
- * @param handle	SPI handle used
- * @returns 		Success
+ * @brief LSM6DSO INT1 and INT2 GPIO pins interrupt handler
+ * 
+ * @param interruptPin Number of the pin triggered (1 or 2)
  */
-errorCode_u lsm6dsoInitialise(const SPI_TypeDef* handle) {
+void lsm6dsoInterruptTriggered(uint8_t interruptPin) {
+    BaseType_t hasWoken = 0;
+
+    // vPortEnterCritical();
+
+    //if INT1, notify the LSM6DSO task
+    if(interruptPin == 1) {
+        vTaskNotifyGiveFromISR(taskHandle, &hasWoken);
+    }
+
+    // vPortExitCritical();
+
+    portYIELD_FROM_ISR(hasWoken);
+}
+
+/**
+ * @brief Create a LSM6DSO FreeRTOS static task
+ *
+ * @param handle SPI handle used by the LSM6DSO
+ */
+void createLSM6DSOTask(const SPI_TypeDef* handle) {
+    static StackType_t       taskStack[STACK_SIZE] = {0};  ///< Buffer used as the task stack
+    static StaticTask_t      taskState             = {0};  ///< Task state variables
+    static StaticSemaphore_t measureMutexState     = {0};  ///< ADC value mutex state variables
+
+    //save the SPI handle used by LSM6DSO and disable SPI1
     spiHandle = (SPI_TypeDef*)handle;
     LL_SPI_Disable(spiHandle);
 
-    return (ERR_SUCCESS);
+    //create the static task
+    taskHandle =
+        xTaskCreateStatic(taskLSM6DSO, "LSM6DSO task", STACK_SIZE, NULL, TASK_LOW_PRIORITY, taskStack, &taskState);
+    if(!taskHandle) {
+        Error_Handler();
+    }
+
+    //create a semaphore to protect mearurements
+    anglesMutex = xSemaphoreCreateMutexStatic(&measureMutexState);
+    if(!anglesMutex) {
+        Error_Handler();
+    }
 }
 
 /**
  * @brief Run the LSM6DSO state machine
- * @returns Current state return code
+ * 
+ * @param argument Unused
  */
-errorCode_u lsm6dsoUpdate() {
-    return ((*state)());
+static void taskLSM6DSO(void* argument) {
+    UNUSED(argument);
+
+    while(1) {
+        result = (*state)();
+        if(isError(result)) {
+            Error_Handler();
+        }
+    }
 }
 
 /**
@@ -147,13 +193,13 @@ static errorCode_u readRegisters(LSM6DSOregister_e firstRegister, uint8_t value[
     }
 
     //set timeout timer and enable SPI
-    systick_t lsm6dsoSPITimer_ms = getSystick();
+    uint32_t SPItick = HAL_GetTick();
     LL_SPI_Enable(spiHandle);
     uint8_t* iterator = value;
 
     //send the read request and ignore the first byte received (reply to the write request)
     LL_SPI_TransmitData8(spiHandle, LSM6_READ | (uint8_t)firstRegister);
-    while((!LL_SPI_IsActiveFlag_RXNE(spiHandle)) && !isTimeElapsed(lsm6dsoSPITimer_ms, SPI_TIMEOUT_MS)) {};
+    while((!LL_SPI_IsActiveFlag_RXNE(spiHandle)) && ((HAL_GetTick() - SPItick) < SPI_TIMEOUT_MS)) {};
     *iterator = LL_SPI_ReceiveData8(spiHandle);
 
     //receive the bytes to read
@@ -162,22 +208,22 @@ static errorCode_u readRegisters(LSM6DSOregister_e firstRegister, uint8_t value[
         LL_SPI_TransmitData8(spiHandle, SPI_RX_FILLER);
 
         //wait for data to be available, and read it
-        while((!LL_SPI_IsActiveFlag_RXNE(spiHandle)) && lsm6dsoSPITimer_ms) {};
+        while((!LL_SPI_IsActiveFlag_RXNE(spiHandle)) && SPItick) {};
         *iterator = LL_SPI_ReceiveData8(spiHandle);
 
         iterator++;
         size--;
-    } while(size && !isTimeElapsed(lsm6dsoSPITimer_ms, SPI_TIMEOUT_MS));
+    } while(size && ((HAL_GetTick() - SPItick) < SPI_TIMEOUT_MS));
 
     //wait for transaction to be finished and clear Overrun flag
-    while(LL_SPI_IsActiveFlag_BSY(spiHandle) && !isTimeElapsed(lsm6dsoSPITimer_ms, SPI_TIMEOUT_MS)) {};
+    while(LL_SPI_IsActiveFlag_BSY(spiHandle) && ((HAL_GetTick() - SPItick) < SPI_TIMEOUT_MS)) {};
     LL_SPI_ClearFlag_OVR(spiHandle);
 
     //disable SPI
     LL_SPI_Disable(spiHandle);
 
     //if timeout, error
-    if(isTimeElapsed(lsm6dsoSPITimer_ms, SPI_TIMEOUT_MS)) {
+    if(((HAL_GetTick() - SPItick) >= SPI_TIMEOUT_MS)) {
         return (createErrorCode(READ_REGISTERS, 2, ERR_WARNING));
     }
 
@@ -206,27 +252,27 @@ static errorCode_u writeRegister(LSM6DSOregister_e registerNumber, uint8_t value
     }
 
     //set timeout timer and enable SPI
-    systick_t lsm6dsoSPITimer_ms = getSystick();
+    uint32_t SPItick = HAL_GetTick();
     LL_SPI_Enable(spiHandle);
 
     //send the write instruction
     LL_SPI_TransmitData8(spiHandle, LSM6_WRITE | (uint8_t)registerNumber);
 
     //wait for TX buffer to be ready and send value to write
-    while(!LL_SPI_IsActiveFlag_TXE(spiHandle) && !isTimeElapsed(lsm6dsoSPITimer_ms, SPI_TIMEOUT_MS)) {};
-    if(!isTimeElapsed(lsm6dsoSPITimer_ms, SPI_TIMEOUT_MS)) {
+    while(!LL_SPI_IsActiveFlag_TXE(spiHandle) && ((HAL_GetTick() - SPItick) < SPI_TIMEOUT_MS)) {};
+    if(((HAL_GetTick() - SPItick) < SPI_TIMEOUT_MS)) {
         LL_SPI_TransmitData8(spiHandle, value);
     }
 
     //wait for transaction to be finished and clear Overrun flag
-    while(LL_SPI_IsActiveFlag_BSY(spiHandle) && !isTimeElapsed(lsm6dsoSPITimer_ms, SPI_TIMEOUT_MS)) {};
+    while(LL_SPI_IsActiveFlag_BSY(spiHandle) && ((HAL_GetTick() - SPItick) < SPI_TIMEOUT_MS)) {};
     LL_SPI_ClearFlag_OVR(spiHandle);
 
     //disable SPI
     LL_SPI_Disable(spiHandle);
 
     //if timeout, error
-    if(isTimeElapsed(lsm6dsoSPITimer_ms, SPI_TIMEOUT_MS)) {
+    if(((HAL_GetTick() - SPItick) >= SPI_TIMEOUT_MS)) {
         return (createErrorCode(WRITE_REGISTER, 3, ERR_WARNING));
     }
 
@@ -241,15 +287,30 @@ static errorCode_u writeRegister(LSM6DSOregister_e registerNumber, uint8_t value
  * @retval 1 New values are available
  */
 uint8_t lsm6dsoHasChanged(axis_e axis) {
-    static float previousAngles_rad[NB_AXIS - 1] = {0.0F, 0.0F};
-    uint8_t      comparison                      = 0;
+    static _Thread_local const float ANGLE_DELTA_MINIMUM             = 0.001745329F;  //0.1° in radians
+    static _Thread_local float       previousAngles_rad[NB_AXIS - 1] = {0.0F, 0.0F};
 
-    if(fabsf(latestAngles_rad[axis] - previousAngles_rad[axis]) > ANGLE_DELTA_MINIMUM) {
-        previousAngles_rad[axis] = latestAngles_rad[axis];
-        comparison               = 1;
+    //if axis index too high, return false
+    if(axis >= (NB_AXIS - 1)) {
+        return 0;
     }
 
-    return (comparison);
+    //take angles mutex
+    if(xSemaphoreTake(anglesMutex, pdMS_TO_TICKS(SPI_TIMEOUT_MS)) == pdFALSE) {
+        return 0;
+    }
+
+    //check if angle changed above minimum threshold
+    uint8_t changed = 0;
+    if(fabsf(latestAngles_rad[axis] - previousAngles_rad[axis]) > ANGLE_DELTA_MINIMUM) {
+        previousAngles_rad[axis] = latestAngles_rad[axis];
+        changed                  = 1;
+    }
+
+    //release angles mutex
+    xSemaphoreGive(anglesMutex);
+
+    return (changed);
 }
 
 /**
@@ -259,15 +320,25 @@ uint8_t lsm6dsoHasChanged(axis_e axis) {
  * @return Angle with the Z axis
  */
 int16_t getAngleDegreesTenths(axis_e axis) {
-    return ((int16_t)((latestAngles_rad[axis] + anglesAtZeroing_rad[axis]) * RADIANS_TO_DEGREES_TENTHS));
+    xSemaphoreTake(anglesMutex, portMAX_DELAY);
+    float angle = latestAngles_rad[axis];
+    xSemaphoreGive(anglesMutex);
+
+    return ((int16_t)((angle + anglesAtZeroing_rad[axis]) * RADIANS_TO_DEGREES_TENTHS));
 }
 
 /**
  * @brief Set the measurements in relative mode and zero down the values
  */
 void lsm6dsoZeroDown(void) {
+    if(xSemaphoreTake(anglesMutex, pdMS_TO_TICKS(SPI_TIMEOUT_MS)) == pdFALSE) {
+        return;
+    }
+
     anglesAtZeroing_rad[X_AXIS] = -latestAngles_rad[X_AXIS];
     anglesAtZeroing_rad[Y_AXIS] = -latestAngles_rad[Y_AXIS];
+
+    xSemaphoreGive(anglesMutex);
 }
 
 /**
@@ -287,7 +358,7 @@ void lsm6dsoCancelZeroing(void) {
  * @retval 1 Error while sending shut down instructions
  */
 errorCode_u lsm6dsoHold(uint8_t toHold) {
-    const registerValue_t configurationArray[2] = {
+    static const registerValue_t configurationArray[2] = {
         {CTRL1_XL, LSM6_POWER_DOWN}, //set accelerometer in power down mode
         { CTRL2_G, LSM6_POWER_DOWN}, //set gyroscope in power down mode
     };
@@ -326,17 +397,22 @@ errorCode_u lsm6dsoHold(uint8_t toHold) {
  */
 //NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 void complementaryFilter(const float accelerometer_mG[], const float gyroscope_radps[], float filteredAngles_rad[]) {
-    const float alpha                 = 0.02F;  ///< Proportion applied to the gyro. and accel. in the final result
-    const float dtPeriod_sec          = 0.00240385F;  ///< Time period between two updates (LSM6DSO config. at 416Hz)
-    const float GRAVITATION_MG        = 1000.0F;      ///< Grativation value in mG
-    float       AccelEstimatedX_rad   = 0.0F;         ///< Estimated accelerator angle on the X axis in [rad]
-    float       AccelEstimatedY_rad   = 0.0F;         ///< Estimated accelerator angle on the Y axis in [rad]
-    float       eulerAngleRateX_radps = 0.0F;  ///< Euler angle rate (with reference to Earth) around X axis in rad/s
-    float       eulerAngleRateY_radps = 0.0F;  ///< Euler angle rate (with reference to Earth) around Y axis in rad/s
+    static const float alpha          = 0.02F;  ///< Proportion applied to the gyro. and accel. in the final result
+    static const float dtPeriod_sec   = 0.00240385F;  ///< Time period between two updates (LSM6DSO config. at 416Hz)
+    static const float GRAVITATION_MG = 1000.0F;      ///< Grativation value in mG
+    float              AccelEstimatedX_rad = 0.0F;    ///< Estimated accelerator angle on the X axis in [rad]
+    float              AccelEstimatedY_rad = 0.0F;    ///< Estimated accelerator angle on the Y axis in [rad]
+    float eulerAngleRateX_radps = 0.0F;  ///< Euler angle rate (with reference to Earth) around X axis in rad/s
+    float eulerAngleRateY_radps = 0.0F;  ///< Euler angle rate (with reference to Earth) around Y axis in rad/s
 
-    //calculate the accelerometer angle estimations in °
+    //calculate the accelerometer angle estimations
     AccelEstimatedX_rad = asinf(accelerometer_mG[X_AXIS] / GRAVITATION_MG);
     AccelEstimatedY_rad = atanf(accelerometer_mG[Y_AXIS] / accelerometer_mG[Z_AXIS]);
+
+    //take the measurements mutex before updating angle values
+    if(xSemaphoreTake(anglesMutex, pdMS_TO_TICKS(SPI_TIMEOUT_MS)) == pdFALSE) {
+        return;
+    }
 
     //Transform gyroscope rates (reference is the solid body) to Euler rates (reference is Earth)
     eulerAngleRateX_radps =
@@ -354,68 +430,38 @@ void complementaryFilter(const float accelerometer_mG[], const float gyroscope_r
     filteredAngles_rad[Y_AXIS] =
         ((1.0F - alpha) * (filteredAngles_rad[Y_AXIS] + (eulerAngleRateY_radps * dtPeriod_sec)))
         + (alpha * AccelEstimatedY_rad);
-}
 
-/**
- * @brief Check if an INT1 event occurred
- * 
- * @retval 0 INT1 did not occur
- * @retval 1 INT1 occurred
- */
-static inline uint8_t dataReady(void) {
-    return (uint8_t)LL_GPIO_IsInputPinSet(LSM6DSO_INT1_GPIO_Port, LSM6DSO_INT1_Pin);
+    //release the mutex
+    xSemaphoreGive(anglesMutex);
 }
 
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
 
-/**
- * @brief State in which the program waits for the LSM6DSO to boot up
- * 
- * @return Success
- */
-static errorCode_u stateWaitingBoot() {
-    //if timer elapsed, reset it and get to next state
-    if(isTimeElapsed(lsm6dsoTimer_ms, BOOT_TIME_MS)) {
-        lsm6dsoTimer_ms = getSystick();
-        state           = stateWaitingDeviceID;
-    }
-
-    return (ERR_SUCCESS);
-}
-
-/**
- * @brief State during which the Who Am I ID is checked
- * @attention This takes the 10ms boot time into account
- * @note If no correct manufacturer ID is read within 1 second, a timeout occurs
- * 
- * @retval 0 Success
- * @retval 1 Timeout while reading the manufacturer ID
- * @retval 2 Error while sending the read request
- */
-static errorCode_u stateWaitingDeviceID() {
+static errorCode_u stateStartup(void) {
     uint8_t deviceID = 0;
 
-    //if 1s elapsed without reading the correct vendor ID, go error
-    if(isTimeElapsed(lsm6dsoTimer_ms, TIMEOUT_MS)) {
+    //wait for a while for the sensor to boot properly
+    vTaskDelay(pdMS_TO_TICKS(10U));
+
+    //attempt to read a correct device ID for max. 1 second
+    uint32_t firstTick = HAL_GetTick();
+    do {
+        result = readRegisters(WHO_AM_I, &deviceID, 1);
+        if(isError(result)) {
+            return (pushErrorCode(result, CHECK_DEVICE_ID, 2));
+        }
+    } while((deviceID != LSM6_WHOAMI) && ((HAL_GetTick() - firstTick) < TIMEOUT_MS));
+
+    //if device ID still incorrect, error
+    if(deviceID != LSM6_WHOAMI) {
         state = stateError;
         return (createErrorCode(CHECK_DEVICE_ID, 1, ERR_CRITICAL));
     }
 
-    //if unable to read device ID, error
-    result = readRegisters(WHO_AM_I, &deviceID, 1);
-    if(isError(result)) {
-        return (pushErrorCode(result, CHECK_DEVICE_ID, 2));
-    }
-
-    //if invalid device ID, exit
-    if(deviceID != LSM6_WHOAMI) {
-        return (ERR_SUCCESS);
-    }
-
-    //reset timeout timer and get to next state
+    //go to configuration state next
     state = stateConfiguring;
-    return (ERR_SUCCESS);
+    return ERR_SUCCESS;
 }
 
 /**
@@ -424,9 +470,8 @@ static errorCode_u stateWaitingDeviceID() {
  * @retval 0 Success
  * @retval 1 Error while writing a register
  */
-static errorCode_u stateConfiguring() {
-    const uint8_t         AXL_SAMPLES_TO_IGNORE = 2U;  ///< Number of samples to drop (see stateIgnoringSamples())
-    const registerValue_t initialisationArray[NB_INIT_REG] = {
+static errorCode_u stateConfiguring(void) {
+    static const registerValue_t initialisationArray[NB_INIT_REG] = {
         {   CTRL3_C, LSM6_SOFTWARE_RESET | LSM6_INT_ACTIVE_LOW}, //reboot MEMS memory and reset software
         {FIFO_CTRL4,                          FIFO_MODE_BYPASS}, //disable the FIFO (bypass mode)
         { INT1_CTRL,                         INT1_AXL_DATA_RDY}, //enable the accelerometer DATA READY interrupt on INT1
@@ -447,11 +492,7 @@ static errorCode_u stateConfiguring() {
         }
     }
 
-    //set the number of samples to ignore after changing ODR and power mode
-    accelerometerSamplesToIgnore = AXL_SAMPLES_TO_IGNORE;
-
-    lsm6dsoTimer_ms = getSystick();
-    state           = stateIgnoringSamples;
+    state = stateIgnoringSamples;
     return (ERR_SUCCESS);
 }
 
@@ -461,35 +502,28 @@ static errorCode_u stateConfiguring() {
  * 
  * @retval 0 Success
  * @retval 1 No measurement received in a timely manner
- * @retval 2 Error while reading a register
  */
-errorCode_u stateIgnoringSamples() {
+errorCode_u stateIgnoringSamples(void) {
+    static const uint8_t AXL_SAMPLES_TO_IGNORE    = 2U;  ///< Number of samples to drop (see stateIgnoringSamples())
+    uint8_t              dummyValue               = 0;
+    uint8_t              remainingSamplesToIgnore = AXL_SAMPLES_TO_IGNORE;
+
+    uint32_t waitTimeOK = pdFALSE;
+    do {
+        //wait for a notification indicating a sample is ready
+        waitTimeOK = ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(TIMEOUT_MS));
+
+        //read an accelerometer value to reset the latched interrupt
+        readRegisters(OUTX_H_A, &dummyValue, 1);
+
+        //decrement the counter
+        remainingSamplesToIgnore--;
+    } while(remainingSamplesToIgnore && (waitTimeOK != pdFALSE));
+
     //if 1s elapsed without getting any data ready interrupt, error
-    if(isTimeElapsed(lsm6dsoTimer_ms, TIMEOUT_MS)) {
+    if(remainingSamplesToIgnore) {
         state = stateError;
         return (createErrorCode(DROPPING, 1, ERR_CRITICAL));
-    }
-
-    //if no interrupt occurred, exit
-    if(!dataReady()) {
-        return (ERR_SUCCESS);
-    }
-
-    //read an accelerometer value to reset the latched interrupt
-    uint8_t dummyValue = 0;
-    result             = readRegisters(OUTX_H_A, &dummyValue, 1);
-    if(isError(result)) {
-        state = stateError;
-        return (pushErrorCode(result, DROPPING, 2));
-    }
-
-    //reset the timer
-    lsm6dsoTimer_ms = getSystick();
-
-    //decrement the remaining amount to ignore and exit if still remaining
-    accelerometerSamplesToIgnore--;
-    if(accelerometerSamplesToIgnore) {
-        return (ERR_SUCCESS);
     }
 
     //get to measuring state
@@ -504,26 +538,18 @@ errorCode_u stateIgnoringSamples() {
  * @retval 1 No measurement received in a timely manner
  * @retval 2 Error while reading the status register value
  */
-static errorCode_u stateMeasuring() {
-    rawValues_u    LSBvalues = {0};              ///< Buffer in which read values will be stored
-    float          accelerometer_mG[NB_AXIS];    ///< Accelerometer values in [mG]
-    float          gyroscope_radps[NB_AXIS];     ///< Gyroscope values in [rad/s]
-    int16_t*       valueIterator    = (void*)0;  ///< Pointer used to browse through read values
-    static int16_t previousTemp_LSB = 0;         ///< Previously read temperature LSB values
+static errorCode_u stateMeasuring(void) {
+    rawValues_u                  LSBvalues = {0};              ///< Buffer in which read values will be stored
+    float                        accelerometer_mG[NB_AXIS];    ///< Accelerometer values in [mG]
+    float                        gyroscope_radps[NB_AXIS];     ///< Gyroscope values in [rad/s]
+    int16_t*                     valueIterator    = (void*)0;  ///< Pointer used to browse through read values
+    static _Thread_local int16_t previousTemp_LSB = 0;         ///< Previously read temperature LSB values
 
-    //if 1s elapsed without getting any data ready interrupt, error
-    if(isTimeElapsed(lsm6dsoTimer_ms, TIMEOUT_MS)) {
+    //wait for measurements to be ready
+    if(ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(TIMEOUT_MS)) == pdFALSE) {
         state = stateError;
         return (createErrorCode(MEASURING, 1, ERR_CRITICAL));
     }
-
-    //if no interrupt occurred, exit
-    if(!dataReady()) {
-        return (ERR_SUCCESS);
-    }
-
-    //reset the timer
-    lsm6dsoTimer_ms = getSystick();
 
     //read all temp/accelerometer/gyroscope values
     result = readRegisters(OUT_TEMP_L, LSBvalues.registers8bits, NB_REGISTERS_TO_READ);
@@ -541,16 +567,16 @@ static errorCode_u stateMeasuring() {
     // AN5192 p.113 : temperature sensitivity = 256 [LSB/°C] = 0.00390625 [°C/LSB]
     //                + LSB = 0 @ 25°C
     if(*valueIterator != previousTemp_LSB) {
-        const float TEMPERATURE_SENSITIVITY = 0.00390625F;
-        temperature_degC                    = BASE_TEMPERATURE + ((float)(*valueIterator) * TEMPERATURE_SENSITIVITY);
-        previousTemp_LSB                    = *valueIterator;
+        static const float TEMPERATURE_SENSITIVITY = 0.00390625F;
+        temperature_degC = BASE_TEMPERATURE + ((float)(*valueIterator) * TEMPERATURE_SENSITIVITY);
+        previousTemp_LSB = *valueIterator;
     }
     valueIterator++;
 
     //convert the gyroscope LSB values to rad/s
     //datasheet p.9 : gyroscope sensitivity at 125°/s = 4.375[mdps/LSB]
     //      to rad/s : (sensitivity / 1000[mdps/dps]) * (PI/180°) = 0.000076358155
-    const float GYR_SENSITIVITY_125DPS_RPS = 0.000076358155F;
+    static const float GYR_SENSITIVITY_125DPS_RPS = 0.000076358155F;
     for(axis = 0; axis < (uint8_t)NB_AXIS; axis++) {
         gyroscope_radps[axis] = (float)(*valueIterator) * GYR_SENSITIVITY_125DPS_RPS;
         valueIterator++;
@@ -558,7 +584,7 @@ static errorCode_u stateMeasuring() {
 
     //then convert the accelerometer LSB values to mG
     //datasheet p.9 : accelerometer sensitivity at 2G = 0.061 [mG/LSB]
-    const float AXL_SENSITIVITY_2G = 0.061F;
+    static const float AXL_SENSITIVITY_2G = 0.061F;
     for(axis = 0; axis < (uint8_t)NB_AXIS; axis++) {
         accelerometer_mG[axis] = (float)(*valueIterator) * AXL_SENSITIVITY_2G;
         valueIterator++;
@@ -575,7 +601,7 @@ static errorCode_u stateMeasuring() {
  * 
  * @return Success
  */
-static errorCode_u stateHoldingValues() {
+static errorCode_u stateHoldingValues(void) {
     return (ERR_SUCCESS);
 }
 
@@ -584,6 +610,6 @@ static errorCode_u stateHoldingValues() {
  * 
  * @return Success
  */
-static errorCode_u stateError() {
+static errorCode_u stateError(void) {
     return (ERR_SUCCESS);
 }
