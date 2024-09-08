@@ -29,7 +29,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "LSM6DSO.h"
-#include "SSD1306.h"
+#include "ST7735S.h"
 #include "buttons.h"
 /* USER CODE END Includes */
 
@@ -119,7 +119,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
   LL_SYSTICK_EnableIT();
   lsm6dsoInitialise(SPI1);
-  ssd1306Initialise(SPI2, DMA1, LL_DMA_CHANNEL_5);
+  st7735sInitialise(SPI2, DMA1, LL_DMA_CHANNEL_5);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -137,7 +137,7 @@ int main(void)
     }
 
 	  //update the screen state machine
-	  result = ssd1306Update();
+	  result = st7735sUpdate();
 	  if(isError(result)){
 		  result.moduleID = 2;
     }
@@ -148,36 +148,36 @@ int main(void)
     //if zero button is pressed, zero down measurements
     if(buttonHasRisingEdge(ZERO)){
      lsm6dsoZeroDown();
-      ssd1306PrintReferentialIcon(RELATIVE);
+      // ssd1306PrintReferentialIcon(RELATIVE);
     }
 
     //if zero button is held down, get back to absolute measurements
     if(isButtonHeldDown(ZERO)){
      lsm6dsoCancelZeroing();
-      ssd1306PrintReferentialIcon(ABSOLUTE);
+      // ssd1306PrintReferentialIcon(ABSOLUTE);
     }
 
     if(buttonHasRisingEdge(HOLD)){
       holdingValues = !holdingValues;
       lsm6dsoHold(holdingValues);
-      ssd1306PrintHoldIcon(holdingValues);
+      // ssd1306PrintHoldIcon(holdingValues);
     }
 
     //if power button is held down, shut down
     if(isButtonHeldDown(POWER)){
-      ssd1306TurnDisplayOFF();
+      // ssd1306TurnDisplayOFF();
       powerOFF();
     }
 
-	  //if X axis angle changed, update the screen
-	  if(lsm6dsoHasChanged(X_AXIS)){
-		  ssd1306PrintAngleTenths(getAngleDegreesTenths(X_AXIS), ROLL);
-    }
+	  // //if X axis angle changed, update the screen
+	  // if(lsm6dsoHasChanged(X_AXIS)){
+		//   ssd1306PrintAngleTenths(getAngleDegreesTenths(X_AXIS), ROLL);
+    // }
 
-	  //if Y axis angle changed, update the screen
-	  if(lsm6dsoHasChanged(Y_AXIS)){
-		  ssd1306PrintAngleTenths(getAngleDegreesTenths(Y_AXIS), PITCH);
-    }
+	  // //if Y axis angle changed, update the screen
+	  // if(lsm6dsoHasChanged(Y_AXIS)){
+		//   ssd1306PrintAngleTenths(getAngleDegreesTenths(Y_AXIS), PITCH);
+    // }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

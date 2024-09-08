@@ -10,7 +10,9 @@ on:
       - '.github/workflows/verify_kicad.yml'
 
 env:
-  SCH_PATH: ${{github.workspace}}/schematics/KiCad/leany.kicad_sch
+  SCH_PATH: ${{github.workspace}}/schematics/KiCad
+  SCH_FILE: leany.kicad_sch
+  ERC_FILE: erc.json
 
 jobs:
     run_checks:
@@ -22,23 +24,25 @@ jobs:
 
           - name: Export production files
             id: production
-            uses: gilleshenrard/kicad-action@v2
+            uses: sparkengineering/kicad-action@v3
             if: '!cancelled()'
             with:
-                kicad_sch: ${{env.SCH_PATH}}
+                kicad_sch: ${{env.SCH_PATH}}/${{env.SCH_FILE}}
 
           - name: Run Electrical Rules Check (ERC)
             id: erc
-            uses: gilleshenrard/kicad-action@v2
+            uses: sparkengineering/kicad-action@v3
             if: '!cancelled()'
             with:
-                kicad_sch: ${{env.SCH_PATH}}
+                kicad_sch: ${{env.SCH_PATH}}/${{env.SCH_FILE}}
                 sch_erc: true
+                report_format: json
+                sch_erc_file: ${{env.SCH_PATH}}/${{env.ERC_FILE}}
 
             # Upload ERC report only if ERC failed
           - name: Upload ERC report
             uses: actions/upload-artifact@v4
             if: ${{ failure() && steps.erc.conclusion == 'failure' }}
             with:
-                name: erc.rpt
-                path: ${{github.workspace}}/schematics/KiCad/erc.rpt
+                name: ${{env.ERC_FILE}}
+                path: ${{env.SCH_PATH}}/${{env.ERC_FILE}}
