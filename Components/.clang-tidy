@@ -32,7 +32,7 @@ WarningsAsErrors:
 
 #Include headers located in Components/ during linting
 HeaderFilterRegex:
-  "Components/*"
+  "*"
 
 #Format fixes as stated in the .clang-format file
 FormatStyle:

@@ -57,11 +57,17 @@ dkms.conf
 .project
 mx.scratch
 
+#Project-specific files
+softVersion.c
+
 #STM32CubeIDE
 .settings/
 
 #CMake
 build/
+
+#arm-none-eabi-gcc
+*.xz
 
 #Doxygen outputs
 doxygen/
@@ -83,3 +89,6 @@ schematics/KiCad/*.json
 schematics/KiCad/*.net
 schematics/KiCad/leany-backups
 schematics/KiCad/fp-info-cache
+schematics/KiCad/*auto*save*
+schematics/KiCad/production_files/
+schematics/KiCad/gerber/
