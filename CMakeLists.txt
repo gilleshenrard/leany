@@ -32,6 +32,6 @@ add_subdirectory(Components)
 target_link_libraries(${CMAKE_PROJECT_NAME}
     stm32cubemx
     lsm6dso
-    ssd1306
+    st7735s
     buttons
 )
