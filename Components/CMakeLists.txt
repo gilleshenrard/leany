@@ -71,12 +71,12 @@ target_include_directories(lsm6dso PUBLIC sensor/)
 target_link_libraries(lsm6dso PRIVATE sysUtils)
 
 #create the ssd1306 library, taking care of the display
-add_library(ssd1306
-	display/SSD1306.c
-	display/numbersVerdana16.c
-	display/icons.c)
-target_include_directories(ssd1306 PUBLIC display)
-target_link_libraries(ssd1306 PRIVATE sysUtils)
+add_library(st7735s
+	display/ST7735S.c
+	display/icons.c
+	display/ST7735_initialisation.c)
+target_include_directories(st7735s PUBLIC display)
+target_link_libraries(st7735s PRIVATE sysUtils)
 
 #create the buttons library, taking care of the control buttons
 add_library(buttons

@@ -51,13 +51,13 @@ void MX_GPIO_Init(void)
   LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_GPIOB);
 
   /**/
-  LL_GPIO_SetOutputPin(GPIOA, LED_RED_Pin|LED_GREEN_Pin|LED_BLUE_Pin);
+  LL_GPIO_SetOutputPin(GPIOA, LED_RED_Pin|LED_GREEN_Pin|LED_BLUE_Pin|ST7735S_RST_Pin);
 
   /**/
   LL_GPIO_SetOutputPin(POWER_ON_GPIO_Port, POWER_ON_Pin);
 
   /**/
-  LL_GPIO_ResetOutputPin(GPIOA, BATT_EN_Pin|SSD1306_DC_Pin|SSD1306_RES_Pin);
+  LL_GPIO_ResetOutputPin(GPIOA, BATT_EN_Pin|ST7735S_DC_Pin|ST7735S_BL_Pin);
 
   /**/
   GPIO_InitStruct.Pin = BAT_ACOK_Pin|BAT_CHGOK_Pin;
@@ -87,7 +87,7 @@ void MX_GPIO_Init(void)
   LL_GPIO_Init(POWER_ON_GPIO_Port, &GPIO_InitStruct);
 
   /**/
-  GPIO_InitStruct.Pin = BATT_EN_Pin|SSD1306_DC_Pin|SSD1306_RES_Pin;
+  GPIO_InitStruct.Pin = BATT_EN_Pin|ST7735S_DC_Pin|ST7735S_RST_Pin|ST7735S_BL_Pin;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
   GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
