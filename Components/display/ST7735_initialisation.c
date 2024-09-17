@@ -1,5 +1,7 @@
 #include "ST7735_initialisation.h"
+#include <stddef.h>
 #include "ST7735_registers.h"
+
 
 /**
  * @brief Arguments sent when configuring the frame rate
