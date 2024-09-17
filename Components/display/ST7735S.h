@@ -5,7 +5,7 @@
 #include "errorstack.h"
 #include "stm32f103xb.h"
 
-errorCode_u st7735sInitialise(SPI_TypeDef* handle, DMA_TypeDef* dma, uint32_t dmaChannel);
-errorCode_u st7735sUpdate(void);
+errorCode_u createST7735Stask(SPI_TypeDef* handle, DMA_TypeDef* dma, uint32_t dmaChannel);
 errorCode_u st7735sSetOrientation(orientation_e orientation);
+void        st7735sDMAinterruptHandler(void);
 #endif

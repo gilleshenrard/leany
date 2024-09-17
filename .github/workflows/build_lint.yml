@@ -108,6 +108,8 @@ jobs:
               --cppcheck-build-dir=${{github.workspace}}/config-cppcheck-build-dir/
               -i${{github.workspace}}/build/
               -i${{github.workspace}}/Drivers/
+              -i${{github.workspace}}/Middlewares/
+              -i${{github.workspace}}/schematics/
               -i${{github.workspace}}/Core/Src/dma.c/
               -i${{github.workspace}}/Core/Src/gpio.c/
               -i${{github.workspace}}/Core/Src/iwdg.c/
