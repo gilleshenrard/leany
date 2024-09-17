@@ -53,12 +53,11 @@ set(WARNING_FLAGS
 #make sure STM32CubeMX library knows about sysutils/ (to use it in interrupts, ...)
 target_include_directories(stm32cubemx INTERFACE sysutils/)
 
-#create the sysUtils library, taking care of the error and application tick management
+#create the sysUtils library, taking care of the error stack management
 #	STM32CubeMX includes and definitions are manually added instead of linking the library
 #	to avoid re-compiling STMCube libraries and optimising compilation
 add_library(sysUtils
-	sysutils/errorstack.c
-	sysutils/systick.c)
+	sysutils/errorstack.c)
 target_include_directories(sysUtils PUBLIC sysutils/)
 target_compile_definitions(sysUtils PUBLIC $<TARGET_PROPERTY:stm32cubemx,INTERFACE_COMPILE_DEFINITIONS>)
 target_include_directories(sysUtils SYSTEM INTERFACE $<TARGET_PROPERTY:stm32cubemx,INTERFACE_INCLUDE_DIRECTORIES>)

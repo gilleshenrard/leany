@@ -19,6 +19,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "cmsis_os.h"
 #include "adc.h"
 #include "dma.h"
 #include "iwdg.h"
@@ -56,6 +57,7 @@
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
+void MX_FREERTOS_Init(void);
 /* USER CODE BEGIN PFP */
 extern inline uint8_t isError(const errorCode_u code);
 /* USER CODE END PFP */
@@ -84,18 +86,7 @@ int main(void)
   /* MCU Configuration--------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_AFIO);
-  LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_PWR);
-
-  /* System interrupt init*/
-  NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
-
-  /* SysTick_IRQn interrupt configuration */
-  NVIC_SetPriority(SysTick_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),15, 0));
-
-  /** NOJTAG: JTAG-DP Disabled and SW-DP Enabled
-  */
-  LL_GPIO_AF_Remap_SWJ_NOJTAG();
+  HAL_Init();
 
   /* USER CODE BEGIN Init */
 
@@ -111,39 +102,31 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_DMA_Init();
-  MX_SPI2_Init();
+  MX_ADC1_Init();
   MX_IWDG_Init();
   MX_SPI1_Init();
+  MX_SPI2_Init();
   MX_USART1_UART_Init();
-  MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
-  LL_SYSTICK_EnableIT();
-  lsm6dsoInitialise(SPI1);
-  st7735sInitialise(SPI2, DMA1, LL_DMA_CHANNEL_5);
+  createLSM6DSOTask(SPI1);
+  createST7735Stask(SPI2, DMA1, LL_DMA_CHANNEL_5);
+  createButtonsTask();
   /* USER CODE END 2 */
+
+  /* Call init function for freertos objects (in cmsis_os2.c) */
+  MX_FREERTOS_Init();
+
+  /* Start scheduler */
+  osKernelStart();
+
+  /* We should never get here as control is now taken by the scheduler */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  errorCode_u result;
   while (1)
   {
     //reset the watchdog
     LL_IWDG_ReloadCounter(IWDG);
-
-	  //update the MEMS sensor state machine
-	  result = lsm6dsoUpdate();
-	  if(isError(result)){
-		  result.moduleID = 1;
-    }
-
-	  //update the screen state machine
-	  result = st7735sUpdate();
-	  if(isError(result)){
-		  result.moduleID = 2;
-    }
-
-    //update the buttons' state machines
-    buttonsUpdate();
 
     //if zero button is pressed, zero down measurements
     if(buttonHasRisingEdge(ZERO)){
@@ -227,14 +210,40 @@ void SystemClock_Config(void)
   {
 
   }
-  LL_Init1msTick(72000000);
   LL_SetSystemCoreClock(72000000);
+
+   /* Update the time base */
+  if (HAL_InitTick (TICK_INT_PRIORITY) != HAL_OK)
+  {
+    Error_Handler();
+  }
   LL_RCC_SetADCClockSource(LL_RCC_ADC_CLKSRC_PCLK2_DIV_6);
 }
 
 /* USER CODE BEGIN 4 */
 
 /* USER CODE END 4 */
+
+/**
+  * @brief  Period elapsed callback in non blocking mode
+  * @note   This function is called  when TIM1 interrupt took place, inside
+  * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
+  * a global variable "uwTick" used as application time base.
+  * @param  htim : TIM handle
+  * @retval None
+  */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+  /* USER CODE BEGIN Callback 0 */
+
+  /* USER CODE END Callback 0 */
+  if (htim->Instance == TIM1) {
+    HAL_IncTick();
+  }
+  /* USER CODE BEGIN Callback 1 */
+
+  /* USER CODE END Callback 1 */
+}
 
 /**
   * @brief  This function is executed in case of error occurrence.

@@ -13,8 +13,8 @@ typedef enum {
     NB_AXIS
 } axis_e;
 
-errorCode_u lsm6dsoInitialise(const SPI_TypeDef* handle);
-errorCode_u lsm6dsoUpdate();
+void        createLSM6DSOTask(const SPI_TypeDef* handle);
+void        lsm6dsoInterruptTriggered(uint8_t interruptPin);
 uint8_t     lsm6dsoHasChanged(axis_e axis);
 int16_t     getAngleDegreesTenths(axis_e axis);
 void        lsm6dsoZeroDown(void);
