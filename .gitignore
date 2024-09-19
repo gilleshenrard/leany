@@ -57,6 +57,9 @@ dkms.conf
 .project
 mx.scratch
 
+#Project-specific files
+softVersion.c
+
 #STM32CubeIDE
 .settings/
 

@@ -23,6 +23,7 @@
 #include "stm32f1xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "stm32f1xx_ll_dma.h"
 #include "LSM6DSO.h"
 #include "ST7735S.h"
 /* USER CODE END Includes */
@@ -208,6 +209,7 @@ void EXTI2_IRQHandler(void)
 void DMA1_Channel5_IRQHandler(void)
 {
   /* USER CODE BEGIN DMA1_Channel5_IRQn 0 */
+  LL_DMA_ClearFlag_TC5(DMA1);
   st7735sDMAinterruptHandler();
   /* USER CODE END DMA1_Channel5_IRQn 0 */
 

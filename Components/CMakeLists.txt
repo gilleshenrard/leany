@@ -1,6 +1,6 @@
 ##############################################################################################
 # brief: User-defined modules CMakeLists file
-# date:  17/08/2024
+# date:  26/09/2024
 ##############################################################################################
 #declare warning flags
 set(WARNING_FLAGS
@@ -63,11 +63,14 @@ target_compile_definitions(sysUtils PUBLIC $<TARGET_PROPERTY:stm32cubemx,INTERFA
 target_include_directories(sysUtils SYSTEM INTERFACE $<TARGET_PROPERTY:stm32cubemx,INTERFACE_INCLUDE_DIRECTORIES>)
 target_compile_options(sysUtils PUBLIC ${WARNING_FLAGS})
 
-#create the LSM6DSO library, taking care of the MEMS sensor
-add_library(lsm6dso
-	sensor/LSM6DSO.c)
-target_include_directories(lsm6dso PUBLIC sensor/)
-target_link_libraries(lsm6dso PRIVATE sysUtils)
+#populate softVersion.c with the latest git commit hash
+add_custom_command(TARGET sysUtils
+	PRE_BUILD
+	COMMAND ${CMAKE_COMMAND}
+	-P gitVersion.cmake
+	WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/sysutils/
+	COMMENT "Populating the latest git commit hash"
+)
 
 #create the ssd1306 library, taking care of the display
 add_library(st7735s
@@ -75,7 +78,15 @@ add_library(st7735s
 	display/icons.c
 	display/ST7735_initialisation.c)
 target_include_directories(st7735s PUBLIC display)
+target_include_directories(st7735s PUBLIC sensor/)
 target_link_libraries(st7735s PRIVATE sysUtils)
+
+#create the LSM6DSO library, taking care of the MEMS sensor
+add_library(lsm6dso
+	sensor/LSM6DSO.c)
+target_include_directories(lsm6dso PUBLIC sensor/)
+target_link_libraries(lsm6dso PRIVATE sysUtils)
+target_link_libraries(lsm6dso PRIVATE st7735s)
 
 #create the buttons library, taking care of the control buttons
 add_library(buttons
