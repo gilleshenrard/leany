@@ -2,11 +2,10 @@
 #include <stddef.h>
 #include "ST7735_registers.h"
 
-
 /**
  * @brief Arguments sent when configuring the frame rate
  */
-static const registerValue_t framerateControl_args[3] = {
+static const register_t framerateControl_args[3] = {
     ONELINEPERIOD_1,
     FRONTPORCH_DEFAULT,
     BACKPORCH_DEFAULT,
@@ -15,19 +14,19 @@ static const registerValue_t framerateControl_args[3] = {
 /**
  * @brief Arguments sent when configuring the frame rate in partial mode
  */
-static const registerValue_t framerateControlPartial_args[6] = {
+static const register_t framerateControlPartial_args[6] = {
     ONELINEPERIOD_1, FRONTPORCH_DEFAULT, BACKPORCH_DEFAULT, ONELINEPERIOD_1, FRONTPORCH_DEFAULT, BACKPORCH_DEFAULT,
 };
 
 /**
  * @brief Arguments sent when configuring the inversion
  */
-static const registerValue_t inversionControl_arg = ALL_MODES_NO_INVERSION;
+static const register_t inversionControl_arg = ALL_MODES_NO_INVERSION;
 
 /**
  * @brief Arguments sent when configuring the power 1
  */
-static const registerValue_t powerControl1_args[3] = {
+static const register_t powerControl1_args[3] = {
     AVDD_5V | GVDD_4_6V,
     GVCL_NEG_4_6V,
     POWER_MODE_AUTO,
@@ -36,12 +35,12 @@ static const registerValue_t powerControl1_args[3] = {
 /**
  * @brief Arguments sent when configuring the power 2
  */
-static const registerValue_t powerControl2_arg = VGH25_2_4C | VGL_10 | VGH_3ADD;
+static const register_t powerControl2_arg = VGH25_2_4C | VGL_10 | VGH_3ADD;
 
 /**
  * @brief Arguments sent when configuring the power 3
  */
-static const registerValue_t powerControl3_args[2] = {
+static const register_t powerControl3_args[2] = {
     BOOST_MAX | OPAMP_HIGH_SMALL_CUR | OPAMP_LOW_MEDLOW_CUR,
     BOOST_MAX,
 };
@@ -49,7 +48,7 @@ static const registerValue_t powerControl3_args[2] = {
 /**
  * @brief Arguments sent when configuring the power 4
  */
-static const registerValue_t powerControl4_args[2] = {
+static const register_t powerControl4_args[2] = {
     (BOOST_BCLK_2 << 6U) | OPAMP_HIGH_SMALL_CUR | OPAMP_LOW_MEDLOW_CUR,
     BOOST_LSB_BCLK_2,
 };
@@ -57,7 +56,7 @@ static const registerValue_t powerControl4_args[2] = {
 /**
  * @brief Arguments sent when configuring the power 5
  */
-static const registerValue_t powerControl5_args[2] = {
+static const register_t powerControl5_args[2] = {
     (BOOST_BCLK_2 << 6U) | OPAMP_HIGH_SMALL_CUR | OPAMP_LOW_MEDLOW_CUR,
     BOOST_LSB_IDLE_MODE,
 };
@@ -65,10 +64,10 @@ static const registerValue_t powerControl5_args[2] = {
 /**
  * @brief Arguments sent when configuring the VCOM voltage
  */
-static const registerValue_t vmCtr1_arg = VCOM_NEG_0_775V;
+static const register_t vmCtr1_arg = VCOM_NEG_0_775V;
 
 // NOLINTBEGIN(misc-redundant-expression)
-const registerValue_t orientations[NB_ORIENTATION] = {
+const register_t orientations[NB_ORIENTATION] = {
     [PORTRAIT]      = REFRESH_TOP_BOTTOM | REFRESH_LEFT_RIGHT | ORIENT_PORTRAIT | COLORS_ORDER_RGB,
     [PORTRAIT_180]  = REFRESH_TOP_BOTTOM | REFRESH_LEFT_RIGHT | ORIENT_PORTRAIT_180 | COLORS_ORDER_RGB,
     [LANDSCAPE]     = REFRESH_TOP_BOTTOM | REFRESH_LEFT_RIGHT | ORIENT_LANDSCAPE | COLORS_ORDER_RGB,
@@ -79,19 +78,19 @@ const registerValue_t orientations[NB_ORIENTATION] = {
 /**
  * @brief Arguments sent when configuring the colour mode
  */
-static const registerValue_t colorMode_arg = COLOUR_16BITS;
+static const register_t colorMode_arg = COLOUR_16BITS;
 
 /**
  * @brief Arguments sent when configuring the Gamma positive
  */
-static const registerValue_t gammaControlPositive_args[16] = {0x02, 0x1c, 0x07, 0x12, 0x37, 0x32, 0x29, 0x2d,
-                                                              0x29, 0x25, 0x2B, 0x39, 0x00, 0x01, 0x03, 0x10};
+static const register_t gammaControlPositive_args[16] = {0x02, 0x1c, 0x07, 0x12, 0x37, 0x32, 0x29, 0x2d,
+                                                         0x29, 0x25, 0x2B, 0x39, 0x00, 0x01, 0x03, 0x10};
 
 /**
  * @brief Arguments sent when configuring the Gamma negative
  */
-static const registerValue_t gammaControlNegative_args[16] = {0x03, 0x1d, 0x07, 0x06, 0x2E, 0x2C, 0x29, 0x2D,
-                                                              0x2E, 0x2E, 0x37, 0x3F, 0x00, 0x00, 0x02, 0x10};
+static const register_t gammaControlNegative_args[16] = {0x03, 0x1d, 0x07, 0x06, 0x2E, 0x2C, 0x29, 0x2D,
+                                                         0x2E, 0x2E, 0x37, 0x3F, 0x00, 0x00, 0x02, 0x10};
 
 /**
  * @brief Configuration commands list

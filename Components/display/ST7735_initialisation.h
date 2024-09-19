@@ -22,18 +22,18 @@ typedef enum {
 /**
  * @brief Type associated with a register value
  */
-typedef uint8_t registerValue_t;
+typedef uint8_t register_t;
 
 /**
  * @brief Structure describing a command to send during configuration
  */
 typedef struct {
-    ST7735register_e       registerNumber;  ///< Number of the register to send
-    uint8_t                nbParameters;    ///< Number of parameters sent after the register number
-    const registerValue_t* parameters;      ///< Array of parameters
+    ST7735register_e  registerNumber;  ///< Number of the register to send
+    uint8_t           nbParameters;    ///< Number of parameters sent after the register number
+    const register_t* parameters;      ///< Array of parameters
 } __attribute__((aligned(ST7735_STRUCT_PADDING))) st7735_command_t;
 
 extern const st7735_command_t st7735configurationScript[ST7735_NB_COMMANDS];
-extern const registerValue_t  orientations[NB_ORIENTATION];
+extern const register_t       orientations[NB_ORIENTATION];
 
 #endif
