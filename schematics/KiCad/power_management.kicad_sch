@@ -8781,7 +8781,7 @@
 		(dnp no)
 		(uuid "8ea6c4dd-764a-4516-bc27-91e15566ec68")
 		(property "Reference" "SW4"
-			(at 194.818 86.614 90)
+			(at 196.342 84.074 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8789,8 +8789,8 @@
 				(justify left)
 			)
 		)
-		(property "Value" "TL1105SF160R"
-			(at 192.786 88.9 90)
+		(property "Value" "K2-1102AQ-C4CW-01"
+			(at 198.882 78.232 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8798,7 +8798,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Button_Switch_THT:SW_Tactile_SPST_Angled_PTS645Vx31-2LFS"
 			(at 195.58 86.36 0)
 			(effects
 				(font
@@ -8807,7 +8807,7 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "~"
+		(property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_2108131530_Korean-Hroparts-Elec-K2-1102AQ-C4CW-01_C127680.pdf"
 			(at 195.58 86.36 0)
 			(effects
 				(font
