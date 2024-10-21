@@ -438,8 +438,11 @@ static errorCode_u printCharacter(verdanaCharacter_e character, uint8_t xLeft, u
  * @return Success
  */
 static errorCode_u printMeasurements(axis_e axis) {
-    int16_t measurement = getAngleDegreesTenths(axis);
-    uint8_t yTop        = (axis == X_AXIS ? 0 : 50U);
+    static const uint8_t SECOND_LINE_Y = 50U;
+    static const uint8_t MULTIPLE_10   = 10U;
+    static const uint8_t MULTIPLE_100  = 100U;
+    int16_t              measurement   = getAngleDegreesTenths(axis);
+    uint8_t              yTop          = (axis == X_AXIS ? 0 : SECOND_LINE_Y);
 
     if(measurement >= 0) {
         printCharacter(VERDANA_PLUS, 0, yTop);
@@ -447,9 +450,9 @@ static errorCode_u printMeasurements(axis_e axis) {
         measurement = (int16_t)-measurement;
         printCharacter(VERDANA_MIN, 0, yTop);
     }
-    printCharacter((verdanaCharacter_e)(measurement / 100), VERDANA_NB_COLUMNS, yTop);
-    printCharacter((verdanaCharacter_e)((measurement / 10) % 10), (VERDANA_NB_COLUMNS * 2), yTop);
-    printCharacter((verdanaCharacter_e)(measurement % 10), (VERDANA_NB_COLUMNS * 4), yTop);
+    printCharacter((verdanaCharacter_e)(measurement / MULTIPLE_100), VERDANA_NB_COLUMNS, yTop);
+    printCharacter((verdanaCharacter_e)((measurement / MULTIPLE_10) % MULTIPLE_10), (VERDANA_NB_COLUMNS * 2), yTop);
+    printCharacter((verdanaCharacter_e)(measurement % MULTIPLE_10), (VERDANA_NB_COLUMNS * 4), yTop);
 
     return ERR_SUCCESS;
 }

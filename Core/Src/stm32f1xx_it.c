@@ -184,6 +184,26 @@ void EXTI0_IRQHandler(void)
 }
 
 /**
+  * @brief This function handles EXTI line1 interrupt.
+  */
+void EXTI1_IRQHandler(void)
+{
+  /* USER CODE BEGIN EXTI1_IRQn 0 */
+
+  /* USER CODE END EXTI1_IRQn 0 */
+  if (LL_EXTI_IsActiveFlag_0_31(LL_EXTI_LINE_1) != RESET)
+  {
+    LL_EXTI_ClearFlag_0_31(LL_EXTI_LINE_1);
+    /* USER CODE BEGIN LL_EXTI_LINE_1 */
+
+    /* USER CODE END LL_EXTI_LINE_1 */
+  }
+  /* USER CODE BEGIN EXTI1_IRQn 1 */
+
+  /* USER CODE END EXTI1_IRQn 1 */
+}
+
+/**
   * @brief This function handles EXTI line2 interrupt.
   */
 void EXTI2_IRQHandler(void)
@@ -212,7 +232,6 @@ void DMA1_Channel5_IRQHandler(void)
   LL_DMA_ClearFlag_TC5(DMA1);
   st7735sDMAinterruptHandler();
   /* USER CODE END DMA1_Channel5_IRQn 0 */
-
   /* USER CODE BEGIN DMA1_Channel5_IRQn 1 */
 
   /* USER CODE END DMA1_Channel5_IRQn 1 */

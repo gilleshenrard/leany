@@ -86,3 +86,4 @@ schematics/KiCad/*.json
 schematics/KiCad/*.net
 schematics/KiCad/leany-backups
 schematics/KiCad/fp-info-cache
+schematics/KiCad/*auto*save*

@@ -8,7 +8,6 @@
 typedef enum {
     ZERO = 0,
     HOLD,
-    POWER,
     NB_BUTTONS
 } button_e;
 
