@@ -6,11 +6,180 @@
 	(paper "A4")
 	(title_block
 		(title "Leany power management")
-		(date "2024-09-06")
+		(date "2024-10-07")
 		(comment 1 "MIT License")
 		(comment 2 "Copyright (c) 2023 Gilles Henrard")
 	)
 	(lib_symbols
+		(symbol "Analog_Switch:MAX40200AUK"
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "U"
+				(at -6.35 6.35 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "MAX40200AUK"
+				(at 7.62 6.35 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" "Package_TO_SOT_SMD:SOT-23-5"
+				(at 0 12.7 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "https://datasheets.maximintegrated.com/en/ds/MAX40200.pdf"
+				(at 0 12.7 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Ideal Diode, Ultra-Low Voltage Drop, 1.5-5.5V, 1A, SOT-23-5"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "current switch"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "SOT?23*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "MAX40200AUK_1_1"
+				(rectangle
+					(start -7.62 -5.08)
+					(end 7.62 5.08)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type background)
+					)
+				)
+				(pin power_in line
+					(at -10.16 2.54 0)
+					(length 2.54)
+					(name "VDD"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin power_in line
+					(at 0 -7.62 90)
+					(length 2.54)
+					(name "GND"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -10.16 -2.54 0)
+					(length 2.54)
+					(name "EN"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin no_connect line
+					(at 7.62 -2.54 180)
+					(length 2.54) hide
+					(name "NC"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 10.16 2.54 180)
+					(length 2.54)
+					(name "OUT"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "5"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+		)
 		(symbol "Connector:TestPoint_Small"
 			(pin_numbers hide)
 			(pin_names
@@ -4005,12 +4174,6 @@
 		(uuid "356119af-cbfd-4446-ba32-5afb356c8869")
 	)
 	(junction
-		(at 227.33 30.48)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "38ecb1f0-3ad5-4a08-83f7-1a1174b6e0f0")
-	)
-	(junction
 		(at 132.08 53.34)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -4167,6 +4330,12 @@
 		(uuid "c1d8146b-e0db-48f5-adf6-94049f2809c2")
 	)
 	(junction
+		(at 227.33 30.48)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "c87f3642-333d-4d35-a8a0-eed9323e8730")
+	)
+	(junction
 		(at 40.64 138.43)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -4201,6 +4370,12 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "d1febee3-eb95-4312-8cd0-5698b3e783a0")
+	)
+	(junction
+		(at 227.33 63.5)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "d8e6b0e7-fc56-406b-b7d4-13675fb1f190")
 	)
 	(junction
 		(at 234.95 30.48)
@@ -4342,6 +4517,16 @@
 	)
 	(wire
 		(pts
+			(xy 237.49 52.07) (xy 237.49 54.61)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "107e3c55-2522-4147-b58e-48d4ba184ace")
+	)
+	(wire
+		(pts
 			(xy 179.07 83.82) (xy 179.07 91.44)
 		)
 		(stroke
@@ -4419,16 +4604,6 @@
 			(type default)
 		)
 		(uuid "1efc8572-53e0-4fbb-b342-969deacafe44")
-	)
-	(wire
-		(pts
-			(xy 227.33 53.34) (xy 227.33 30.48)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "1f0ef7db-b0fa-4a33-9dec-434b3917c52c")
 	)
 	(wire
 		(pts
@@ -4689,6 +4864,16 @@
 			(type default)
 		)
 		(uuid "3bd601a7-9da7-4df7-84ee-ecdad40beb4e")
+	)
+	(wire
+		(pts
+			(xy 232.41 63.5) (xy 227.33 63.5)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "3c00ab16-3f41-492f-8aaa-3b4ae15637a5")
 	)
 	(wire
 		(pts
@@ -5122,6 +5307,26 @@
 	)
 	(wire
 		(pts
+			(xy 217.17 63.5) (xy 227.33 63.5)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "78c788c0-0168-4c34-88e1-d18c6e91f9cb")
+	)
+	(wire
+		(pts
+			(xy 227.33 41.91) (xy 227.33 30.48)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "79464301-97a8-43ff-95c0-0c8b3e435296")
+	)
+	(wire
+		(pts
 			(xy 43.18 45.72) (xy 44.45 45.72)
 		)
 		(stroke
@@ -5442,6 +5647,16 @@
 	)
 	(wire
 		(pts
+			(xy 232.41 62.23) (xy 232.41 63.5)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "c74a32e2-c0ff-4c42-8434-5b05368414f3")
+	)
+	(wire
+		(pts
 			(xy 92.71 88.9) (xy 105.41 88.9)
 		)
 		(stroke
@@ -5472,6 +5687,16 @@
 	)
 	(wire
 		(pts
+			(xy 227.33 63.5) (xy 227.33 62.23)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "cba182f7-ad8f-4938-b91f-e1c34b286c36")
+	)
+	(wire
+		(pts
 			(xy 264.16 30.48) (xy 267.97 30.48)
 		)
 		(stroke
@@ -5479,6 +5704,16 @@
 			(type default)
 		)
 		(uuid "cbc281d8-fa9e-40b7-b5e2-516705b1fb39")
+	)
+	(wire
+		(pts
+			(xy 217.17 53.34) (xy 217.17 63.5)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ccdfc36a-8297-432f-98ee-879b7ae62c36")
 	)
 	(wire
 		(pts
@@ -5752,7 +5987,7 @@
 	)
 	(wire
 		(pts
-			(xy 184.15 53.34) (xy 219.71 53.34)
+			(xy 184.15 53.34) (xy 217.17 53.34)
 		)
 		(stroke
 			(width 0)
@@ -5904,7 +6139,7 @@
 	)
 	(text "Highest input voltage regulation to 3.3V"
 		(exclude_from_sim no)
-		(at 247.65 62.23 0)
+		(at 259.842 62.23 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -6203,7 +6438,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "22uF"
+		(property "Value" "22u"
 			(at 140.97 87.376 90)
 			(effects
 				(font
@@ -6212,7 +6447,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
 			(at 143.51 85.09 0)
 			(effects
 				(font
@@ -6576,7 +6811,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "100nF"
+		(property "Value" "100n"
 			(at 150.114 88.138 90)
 			(effects
 				(font
@@ -6585,7 +6820,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0201_0603Metric"
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 147.32 85.09 0)
 			(effects
 				(font
@@ -6754,6 +6989,84 @@
 			(project "leany"
 				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72"
 					(reference "#PWR025")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Analog_Switch:MAX40200AUK")
+		(at 229.87 52.07 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "22c191a3-d340-4a6b-bfd1-c26b1594ba88")
+		(property "Reference" "U7"
+			(at 220.726 58.928 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "MAX40200AUK"
+			(at 223.266 58.928 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Package_TO_SOT_SMD:SOT-23-5"
+			(at 217.17 52.07 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://datasheets.maximintegrated.com/en/ds/MAX40200.pdf"
+			(at 217.17 52.07 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Ideal Diode, Ultra-Low Voltage Drop, 1.5-5.5V, 1A, SOT-23-5"
+			(at 229.87 52.07 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "3"
+			(uuid "273dab15-6745-401a-a56a-b778c827f3d6")
+		)
+		(pin "1"
+			(uuid "6b973e6a-b442-42eb-b3ca-7507bb74d54e")
+		)
+		(pin "4"
+			(uuid "0d0fcd11-8eb9-47c3-9fe0-55b74928efd8")
+		)
+		(pin "5"
+			(uuid "0a5f9e99-5707-4494-88d8-adfa0651b51f")
+		)
+		(pin "2"
+			(uuid "f7db4142-4e64-42ab-bce5-be43f2c3d603")
+		)
+		(instances
+			(project ""
+				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72"
+					(reference "U7")
 					(unit 1)
 				)
 			)
@@ -7072,7 +7385,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0201_0603Metric"
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 240.03 35.56 0)
 			(effects
 				(font
@@ -7178,73 +7491,6 @@
 			(project "leany"
 				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72"
 					(reference "R21")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Diode:B120-E3")
-		(at 223.52 53.34 180)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "421f86a3-8ad1-4c32-9e55-bac580ebb201")
-		(property "Reference" "D3"
-			(at 223.774 56.388 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "B120-E3"
-			(at 223.52 58.42 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "Diode_SMD:D_SMA"
-			(at 223.52 48.895 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "http://www.vishay.com/docs/88946/b120.pdf"
-			(at 223.52 53.34 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "20V 1A Schottky Barrier Rectifier Diode, SMA(DO-214AC)"
-			(at 223.52 53.34 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "2"
-			(uuid "43183b2a-ce00-47c7-82d9-e0dda041b079")
-		)
-		(pin "1"
-			(uuid "33290670-c1f6-48f5-a8ab-6a3e3d533460")
-		)
-		(instances
-			(project "leany"
-				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72"
-					(reference "D3")
 					(unit 1)
 				)
 			)
@@ -7411,7 +7657,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 273.05 35.56 0)
 			(effects
 				(font
@@ -7540,7 +7786,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "22uF"
+		(property "Value" "22u"
 			(at 59.69 36.83 0)
 			(effects
 				(font
@@ -7549,7 +7795,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
 			(at 64.77 33.02 0)
 			(effects
 				(font
@@ -7609,7 +7855,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "1uF"
+		(property "Value" "1u"
 			(at 74.93 72.39 90)
 			(effects
 				(font
@@ -7618,7 +7864,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0201_0603Metric"
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 76.2 71.12 0)
 			(effects
 				(font
@@ -8141,6 +8387,71 @@
 	)
 	(symbol
 		(lib_id "power:GND")
+		(at 237.49 54.61 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "8093e5f3-8bc2-491c-972c-5e4ce5278503")
+		(property "Reference" "#PWR040"
+			(at 237.49 60.96 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 237.49 58.928 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 237.49 54.61 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 237.49 54.61 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 237.49 54.61 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "89e7ff3d-3d63-4d69-8bbf-e3fb158eb86c")
+		)
+		(instances
+			(project "leany"
+				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72"
+					(reference "#PWR040")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
 		(at 240.03 38.1 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -8297,7 +8608,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0201_0603Metric"
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 165.1 63.5 0)
 			(effects
 				(font
@@ -8366,7 +8677,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "digikey-footprints:SOT-23-3"
+		(property "Footprint" "Package_TO_SOT_SMD:SOT-23"
 			(at 195.58 78.74 0)
 			(effects
 				(font
@@ -8521,7 +8832,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "100nF"
+		(property "Value" "100n"
 			(at 39.37 144.78 90)
 			(effects
 				(font
@@ -8530,7 +8841,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0201_0603Metric"
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 40.64 143.51 0)
 			(effects
 				(font
@@ -8781,7 +9092,7 @@
 		(dnp no)
 		(uuid "8ea6c4dd-764a-4516-bc27-91e15566ec68")
 		(property "Reference" "SW4"
-			(at 194.818 86.614 90)
+			(at 196.342 84.074 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8789,8 +9100,8 @@
 				(justify left)
 			)
 		)
-		(property "Value" "TL1105SF160R"
-			(at 192.786 88.9 90)
+		(property "Value" "K2-1102AQ-C4CW-01"
+			(at 198.882 78.232 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8798,7 +9109,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Button_Switch_THT:SW_Tactile_SPST_Angled_PTS645Vx31-2LFS"
 			(at 195.58 86.36 0)
 			(effects
 				(font
@@ -8807,7 +9118,7 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "~"
+		(property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_2108131530_Korean-Hroparts-Elec-K2-1102AQ-C4CW-01_C127680.pdf"
 			(at 195.58 86.36 0)
 			(effects
 				(font
@@ -10317,7 +10628,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0201_0603Metric"
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 245.11 35.56 0)
 			(effects
 				(font
@@ -10469,7 +10780,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0201_0603Metric"
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 128.27 80.01 0)
 			(effects
 				(font
@@ -10538,7 +10849,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0201_0603Metric"
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 234.95 35.56 0)
 			(effects
 				(font
@@ -10878,7 +11189,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0201_0603Metric"
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 267.97 35.56 0)
 			(effects
 				(font
@@ -11074,8 +11385,8 @@
 				(justify left)
 			)
 		)
-		(property "Value" "100nF"
-			(at 131.572 58.674 90)
+		(property "Value" "100n"
+			(at 130.556 58.674 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11083,7 +11394,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0201_0603Metric"
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 124.46 57.15 0)
 			(effects
 				(font
