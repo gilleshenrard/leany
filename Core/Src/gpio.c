@@ -46,7 +46,6 @@ void MX_GPIO_Init(void)
   LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
 
   /* GPIO Ports Clock Enable */
-  LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_GPIOC);
   LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_GPIOD);
   LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_GPIOA);
   LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_GPIOB);
@@ -56,16 +55,7 @@ void MX_GPIO_Init(void)
                           |ST7735S_DC_Pin|ST7735S_BL_Pin);
 
   /**/
-  LL_GPIO_SetOutputPin(POWER_ON_GPIO_Port, POWER_ON_Pin);
-
-  /**/
   LL_GPIO_SetOutputPin(ST7735S_RST_GPIO_Port, ST7735S_RST_Pin);
-
-  /**/
-  GPIO_InitStruct.Pin = BAT_ACOK_Pin|BAT_CHGOK_Pin;
-  GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
-  LL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /**/
   GPIO_InitStruct.Pin = LED_RED_Pin|LED_GREEN_Pin|LED_BLUE_Pin;
@@ -75,17 +65,10 @@ void MX_GPIO_Init(void)
   LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /**/
-  GPIO_InitStruct.Pin = POWER_BUTTON_Pin|ZERO_BUTTON_Pin|HOLD_BUTTON_Pin;
+  GPIO_InitStruct.Pin = ZERO_BUTTON_Pin|HOLD_BUTTON_Pin;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
   LL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-  /**/
-  GPIO_InitStruct.Pin = POWER_ON_Pin;
-  GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
-  GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_HIGH;
-  GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-  LL_GPIO_Init(POWER_ON_GPIO_Port, &GPIO_InitStruct);
 
   /**/
   GPIO_InitStruct.Pin = BATT_EN_Pin|ST7735S_DC_Pin|ST7735S_RST_Pin|ST7735S_BL_Pin;
@@ -98,6 +81,9 @@ void MX_GPIO_Init(void)
   LL_GPIO_AF_SetEXTISource(LL_GPIO_AF_EXTI_PORTB, LL_GPIO_AF_EXTI_LINE0);
 
   /**/
+  LL_GPIO_AF_SetEXTISource(LL_GPIO_AF_EXTI_PORTB, LL_GPIO_AF_EXTI_LINE1);
+
+  /**/
   LL_GPIO_AF_SetEXTISource(LL_GPIO_AF_EXTI_PORTB, LL_GPIO_AF_EXTI_LINE2);
 
   /**/
@@ -105,6 +91,13 @@ void MX_GPIO_Init(void)
   EXTI_InitStruct.LineCommand = ENABLE;
   EXTI_InitStruct.Mode = LL_EXTI_MODE_IT;
   EXTI_InitStruct.Trigger = LL_EXTI_TRIGGER_RISING;
+  LL_EXTI_Init(&EXTI_InitStruct);
+
+  /**/
+  EXTI_InitStruct.Line_0_31 = LL_EXTI_LINE_1;
+  EXTI_InitStruct.LineCommand = ENABLE;
+  EXTI_InitStruct.Mode = LL_EXTI_MODE_IT;
+  EXTI_InitStruct.Trigger = LL_EXTI_TRIGGER_FALLING;
   LL_EXTI_Init(&EXTI_InitStruct);
 
   /**/
@@ -118,10 +111,16 @@ void MX_GPIO_Init(void)
   LL_GPIO_SetPinPull(LSM6DSO_INT1_GPIO_Port, LSM6DSO_INT1_Pin, LL_GPIO_PULL_UP);
 
   /**/
+  LL_GPIO_SetPinPull(CHG_INT_GPIO_Port, CHG_INT_Pin, LL_GPIO_PULL_UP);
+
+  /**/
   LL_GPIO_SetPinPull(LSM6DSO_INT2_GPIO_Port, LSM6DSO_INT2_Pin, LL_GPIO_PULL_UP);
 
   /**/
   LL_GPIO_SetPinMode(LSM6DSO_INT1_GPIO_Port, LSM6DSO_INT1_Pin, LL_GPIO_MODE_INPUT);
+
+  /**/
+  LL_GPIO_SetPinMode(CHG_INT_GPIO_Port, CHG_INT_Pin, LL_GPIO_MODE_INPUT);
 
   /**/
   LL_GPIO_SetPinMode(LSM6DSO_INT2_GPIO_Port, LSM6DSO_INT2_Pin, LL_GPIO_MODE_INPUT);
@@ -129,6 +128,8 @@ void MX_GPIO_Init(void)
   /* EXTI interrupt init*/
   NVIC_SetPriority(EXTI0_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),5, 0));
   NVIC_EnableIRQ(EXTI0_IRQn);
+  NVIC_SetPriority(EXTI1_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),5, 0));
+  NVIC_EnableIRQ(EXTI1_IRQn);
   NVIC_SetPriority(EXTI2_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),5, 0));
   NVIC_EnableIRQ(EXTI2_IRQn);
 

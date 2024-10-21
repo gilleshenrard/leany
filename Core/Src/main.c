@@ -22,6 +22,7 @@
 #include "cmsis_os.h"
 #include "adc.h"
 #include "dma.h"
+#include "i2c.h"
 #include "iwdg.h"
 #include "spi.h"
 #include "usart.h"
@@ -64,12 +65,6 @@ extern inline uint8_t isError(const errorCode_u code);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-/**
- * @brief Reset the POWER ON pin to shut the system down
- */
-static inline void powerOFF(){
-  LL_GPIO_ResetOutputPin(POWER_ON_GPIO_Port, POWER_ON_Pin);
-}
 /* USER CODE END 0 */
 
 /**
@@ -107,6 +102,7 @@ int main(void)
   MX_SPI1_Init();
   MX_SPI2_Init();
   MX_USART1_UART_Init();
+  MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
   createLSM6DSOTask(SPI1);
   createST7735Stask(SPI2, DMA1, LL_DMA_CHANNEL_5);
@@ -144,12 +140,6 @@ int main(void)
       holdingValues = !holdingValues;
       lsm6dsoHold(holdingValues);
       // ssd1306PrintHoldIcon(holdingValues);
-    }
-
-    //if power button is held down, shut down
-    if(isButtonHeldDown(POWER)){
-      // ssd1306TurnDisplayOFF();
-      powerOFF();
     }
 
 	  // //if X axis angle changed, update the screen

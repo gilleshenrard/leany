@@ -31,6 +31,7 @@ extern "C" {
 
 #include "stm32f1xx_ll_adc.h"
 #include "stm32f1xx_ll_dma.h"
+#include "stm32f1xx_ll_i2c.h"
 #include "stm32f1xx_ll_iwdg.h"
 #include "stm32f1xx_ll_rcc.h"
 #include "stm32f1xx_ll_bus.h"
@@ -71,10 +72,6 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define BAT_ACOK_Pin LL_GPIO_PIN_14
-#define BAT_ACOK_GPIO_Port GPIOC
-#define BAT_CHGOK_Pin LL_GPIO_PIN_15
-#define BAT_CHGOK_GPIO_Port GPIOC
 #define LED_RED_Pin LL_GPIO_PIN_0
 #define LED_RED_GPIO_Port GPIOA
 #define LED_GREEN_Pin LL_GPIO_PIN_1
@@ -94,8 +91,9 @@ void Error_Handler(void);
 #define LSM6DSO_INT1_Pin LL_GPIO_PIN_0
 #define LSM6DSO_INT1_GPIO_Port GPIOB
 #define LSM6DSO_INT1_EXTI_IRQn EXTI0_IRQn
-#define POWER_BUTTON_Pin LL_GPIO_PIN_1
-#define POWER_BUTTON_GPIO_Port GPIOB
+#define CHG_INT_Pin LL_GPIO_PIN_1
+#define CHG_INT_GPIO_Port GPIOB
+#define CHG_INT_EXTI_IRQn EXTI1_IRQn
 #define LSM6DSO_INT2_Pin LL_GPIO_PIN_2
 #define LSM6DSO_INT2_GPIO_Port GPIOB
 #define LSM6DSO_INT2_EXTI_IRQn EXTI2_IRQn
@@ -107,8 +105,6 @@ void Error_Handler(void);
 #define ST7735S_CS_GPIO_Port GPIOB
 #define ST7735S_SCL_Pin LL_GPIO_PIN_13
 #define ST7735S_SCL_GPIO_Port GPIOB
-#define POWER_ON_Pin LL_GPIO_PIN_14
-#define POWER_ON_GPIO_Port GPIOB
 #define ST7735S_MOSI_Pin LL_GPIO_PIN_15
 #define ST7735S_MOSI_GPIO_Port GPIOB
 #define BATT_EN_Pin LL_GPIO_PIN_8
@@ -127,6 +123,10 @@ void Error_Handler(void);
 #define DEBUG_SWCLK_GPIO_Port GPIOA
 #define ST7735S_BL_Pin LL_GPIO_PIN_15
 #define ST7735S_BL_GPIO_Port GPIOA
+#define CHG_SCL_Pin LL_GPIO_PIN_6
+#define CHG_SCL_GPIO_Port GPIOB
+#define CHG_SDA_Pin LL_GPIO_PIN_7
+#define CHG_SDA_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 

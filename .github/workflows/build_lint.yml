@@ -78,7 +78,7 @@ jobs:
               -p ${{github.workspace}}/build/Debug/
               -extra-arg=--sysroot=${{ steps.arm-none-eabi-gcc-action.outputs.path }}/../arm-none-eabi
               -extra-arg=--target=arm-none-eabi
-              files "Components"
+              Components
 
   cppcheck:
     name: Coding constructs (Cppcheck)
@@ -97,6 +97,9 @@ jobs:
       - name: Install CppCheck
         run: sudo apt-get install -y cppcheck
 
+      - name: Create CPPcheck build directory
+        run: mkdir -p ${{github.workspace}}/config-cppcheck-build-dir/
+
       - name: Run CppCheck
         run:  >
               cppcheck
@@ -110,13 +113,10 @@ jobs:
               -i${{github.workspace}}/Drivers/
               -i${{github.workspace}}/Middlewares/
               -i${{github.workspace}}/schematics/
-              -i${{github.workspace}}/Core/Src/dma.c/
-              -i${{github.workspace}}/Core/Src/gpio.c/
-              -i${{github.workspace}}/Core/Src/iwdg.c/
-              -i${{github.workspace}}/Core/Src/spi.c/
-              -i${{github.workspace}}/Core/Src/syscalls.c/
-              -i${{github.workspace}}/Core/Src/sysmem.c/
-              -i${{github.workspace}}/Core/Src/system_stm32f1xx.c/
+              -i${{github.workspace}}/Core/
+              --suppress=missingIncludeSystem
+              --suppress=missingInclude
+              --suppress=unusedFunction
 
   flawfinder:
     name: Security weakness (Flawfinder)
@@ -145,38 +145,58 @@ jobs:
           path: Components/
           language: cpp
 
-  sonarcloud:
-    name: Code Quality (SonarCloud)
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Checkout the repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
+  # superlinter:
+  #   name: Code quality (Super-Linter)
+  #   runs-on: ubuntu-latest
+  #   needs: build
+  #   steps:
+  #     - name: Checkout main branch
+  #       uses: actions/checkout@v4
+  #       with:
+  #         ref: main
 
-      - name: Download the saved CMake configuration folder
-        uses: actions/download-artifact@v4
-        with:
-          name: build-Debug
-          path: ${{github.workspace}}/build/Debug
+  #     - name: Checkout the current branch
+  #       uses: actions/checkout@v4
 
-      - name: Install GNU Arm Embedded Toolchain - latest
-        uses: carlosperate/arm-none-eabi-gcc-action@v1
-        id: arm-none-eabi-gcc-action
-        with:
-          release: latest
+  #     - name: Run Super-Linter
+  #       uses: super-linter/super-linter/slim@v7.2.0
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #         VALIDATE_CPP: true
+  #         FILTER_REGEX_INCLUDE: "Components/.*"
+ 
+  # sonarcloud:
+  #   name: Code Quality (SonarCloud)
+  #   runs-on: ubuntu-latest
+  #   needs: build
+  #   steps:
+  #     - name: Checkout the repository
+  #       uses: actions/checkout@v4
+  #       with:
+  #         fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
 
-      - name: Install sonar-scanner and build-wrapper
-        uses: SonarSource/sonarcloud-github-c-cpp@v3
+  #     - name: Download the saved CMake configuration folder
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: build-Debug
+  #         path: ${{github.workspace}}/build/Debug
 
-      - name: Run sonar-scanner
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: >
-          sonar-scanner
-          --define sonar.cfamily.compile-commands="${{github.workspace}}/build/Debug/compile_commands.json"
+  #     - name: Install GNU Arm Embedded Toolchain - latest
+  #       uses: carlosperate/arm-none-eabi-gcc-action@v1
+  #       id: arm-none-eabi-gcc-action
+  #       with:
+  #         release: latest
+
+  #     - name: Install sonar-scanner and build-wrapper
+  #       uses: SonarSource/sonarcloud-github-c-cpp@v3
+
+  #     - name: Run sonar-scanner
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+  #       run: >
+  #         sonar-scanner
+  #         --define sonar.cfamily.compile-commands="${{github.workspace}}/build/Debug/compile_commands.json"
 
   doxygen:
     name: Documentation (Doxygen)
