@@ -274,7 +274,7 @@
 			)
 		)
 	)
-	(symbol "BQ25618"
+	(symbol "BQ25619"
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
@@ -286,7 +286,7 @@
 				)
 			)
 		)
-		(property "Value" "BQ25618"
+		(property "Value" "BQ25619"
 			(at -0.254 23.114 0)
 			(effects
 				(font
@@ -330,7 +330,7 @@
 				(hide yes)
 			)
 		)
-		(symbol "BQ25618_1_1"
+		(symbol "BQ25619_1_1"
 			(rectangle
 				(start -10.16 19.05)
 				(end 10.16 -19.05)
