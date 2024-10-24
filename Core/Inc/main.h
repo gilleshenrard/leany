@@ -124,6 +124,9 @@ void Error_Handler(void);
 #define DEBUG_SWCLK_GPIO_Port GPIOA
 #define ST7735S_BL_Pin LL_GPIO_PIN_15
 #define ST7735S_BL_GPIO_Port GPIOA
+#define CHG_INT_Pin LL_GPIO_PIN_4
+#define CHG_INT_GPIO_Port GPIOB
+#define CHG_INT_EXTI_IRQn EXTI4_IRQn
 #define CHG_SCL_Pin LL_GPIO_PIN_6
 #define CHG_SCL_GPIO_Port GPIOB
 #define CHG_SDA_Pin LL_GPIO_PIN_7

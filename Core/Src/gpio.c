@@ -94,6 +94,9 @@ void MX_GPIO_Init(void)
   LL_GPIO_AF_SetEXTISource(LL_GPIO_AF_EXTI_PORTB, LL_GPIO_AF_EXTI_LINE2);
 
   /**/
+  LL_GPIO_AF_SetEXTISource(LL_GPIO_AF_EXTI_PORTB, LL_GPIO_AF_EXTI_LINE4);
+
+  /**/
   EXTI_InitStruct.Line_0_31 = LL_EXTI_LINE_0;
   EXTI_InitStruct.LineCommand = ENABLE;
   EXTI_InitStruct.Mode = LL_EXTI_MODE_IT;
@@ -108,10 +111,20 @@ void MX_GPIO_Init(void)
   LL_EXTI_Init(&EXTI_InitStruct);
 
   /**/
+  EXTI_InitStruct.Line_0_31 = LL_EXTI_LINE_4;
+  EXTI_InitStruct.LineCommand = ENABLE;
+  EXTI_InitStruct.Mode = LL_EXTI_MODE_IT;
+  EXTI_InitStruct.Trigger = LL_EXTI_TRIGGER_FALLING;
+  LL_EXTI_Init(&EXTI_InitStruct);
+
+  /**/
   LL_GPIO_SetPinPull(LSM6DSO_INT1_GPIO_Port, LSM6DSO_INT1_Pin, LL_GPIO_PULL_UP);
 
   /**/
   LL_GPIO_SetPinPull(LSM6DSO_INT2_GPIO_Port, LSM6DSO_INT2_Pin, LL_GPIO_PULL_UP);
+
+  /**/
+  LL_GPIO_SetPinPull(CHG_INT_GPIO_Port, CHG_INT_Pin, LL_GPIO_PULL_UP);
 
   /**/
   LL_GPIO_SetPinMode(LSM6DSO_INT1_GPIO_Port, LSM6DSO_INT1_Pin, LL_GPIO_MODE_INPUT);
@@ -119,11 +132,16 @@ void MX_GPIO_Init(void)
   /**/
   LL_GPIO_SetPinMode(LSM6DSO_INT2_GPIO_Port, LSM6DSO_INT2_Pin, LL_GPIO_MODE_INPUT);
 
+  /**/
+  LL_GPIO_SetPinMode(CHG_INT_GPIO_Port, CHG_INT_Pin, LL_GPIO_MODE_INPUT);
+
   /* EXTI interrupt init*/
   NVIC_SetPriority(EXTI0_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),5, 0));
   NVIC_EnableIRQ(EXTI0_IRQn);
   NVIC_SetPriority(EXTI2_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),5, 0));
   NVIC_EnableIRQ(EXTI2_IRQn);
+  NVIC_SetPriority(EXTI4_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),5, 0));
+  NVIC_EnableIRQ(EXTI4_IRQn);
 
 }
 
