@@ -4081,6 +4081,10 @@
 		(uuid "0e3032bf-b2b7-4079-ad73-f8276cadbb7d")
 	)
 	(no_connect
+		(at 118.11 104.14)
+		(uuid "0f2d6906-9b60-4747-9f24-a187110764b6")
+	)
+	(no_connect
 		(at 212.09 125.73)
 		(uuid "1eace95e-326e-44e6-b2bc-a49fc75dfdac")
 	)
@@ -4135,10 +4139,6 @@
 	(no_connect
 		(at 232.41 120.65)
 		(uuid "d0653dfe-e7d1-4b6a-87d3-c30447c9cf19")
-	)
-	(no_connect
-		(at 118.11 104.14)
-		(uuid "d2cca9cb-5e78-4b20-bbb5-8c1311b32859")
 	)
 	(wire
 		(pts
