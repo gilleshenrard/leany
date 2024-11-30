@@ -38,6 +38,8 @@ target_sources(stm32cubemx INTERFACE
     ../../Core/Src/stm32f1xx_hal_msp.c
     ../../Core/Src/stm32f1xx_hal_timebase_tim.c
     ../../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_gpio_ex.c
+    ../../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.c
+    ../../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim_ex.c
     ../../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_ll_gpio.c
     ../../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_ll_adc.c
     ../../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_ll_dma.c
@@ -56,8 +58,6 @@ target_sources(stm32cubemx INTERFACE
     ../../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_exti.c
     ../../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_ll_i2c.c
     ../../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_ll_spi.c
-    ../../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.c
-    ../../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim_ex.c
     ../../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_ll_usart.c
     ../../Core/Src/system_stm32f1xx.c
     ../../Middlewares/Third_Party/FreeRTOS/Source/croutine.c
