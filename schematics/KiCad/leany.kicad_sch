@@ -10343,7 +10343,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "leany_footprints:SW_Push_1P1T_NO_6x6mm_H9.5mm"
+		(property "Footprint" "Button_Switch_SMD:SW_Push_1P1T_XKB_TS-1187A"
 			(at 247.65 113.03 0)
 			(effects
 				(font
@@ -10352,7 +10352,7 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "~"
+		(property "Datasheet" "https://jlcpcb.com/api/file/downloadByFileSystemAccessId/8550724022091735041"
 			(at 247.65 113.03 0)
 			(effects
 				(font
@@ -10361,7 +10361,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "Push button switch, generic, two pins"
+		(property "Description" "C318884"
 			(at 252.73 113.03 0)
 			(effects
 				(font
@@ -11014,7 +11014,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Button_Switch_SMD:SW_Push_1P1T_XKB_TS-1187A"
 			(at 111.76 59.69 0)
 			(effects
 				(font
@@ -11023,7 +11023,7 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "~"
+		(property "Datasheet" "https://jlcpcb.com/api/file/downloadByFileSystemAccessId/8550724022091735041"
 			(at 111.76 59.69 0)
 			(effects
 				(font
@@ -11032,7 +11032,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "Push button switch, generic, two pins"
+		(property "Description" "C318884"
 			(at 111.76 64.77 0)
 			(effects
 				(font

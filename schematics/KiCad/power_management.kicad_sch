@@ -5727,7 +5727,7 @@
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
-		(dnp no)
+		(dnp yes)
 		(uuid "6dbb5aa0-ca57-4aee-b32c-c8f9f599b73a")
 		(property "Reference" "TP2"
 			(at 73.406 35.052 90)
@@ -7067,7 +7067,7 @@
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
-		(dnp no)
+		(dnp yes)
 		(uuid "d3be2106-c3ab-47f7-a3ea-9ed8df8f6322")
 		(property "Reference" "TP5"
 			(at 87.122 150.114 90)
@@ -7078,7 +7078,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "BATT+"
+		(property "Value" "BATT"
 			(at 85.0901 151.13 0)
 			(effects
 				(font
@@ -7356,7 +7356,7 @@
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
-		(dnp no)
+		(dnp yes)
 		(uuid "ebc277c9-5694-443f-bb07-ce54c290f0d3")
 		(property "Reference" "TP4"
 			(at 53.086 79.248 90)
@@ -7423,7 +7423,7 @@
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
-		(dnp no)
+		(dnp yes)
 		(uuid "ec02fa99-14ef-4bad-a7da-4c2e7bab954e")
 		(property "Reference" "TP1"
 			(at 224.536 32.766 0)
@@ -7835,7 +7835,7 @@
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
-		(dnp no)
+		(dnp yes)
 		(uuid "f9645585-df0c-4ed7-af99-b4046b5f6624")
 		(property "Reference" "TP3"
 			(at 258.064 35.306 0)
