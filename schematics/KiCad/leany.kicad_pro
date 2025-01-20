@@ -37,9 +37,9 @@
         "other_text_thickness": 0.15,
         "other_text_upright": false,
         "pads": {
-          "drill": 3.2,
-          "height": 3.2,
-          "width": 3.2
+          "drill": 0.2,
+          "height": 0.5,
+          "width": 0.5
         },
         "silk_line_width": 0.1,
         "silk_text_italic": false,
@@ -52,7 +52,9 @@
         }
       },
       "diff_pair_dimensions": [],
-      "drc_exclusions": [],
+      "drc_exclusions": [
+        "starved_thermal|110650000|120950000|95b3f96e-8578-4ad4-be1f-e46c9851690f|29188169-bf30-45d0-90b8-14a79fdaa0e8|F.Cu"
+      ],
       "meta": {
         "version": 2
       },
@@ -70,7 +72,7 @@
         "extra_footprint": "warning",
         "footprint": "error",
         "footprint_symbol_mismatch": "warning",
-        "footprint_type_mismatch": "ignore",
+        "footprint_type_mismatch": "warning",
         "hole_clearance": "error",
         "hole_near_hole": "error",
         "holes_co_located": "warning",
@@ -83,12 +85,12 @@
         "lib_footprint_mismatch": "warning",
         "malformed_courtyard": "error",
         "microvia_drill_out_of_range": "error",
-        "missing_courtyard": "ignore",
+        "missing_courtyard": "warning",
         "missing_footprint": "warning",
         "net_conflict": "warning",
-        "npth_inside_courtyard": "ignore",
+        "npth_inside_courtyard": "warning",
         "padstack": "warning",
-        "pth_inside_courtyard": "ignore",
+        "pth_inside_courtyard": "warning",
         "shorting_items": "error",
         "silk_edge_clearance": "warning",
         "silk_over_copper": "warning",
@@ -216,16 +218,7 @@
     "equivalence_files": []
   },
   "erc": {
-    "erc_exclusions": [
-      "pin_to_pin|1460500|749300|46fb7d93-987a-4260-984f-72a816fb0165|4d08df5b-140d-4155-b272-8b27281b2520|/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72|/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72|/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72",
-      "pin_to_pin|1460500|749300|76890966-f3b0-43a5-bf10-ca61093c594d|4d08df5b-140d-4155-b272-8b27281b2520|/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72|/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72|/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72",
-      "pin_to_pin|1587500|508000|ff1ecd50-4e50-4afc-8b84-29179a125558|27f46a76-b58a-42a5-bdf2-785d6b6ddd44|/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72|/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72|/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72",
-      "pin_to_pin|1587500|508000|ff1ecd50-4e50-4afc-8b84-29179a125558|5a882c57-ea34-4eb9-9880-3b63c6c8ee63|/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72|/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72|/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72",
-      "pin_to_pin|2133600|1130300|a95aad55-403a-4632-9c8c-6788ca92f178|8e0c11ee-9a43-481a-8717-fe5c94f6b488|/e47b2519-93ca-4a48-9414-ecc253dd35f5|/e47b2519-93ca-4a48-9414-ecc253dd35f5|/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72",
-      "pin_to_pin|2159000|508000|31545643-2bc6-4945-b296-12a2a689eb30|46fb7d93-987a-4260-984f-72a816fb0165|/e47b2519-93ca-4a48-9414-ecc253dd35f5|/e47b2519-93ca-4a48-9414-ecc253dd35f5|/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72",
-      "pin_to_pin|2159000|508000|31545643-2bc6-4945-b296-12a2a689eb30|4d08df5b-140d-4155-b272-8b27281b2520|/e47b2519-93ca-4a48-9414-ecc253dd35f5|/e47b2519-93ca-4a48-9414-ecc253dd35f5|/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72",
-      "pin_to_pin|2159000|508000|31545643-2bc6-4945-b296-12a2a689eb30|76890966-f3b0-43a5-bf10-ca61093c594d|/e47b2519-93ca-4a48-9414-ecc253dd35f5|/e47b2519-93ca-4a48-9414-ecc253dd35f5|/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72"
-    ],
+    "erc_exclusions": [],
     "meta": {
       "version": 0
     },
@@ -426,9 +419,9 @@
       "pin_not_connected": "error",
       "pin_not_driven": "error",
       "pin_to_pin": "error",
-      "power_pin_not_driven": "ignore",
+      "power_pin_not_driven": "warning",
       "similar_labels": "warning",
-      "simulation_model_issue": "ignore",
+      "simulation_model_issue": "warning",
       "unannotated": "error",
       "unit_value_mismatch": "error",
       "unresolved_variable": "error",

@@ -1943,7 +1943,7 @@
 						)
 					)
 				)
-				(pin bidirectional line
+				(pin power_in line
 					(at 12.7 2.54 180)
 					(length 2.54)
 					(name "BATSNS"
@@ -2069,7 +2069,7 @@
 						)
 					)
 				)
-				(pin power_out line
+				(pin power_in line
 					(at 0 -21.59 90)
 					(length 2.54) hide
 					(name "PGND"
@@ -2087,7 +2087,7 @@
 						)
 					)
 				)
-				(pin power_out line
+				(pin power_in line
 					(at 0 -21.59 90)
 					(length 2.54)
 					(name "PGND"
@@ -2231,7 +2231,7 @@
 						)
 					)
 				)
-				(pin power_out line
+				(pin power_in line
 					(at 0 -21.59 90)
 					(length 2.54) hide
 					(name "PAD"
@@ -5748,7 +5748,7 @@
 				(hide yes)
 			)
 		)
-		(property "Footprint" "TestPoint:TestPoint_Pad_1.0x1.0mm"
+		(property "Footprint" "leany_footprints:TestPoint_Pad_1.0x1.0mm"
 			(at 74.93 31.75 0)
 			(effects
 				(font
@@ -7088,7 +7088,7 @@
 				(hide yes)
 			)
 		)
-		(property "Footprint" "TestPoint:TestPoint_Pad_1.0x1.0mm"
+		(property "Footprint" "leany_footprints:TestPoint_Pad_1.0x1.0mm"
 			(at 86.36 154.94 0)
 			(effects
 				(font
@@ -7377,7 +7377,7 @@
 				(hide yes)
 			)
 		)
-		(property "Footprint" "TestPoint:TestPoint_Pad_1.0x1.0mm"
+		(property "Footprint" "leany_footprints:TestPoint_Pad_1.0x1.0mm"
 			(at 54.61 72.39 0)
 			(effects
 				(font
@@ -7444,7 +7444,7 @@
 				(hide yes)
 			)
 		)
-		(property "Footprint" "TestPoint:TestPoint_Pad_1.0x1.0mm"
+		(property "Footprint" "leany_footprints:TestPoint_Pad_1.0x1.0mm"
 			(at 231.14 34.29 0)
 			(effects
 				(font
@@ -7856,7 +7856,7 @@
 				(hide yes)
 			)
 		)
-		(property "Footprint" "TestPoint:TestPoint_Pad_1.0x1.0mm"
+		(property "Footprint" "leany_footprints:TestPoint_Pad_1.0x1.0mm"
 			(at 256.54 41.91 0)
 			(effects
 				(font
