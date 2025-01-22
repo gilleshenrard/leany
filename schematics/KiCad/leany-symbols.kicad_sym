@@ -361,7 +361,7 @@
 				)
 			)
 			(pin power_in line
-				(at 12.7 2.54 180)
+				(at 12.7 0 180)
 				(length 2.54)
 				(name "BATSNS"
 					(effects
@@ -415,7 +415,7 @@
 				)
 			)
 			(pin power_out line
-				(at 12.7 0 180)
+				(at 12.7 2.54 180)
 				(length 2.54) hide
 				(name "BAT"
 					(effects
@@ -433,7 +433,7 @@
 				)
 			)
 			(pin power_out line
-				(at 12.7 0 180)
+				(at 12.7 2.54 180)
 				(length 2.54)
 				(name "BAT"
 					(effects
