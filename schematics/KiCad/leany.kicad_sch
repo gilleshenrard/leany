@@ -7015,8 +7015,8 @@
 				(justify left)
 			)
 		)
-		(property "Value" "820R"
-			(at 49.276 147.574 90)
+		(property "Value" "150R"
+			(at 49.53 147.574 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8165,7 +8165,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "820R"
+		(property "Value" "150R"
 			(at 49.276 142.494 90)
 			(effects
 				(font
@@ -9819,7 +9819,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "820R"
+		(property "Value" "220R"
 			(at 49.276 137.414 90)
 			(effects
 				(font
