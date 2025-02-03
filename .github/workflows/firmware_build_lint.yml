@@ -1,15 +1,15 @@
-name: Build and lint
+name: Firmware Build and lint
 on: 
   push:
     paths-ignore:
       - 'schematics/**'
       - '.gitignore'
-      - '.github/workflows/verify_kicad.yml'
+      - '.github/workflows/pcb_production_files.yml'
   pull_request:
     paths-ignore:
       - 'schematics/**'
       - '.gitignore'
-      - '.github/workflows/verify_kicad.yml'
+      - '.github/workflows/pcb_production_files.yml'
 
 jobs:
   build:
