@@ -1,0 +1,136 @@
+name: PCB checks and production files
+on: 
+  push:
+    paths:
+      - 'schematics/KiCad/*'
+      - '.github/workflows/pcb_production_files.yml'
+  pull_request:
+    paths:
+      - 'schematics/KiCad/*'
+      - '.github/workflows/pcb_production_files.yml'
+
+env:
+  SCH_PATH: ${{github.workspace}}/schematics/KiCad
+  PROD_PATH: ${{ github.workspace }}/schematics/KiCad/production_files
+  GBR_PATH: ${{ github.workspace }}/schematics/KiCad/gerber
+  SCH_FILE: leany.kicad_sch
+  PCB_FILE: leany.kicad_pcb
+  ERC_FILE: erc.json
+  DRC_FILE: drc.json
+  CPL_FILENAME: CPL-JLCPCB
+  BOM_FILENAME: BOM-JLCPCB
+  GBR_FILENAME: GERBER-JLCPCB
+
+jobs:
+    kicad_checks:
+        name: Run KiCad checks
+        runs-on: ubuntu-latest
+        container:
+          image: kicad/kicad:8.0
+          options: --user root -v ${{ github.workspace }}:${{ github.workspace }}
+
+        steps:
+          - name: Checkout the repository
+            uses: actions/checkout@v4
+          
+          - name: Copy the KiCad configuration to the docker container
+            run:  |
+                  mkdir -pv $HOME/.config
+                  cp -rv /home/kicad/.config/kicad $HOME/.config/
+
+          - name: Check if library tables are present
+            run:  |
+                  echo "Global footprint library table"
+                  test -f ~/.config/kicad/8.0/fp-lib-table
+
+                  echo " "
+                  echo "Project footprint library table:"
+                  test -f ${{env.SCH_PATH}}/fp-lib-table
+
+                  echo " "
+                  echo "Global symbol library table:"
+                  test -f ~/.config/kicad/8.0/sym-lib-table
+
+                  echo " "
+                  echo "Project symbol library table:"
+                  test -f ${{env.SCH_PATH}}/sym-lib-table
+
+          - name: Run Electrical Rules Check (ERC)
+            id: erc
+            run:  >
+                  kicad-cli sch erc
+                  --output ${{env.SCH_PATH}}/${{env.ERC_FILE}}
+                  --format json
+                  --exit-code-violations
+                  ${{env.SCH_PATH}}/${{env.SCH_FILE}}
+
+          - name: Upload ERC report if ERC failed
+            uses: actions/upload-artifact@v4
+            if: ${{ failure() && steps.erc.conclusion == 'failure' }}
+            with:
+                name: ${{env.ERC_FILE}}
+                path: ${{env.SCH_PATH}}/${{env.ERC_FILE}}
+
+          - name: Run JLCPCB Design Rules Check (DRC)
+            id: drc
+            run:  >
+                  kicad-cli pcb drc
+                  --output ${{env.SCH_PATH}}/${{env.DRC_FILE}}
+                  --format json
+                  --exit-code-violations
+                  ${{env.SCH_PATH}}/${{env.PCB_FILE}}
+
+          - name: Upload DRC report if DRC failed
+            uses: actions/upload-artifact@v4
+            if: ${{ failure() && steps.drc.conclusion == 'failure' }}
+            with:
+              name: ${{env.DRC_FILE}}
+              path: ${{env.SCH_PATH}}/${{env.DRC_FILE}}
+
+
+    jlcpcb:
+      name: JLCPCB production files
+      needs: kicad_checks
+      runs-on: ubuntu-latest
+      container:
+        image: kicad/kicad:8.0
+        options: --user root -v ${{ github.workspace }}:${{ github.workspace }}
+
+      steps:
+        - name: Checkout the repository
+          uses: actions/checkout@v4
+
+        - name: Create the export directories
+          run: |
+            mkdir -pv ${{ env.PROD_PATH }}
+            mkdir -pv ${{ env.GBR_PATH }}
+
+          # Generate gerber and drill files, then zip them in the production files directory
+        - name: Generate Gerber files
+          run:  |
+                kicad-cli pcb export gerbers --output ${{ env.GBR_PATH }} --board-plot-params ${{ env.GBR_PATH }}/../leany.kicad_pcb
+                kicad-cli pcb export drill --output ${{ env.GBR_PATH }} ${{ env.GBR_PATH }}/../leany.kicad_pcb
+                zip -j ${{ env.PROD_PATH }}/${{ env.GBR_FILENAME }}.zip ${{ env.GBR_PATH }}/*
+
+          # Generate the BOM file and remove the kicad library prefixes from the footprints column
+        - name: Generate BOM file
+          run:  |
+                kicad-cli sch export bom --output ${{ env.PROD_PATH }}/${{ env.BOM_FILENAME }}.csv --preset JLCPCB --format-preset CSV ${{ env.PROD_PATH }}/../leany.kicad_sch
+                awk -F',' 'BEGIN {OFS=","} NR==1 {print; next} {sub(/.*:/, "", $3); print}' ${{ env.PROD_PATH }}/${{ env.BOM_FILENAME }}.csv > ${{ env.PROD_PATH }}/cleaned_bom.csv
+                mv ${{ env.PROD_PATH }}/cleaned_bom.csv ${{ env.PROD_PATH }}/${{ env.BOM_FILENAME }}.csv
+
+          # Generate the CPL file and replace the Kicad default header with the JLCPCB-compatible header
+        - name: Generate top side CPL file
+          run:  |
+                kicad-cli pcb export pos --output ${{ env.PROD_PATH }}/${{ env.CPL_FILENAME }}.csv --side front --format csv --units mm --use-drill-file-origin ${{ env.PROD_PATH }}/../leany.kicad_pcb
+                KICAD_HEADER='Ref,Val,Package,PosX,PosY,Rot,Side'
+                JLCPCB_HEADER='Designator,Val,Package,Mid X,Mid Y,Rotation,Layer'
+                sed -i "s/$KICAD_HEADER/$JLCPCB_HEADER/g" ${{ env.PROD_PATH }}/${{ env.CPL_FILENAME }}.csv
+
+          # Upload the production files as an artifact
+        - name: Save the production files directory
+          uses: actions/upload-artifact@v4
+          with:
+            name: production-files
+            path: ${{ env.PROD_PATH }}
+            if-no-files-found: error
