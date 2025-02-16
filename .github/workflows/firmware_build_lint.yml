@@ -12,39 +12,83 @@ on:
       - '.github/workflows/pcb_production_files.yml'
 
 jobs:
+#
+# Build the firmware on Linux and Windows
+#
   build:
-    name: Build the firmware
-    runs-on: ubuntu-latest
+    name: Build the firmware on Linux and Windows
+    runs-on: ${{ matrix.os }}
     strategy:
-      matrix:
-        configuration: [Debug, Release]
+       matrix:
+          os: [ubuntu-latest, windows-latest]
+          include:
+            - os: windows-latest
+              sys: ucrt64
+              env: ucrt-x86_64
+          configuration: [Debug]
 
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v4
+        with:
+            submodules: recursive
 
+      #Only for Linux
       - name: Install GNU Arm Embedded Toolchain - latest
+        if: ${{ matrix.os == 'ubuntu-latest' }}
         uses: carlosperate/arm-none-eabi-gcc-action@v1
         id: arm-none-eabi-gcc-action
         with:
-          release: latest
+          release: 'latest'
 
+      #Only for Linux
       - name: Install Ninja Build
+        if: ${{ matrix.os == 'ubuntu-latest' }}
         uses: turtlesec-no/get-ninja@main
-      
-      - name: Configure CMake
-        run: cmake -DCMAKE_BUILD_TYPE=${{ matrix.configuration }} -DCMAKE_TOOLCHAIN_FILE=${{github.workspace}}/cmake/gcc-arm-none-eabi.cmake -B ${{github.workspace}}/build/${{ matrix.configuration }} -G Ninja
 
-      - name: Compile the firmware
-        run: cmake --build ${{github.workspace}}/build/${{ matrix.configuration }}
+      #Only for Windows
+      - name: Set up MSYS2
+        if: ${{ matrix.os == 'windows-latest' }}
+        id: setup-msys2
+        uses: msys2/setup-msys2@v2
+        with:
+          update: false
+          cache: true
+          msystem: ${{matrix.sys}}
+          install: >-
+            mingw-w64-${{matrix.env}}-arm-none-eabi-gcc
+            mingw-w64-${{matrix.env}}-cmake
 
-      - name: Save the CMake configuration folder
+      #Only for Windows
+      - name: Save the MSYS2 install directory in %PATH%
+        if: ${{ matrix.os == 'windows-latest' }}
+        shell: powershell
+        run: |
+          echo "${{ steps.setup-msys2.outputs.msys2-location }}/${{matrix.sys}}/bin" >> $env:GITHUB_PATH
+
+      - name: Configure CMake and build (Debug)
+        run:  |
+              cmake --preset Debug
+              cmake --build --preset Debug
+
+      - name: Configure CMake and build (Release)
+        run:  |
+              cmake --preset Release
+              cmake --build --preset Release
+
+      #Only for Linux
+      - name: Save the Debug CMake configuration folder
+        if: ${{ matrix.os == 'ubuntu-latest' }}
         uses: actions/upload-artifact@v4
         with:
-          name: build-${{ matrix.configuration }}
-          path: ${{github.workspace}}/build/${{ matrix.configuration }}
+          name: build-Debug
+          path: ${{github.workspace}}/build/Debug
           if-no-files-found: error
 
+
+#
+# Run code quality and documentation checks
+#
   clang-tidy:
     name: Code Quality (clang-tidy)
     runs-on: ubuntu-latest
@@ -52,6 +96,8 @@ jobs:
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v4
+        with:
+            submodules: recursive
 
       - name: Download the saved CMake configuration folder
         uses: actions/download-artifact@v4
@@ -87,6 +133,8 @@ jobs:
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v4
+        with:
+            submodules: recursive
 
       - name: Download the saved CMake configuration folder
         uses: actions/download-artifact@v4
@@ -125,6 +173,8 @@ jobs:
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v4
+        with:
+            submodules: recursive
 
       - name: Run flawfinder
         uses: david-a-wheeler/flawfinder@2.0.19
@@ -138,6 +188,8 @@ jobs:
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v4
+        with:
+            submodules: recursive
 
       - name: Run Lizard
         uses: Uno-Takashi/Lizard-Runner@v3
@@ -205,6 +257,8 @@ jobs:
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v4
+        with:
+            submodules: recursive
 
       - name: Install Doxygen
         run: sudo apt-get install -y doxygen
