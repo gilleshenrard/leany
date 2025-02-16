@@ -37,9 +37,9 @@
         "other_text_thickness": 0.15,
         "other_text_upright": false,
         "pads": {
-          "drill": 3.2,
-          "height": 3.2,
-          "width": 3.2
+          "drill": 0.2,
+          "height": 0.5,
+          "width": 0.5
         },
         "silk_line_width": 0.1,
         "silk_text_italic": false,
@@ -53,33 +53,7 @@
       },
       "diff_pair_dimensions": [],
       "drc_exclusions": [
-        "silk_edge_clearance|89445000|66825000|4df1a9dd-94b5-4224-983e-49a689d02b3b|4f5d78e3-5352-405f-870b-c73c03bc20b0",
-        "silk_edge_clearance|89445000|68125000|4df1a9dd-94b5-4224-983e-49a689d02b3b|c82a9596-c972-4468-9c48-79e59a96787b",
-        "silk_overlap|113845000|102275000|aec79d02-5010-449a-a9c7-fda3ea677a4b|634fbbc2-2cdb-4ea9-a419-1174912a657e",
-        "silk_overlap|115345000|104875000|8aa4b5b7-6903-4f54-b3e4-5276deefcf02|b7003b97-8d6d-4788-b367-9a6e1893960b",
-        "silk_overlap|116845000|102275000|aec79d02-5010-449a-a9c7-fda3ea677a4b|31520084-8387-4810-9076-7e80ff98ee87",
-        "silk_overlap|116845000|104875000|8aa4b5b7-6903-4f54-b3e4-5276deefcf02|deb3264f-6a72-486a-a97d-3f598f824375",
-        "silk_overlap|125545000|79262500|c48c7429-4fed-4ea6-ba6d-6968af6d6c8b|cba8de5d-9c09-4261-abab-0d0c35d6bd55",
-        "silk_overlap|173845000|77125000|2d82c533-830e-4ee9-9976-32d87c27c2e4|96d2eaee-68ed-4880-961a-0b2e8b507c49",
-        "silk_overlap|173845000|78125000|b5d02351-7620-44fb-949d-c00f6a74b386|96d2eaee-68ed-4880-961a-0b2e8b507c49",
-        "silk_overlap|173845000|83725000|bb0890c7-018c-4795-a49b-4c5911beb974|7603eba0-69ea-411b-b13f-116597e99fec",
-        "silk_overlap|173845000|84725000|d13fd187-473a-43aa-93a1-0d9715374086|7603eba0-69ea-411b-b13f-116597e99fec",
-        "silk_overlap|174845000|77125000|6b99fa2f-d8dd-4167-a0ef-2d5b0aae72f4|96d2eaee-68ed-4880-961a-0b2e8b507c49",
-        "silk_overlap|174845000|78125000|fdd9d61c-cbd8-4021-aaa8-c558f5fda9a0|96d2eaee-68ed-4880-961a-0b2e8b507c49",
-        "silk_overlap|174845000|83725000|dc8f2239-2fd7-4086-9e53-1eda03373eef|7603eba0-69ea-411b-b13f-116597e99fec",
-        "silk_overlap|174845000|84725000|73106b58-b155-4a1f-864b-ad1154f922ff|7603eba0-69ea-411b-b13f-116597e99fec",
-        "silk_overlap|185945000|92550000|e08a3f32-209e-4dc0-9dca-1c77820b8983|cfc0f5c3-6915-4cd0-9a82-50575164b998",
-        "silk_overlap|185945000|93550000|329e282e-b0b4-4ca7-b23c-09f52b952b7f|cfc0f5c3-6915-4cd0-9a82-50575164b998",
-        "silk_overlap|186945000|92550000|00eb9b14-245f-4cb7-890f-c16daa52c6bf|cfc0f5c3-6915-4cd0-9a82-50575164b998",
-        "silk_overlap|186945000|93550000|36f4fe4a-fe07-425e-abd4-8508ace68885|cfc0f5c3-6915-4cd0-9a82-50575164b998",
-        "silk_overlap|187195000|113825000|bd611047-ed7c-46b9-8da8-78424fbba365|51642a17-a049-4e7d-ad56-49c043224362",
-        "silk_overlap|187195000|114825000|34ebdddd-d4c4-4d95-90d9-eb5f284d6523|51642a17-a049-4e7d-ad56-49c043224362",
-        "silk_overlap|188195000|113825000|8ae09f1c-d867-492b-bd93-30496f4e2e99|51642a17-a049-4e7d-ad56-49c043224362",
-        "silk_overlap|188195000|114825000|b2fb34b6-ab10-47e0-a3ee-1062088a9a79|51642a17-a049-4e7d-ad56-49c043224362",
-        "silk_overlap|189045000|102275000|c71bbc83-cc47-4b32-a0ed-fd39020beaab|1a311621-379e-45b7-a686-a4d43c81af78",
-        "silk_overlap|189045000|103275000|b2e39abe-a93b-4f5f-85fc-8570df4d2e5d|1a311621-379e-45b7-a686-a4d43c81af78",
-        "silk_overlap|190045000|102275000|973eb7ed-db24-4241-af7d-6cb148d761a2|1a311621-379e-45b7-a686-a4d43c81af78",
-        "silk_overlap|190045000|103275000|ed3ae8ae-8d9c-49dc-83a8-c02f7a32b7f9|1a311621-379e-45b7-a686-a4d43c81af78"
+        "starved_thermal|110650000|120950000|95b3f96e-8578-4ad4-be1f-e46c9851690f|29188169-bf30-45d0-90b8-14a79fdaa0e8|F.Cu"
       ],
       "meta": {
         "version": 2
@@ -98,7 +72,7 @@
         "extra_footprint": "warning",
         "footprint": "error",
         "footprint_symbol_mismatch": "warning",
-        "footprint_type_mismatch": "ignore",
+        "footprint_type_mismatch": "warning",
         "hole_clearance": "error",
         "hole_near_hole": "error",
         "holes_co_located": "warning",
@@ -111,12 +85,12 @@
         "lib_footprint_mismatch": "warning",
         "malformed_courtyard": "error",
         "microvia_drill_out_of_range": "error",
-        "missing_courtyard": "ignore",
+        "missing_courtyard": "warning",
         "missing_footprint": "warning",
         "net_conflict": "warning",
-        "npth_inside_courtyard": "ignore",
+        "npth_inside_courtyard": "warning",
         "padstack": "warning",
-        "pth_inside_courtyard": "ignore",
+        "pth_inside_courtyard": "warning",
         "shorting_items": "error",
         "silk_edge_clearance": "warning",
         "silk_over_copper": "warning",
@@ -245,14 +219,8 @@
   },
   "erc": {
     "erc_exclusions": [
-      "pin_to_pin|1460500|749300|46fb7d93-987a-4260-984f-72a816fb0165|4d08df5b-140d-4155-b272-8b27281b2520|/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72|/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72|/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72",
-      "pin_to_pin|1460500|749300|76890966-f3b0-43a5-bf10-ca61093c594d|4d08df5b-140d-4155-b272-8b27281b2520|/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72|/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72|/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72",
-      "pin_to_pin|1587500|508000|ff1ecd50-4e50-4afc-8b84-29179a125558|27f46a76-b58a-42a5-bdf2-785d6b6ddd44|/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72|/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72|/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72",
-      "pin_to_pin|1587500|508000|ff1ecd50-4e50-4afc-8b84-29179a125558|5a882c57-ea34-4eb9-9880-3b63c6c8ee63|/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72|/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72|/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72",
-      "pin_to_pin|2159000|508000|31545643-2bc6-4945-b296-12a2a689eb30|46fb7d93-987a-4260-984f-72a816fb0165|/e47b2519-93ca-4a48-9414-ecc253dd35f5|/e47b2519-93ca-4a48-9414-ecc253dd35f5|/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72",
-      "pin_to_pin|2159000|508000|31545643-2bc6-4945-b296-12a2a689eb30|4d08df5b-140d-4155-b272-8b27281b2520|/e47b2519-93ca-4a48-9414-ecc253dd35f5|/e47b2519-93ca-4a48-9414-ecc253dd35f5|/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72",
-      "pin_to_pin|2159000|508000|31545643-2bc6-4945-b296-12a2a689eb30|76890966-f3b0-43a5-bf10-ca61093c594d|/e47b2519-93ca-4a48-9414-ecc253dd35f5|/e47b2519-93ca-4a48-9414-ecc253dd35f5|/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72",
-      "pin_to_pin|2222500|1130300|a95aad55-403a-4632-9c8c-6788ca92f178|8e0c11ee-9a43-481a-8717-fe5c94f6b488|/e47b2519-93ca-4a48-9414-ecc253dd35f5|/e47b2519-93ca-4a48-9414-ecc253dd35f5|/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72"
+      "power_pin_not_driven|1587500|444500|11cec4b2-367e-4439-8a58-0fe871d7ed69|00000000-0000-0000-0000-000000000000|/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72|/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72|",
+      "power_pin_not_driven|406400|1066800|0171e895-4554-4f73-979e-32c73a37f3a8|00000000-0000-0000-0000-000000000000|/e47b2519-93ca-4a48-9414-ecc253dd35f5|/e47b2519-93ca-4a48-9414-ecc253dd35f5|"
     ],
     "meta": {
       "version": 0
@@ -454,9 +422,9 @@
       "pin_not_connected": "error",
       "pin_not_driven": "error",
       "pin_to_pin": "error",
-      "power_pin_not_driven": "ignore",
+      "power_pin_not_driven": "warning",
       "similar_labels": "warning",
-      "simulation_model_issue": "ignore",
+      "simulation_model_issue": "warning",
       "unannotated": "error",
       "unit_value_mismatch": "error",
       "unresolved_variable": "error",
@@ -503,8 +471,8 @@
       "gencad": "",
       "idf": "",
       "netlist": "",
-      "plot": "plot/",
-      "pos_files": "",
+      "plot": "gerbers/",
+      "pos_files": "production_files/",
       "specctra_dsn": "",
       "step": "",
       "svg": "",
@@ -514,7 +482,7 @@
   },
   "schematic": {
     "annotate_start_num": 0,
-    "bom_export_filename": "",
+    "bom_export_filename": "production_files/BOM-leany.csv",
     "bom_fmt_presets": [],
     "bom_fmt_settings": {
       "field_delimiter": ",",
@@ -525,20 +493,163 @@
       "ref_range_delimiter": "",
       "string_delimiter": "\""
     },
-    "bom_presets": [],
+    "bom_presets": [
+      {
+        "exclude_dnp": true,
+        "fields_ordered": [
+          {
+            "group_by": true,
+            "label": "Comment",
+            "name": "Value",
+            "show": true
+          },
+          {
+            "group_by": false,
+            "label": "Designator",
+            "name": "Reference",
+            "show": true
+          },
+          {
+            "group_by": false,
+            "label": "Datasheet",
+            "name": "Datasheet",
+            "show": false
+          },
+          {
+            "group_by": true,
+            "label": "Footprint",
+            "name": "Footprint",
+            "show": true
+          },
+          {
+            "group_by": false,
+            "label": "LCSC",
+            "name": "LCSC",
+            "show": true
+          },
+          {
+            "group_by": false,
+            "label": "Do Not Place",
+            "name": "${DNP}",
+            "show": false
+          },
+          {
+            "group_by": false,
+            "label": "Exclude from BOM",
+            "name": "${EXCLUDE_FROM_BOM}",
+            "show": false
+          },
+          {
+            "group_by": false,
+            "label": "Exclude from Board",
+            "name": "${EXCLUDE_FROM_BOARD}",
+            "show": false
+          },
+          {
+            "group_by": false,
+            "label": "Exclude from Simulation",
+            "name": "${EXCLUDE_FROM_SIM}",
+            "show": false
+          },
+          {
+            "group_by": false,
+            "label": "Quantity",
+            "name": "${QUANTITY}",
+            "show": true
+          },
+          {
+            "group_by": false,
+            "label": "#",
+            "name": "${ITEM_NUMBER}",
+            "show": false
+          },
+          {
+            "group_by": false,
+            "label": "Description",
+            "name": "Description",
+            "show": false
+          },
+          {
+            "group_by": false,
+            "label": "Digi-Key_PN",
+            "name": "Digi-Key_PN",
+            "show": false
+          },
+          {
+            "group_by": false,
+            "label": "Family",
+            "name": "Family",
+            "show": false
+          },
+          {
+            "group_by": false,
+            "label": "MPN",
+            "name": "MPN",
+            "show": false
+          },
+          {
+            "group_by": false,
+            "label": "Manufacturer",
+            "name": "Manufacturer",
+            "show": false
+          },
+          {
+            "group_by": false,
+            "label": "Status",
+            "name": "Status",
+            "show": false
+          },
+          {
+            "group_by": false,
+            "label": "Description_1",
+            "name": "Description_1",
+            "show": false
+          },
+          {
+            "group_by": false,
+            "label": "DK_Datasheet_Link",
+            "name": "DK_Datasheet_Link",
+            "show": false
+          },
+          {
+            "group_by": false,
+            "label": "DK_Detail_Page",
+            "name": "DK_Detail_Page",
+            "show": false
+          },
+          {
+            "group_by": false,
+            "label": "Category",
+            "name": "Category",
+            "show": false
+          },
+          {
+            "group_by": false,
+            "label": "FOOTPRINT_NAME",
+            "name": "${FOOTPRINT_NAME}",
+            "show": false
+          }
+        ],
+        "filter_string": "",
+        "group_symbols": true,
+        "name": "JLCPCB",
+        "sort_asc": true,
+        "sort_field": "Value"
+      }
+    ],
     "bom_settings": {
-      "exclude_dnp": false,
+      "exclude_dnp": true,
       "fields_ordered": [
         {
-          "group_by": false,
-          "label": "Reference",
-          "name": "Reference",
+          "group_by": true,
+          "label": "Comment",
+          "name": "Value",
           "show": true
         },
         {
-          "group_by": true,
-          "label": "Value",
-          "name": "Value",
+          "group_by": false,
+          "label": "Designator",
+          "name": "Reference",
           "show": true
         },
         {
@@ -551,37 +662,43 @@
           "group_by": true,
           "label": "Footprint",
           "name": "Footprint",
-          "show": false
+          "show": true
+        },
+        {
+          "group_by": false,
+          "label": "LCSC",
+          "name": "LCSC",
+          "show": true
         },
         {
           "group_by": false,
           "label": "Do Not Place",
           "name": "${DNP}",
-          "show": true
+          "show": false
         },
         {
           "group_by": false,
           "label": "Exclude from BOM",
           "name": "${EXCLUDE_FROM_BOM}",
-          "show": true
+          "show": false
         },
         {
           "group_by": false,
           "label": "Exclude from Board",
           "name": "${EXCLUDE_FROM_BOARD}",
-          "show": true
+          "show": false
         },
         {
           "group_by": false,
           "label": "Exclude from Simulation",
           "name": "${EXCLUDE_FROM_SIM}",
-          "show": true
+          "show": false
         },
         {
           "group_by": false,
-          "label": "Qty",
+          "label": "Quantity",
           "name": "${QUANTITY}",
-          "show": false
+          "show": true
         },
         {
           "group_by": false,
@@ -648,13 +765,19 @@
           "label": "Category",
           "name": "Category",
           "show": false
+        },
+        {
+          "group_by": false,
+          "label": "FOOTPRINT_NAME",
+          "name": "${FOOTPRINT_NAME}",
+          "show": false
         }
       ],
       "filter_string": "",
       "group_symbols": true,
       "name": "",
       "sort_asc": true,
-      "sort_field": "Reference"
+      "sort_field": "Value"
     },
     "connection_grid_size": 50.0,
     "drawing": {
@@ -684,6 +807,14 @@
       "version": 1
     },
     "net_format_name": "",
+    "ngspice": {
+      "fix_include_paths": true,
+      "meta": {
+        "version": 0
+      },
+      "model_mode": 4,
+      "workbook_filename": ""
+    },
     "page_layout_descr_file": "",
     "plot_directory": "",
     "spice_current_sheet_as_root": false,

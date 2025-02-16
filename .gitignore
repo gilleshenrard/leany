@@ -87,3 +87,5 @@ schematics/KiCad/*.net
 schematics/KiCad/leany-backups
 schematics/KiCad/fp-info-cache
 schematics/KiCad/*auto*save*
+schematics/KiCad/production_files/
+schematics/KiCad/gerber/
