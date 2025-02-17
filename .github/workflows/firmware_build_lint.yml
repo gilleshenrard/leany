@@ -1,22 +1,20 @@
 name: Firmware Build and lint
 on: 
   push:
-    paths-ignore:
-      - 'schematics/**'
-      - '.gitignore'
-      - '.github/workflows/pcb_production_files.yml'
+    paths:
+      - 'firmware/*'
+      - '.github/workflows/firmware_build_lint.yml'
   pull_request:
-    paths-ignore:
-      - 'schematics/**'
-      - '.gitignore'
-      - '.github/workflows/pcb_production_files.yml'
+    paths:
+      - 'firmware/*'
+      - '.github/workflows/firmware_build_lint.yml'
 
 jobs:
 #
 # Build the firmware on Linux and Windows
 #
   build:
-    name: Build the firmware on Linux and Windows
+    name: Build the firmware
     runs-on: ${{ matrix.os }}
     strategy:
        matrix:
@@ -25,7 +23,6 @@ jobs:
             - os: windows-latest
               sys: ucrt64
               env: ucrt-x86_64
-          configuration: [Debug]
 
     steps:
       - name: Checkout the repository
@@ -68,11 +65,13 @@ jobs:
 
       - name: Configure CMake and build (Debug)
         run:  |
+              cd ${{github.workspace}}/firmware/
               cmake --preset Debug
               cmake --build --preset Debug
 
       - name: Configure CMake and build (Release)
         run:  |
+              cd ${{github.workspace}}/firmware/
               cmake --preset Release
               cmake --build --preset Release
 
@@ -82,7 +81,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: build-Debug
-          path: ${{github.workspace}}/build/Debug
+          path: ${{github.workspace}}/firmware/build/Debug
           if-no-files-found: error
 
 
@@ -103,7 +102,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: build-Debug
-          path: ${{github.workspace}}/build/Debug
+          path: ${{github.workspace}}/firmware/build/Debug
 
       - name: Install GNU Arm Embedded Toolchain - latest
         uses: carlosperate/arm-none-eabi-gcc-action@v1
@@ -121,7 +120,7 @@ jobs:
         run:  >
               /usr/bin/run-clang-tidy
               -quiet
-              -p ${{github.workspace}}/build/Debug/
+              -p ${{github.workspace}}/firmware/build/Debug/
               -extra-arg=--sysroot=${{ steps.arm-none-eabi-gcc-action.outputs.path }}/../arm-none-eabi
               -extra-arg=--target=arm-none-eabi
               Components
@@ -140,13 +139,13 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: build-Debug
-          path: ${{github.workspace}}/build/Debug
+          path: ${{github.workspace}}/firmware/build/Debug
 
       - name: Install CppCheck
         run: sudo apt-get install -y cppcheck
 
       - name: Create CPPcheck build directory
-        run: mkdir -p ${{github.workspace}}/config-cppcheck-build-dir/
+        run: mkdir -p ${{github.workspace}}/firmware/config-cppcheck-build-dir/
 
       - name: Run CppCheck
         run:  >
@@ -155,13 +154,13 @@ jobs:
               --language=c
               --inconclusive
               --error-exitcode=2
-              --project=${{github.workspace}}/build/Debug/compile_commands.json
-              --cppcheck-build-dir=${{github.workspace}}/config-cppcheck-build-dir/
-              -i${{github.workspace}}/build/
-              -i${{github.workspace}}/Drivers/
-              -i${{github.workspace}}/Middlewares/
-              -i${{github.workspace}}/schematics/
-              -i${{github.workspace}}/Core/
+              --project=${{github.workspace}}/firmware/build/Debug/compile_commands.json
+              --cppcheck-build-dir=${{github.workspace}}/firmware/config-cppcheck-build-dir/
+              -i${{github.workspace}}/firmware/build/
+              -i${{github.workspace}}/firmware/Drivers/
+              -i${{github.workspace}}/firmware/Middlewares/
+              -i${{github.workspace}}/firmware/schematics/
+              -i${{github.workspace}}/firmware/Core/
               --suppress=missingIncludeSystem
               --suppress=missingInclude
               --suppress=unusedFunction
@@ -179,7 +178,7 @@ jobs:
       - name: Run flawfinder
         uses: david-a-wheeler/flawfinder@2.0.19
         with:
-          arguments: Components/
+          arguments: firmware/Components/
 
   lizard:
     name: Cyclomatic complexity (Lizard)
@@ -194,7 +193,7 @@ jobs:
       - name: Run Lizard
         uses: Uno-Takashi/Lizard-Runner@v3
         with:
-          path: Components/
+          path: firmware/Components/
           language: cpp
 
   # superlinter:
@@ -264,4 +263,4 @@ jobs:
         run: sudo apt-get install -y doxygen
 
       - name: Run Doxygen
-        run: doxygen Doxyfile
+        run: doxygen firmware/resources/Doxyfile
