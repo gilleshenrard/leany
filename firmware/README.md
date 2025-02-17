@@ -1,0 +1,74 @@
+# Leany Firmware
+
+Firmware for **Leany**, an inclinometer project based on the **STM32F103 (ARM Cortex-M3)** microcontroller.
+
+**Version:** 0.1
+
+## Building the Firmware
+
+1. Install the required tools by running the appropriate prerequisites installation script in `resources/`.
+2. Run the following command, with either **Debug** or **Release** as a configuration name :
+```
+cmake --preset Release
+cmake --build --preset Release
+```
+3. When the build task is complete, the firmware binary file (*.elf) can be found under build/<configuration_name>/
+
+## Programming the device
+### USB (programming only)
+1. Plug the device to a computer with a USB type C cable
+2. Press and maintain the BOOT button down
+3. Press the RESET button
+4. Release the BOOT button
+5. Upload the Leany.elf file to the device with the STM32CubeProgrammer software in USB mode
+
+### Hardware programmer (programming and debugging)
+1. Wire the programmer to the 4-pin male SWD connector on the PCB
+2. Connect the programmer to a computer via USB
+3. Flash and debug the firmware with an IDE of your choosing
+
+## CI/CD workflows
+The firmware is instected by a [Github Action](https://github.com/gilleshenrard/leany/actions/workflows/firmware_build_lint.yml) upon push and pull request to ensure the software compiles and the linters are all ran.
+
+## Project Structure
+
+```
+firmware/
+├── CMakeLists.txt
+├── CMakePresets.json
+├── Leany.ioc
+└── resources
+    ├── Doxyfile
+    ├── install_prerequisites_ubuntu.sh
+    ├── install_prerequisites_windows.bat
+    └── sonar-project.properties
+```
+
+### `CMakeLists.json` and `CMakePresets.json`
+This project is built with CMake to ensure maximum portability across different environments and OSes.
+
+A toolchain file and CMake preset configurations are provided to make building the firmware as easy as possible.
+
+### `Leany.ioc`
+The **STM32CubeMX** project file used to configure the STM32F103 microcontroller. It generates all third-party libraries, including LL (Low Level) and CMSIS.
+
+### `resources/`
+Contains additional resources:
+- **`Doxyfile`**: Configuration for Doxygen documentation generation.
+- **`install_prerequisites_ubuntu.sh`**: Script to install everything needed to build the firmware on Ubuntu.
+- **`install_prerequisites_windows.bat`**: Script to install everything needed to build the firmware on Windows.
+- **`sonar-project.properties`**: Configuration for SonarQube static code analysis.
+
+## Code Quality, Linting and Documentation
+
+- Strict code quality is maintained with as many **GCC warnings** as possible enabled, all treated as errors.
+- Linters configured: **clang-tidy**, **cppcheck**, **flawfinder**, and **lizard**.
+- **Doxygen** is used for documentation, with strict control to ensure comprehensive code documentation.
+
+## Contributing
+
+Contributions to improve the firmware code and documentation are welcome. If you have any suggestions or improvements, please create a pull request or open an issue on the repository.
+
+## License
+
+Leany is licensed under the MIT license. See the LICENSE file for more information.

@@ -3406,7 +3406,7 @@
 			(pintype "passive")
 			(uuid "5a11f37f-c363-4b3d-b9cd-87f26deab6e2")
 		)
-		(model "${KIPRJMOD}/3d-models/tact_switch_2.5mm_paul-thelu.stp"
+		(model "${KIPRJMOD}/3d-models/grabcad/Paul_Thelu/tact_switch_2.5mm_paul-thelu.stp"
 			(offset
 				(xyz -2.5 -2.5 0)
 			)
@@ -5533,7 +5533,7 @@
 			(pintype "passive")
 			(uuid "6f724fc9-13c0-412e-be4b-1cc77b3a74cf")
 		)
-		(model "${KICAD8_3DMODEL_DIR}/Crystal.3dshapes/Crystal_SMD_Abracon_ABM3-2Pin_5.0x3.2mm.wrl"
+		(model "${KICAD8_3DMODEL_DIR}/Crystal.3dshapes/Crystal_SMD_Abracon_ABM3B-4Pin_5.0x3.2mm.step"
 			(offset
 				(xyz 0 0 0)
 			)
@@ -6438,15 +6438,15 @@
 			(pintype "passive")
 			(uuid "48aa4920-063f-4c43-b3dd-258de369d8c6")
 		)
-		(model "${KICAD8_3DMODEL_DIR}/Connector_USB.3dshapes/USB_C_Receptacle_HRO_TYPE-C-31-M-12.wrl"
+		(model "${KIPRJMOD}/3d-models/grabcad/Ni_Ni/USB_type_C_smd_12p_ni-ni.stp"
 			(offset
-				(xyz 0 0 0)
+				(xyz 0 2.5 0)
 			)
 			(scale
 				(xyz 1 1 1)
 			)
 			(rotate
-				(xyz 0 0 0)
+				(xyz -90 0 -180)
 			)
 		)
 	)
@@ -6870,7 +6870,7 @@
 			(pintype "passive")
 			(uuid "c5d5d3f1-50e2-4c4e-9903-c9b7358be0e7")
 		)
-		(model "${KIPRJMOD}/3d-models/SW-DTSM-66N-V_Nicola-Stelian-Stefan.stp"
+		(model "${KIPRJMOD}/3d-models/grabcad/Stelian_Stefan/SW-DTSM-66N-V_Nicola-Stelian-Stefan.stp"
 			(offset
 				(xyz 0 0 0)
 			)
@@ -9670,7 +9670,7 @@
 			(pintype "passive")
 			(uuid "648d1f75-0121-4d9d-8364-0515e685b582")
 		)
-		(model "${KIPRJMOD}/3d-models/SW-DTSM-66N-V_Nicola-Stelian-Stefan.stp"
+		(model "${KIPRJMOD}/3d-models/grabcad/Stelian_Stefan/SW-DTSM-66N-V_Nicola-Stelian-Stefan.stp"
 			(offset
 				(xyz 0 0 0)
 			)
@@ -10693,7 +10693,7 @@
 			(pintype "passive")
 			(uuid "20d935c7-e038-4a07-9389-b57fe8665d54")
 		)
-		(model "${KIPRJMOD}/3d-models/tact_switch_2.5mm_paul-thelu.stp"
+		(model "${KIPRJMOD}/3d-models/grabcad/Paul_Thelu/tact_switch_2.5mm_paul-thelu.stp"
 			(offset
 				(xyz -2.5 -2.5 0)
 			)
@@ -14387,7 +14387,7 @@
 			(pintype "power_in")
 			(uuid "c5f6d5da-f817-4449-93ac-eaf17a3e77b2")
 		)
-		(model "${KIPRJMOD}/3d-models/wago_2060-452_998-404.stp"
+		(model "${KIPRJMOD}/3d-models/wago/wago_2060-452_998-404.stp"
 			(offset
 				(xyz 4 -6.5 0)
 			)
@@ -20046,6 +20046,17 @@
 			(thermal_bridge_angle 45)
 			(uuid "9f89a258-0afe-403c-a6fe-1a30dc1ad2fd")
 		)
+		(model "${KIPRJMOD}/3d-models/grabcad/Ignaz_Kevenaar/2020-RGB-LED.step"
+			(offset
+				(xyz 0 0 1)
+			)
+			(scale
+				(xyz 1 1 1)
+			)
+			(rotate
+				(xyz -90 0 0)
+			)
+		)
 	)
 	(footprint "leany_footprints:ST7735S"
 		(layer "F.Cu")
@@ -20560,7 +20571,7 @@
 				(xyz 0 0 0)
 			)
 		)
-		(model "${KIPRJMOD}/3d-models/Spacer M2 M F 10mm_mart-berghs.stp"
+		(model "${KIPRJMOD}/3d-models/grabcad/Mart_Berghs/Spacer-M2-M-F-10mm_mart-berghs.stp"
 			(offset
 				(xyz -1 -73.75 10)
 			)
@@ -20571,7 +20582,7 @@
 				(xyz 0 180 0)
 			)
 		)
-		(model "${KIPRJMOD}/3d-models/Spacer M2 M F 10mm_mart-berghs.stp"
+		(model "${KIPRJMOD}/3d-models/grabcad/Mart_Berghs/Spacer-M2-M-F-10mm_mart-berghs.stp"
 			(offset
 				(xyz -1 -44 10)
 			)
@@ -20582,7 +20593,7 @@
 				(xyz 0 180 0)
 			)
 		)
-		(model "${KIPRJMOD}/3d-models/Spacer M2 M F 10mm_mart-berghs.stp"
+		(model "${KIPRJMOD}/3d-models/grabcad/Mart_Berghs/Spacer-M2-M-F-10mm_mart-berghs.stp"
 			(offset
 				(xyz -52 -43.75 10)
 			)
@@ -20593,7 +20604,7 @@
 				(xyz 0 180 0)
 			)
 		)
-		(model "${KIPRJMOD}/3d-models/Spacer M2 M F 10mm_mart-berghs.stp"
+		(model "${KIPRJMOD}/3d-models/grabcad/Mart_Berghs/Spacer-M2-M-F-10mm_mart-berghs.stp"
 			(offset
 				(xyz -52 -73.75 10)
 			)
@@ -20604,9 +20615,9 @@
 				(xyz 0 -180 0)
 			)
 		)
-		(model "${KIPRJMOD}/3d-models/pin_header_male_2.54mm_0.1in_mohamed-owais.STEP"
+		(model "${KIPRJMOD}/3d-models/grabcad/Mohamed_Owais/pin_header_male_2.54mm_0.1in_mohamed-owais.STEP"
 			(offset
-				(xyz -0.5 -17.75 10)
+				(xyz 0 -17.75 10)
 			)
 			(scale
 				(xyz 1 1 1)
@@ -20615,9 +20626,9 @@
 				(xyz 90 0 0)
 			)
 		)
-		(model "${KIPRJMOD}/3d-models/1.8_inches_128x160_RGB_TFT_LCD_Pablo-Queiroz.stp"
+		(model "${KIPRJMOD}/3d-models/grabcad/Pablo_Queiroz/1.8_inches_128x160_RGB_TFT_LCD_Pablo-Queiroz.stp"
 			(offset
-				(xyz -54.5 8.3 10)
+				(xyz -54.5 8.8 10)
 			)
 			(scale
 				(xyz 1 1 1)

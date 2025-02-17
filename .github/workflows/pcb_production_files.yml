@@ -2,17 +2,17 @@ name: PCB checks and production files
 on: 
   push:
     paths:
-      - 'schematics/KiCad/*'
+      - 'pcb/*'
       - '.github/workflows/pcb_production_files.yml'
   pull_request:
     paths:
-      - 'schematics/KiCad/*'
+      - 'pcb/*'
       - '.github/workflows/pcb_production_files.yml'
 
 env:
-  SCH_PATH: ${{github.workspace}}/schematics/KiCad
-  PROD_PATH: ${{ github.workspace }}/schematics/KiCad/production_files
-  GBR_PATH: ${{ github.workspace }}/schematics/KiCad/gerber
+  SCH_PATH: ${{github.workspace}}/pcb
+  PROD_PATH: ${{ github.workspace }}/pcb/production_files
+  GBR_PATH: ${{ github.workspace }}/pcb/gerber
   SCH_FILE: leany.kicad_sch
   PCB_FILE: leany.kicad_pcb
   ERC_FILE: erc.json
