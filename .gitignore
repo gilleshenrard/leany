@@ -66,6 +66,9 @@ softVersion.c
 #CMake
 build/
 
+#arm-none-eabi-gcc
+*.xz
+
 #Doxygen outputs
 doxygen/
 
