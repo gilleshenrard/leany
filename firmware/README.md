@@ -1,56 +1,74 @@
-# Leany firmware
+# Leany Firmware
 
-### 5. How to build
-1. Open the *.ioc file with STM32CubeMX and click "Generate Code" to add the STM32CubeMX-generated files to the directory.
-2. Hit CTRL + SHIFT + P, then launch "CMake: Configure", then select "Debug" (or simply hit F7)
-3. Once done, hit CTRL + SHIFT + P, then launch "CMake: Build" (or simply hit F5)
+Firmware for **Leany**, an inclinometer project based on the **STM32F103 (ARM Cortex-M3)** microcontroller.
 
-### 6. Operation principles
-This devices functions in 4 steps :
-1. Wait for the LSM6DSO to gather measurements
-    - accelerometer : linear acceleration with a digital low-pass filter on the X, Y and Z axis
-    - gyroscope : angle rate with digital low-pass and high-pass filters on the x, y and z axis
-2. Apply a complementary filter (with Euler angles transformation) on the measurements
-3. Format the angles with their sign and print them on the screen (if the angle changed)
-4. Rinse and repeat
+**Version:** 0.1
 
-### 7. Wiring
+## Building the Firmware
 
-STLink V2 pinout :
+1. Install the required tools by running the appropriate prerequisites installation script in `resources/`.
+2. Run the following command, with either **Debug** or **Release** as a configuration name :
+```
+cmake --preset Release
+cmake --build --preset Release
+```
+3. When the build task is complete, the firmware binary file (*.elf) can be found under build/<configuration_name>/
 
-![](img/STLinkV2_pinout.jpg)
+## Programming the device
+### USB (programming only)
+1. Plug the device to a computer with a USB type C cable
+2. Press and maintain the BOOT button down
+3. Press the RESET button
+4. Release the BOOT button
+5. Upload the Leany.elf file to the device with the STM32CubeProgrammer software in USB mode
 
-Photo : [PlayEmbedded](https://www.playembedded.org/blog/mikroe-clicker-2-for-stm32-and-stlink-v2/)
+### Hardware programmer (programming and debugging)
+1. Wire the programmer to the 4-pin male SWD connector on the PCB
+2. Connect the programmer to a computer via USB
+3. Flash and debug the firmware with an IDE of your choosing
 
-STLink to Bluepill wiring :
-| STLink V2 pin | STLink V2 pin number | Bluepill pin | Circuit  |
-|:-------------:|:--------------------:|:------------:|:--------:|
-| MCU VDD       | 1                    | 3V3          |          |
-| SWDIO         | 7                    | SWDIO        |          |
-| SWCLK         | 9                    | SWCLK        |          |
-| VDD           | 19                   |              | VDD rail |
-| GND           | 20                   |              | GND rail |
+## CI/CD workflows
+The firmware is instected by a [Github Action](https://github.com/gilleshenrard/leany/actions/workflows/firmware_build_lint.yml) upon push and pull request to ensure the software compiles and the linters are all ran.
 
-Bluepill to peripherals wiring :
-| STM32/Bluepill pin | Alternate use | LSM6DSO pin | SSD1306 pin | Zero button      | Hold button      | Power latch      |
-|:------------------:|:-------------:|:-----------:|:-----------:|:----------------:|:----------------:|:----------------:|
-| PA4                | SPI1 NSS      | CS          |             |                  |                  |                  |
-| PA5                | SPI1 SCK      | SCL         |             |                  |                  |                  |
-| PA6                | SPI1 MISO     | SDO         |             |                  |                  |                  |
-| PA7                | SPI1 MOSI     | SDA         |             |                  |                  |                  |
-| PB0                | GPIO input PU*| INT1        |             |                  |                  |                  |
-| PB12               | SPI2 NSS      |             | CS          |                  |                  |                  |
-| PB13               | SPI2 SCK      |             | D0          |                  |                  |                  |
-| PB15               | SPI2 MOSI     |             | D1          |                  |                  |                  |
-| PA9                | GPIO output   |             | D/C         |                  |                  |                  |
-| PA10               | GPIO output   |             | RES         |                  |                  |                  |
-| PB1                | GPIO input PU*|             |             |                  |                  | Button           |
-| PB10               | GPIO input PU*|             |             | X (other to GND) |                  |                  |
-| PB11               | GPIO input PU*|             |             |                  | X (other to GND) |                  |
-| PB14               | GPIO out. PU* |             |             |                  |                  | Power ON output  |
+## Project Structure
 
-*PU : Pull-up
+```
+firmware/
+├── CMakeLists.txt
+├── CMakePresets.json
+├── Leany.ioc
+└── resources
+    ├── Doxyfile
+    ├── install_prerequisites_ubuntu.sh
+    ├── install_prerequisites_windows.bat
+    └── sonar-project.properties
+```
 
-Note : Two different SPI are used because, while the SSD1306 can go at full speed, the ADXL345 can go at max. 5MHz.
+### `CMakeLists.json` and `CMakePresets.json`
+This project is built with CMake to ensure maximum portability across different environments and OSes.
 
-In addition, SPI2 is a transmit-only master because the SSD1306 does not allow any read operation in serial mode. 
+A toolchain file and CMake preset configurations are provided to make building the firmware as easy as possible.
+
+### `Leany.ioc`
+The **STM32CubeMX** project file used to configure the STM32F103 microcontroller. It generates all third-party libraries, including LL (Low Level) and CMSIS.
+
+### `resources/`
+Contains additional resources:
+- **`Doxyfile`**: Configuration for Doxygen documentation generation.
+- **`install_prerequisites_ubuntu.sh`**: Script to install everything needed to build the firmware on Ubuntu.
+- **`install_prerequisites_windows.bat`**: Script to install everything needed to build the firmware on Windows.
+- **`sonar-project.properties`**: Configuration for SonarQube static code analysis.
+
+## Code Quality, Linting and Documentation
+
+- Strict code quality is maintained with as many **GCC warnings** as possible enabled, all treated as errors.
+- Linters configured: **clang-tidy**, **cppcheck**, **flawfinder**, and **lizard**.
+- **Doxygen** is used for documentation, with strict control to ensure comprehensive code documentation.
+
+## Contributing
+
+Contributions to improve the firmware code and documentation are welcome. If you have any suggestions or improvements, please create a pull request or open an issue on the repository.
+
+## License
+
+Leany is licensed under the MIT license. See the LICENSE file for more information.
