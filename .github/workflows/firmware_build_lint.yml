@@ -14,7 +14,7 @@ jobs:
 # Build the firmware on Linux and Windows
 #
   build:
-    name: Build the firmware on Linux and Windows
+    name: Build the firmware
     runs-on: ${{ matrix.os }}
     strategy:
        matrix:
@@ -23,7 +23,6 @@ jobs:
             - os: windows-latest
               sys: ucrt64
               env: ucrt-x86_64
-          configuration: [Debug]
 
     steps:
       - name: Checkout the repository

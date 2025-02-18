@@ -16,34 +16,46 @@ Welcome to the Leany project's PCB documentation. This repository contains all t
 
 This documentation provides an overview of the PCB schematics and layouts used in the Leany project. It includes detailed information on the design, components, and assembly instructions.
 
-## Getting Started
+## Generate the production files
 
-To get started with the PCB documentation, you will need to have KiCad installed on your system. You can download KiCad from the [official website](https://kicad.org/).
+1. Download KiCad from the [official website](https://kicad.org/).
+2. Go to the pcb/ directory
+3. Run the generation script located under resources/
 
-For now, you will also need to install Bouni's JLCPCB plugin. You can find the documentation on how to install in on [his Github repository](https://github.com/Bouni/kicad-jlcpcb-tools).
+## PCB fabrication
+
+- Once the production files are generated, head to [JLCPCB](https://cart.jlcpcb.com/quote?orderType=1&stencilLayer=2&stencilWidth=100&stencilLength=100)
+
+- Upload the zipped Gerber file, then, when the website is done processing it, choose the following non-default options :
+  - Surface finish : LeadFree HASL
+  - Enable PCB Assembly
+- Then, click Next until arriving at the Bill Of Materials page.
+- Upload the BOM and CPL files and click "Process BOM&CPL".
+- Check that no error is shown on the components list page, and click Next.
+- On the Components Placement page, move the components which are misplaced, then click Next.
+- On the final page, click Save to Cart.
 
 ## Directory Structure
-
-The directory structure of this repository is as follows:
-
 ```
-/home/gilles/git/leany/schematics/KiCad/
-├── README.md
-├── project_name.kicad_pcb
-├── project_name.sch
-└── libraries/
-    ├── components.lib
-    └── footprints.pretty/
+pcb/
+├── 3d-models
+└── resources
+    └── generate_production_files.sh
 ```
 
-- `README.md`: This file.
-- `project_name.kicad_pcb`: The PCB layout file.
-- `project_name.sch`: The schematic file.
-- `libraries/`: Directory containing custom libraries for components and footprints.
+### `3d-models`
+This directory contains the additional 3D models needed to export the PCB as an STL file
+
+### `resources`
+Contains additional resources :
+- `generate_production_files.sh` : A script to automatically generate and organise production files, with respect to JLCPCB standards.
+
+## CI/CD workflows
+The PCB files are instected by a [Github Action](https://github.com/gilleshenrard/leany/actions/workflows/pcb_production_files.yml) upon push and pull request to run the **Electrical Rules Check** and **Design Rules Check** ensure the production files are easily generated.
 
 ## Contributing
 
-We welcome contributions to improve the PCB documentation. If you have any suggestions or improvements, please create a pull request or open an issue on the repository.
+Contributions to improve the PCB design and documentation are welcome. If you have any suggestions or improvements, please create a pull request or open an issue on the repository.
 
 ## License
 
