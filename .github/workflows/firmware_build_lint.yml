@@ -89,7 +89,7 @@ jobs:
 # Run code quality and documentation checks
 #
   clang-tidy:
-    name: Code Quality (clang-tidy)
+    name: Code Quality (clang-tidy 19)
     runs-on: ubuntu-latest
     needs: build
     steps:
@@ -114,13 +114,14 @@ jobs:
         run: ls -la ${{ steps.arm-none-eabi-gcc-action.outputs.path }}/../arm-none-eabi
 
       - name: Install clang-tidy
-        run: sudo apt-get install -y clang clang-tidy
+        run: sudo apt-get install -y clang-19 clang-tidy-19
 
       - name: run clang-tidy
         run:  >
-              /usr/bin/run-clang-tidy
+              /usr/bin/run-clang-tidy-19
               -quiet
               -p ${{github.workspace}}/firmware/build/Debug/
+              -header-filter=.*
               -extra-arg=--sysroot=${{ steps.arm-none-eabi-gcc-action.outputs.path }}/../arm-none-eabi
               -extra-arg=--target=arm-none-eabi
               Components
