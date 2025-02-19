@@ -66,6 +66,9 @@ softVersion.c
 #CMake
 build/
 
+#arm-none-eabi-gcc
+*.xz
+
 #Doxygen outputs
 doxygen/
 
@@ -89,3 +92,14 @@ schematics/KiCad/fp-info-cache
 schematics/KiCad/*auto*save*
 schematics/KiCad/production_files/
 schematics/KiCad/gerber/
+
+pcb/*.lck
+pcb/*.bak
+pcb/*.rpt
+pcb/*.json
+pcb/*.net
+pcb/leany-backups
+pcb/fp-info-cache
+pcb/*auto*save*
+pcb/production_files/
+pcb/gerber/
