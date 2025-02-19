@@ -1,50 +1,93 @@
 name: Firmware Build and lint
 on: 
   push:
-    paths-ignore:
-      - 'schematics/**'
-      - '.gitignore'
-      - '.github/workflows/pcb_production_files.yml'
+    paths:
+      - 'firmware/*'
+      - '.github/workflows/firmware_build_lint.yml'
   pull_request:
-    paths-ignore:
-      - 'schematics/**'
-      - '.gitignore'
-      - '.github/workflows/pcb_production_files.yml'
+    paths:
+      - 'firmware/*'
+      - '.github/workflows/firmware_build_lint.yml'
 
 jobs:
+#
+# Build the firmware on Linux and Windows
+#
   build:
     name: Build the firmware
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
-      matrix:
-        configuration: [Debug, Release]
+       matrix:
+          os: [ubuntu-latest, windows-latest]
+          include:
+            - os: windows-latest
+              sys: ucrt64
+              env: ucrt-x86_64
 
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v4
+        with:
+            submodules: recursive
 
+      #Only for Linux
       - name: Install GNU Arm Embedded Toolchain - latest
+        if: ${{ matrix.os == 'ubuntu-latest' }}
         uses: carlosperate/arm-none-eabi-gcc-action@v1
         id: arm-none-eabi-gcc-action
         with:
-          release: latest
+          release: 'latest'
 
+      #Only for Linux
       - name: Install Ninja Build
+        if: ${{ matrix.os == 'ubuntu-latest' }}
         uses: turtlesec-no/get-ninja@main
-      
-      - name: Configure CMake
-        run: cmake -DCMAKE_BUILD_TYPE=${{ matrix.configuration }} -DCMAKE_TOOLCHAIN_FILE=${{github.workspace}}/cmake/gcc-arm-none-eabi.cmake -B ${{github.workspace}}/build/${{ matrix.configuration }} -G Ninja
 
-      - name: Compile the firmware
-        run: cmake --build ${{github.workspace}}/build/${{ matrix.configuration }}
+      #Only for Windows
+      - name: Set up MSYS2
+        if: ${{ matrix.os == 'windows-latest' }}
+        id: setup-msys2
+        uses: msys2/setup-msys2@v2
+        with:
+          update: false
+          cache: true
+          msystem: ${{matrix.sys}}
+          install: >-
+            mingw-w64-${{matrix.env}}-arm-none-eabi-gcc
+            mingw-w64-${{matrix.env}}-cmake
 
-      - name: Save the CMake configuration folder
+      #Only for Windows
+      - name: Save the MSYS2 install directory in %PATH%
+        if: ${{ matrix.os == 'windows-latest' }}
+        shell: powershell
+        run: |
+          echo "${{ steps.setup-msys2.outputs.msys2-location }}/${{matrix.sys}}/bin" >> $env:GITHUB_PATH
+
+      - name: Configure CMake and build (Debug)
+        run:  |
+              cd ${{github.workspace}}/firmware/
+              cmake --preset Debug
+              cmake --build --preset Debug
+
+      - name: Configure CMake and build (Release)
+        run:  |
+              cd ${{github.workspace}}/firmware/
+              cmake --preset Release
+              cmake --build --preset Release
+
+      #Only for Linux
+      - name: Save the Debug CMake configuration folder
+        if: ${{ matrix.os == 'ubuntu-latest' }}
         uses: actions/upload-artifact@v4
         with:
-          name: build-${{ matrix.configuration }}
-          path: ${{github.workspace}}/build/${{ matrix.configuration }}
+          name: build-Debug
+          path: ${{github.workspace}}/firmware/build/Debug
           if-no-files-found: error
 
+
+#
+# Run code quality and documentation checks
+#
   clang-tidy:
     name: Code Quality (clang-tidy)
     runs-on: ubuntu-latest
@@ -52,12 +95,14 @@ jobs:
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v4
+        with:
+            submodules: recursive
 
       - name: Download the saved CMake configuration folder
         uses: actions/download-artifact@v4
         with:
           name: build-Debug
-          path: ${{github.workspace}}/build/Debug
+          path: ${{github.workspace}}/firmware/build/Debug
 
       - name: Install GNU Arm Embedded Toolchain - latest
         uses: carlosperate/arm-none-eabi-gcc-action@v1
@@ -75,7 +120,7 @@ jobs:
         run:  >
               /usr/bin/run-clang-tidy
               -quiet
-              -p ${{github.workspace}}/build/Debug/
+              -p ${{github.workspace}}/firmware/build/Debug/
               -extra-arg=--sysroot=${{ steps.arm-none-eabi-gcc-action.outputs.path }}/../arm-none-eabi
               -extra-arg=--target=arm-none-eabi
               Components
@@ -87,18 +132,20 @@ jobs:
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v4
+        with:
+            submodules: recursive
 
       - name: Download the saved CMake configuration folder
         uses: actions/download-artifact@v4
         with:
           name: build-Debug
-          path: ${{github.workspace}}/build/Debug
+          path: ${{github.workspace}}/firmware/build/Debug
 
       - name: Install CppCheck
         run: sudo apt-get install -y cppcheck
 
       - name: Create CPPcheck build directory
-        run: mkdir -p ${{github.workspace}}/config-cppcheck-build-dir/
+        run: mkdir -p ${{github.workspace}}/firmware/config-cppcheck-build-dir/
 
       - name: Run CppCheck
         run:  >
@@ -107,13 +154,13 @@ jobs:
               --language=c
               --inconclusive
               --error-exitcode=2
-              --project=${{github.workspace}}/build/Debug/compile_commands.json
-              --cppcheck-build-dir=${{github.workspace}}/config-cppcheck-build-dir/
-              -i${{github.workspace}}/build/
-              -i${{github.workspace}}/Drivers/
-              -i${{github.workspace}}/Middlewares/
-              -i${{github.workspace}}/schematics/
-              -i${{github.workspace}}/Core/
+              --project=${{github.workspace}}/firmware/build/Debug/compile_commands.json
+              --cppcheck-build-dir=${{github.workspace}}/firmware/config-cppcheck-build-dir/
+              -i${{github.workspace}}/firmware/build/
+              -i${{github.workspace}}/firmware/Drivers/
+              -i${{github.workspace}}/firmware/Middlewares/
+              -i${{github.workspace}}/firmware/schematics/
+              -i${{github.workspace}}/firmware/Core/
               --suppress=missingIncludeSystem
               --suppress=missingInclude
               --suppress=unusedFunction
@@ -125,11 +172,13 @@ jobs:
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v4
+        with:
+            submodules: recursive
 
       - name: Run flawfinder
         uses: david-a-wheeler/flawfinder@2.0.19
         with:
-          arguments: Components/
+          arguments: firmware/Components/
 
   lizard:
     name: Cyclomatic complexity (Lizard)
@@ -138,11 +187,13 @@ jobs:
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v4
+        with:
+            submodules: recursive
 
       - name: Run Lizard
         uses: Uno-Takashi/Lizard-Runner@v3
         with:
-          path: Components/
+          path: firmware/Components/
           language: cpp
 
   # superlinter:
@@ -205,9 +256,11 @@ jobs:
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v4
+        with:
+            submodules: recursive
 
       - name: Install Doxygen
         run: sudo apt-get install -y doxygen
 
       - name: Run Doxygen
-        run: doxygen Doxyfile
+        run: doxygen firmware/resources/Doxyfile
