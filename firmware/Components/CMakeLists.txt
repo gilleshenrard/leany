@@ -1,0 +1,95 @@
+##############################################################################################
+# brief: User-defined modules CMakeLists file
+# date:  26/09/2024
+##############################################################################################
+#declare warning flags
+set(WARNING_FLAGS
+	-Wall
+	-Wextra
+	-Werror
+	-pedantic
+	-pedantic-errors
+	-Waggressive-loop-optimizations
+	-Wbad-function-cast
+	-Wbuiltin-macro-redefined
+	-Wdate-time
+	-Wdisabled-optimization
+	-Wdiscarded-array-qualifiers
+	-Wdiscarded-qualifiers
+	-Wdiv-by-zero
+	-Wduplicated-branches
+	-Wduplicated-cond
+	-Wfloat-equal
+	-Wignored-attributes
+	-Winline
+	-Winvalid-memory-model
+	-Winvalid-pch
+	-Wjump-misses-init
+	-Wlogical-op
+	-Wlogical-not-parentheses
+	-Wmissing-declarations
+	-Wmissing-include-dirs
+	-Wnested-externs
+	-Wnormalized=nfc
+	-Wnull-dereference
+	-Wredundant-decls
+	-Wtrampolines
+	-Wunsuffixed-float-constants
+	-Wswitch-default
+	-Wswitch-unreachable
+	-Wswitch-enum
+	-Wconversion
+	-Wshadow
+	-Wformat=2
+	-Wformat-truncation
+	-Wformat-signedness
+	-Wundef
+	-fno-common
+	-Wdouble-promotion	# only on 32-bits microcontrollers
+	# $<$<CONFIG:Debug>:-fanalyzer>
+	$<$<CONFIG:Debug>:-fstack-usage>
+)
+
+#make sure STM32CubeMX library knows about sysutils/ (to use it in interrupts, ...)
+target_include_directories(stm32cubemx INTERFACE sysutils/)
+
+#create the sysUtils library, taking care of the error stack management
+#	STM32CubeMX includes and definitions are manually added instead of linking the library
+#	to avoid re-compiling STMCube libraries and optimising compilation
+add_library(sysUtils
+	sysutils/errorstack.c)
+target_include_directories(sysUtils PUBLIC sysutils/)
+target_compile_definitions(sysUtils PUBLIC $<TARGET_PROPERTY:stm32cubemx,INTERFACE_COMPILE_DEFINITIONS>)
+target_include_directories(sysUtils SYSTEM INTERFACE $<TARGET_PROPERTY:stm32cubemx,INTERFACE_INCLUDE_DIRECTORIES>)
+target_compile_options(sysUtils PUBLIC ${WARNING_FLAGS})
+
+#populate softVersion.c with the latest git commit hash
+add_custom_command(TARGET sysUtils
+	PRE_BUILD
+	COMMAND ${CMAKE_COMMAND}
+	-P gitVersion.cmake
+	WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/sysutils/
+	COMMENT "Populating the latest git commit hash"
+)
+
+#create the ssd1306 library, taking care of the display
+add_library(st7735s
+	display/ST7735S.c
+	display/icons.c
+	display/ST7735_initialisation.c)
+target_include_directories(st7735s PUBLIC display)
+target_include_directories(st7735s PUBLIC sensor/)
+target_link_libraries(st7735s PRIVATE sysUtils)
+
+#create the LSM6DSO library, taking care of the MEMS sensor
+add_library(lsm6dso
+	sensor/LSM6DSO.c)
+target_include_directories(lsm6dso PUBLIC sensor/)
+target_link_libraries(lsm6dso PRIVATE sysUtils)
+target_link_libraries(lsm6dso PRIVATE st7735s)
+
+#create the buttons library, taking care of the control buttons
+add_library(buttons
+	buttons/buttons.c)
+target_include_directories(buttons PUBLIC buttons)
+target_link_libraries(buttons PRIVATE sysUtils)

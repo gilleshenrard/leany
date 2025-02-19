@@ -1,0 +1,66 @@
+#clang-tidy examples command-line :
+#   clang-tidy -p .\build\Debug --extra-arg=--sysroot="C:/Program Files (x86)/Arm GNU Toolchain arm-none-eabi/13.3 rel1/arm-none-eabi/" .\Components\hardware\buttons\buttons.c
+#   python.exe 'C:\Program Files\LLVM\bin\run-clang-tidy' -quiet -p .\build\Debug -extra-arg=--sysroot="C:/Program Files (x86)/Arm GNU Toolchain arm-none-eabi/13.3 rel1/arm-none-eabi/" -extra-arg=--target=arm-none-eabi
+---
+#Arguments to make clang-tidy work with the cross-compiler
+ExtraArgs:
+  - "--target=arm-none-eabi"
+  - "-Wno-unknown-warning-option"
+
+#Checks enabled : all except :
+  # cppcoreguidelines-avoid-non-const-global-variables  : Lots of global variables are used, and can't all be set as const
+  # altera-unroll-loops                                 : Avoid unrolling space overhead, and let the compiler optimise loops
+  # altera-id-dependent-backward-branch                 : Timer counters are used in loops, and those are considered as ID-dependant
+  # llvmlibc-restrict-system-libc-headers               : ARM GNU Toolchain system headers will be used
+  # llvm-include-order                                  : Format style is based on Google's, which has an incompatible include order
+  # performance-no-int-to-ptr                           : GPIO ports are int addresses casted to pointers
+  # google-readability-todo                             : Just plain annoying
+  # llvm-header-guard                                   : LLVM-style header guards are too restrictive
+Checks: "*,\
+  -cppcoreguidelines-avoid-non-const-global-variables,\
+  -altera-unroll-loops,\
+  -altera-id-dependent-backward-branch,\
+  -llvmlibc-restrict-system-libc-headers,\
+  -llvm-include-order,\
+  -performance-no-int-to-ptr,\
+  -google-readability-todo,\
+  -llvm-header-guard"
+
+#Promote all enabled warnings as errors
+WarningsAsErrors:
+  "*"
+
+#Include headers located in Components/ during linting
+HeaderFilterRegex:
+  "*"
+
+#Format fixes as stated in the .clang-format file
+FormatStyle:
+  file
+
+#Use colours in output, if possible
+UseColor:
+  true
+
+#Fine-tuning options
+CheckOptions:
+  #Warnings options
+  - key: 'bugprone-easily-swappable-parameters.ModelImplicitConversions'  #Do not consider mixing if different type definitions
+    value: 'false'
+
+  #Formatting options
+  - key: 'readability-identifier-naming.ConstantCase'
+    value: 'UPPER_CASE'
+  - key: 'readability-identifier-naming.LocalConstantCase'
+    value: 'aNy_CasE'
+  - key: 'readability-identifier-naming.GlobalConstantCase'
+    value: 'aNy_CasE'
+  - key: 'readability-identifier-naming.ConstantParameterCase'
+    value: 'aNy_CasE'
+  - key: 'readability-identifier-naming.EnumCase'
+    value: 'UPPER_CASE'
+  - key: 'readability-identifier-naming.EnumConstantCase'
+    value: 'UPPER_CASE'
+  - key: 'readability-identifier-naming.FunctionCase'
+    value: 'camelBack'
+...
