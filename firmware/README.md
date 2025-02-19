@@ -40,8 +40,7 @@ firmware/
 └── resources
     ├── Doxyfile
     ├── install_prerequisites_ubuntu.sh
-    ├── install_prerequisites_windows.bat
-    └── sonar-project.properties
+    └── install_prerequisites_windows.bat
 ```
 
 ### `CMakeLists.json` and `CMakePresets.json`
@@ -57,7 +56,6 @@ Contains additional resources:
 - **`Doxyfile`**: Configuration for Doxygen documentation generation.
 - **`install_prerequisites_ubuntu.sh`**: Script to install everything needed to build the firmware on Ubuntu.
 - **`install_prerequisites_windows.bat`**: Script to install everything needed to build the firmware on Windows.
-- **`sonar-project.properties`**: Configuration for SonarQube static code analysis.
 
 ## Code Quality, Linting and Documentation
 
