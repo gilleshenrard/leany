@@ -27,7 +27,7 @@ static const register_t inversionControl_arg = ALL_MODES_NO_INVERSION;
  * @brief Arguments sent when configuring the power 1
  */
 static const register_t powerControl1_args[3] = {
-    AVDD_5V | GVDD_4_6V,
+    AVDD_5V | GVDD_4_6V,  // NOLINT (hicpp-signed-bitwise)
     GVCL_NEG_4_6V,
     POWER_MODE_AUTO,
 };
@@ -35,13 +35,13 @@ static const register_t powerControl1_args[3] = {
 /**
  * @brief Arguments sent when configuring the power 2
  */
-static const register_t powerControl2_arg = VGH25_2_4C | VGL_10 | VGH_3ADD;
+static const register_t powerControl2_arg = VGH25_2_4C | VGL_10 | VGH_3ADD;  // NOLINT (hicpp-signed-bitwise)
 
 /**
  * @brief Arguments sent when configuring the power 3
  */
 static const register_t powerControl3_args[2] = {
-    BOOST_MAX | OPAMP_HIGH_SMALL_CUR | OPAMP_LOW_MEDLOW_CUR,
+    BOOST_MAX | OPAMP_HIGH_SMALL_CUR | OPAMP_LOW_MEDLOW_CUR,  // NOLINT (hicpp-signed-bitwise)
     BOOST_MAX,
 };
 
@@ -49,7 +49,7 @@ static const register_t powerControl3_args[2] = {
  * @brief Arguments sent when configuring the power 4
  */
 static const register_t powerControl4_args[2] = {
-    (BOOST_BCLK_2 << 6U) | OPAMP_HIGH_SMALL_CUR | OPAMP_LOW_MEDLOW_CUR,
+    (BOOST_BCLK_2 << 6U) | OPAMP_HIGH_SMALL_CUR | OPAMP_LOW_MEDLOW_CUR,  // NOLINT (hicpp-signed-bitwise)
     BOOST_LSB_BCLK_2,
 };
 
@@ -57,7 +57,7 @@ static const register_t powerControl4_args[2] = {
  * @brief Arguments sent when configuring the power 5
  */
 static const register_t powerControl5_args[2] = {
-    (BOOST_BCLK_2 << 6U) | OPAMP_HIGH_SMALL_CUR | OPAMP_LOW_MEDLOW_CUR,
+    (BOOST_BCLK_2 << 6U) | OPAMP_HIGH_SMALL_CUR | OPAMP_LOW_MEDLOW_CUR,  // NOLINT (hicpp-signed-bitwise)
     BOOST_LSB_IDLE_MODE,
 };
 
@@ -68,10 +68,14 @@ static const register_t vmCtr1_arg = VCOM_NEG_0_775V;
 
 // NOLINTBEGIN(misc-redundant-expression)
 const register_t orientations[NB_ORIENTATION] = {
-    [PORTRAIT]      = REFRESH_TOP_BOTTOM | REFRESH_LEFT_RIGHT | ORIENT_PORTRAIT | COLORS_ORDER_RGB,
-    [PORTRAIT_180]  = REFRESH_TOP_BOTTOM | REFRESH_LEFT_RIGHT | ORIENT_PORTRAIT_180 | COLORS_ORDER_RGB,
-    [LANDSCAPE]     = REFRESH_TOP_BOTTOM | REFRESH_LEFT_RIGHT | ORIENT_LANDSCAPE | COLORS_ORDER_RGB,
-    [LANDSCAPE_180] = REFRESH_TOP_BOTTOM | REFRESH_LEFT_RIGHT | ORIENT_LANDSCAPE_180 | COLORS_ORDER_RGB,
+    [PORTRAIT] =
+        REFRESH_TOP_BOTTOM | REFRESH_LEFT_RIGHT | ORIENT_PORTRAIT | COLORS_ORDER_RGB,  // NOLINT (hicpp-signed-bitwise)
+    [PORTRAIT_180] = REFRESH_TOP_BOTTOM | REFRESH_LEFT_RIGHT | ORIENT_PORTRAIT_180     // NOLINT (hicpp-signed-bitwise)
+                     | COLORS_ORDER_RGB,                                               // NOLINT (hicpp-signed-bitwise)
+    [LANDSCAPE] =
+        REFRESH_TOP_BOTTOM | REFRESH_LEFT_RIGHT | ORIENT_LANDSCAPE | COLORS_ORDER_RGB,  // NOLINT (hicpp-signed-bitwise)
+    [LANDSCAPE_180] = REFRESH_TOP_BOTTOM | REFRESH_LEFT_RIGHT | ORIENT_LANDSCAPE_180    // NOLINT (hicpp-signed-bitwise)
+                      | COLORS_ORDER_RGB,                                               // NOLINT (hicpp-signed-bitwise)
 };
 // NOLINTEND(misc-redundant-expression)
 

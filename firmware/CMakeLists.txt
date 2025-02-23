@@ -33,12 +33,16 @@ add_executable(${CMAKE_PROJECT_NAME})
 
 # Add STM32CubeMX generated sources
 add_subdirectory(cmake/stm32cubemx SYSTEM)
+add_subdirectory(cmake/bosch-sensortec SYSTEM)
 add_subdirectory(Components)
+add_subdirectory(UI)
 
 # Add linked libraries
 target_link_libraries(${CMAKE_PROJECT_NAME}
     stm32cubemx
-    lsm6dso
+    bmi270
     st7735s
     buttons
+    UI
+    hal
 )

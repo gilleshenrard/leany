@@ -1,21 +1,21 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file           : main.h
-  * @brief          : Header for main.c file.
-  *                   This file contains the common defines of the application.
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2023 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file           : main.h
+ * @brief          : Header for main.c file.
+ *                   This file contains the common defines of the application.
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2023 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
@@ -46,6 +46,8 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "FreeRTOS.h"
+#include "projdefs.h"
 
 /* USER CODE END Includes */
 
@@ -68,7 +70,17 @@ extern "C" {
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
-
+/**
+ * Check if a timeout in [ms] has occurred
+ *
+ * @param startTick The tick to compare to now to check for a timeout
+ * @param timeout The timeout span in milliseconds
+ * @retval 1 Timeout has occurred
+ * @retval 0 Timeout has not occurred
+ */
+static inline uint8_t timeout(uint32_t startTick, uint16_t timeout_ms) {
+  return ((HAL_GetTick() - startTick) >= pdMS_TO_TICKS(timeout_ms));
+}
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
@@ -80,23 +92,23 @@ void Error_Handler(void);
 #define LED_BLUE_GPIO_Port GPIOA
 #define BATT_VOLT_Pin LL_GPIO_PIN_3
 #define BATT_VOLT_GPIO_Port GPIOA
-#define LSM6DSO_CS_Pin LL_GPIO_PIN_4
-#define LSM6DSO_CS_GPIO_Port GPIOA
-#define LSM6DSO_SCL_Pin LL_GPIO_PIN_5
-#define LSM6DSO_SCL_GPIO_Port GPIOA
-#define LSM6DSO_SDO_Pin LL_GPIO_PIN_6
-#define LSM6DSO_SDO_GPIO_Port GPIOA
-#define LSM6DSO_SDA_Pin LL_GPIO_PIN_7
-#define LSM6DSO_SDA_GPIO_Port GPIOA
-#define LSM6DSO_INT1_Pin LL_GPIO_PIN_0
-#define LSM6DSO_INT1_GPIO_Port GPIOB
-#define LSM6DSO_INT1_EXTI_IRQn EXTI0_IRQn
+#define BMI270_CS_Pin LL_GPIO_PIN_4
+#define BMI270_CS_GPIO_Port GPIOA
+#define BMI270_SCL_Pin LL_GPIO_PIN_5
+#define BMI270_SCL_GPIO_Port GPIOA
+#define BMI270_SDO_Pin LL_GPIO_PIN_6
+#define BMI270_SDO_GPIO_Port GPIOA
+#define BMI270_SDA_Pin LL_GPIO_PIN_7
+#define BMI270_SDA_GPIO_Port GPIOA
+#define BMI270_INT1_Pin LL_GPIO_PIN_0
+#define BMI270_INT1_GPIO_Port GPIOB
+#define BMI270_INT1_EXTI_IRQn EXTI0_IRQn
 #define CHG_INT_Pin LL_GPIO_PIN_1
 #define CHG_INT_GPIO_Port GPIOB
 #define CHG_INT_EXTI_IRQn EXTI1_IRQn
-#define LSM6DSO_INT2_Pin LL_GPIO_PIN_2
-#define LSM6DSO_INT2_GPIO_Port GPIOB
-#define LSM6DSO_INT2_EXTI_IRQn EXTI2_IRQn
+#define BMI270_INT2_Pin LL_GPIO_PIN_2
+#define BMI270_INT2_GPIO_Port GPIOB
+#define BMI270_INT2_EXTI_IRQn EXTI2_IRQn
 #define ZERO_BUTTON_Pin LL_GPIO_PIN_10
 #define ZERO_BUTTON_GPIO_Port GPIOB
 #define HOLD_BUTTON_Pin LL_GPIO_PIN_11
@@ -123,6 +135,8 @@ void Error_Handler(void);
 #define DEBUG_SWCLK_GPIO_Port GPIOA
 #define ST7735S_BL_Pin LL_GPIO_PIN_15
 #define ST7735S_BL_GPIO_Port GPIOA
+#define DEBUG_OUT_Pin LL_GPIO_PIN_4
+#define DEBUG_OUT_GPIO_Port GPIOB
 #define CHG_SCL_Pin LL_GPIO_PIN_6
 #define CHG_SCL_GPIO_Port GPIOB
 #define CHG_SDA_Pin LL_GPIO_PIN_7

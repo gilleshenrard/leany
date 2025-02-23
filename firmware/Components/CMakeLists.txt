@@ -1,3 +1,5 @@
+include_directories(${CMAKE_SOURCE_DIR}/cmake/bosch-sensortec)
+
 #make sure STM32CubeMX library knows about sysutils/ (to use it in interrupts, ...)
 target_include_directories(stm32cubemx INTERFACE sysutils/)
 
@@ -8,7 +10,7 @@ add_library(sysUtils
 	sysutils/errorstack.c)
 target_include_directories(sysUtils PUBLIC sysutils/)
 target_compile_definitions(sysUtils PUBLIC $<TARGET_PROPERTY:stm32cubemx,INTERFACE_COMPILE_DEFINITIONS>)
-target_include_directories(sysUtils SYSTEM INTERFACE $<TARGET_PROPERTY:stm32cubemx,INTERFACE_INCLUDE_DIRECTORIES>)
+target_include_directories(sysUtils SYSTEM PUBLIC $<TARGET_PROPERTY:stm32cubemx,INTERFACE_INCLUDE_DIRECTORIES>)
 target_compile_options(sysUtils PUBLIC ${WARNING_FLAGS})
 
 #populate softVersion.c with the latest git commit hash
@@ -20,21 +22,28 @@ add_custom_command(TARGET sysUtils
 	COMMENT "Populating the latest git commit hash"
 )
 
+add_library(hal HAL/halspi.c)
+target_include_directories(hal PUBLIC HAL)
+target_link_libraries(hal PRIVATE sysUtils)
+
 #create the ssd1306 library, taking care of the display
 add_library(st7735s
 	display/ST7735S.c
-	display/icons.c
 	display/ST7735_initialisation.c)
 target_include_directories(st7735s PUBLIC display)
 target_include_directories(st7735s PUBLIC sensor/)
 target_link_libraries(st7735s PRIVATE sysUtils)
+target_link_libraries(st7735s PRIVATE hal)
 
-#create the LSM6DSO library, taking care of the MEMS sensor
-add_library(lsm6dso
-	sensor/LSM6DSO.c)
-target_include_directories(lsm6dso PUBLIC sensor/)
-target_link_libraries(lsm6dso PRIVATE sysUtils)
-target_link_libraries(lsm6dso PRIVATE st7735s)
+#create the BMI270 library, taking care of the MEMS sensor
+add_library(bmi270
+	sensor/memsBMI270.c
+	sensor/sensorfusion.c)
+target_include_directories(bmi270 PUBLIC sensor/)
+target_link_libraries(bmi270 PRIVATE sysUtils)
+target_link_libraries(bmi270 PRIVATE hal)
+target_link_libraries(bmi270 PRIVATE st7735s)
+target_link_libraries(bmi270 PRIVATE bmi270_api)
 
 #create the buttons library, taking care of the control buttons
 add_library(buttons

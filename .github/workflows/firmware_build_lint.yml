@@ -1,14 +1,14 @@
 name: Firmware Build and lint
-on: 
+on:
   push:
     paths:
-      - 'firmware/*'
-      - '!firmware/resources/*'
+      - 'firmware/**'
+      - '!firmware/resources/**'
       - '.github/workflows/firmware_build_lint.yml'
   pull_request:
     paths:
-      - 'firmware/*'
-      - '!firmware/resources/*'
+      - 'firmware/**'
+      - '!firmware/resources/**'
       - '.github/workflows/firmware_build_lint.yml'
 
 jobs:
@@ -118,6 +118,9 @@ jobs:
       - name: Install clang-tidy
         run: sudo apt-get install -y clang-19 clang-tidy-19
 
+      - name: Remove "-fanalyzer" from compile_commands.json
+        run: sed -i 's/-fanalyzer//g' ${{github.workspace}}/firmware/build/Debug/compile_commands.json
+
       - name: run clang-tidy
         run:  >
               /usr/bin/run-clang-tidy-19
@@ -125,11 +128,9 @@ jobs:
               -p ${{github.workspace}}/firmware/build/Debug/
               -extra-arg=--sysroot=${{ steps.arm-none-eabi-gcc-action.outputs.path }}/../arm-none-eabi
               -extra-arg=--target=armv7m-none-eabi
-              -extra-arg=-march=armv7-m
-              -extra-arg=-mcpu=cortex-m3
               -extra-arg=-mthumb
               -header-filter=.*
-              Components
+              "(Components|UI)"
 
   cppcheck:
     name: Coding constructs (Cppcheck)
@@ -159,7 +160,9 @@ jobs:
               --enable=all
               --language=c
               --inconclusive
+              --inline-suppr
               --error-exitcode=2
+              --check-level=exhaustive
               --project=${{github.workspace}}/firmware/build/Debug/compile_commands.json
               --cppcheck-build-dir=${{github.workspace}}/firmware/config-cppcheck-build-dir/
               -i${{github.workspace}}/firmware/build/

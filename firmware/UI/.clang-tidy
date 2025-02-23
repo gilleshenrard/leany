@@ -1,6 +1,6 @@
 #clang-tidy examples command-line :
 #   clang-tidy -p .\build\Debug --extra-arg=--sysroot="C:/Program Files (x86)/Arm GNU Toolchain arm-none-eabi/13.3 rel1/arm-none-eabi/" .\Components\hardware\buttons\buttons.c
-#   python.exe C:\msys64\ucrt64\bin\run-clang-tidy -quiet -p .\build\Debug\ -extra-arg=--sysroot=C:/msys64/ucrt64/arm-none-eabi -extra-arg=--target=armv7m-none-eabi -extra-arg=-mthumb -header-filter=.* "(Components|UI)"
+#   python.exe 'C:\Program Files\LLVM\bin\run-clang-tidy' -quiet -p .\build\Debug -extra-arg=--sysroot="C:/Program Files (x86)/Arm GNU Toolchain arm-none-eabi/13.3 rel1/arm-none-eabi/" -extra-arg=--target=armv7m-none-eabi
 ---
 #Arguments to make clang-tidy work with the cross-compiler
 ExtraArgs:

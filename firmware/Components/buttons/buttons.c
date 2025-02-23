@@ -1,16 +1,17 @@
 /**
  * @brief Implement the GPIO buttons state and debouncing
  * @author Gilles Henrard
- * @date 17/07/2024
+ * @date 13/06/2025
  */
 #include "buttons.h"
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include "FreeRTOS.h"
-#include "FreeRTOSConfig.h"
 #include "main.h"
 #include "portmacro.h"
+#include "projdefs.h"
+#include "semphr.h"
 #include "stm32f103xb.h"
 #include "stm32f1xx_hal.h"
 #include "stm32f1xx_hal_def.h"
@@ -20,36 +21,34 @@
 _Static_assert((bool)(NB_BUTTONS <= UINT8_MAX), "The application supports maximum 255 buttons");
 
 enum {
-    STACK_SIZE              = (configMINIMAL_STACK_SIZE >> 1U),  ///< Amount of words in the task stack
-    TASK_LOW_PRIORITY       = 8U,                                ///< FreeRTOS number for a low priority task
-    DEBOUNCE_TIME_MS        = 50U,                               ///< Number of milliseconds to wait for debouncing
+    STACK_SIZE              = 32U,    ///< Amount of words in the task stack
+    TASK_LOW_PRIORITY       = 8U,     ///< FreeRTOS number for a low priority task
+    DEBOUNCE_TIME_MS        = 50U,    ///< Number of milliseconds to wait for debouncing
     HOLDING_TIME_MS         = 1000U,  ///< Number of milliseconds to wait before considering a button is held down
     EDGEDETECTION_TIME_MS   = 40U,    ///< Number of milliseconds during which a falling/rising edge can be detected
-    BUTTON_STRUCT_ALIGNMENT = 16,     ///< Alignment size used for buttons structure to make its accesses more efficient
+    BUTTON_STRUCT_ALIGNMENT = 128U,   ///< Alignment size used for buttons structure to make its accesses more efficient
+    TIMERS_STRUCT_ALIGNMENT = 16U,    ///< Alignment size used for timers structure to make its accesses more efficient
+    MUTEX_TIMEOUT_MS        = 2U,     ///< Max. number of milliseconds during which a task can attempt to take a mutex
 };
 
-//utility functions
-static void taskButtons(void* argument);
-
-//machine state
-static void stReleased(button_e button);
-static void stPressed(button_e button);
-static void stHeldDown(button_e button);
-
 /**
- * @brief State machine state prototype
- *
- * @return Error code of the state
+ * Enumeration of the different button states
  */
-typedef void (*gpioState)(button_e button);
+typedef enum {
+    BUT_RELEASED = 0,  ///< stateReleased() : Button is released
+    BUT_PRESSED,       ///< statePressed() : Button is pressed, but not held
+    BUT_HELD,          ///< stateHeldDown() : Button is held down
+} buttonstate_e;
 
 /**
  * @brief Structure defining a button GPIO
  */
 typedef struct {
-    GPIO_TypeDef* port;   ///< GPIO port used
-    uint32_t      pin;    ///< GPIO pin used
-    gpioState     state;  ///< Current button state
+    GPIO_TypeDef*     port;        ///< GPIO port used
+    uint32_t          pin;         ///< GPIO pin used
+    buttonstate_e     state;       ///< Current state of the GPIO button
+    SemaphoreHandle_t mutex;       ///< handle of the mutex used to protect button updates
+    StaticSemaphore_t mutexState;  ///< mutex state variables
 } __attribute__((aligned(BUTTON_STRUCT_ALIGNMENT))) button_t;
 
 /**
@@ -60,27 +59,32 @@ typedef struct {
     uint32_t holding_ms;      ///< Timer used to detect if a button is held down (in ms)
     uint32_t risingEdge_ms;   ///< Timer used to detect a rising edge (in ms)
     uint32_t fallingEdge_ms;  ///< Timer used to detect a falling edge (in ms)
-} __attribute__((aligned(BUTTON_STRUCT_ALIGNMENT))) gpioTimer_t;
+} __attribute__((aligned(TIMERS_STRUCT_ALIGNMENT))) gpioTimer_t;
 
-static gpioTimer_t buttonsTimers[NB_BUTTONS];  ///< Array of timers used by the buttons
+//utility functions
+static void taskButtons(void* argument);
+
+//machine state
+static void stateReleased(button_e button);
+static void statePressed(button_e button);
+
+//state variables
+static volatile TaskHandle_t taskHandle = NULL;          ///< handle of the FreeRTOS task
+static gpioTimer_t           buttonsTimers[NB_BUTTONS];  ///< Array of timers used by the buttons
 
 /**
  * @brief Buttons initialisation array
  */
 static button_t buttons[NB_BUTTONS] = {
-    [ZERO] = {ZERO_BUTTON_GPIO_Port, ZERO_BUTTON_Pin, stReleased},
-    [HOLD] = {HOLD_BUTTON_GPIO_Port, HOLD_BUTTON_Pin, stReleased},
+    [BTN_ZERO] = {.port = ZERO_BUTTON_GPIO_Port, .pin = ZERO_BUTTON_Pin, .state = BUT_RELEASED},
+    [BTN_HOLD] = {.port = HOLD_BUTTON_GPIO_Port, .pin = HOLD_BUTTON_Pin, .state = BUT_RELEASED},
 };
-
-static volatile TaskHandle_t taskHandle = NULL;  ///< handle of the FreeRTOS task
 
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
 
 /**
- * @brief Create a LSM6DSO FreeRTOS static task
- *
- * @param handle SPI handle used by the LSM6DSO
+ * @brief Create FreeRTOS static task for the buttons
  */
 void createButtonsTask(void) {
     static StackType_t  taskStack[STACK_SIZE] = {0};  ///< Buffer used as the task stack
@@ -92,18 +96,40 @@ void createButtonsTask(void) {
     if(!taskHandle) {
         Error_Handler();
     }
+
+    //create the buttons' mutex
+    for(uint8_t button = 0; button < (uint8_t)NB_BUTTONS; button++) {
+        buttons[button].mutex = xSemaphoreCreateMutexStatic(&buttons[button].mutexState);
+        if(!buttons[button].mutex) {
+            Error_Handler();
+        }
+    }
 }
 
 /**
- * @brief Run each button's state machine
+ * @brief Run each button state machine
  */
 static void taskButtons(void* argument) {
     UNUSED(argument);
 
     while(1) {
         for(uint8_t i = 0; i < (uint8_t)NB_BUTTONS; i++) {
-            (*buttons[i].state)(i);
+            switch(buttons[i].state) {
+                case BUT_RELEASED:
+                    stateReleased(i);
+                    break;
+
+                case BUT_PRESSED:
+                case BUT_HELD:
+                    statePressed(i);
+                    break;
+
+                default:
+                    Error_Handler();
+                    break;
+            }
         }
+        vTaskDelay(pdMS_TO_TICKS(5U));
     }
 }
 
@@ -119,7 +145,13 @@ uint8_t isButtonReleased(button_e button) {
         return 0;
     }
 
-    return (buttons[button].state == stReleased);
+    uint8_t released = 0;
+    if(xSemaphoreTake(buttons[button].mutex, pdMS_TO_TICKS(MUTEX_TIMEOUT_MS)) == pdTRUE) {
+        released = (buttons[button].state == BUT_RELEASED);
+        xSemaphoreGive(buttons[button].mutex);
+    }
+
+    return released;
 }
 
 /**
@@ -134,7 +166,13 @@ uint8_t isButtonPressed(button_e button) {
         return 0;
     }
 
-    return ((buttons[button].state == stPressed) || (buttons[button].state == stHeldDown));
+    uint8_t pressed = 0;
+    if(xSemaphoreTake(buttons[button].mutex, pdMS_TO_TICKS(MUTEX_TIMEOUT_MS)) == pdTRUE) {
+        pressed = ((buttons[button].state == BUT_PRESSED) || (buttons[button].state == BUT_HELD));
+        xSemaphoreGive(buttons[button].mutex);
+    }
+
+    return pressed;
 }
 
 /**
@@ -149,7 +187,13 @@ uint8_t isButtonHeldDown(button_e button) {
         return 0;
     }
 
-    return (buttons[button].state == stHeldDown);
+    uint8_t held = 0;
+    if(xSemaphoreTake(buttons[button].mutex, pdMS_TO_TICKS(MUTEX_TIMEOUT_MS)) == pdTRUE) {
+        held = (buttons[button].state == BUT_HELD);
+        xSemaphoreGive(buttons[button].mutex);
+    }
+
+    return held;
 }
 
 /**
@@ -165,10 +209,17 @@ uint8_t buttonHasRisingEdge(button_e button) {
         return 0;
     }
 
-    uint8_t tmp = ((HAL_GetTick() - buttonsTimers[button].risingEdge_ms) < EDGEDETECTION_TIME_MS);
-    tmp &= (uint32_t)(HAL_GetTick() > EDGEDETECTION_TIME_MS);
-    buttonsTimers[button].risingEdge_ms = 0;
+    //check if there has been a rising edge within the last [detection time] ms
+    uint8_t tmp = 0;
+    if(xSemaphoreTake(buttons[button].mutex, pdMS_TO_TICKS(MUTEX_TIMEOUT_MS)) == pdTRUE) {
+        tmp = !timeout(buttonsTimers[button].risingEdge_ms, EDGEDETECTION_TIME_MS);
 
+        buttonsTimers[button].risingEdge_ms = 0;
+        xSemaphoreGive(buttons[button].mutex);
+    }
+
+    //make sure the software has been up for long enough
+    tmp &= timeout(0, EDGEDETECTION_TIME_MS);
     return (tmp > 0);
 }
 
@@ -185,10 +236,17 @@ uint8_t buttonHasFallingEdge(button_e button) {
         return 0;
     }
 
-    uint8_t tmp = ((HAL_GetTick() - buttonsTimers[button].fallingEdge_ms) < EDGEDETECTION_TIME_MS);
-    tmp &= (uint32_t)(HAL_GetTick() > EDGEDETECTION_TIME_MS);
-    buttonsTimers[button].fallingEdge_ms = 0;
+    //check if there has been a falling edge within the last [detection time] ms
+    uint8_t tmp = 0;
+    if(xSemaphoreTake(buttons[button].mutex, pdMS_TO_TICKS(MUTEX_TIMEOUT_MS)) == pdTRUE) {
+        tmp = !timeout(buttonsTimers[button].fallingEdge_ms, EDGEDETECTION_TIME_MS);
 
+        buttonsTimers[button].fallingEdge_ms = 0;
+        xSemaphoreGive(buttons[button].mutex);
+    }
+
+    //make sure the software has been up for long enough
+    tmp &= timeout(0, EDGEDETECTION_TIME_MS);
     return (tmp > 0);
 }
 
@@ -200,21 +258,30 @@ uint8_t buttonHasFallingEdge(button_e button) {
  * 
  * @param button Button for which run the state
  */
-static void stReleased(button_e button) {
+static void stateReleased(button_e button) {
+    if(xSemaphoreTake(buttons[button].mutex, pdMS_TO_TICKS(MUTEX_TIMEOUT_MS)) == pdFALSE) {
+        return;
+    }
+
+    const uint32_t currentTick = HAL_GetTick();
+
     //if button released, restart debouncing timer
     if(LL_GPIO_IsInputPinSet(buttons[button].port, buttons[button].pin)) {
-        buttonsTimers[button].debouncing_ms = HAL_GetTick();
+        buttonsTimers[button].debouncing_ms = currentTick;
     }
 
     //if button not pressed for long enough, exit
-    if((HAL_GetTick() - buttonsTimers[button].debouncing_ms) < DEBOUNCE_TIME_MS) {
+    if(!timeout(buttonsTimers[button].debouncing_ms, DEBOUNCE_TIME_MS)) {
+        xSemaphoreGive(buttons[button].mutex);
         return;
     }
 
     //set the timer during which rising edge can be read, and get to pressed state
-    buttonsTimers[button].risingEdge_ms = HAL_GetTick();
-    buttonsTimers[button].holding_ms    = HAL_GetTick();
-    buttons[button].state               = stPressed;
+    buttonsTimers[button].risingEdge_ms = currentTick;
+    buttonsTimers[button].holding_ms    = currentTick;
+    buttons[button].state               = BUT_PRESSED;
+
+    xSemaphoreGive(buttons[button].mutex);
 }
 
 /**
@@ -222,44 +289,30 @@ static void stReleased(button_e button) {
  * 
  * @param button Button for which run the state
  */
-static void stPressed(button_e button) {
-    //if button pressed, restart debouncing timer
+static void statePressed(button_e button) {
+    if(xSemaphoreTake(buttons[button].mutex, pdMS_TO_TICKS(MUTEX_TIMEOUT_MS)) == pdFALSE) {
+        return;
+    }
+
+    //if button still pressed, restart debouncing timer
     if(!LL_GPIO_IsInputPinSet(buttons[button].port, buttons[button].pin)) {
         buttonsTimers[button].debouncing_ms = HAL_GetTick();
 
         //if button maintained for long enough, get to held down state
-        if((HAL_GetTick() - buttonsTimers[button].holding_ms) >= HOLDING_TIME_MS) {
-            buttons[button].state = stHeldDown;
+        if(timeout(buttonsTimers[button].holding_ms, HOLDING_TIME_MS)) {
+            buttons[button].state = BUT_HELD;
         }
     }
 
     //if button not released for long enough, exit
-    if((HAL_GetTick() - buttonsTimers[button].debouncing_ms) < DEBOUNCE_TIME_MS) {
+    if(!timeout(buttonsTimers[button].debouncing_ms, DEBOUNCE_TIME_MS)) {
+        xSemaphoreGive(buttons[button].mutex);
         return;
     }
 
     //set the timer during which falling edge can be read, and get to pressed state
     buttonsTimers[button].fallingEdge_ms = HAL_GetTick();
-    buttons[button].state                = stReleased;
-}
+    buttons[button].state                = BUT_RELEASED;
 
-/**
- * @brief State in which the button is held down
- * 
- * @param button Button for which run the state
- */
-static void stHeldDown(button_e button) {
-    //if button pressed, restart debouncing timer
-    if(!LL_GPIO_IsInputPinSet(buttons[button].port, buttons[button].pin)) {
-        buttonsTimers[button].debouncing_ms = HAL_GetTick();
-    }
-
-    //if button not released for long enough, exit
-    if((HAL_GetTick() - buttonsTimers[button].debouncing_ms) < DEBOUNCE_TIME_MS) {
-        return;
-    }
-
-    //set the timer during which falling edge can be read, and get to pressed state
-    buttonsTimers[button].fallingEdge_ms = HAL_GetTick();
-    buttons[button].state                = stReleased;
+    xSemaphoreGive(buttons[button].mutex);
 }
