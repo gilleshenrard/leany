@@ -10,16 +10,22 @@ enum {
     MESSAGE_ALIGNMENT = 8U,
 };
 
+/**
+ * Enumeration of the message types
+ */
 typedef enum {
-    MSG_HOLD = 0,
-    MSG_ZERO,
-    MSG_PWROFF,
-    NB_MESSAGES
+    MSG_HOLD = 0,  ///< A hold operation has been performed
+    MSG_ZERO,      ///< A Zeroing operation has been performed
+    MSG_PWROFF,    ///< A power off operation has been performed
+    NB_MESSAGES    ///< Number of available messages
 } messageID_e;
 
+/**
+ * Structure of a message in the queue used to communicate with the ST7735S
+ */
 typedef struct {
-    messageID_e ID;
-    int16_t     value;
+    messageID_e ID;     ///< Message type
+    int16_t     value;  ///< Message value
 } __attribute__((aligned(MESSAGE_ALIGNMENT))) displayMessage_t;
 
 errorCode_u createST7735Stask(SPI_TypeDef* handle, DMA_TypeDef* dma, uint32_t dmaChannel);

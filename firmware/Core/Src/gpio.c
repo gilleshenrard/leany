@@ -55,7 +55,7 @@ void MX_GPIO_Init(void)
                           |ST7735S_DC_Pin|ST7735S_BL_Pin);
 
   /**/
-  LL_GPIO_SetOutputPin(ST7735S_RST_GPIO_Port, ST7735S_RST_Pin);
+  LL_GPIO_SetOutputPin(GPIOA, LSM6DSO_CS_Pin|ST7735S_RST_Pin);
 
   /**/
   GPIO_InitStruct.Pin = LED_RED_Pin|LED_GREEN_Pin|LED_BLUE_Pin;
@@ -63,6 +63,14 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_OPENDRAIN;
   LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /**/
+  GPIO_InitStruct.Pin = LSM6DSO_CS_Pin;
+  GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
+  GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_HIGH;
+  GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
+  GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
+  LL_GPIO_Init(LSM6DSO_CS_GPIO_Port, &GPIO_InitStruct);
 
   /**/
   GPIO_InitStruct.Pin = ZERO_BUTTON_Pin|HOLD_BUTTON_Pin;
