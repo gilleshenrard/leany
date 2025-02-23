@@ -38,6 +38,11 @@ firmware/
 ├── CMakePresets.json
 ├── Leany.ioc
 └── resources
+    ├── vscode
+    |   ├── extensions.json
+    |   ├── launch.json
+    |   ├── settings.json
+    |   └── tasks.json
     ├── Doxyfile
     ├── install_prerequisites_ubuntu.sh
     └── install_prerequisites_windows.bat
@@ -56,6 +61,13 @@ Contains additional resources:
 - **`Doxyfile`**: Configuration for Doxygen documentation generation.
 - **`install_prerequisites_ubuntu.sh`**: Script to install everything needed to build the firmware on Ubuntu.
 - **`install_prerequisites_windows.bat`**: Script to install everything needed to build the firmware on Windows.
+
+### `resources/.vscode/`
+Contains project-specific VSCode configuration and useful tasks. Should someone want to use it, they simply need to copy .vscode/ to the root of firmware/ :
+- **`extensions.json`**: List of recommended VSCode extensions to use with this project. They will be suggested by VSCode if not already installed.
+- **`launch.json`**: Configuration for OpenOCD to use an STLink to debug the application
+- **`settings.json`**: Project-specific settings. They will override the user's pre-existing settings, and will ensure everyone uses the same configuration.
+- **`tasks.json`**: Some useful custom tasks.
 
 ## Code Quality, Linting and Documentation
 

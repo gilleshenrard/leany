@@ -1,3 +1,5 @@
+include_directories(${CMAKE_SOURCE_DIR}/cmake/bosch-sensortec)
+
 #make sure STM32CubeMX library knows about sysutils/ (to use it in interrupts, ...)
 target_include_directories(stm32cubemx INTERFACE sysutils/)
 
@@ -29,12 +31,20 @@ target_include_directories(st7735s PUBLIC display)
 target_include_directories(st7735s PUBLIC sensor/)
 target_link_libraries(st7735s PRIVATE sysUtils)
 
-#create the LSM6DSO library, taking care of the MEMS sensor
-add_library(lsm6dso
-	sensor/LSM6DSO.c)
-target_include_directories(lsm6dso PUBLIC sensor/)
-target_link_libraries(lsm6dso PRIVATE sysUtils)
-target_link_libraries(lsm6dso PRIVATE st7735s)
+# #create the LSM6DSO library, taking care of the MEMS sensor
+# add_library(lsm6dso
+# 	sensor/LSM6DSO.c)
+# target_include_directories(lsm6dso PUBLIC sensor/)
+# target_link_libraries(lsm6dso PRIVATE sysUtils)
+# target_link_libraries(lsm6dso PRIVATE st7735s)
+
+#create the BMI270 library, taking care of the MEMS sensor
+add_library(bmi270
+	sensor/BMI270.c)
+target_include_directories(bmi270 PUBLIC sensor/)
+target_link_libraries(bmi270 PRIVATE sysUtils)
+target_link_libraries(bmi270 PRIVATE st7735s)
+target_link_libraries(bmi270 PRIVATE bmi270_api)
 
 #create the buttons library, taking care of the control buttons
 add_library(buttons

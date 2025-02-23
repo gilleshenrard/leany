@@ -1,0 +1,45 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug (STM32F103)",
+            "executable": "${command:cmake.getLaunchTargetPath}",
+            "request": "launch",
+            "type": "cortex-debug",
+            "servertype": "openocd",
+            "gdbPath": "arm-none-eabi-gdb",
+            "interface": "swd",
+            "rtos": "FreeRTOS",
+            "device": "STM32F103C8T6",
+            "runToEntryPoint": "main",
+            "svdFile": "STM32F103.svd",
+            "preLaunchTask": "CMake: build",
+            "windows": {
+                "searchDir": [
+                    "C:/msys64/ucrt64/share/openocd/scripts"
+                ],
+            },
+            "linux": {
+                "searchDir": [
+                    "/usr/share/openocd/st_scripts/"
+                ],
+            },
+            "liveWatch": {
+                "enabled": true,
+                "samplesPerSecond": 4
+            },
+            "configFiles": [
+                "interface/stlink-dap.cfg",
+                "target/stm32f1x.cfg"
+            ],
+            "preLaunchCommands": [
+                "set mem inaccessible-by-default off",
+                "monitor reset"
+            ],
+            "postLaunchCommands": [
+                "monitor reset init",
+                "monitor sleep 200"
+            ],
+        },
+    ]
+}
