@@ -3,12 +3,10 @@ on:
   push:
     paths:
       - 'firmware/*'
-      - '!firmware/resources/*'
       - '.github/workflows/firmware_build_lint.yml'
   pull_request:
     paths:
       - 'firmware/*'
-      - '!firmware/resources/*'
       - '.github/workflows/firmware_build_lint.yml'
 
 jobs:

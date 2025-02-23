@@ -1,0 +1,64 @@
+{
+    //
+    //
+    //Editor settings
+    "files.defaultLanguage": "c",
+    "files.associations": {
+        "*.h": "c",
+    },
+    //
+    //
+    //Clangd (llvm-vs-code-extensions.vscode-clangd)
+    "clangd.path": "clangd-19",
+    "clangd.checkUpdates": true,
+    "clangd.detectExtensionConflicts": true,
+    "clangd.onConfigChanged": "restart",
+    "clangd.arguments": [
+        "-compile-commands-dir=build/Debug",
+        "--clang-tidy",
+        "--fallback-style=Google",
+        "--pretty"
+    ],
+    //
+    //
+    //Flylint (jbenden.c-cpp-flylint)
+    "c-cpp-flylint.clang.enable": false,
+    "c-cpp-flylint.cppcheck.language": "C",
+    "c-cpp-flylint.cppcheck.inconclusive": true,
+    "c-cpp-flylint.cppcheck.verbose": false,
+    "c-cpp-flylint.cppcheck.suppressions": [
+        "unusedFunction"
+    ],
+    "c-cpp-flylint.excludeFromWorkspacePaths": [
+        "Middlewares/"
+    ],
+    //
+    //
+    //CMake (ms-vscode.cmake-tools)
+    "cmake.options.advanced": {
+        "cpack": {
+            "statusBarVisibility": "hidden"
+        },
+        "workflow": {
+            "statusBarVisibility": "hidden"
+        },
+        "ctest": {
+            "statusBarVisibility": "hidden"
+        },
+        "testPreset": {
+            "statusBarVisibility": "hidden"
+        },
+        "packagePreset": {
+            "statusBarVisibility": "hidden"
+        },
+        "workflowPreset": {
+            "statusBarVisibility": "hidden"
+        },
+        "buildTarget": {
+            "statusBarVisibility": "hidden"
+        },
+        "buildPreset": {
+            "statusBarVisibility": "hidden"
+        }
+    },
+}

@@ -34,8 +34,8 @@ enum {
     DISPLAY_WIDTH     = 160U,  ///< Number of pixels in width
     DISPLAY_HEIGHT    = 128U,  ///< Number of pixels in height
     SPI_TIMEOUT_MS    = 10U,   ///< Number of milliseconds beyond which SPI is in timeout
-    MSG_TIMEOUT_MS    = 2U,
-    NB_QUEUE_ELEM     = 10U,
+    MSG_TIMEOUT_MS    = 2U,    ///< Maximum number of milliseconds to wait for a message in the queue
+    NB_QUEUE_ELEM     = 10U,   ///< Maximum number of messages in the queue
     FRAME_BUFFER_SIZE = (DISPLAY_WIDTH * DISPLAY_HEIGHT) / 10U,  ///< Size of the frame buffer in bytes
 };
 
@@ -94,8 +94,8 @@ static errorCode_u           result;                            ///< Buffer used
 static uint8_t               displayHeight      = 0;  ///< Current height of the display (depending on orientation)
 static uint8_t               displayWidth       = 0;  ///< Current width of the display (depending on orientation)
 static orientation_e         currentOrientation = NB_ORIENTATION;  ///< Current display orientation
-static TickType_t            previousTick       = 0;
-QueueHandle_t                messageStack       = NULL;
+static TickType_t            previousTick       = 0;     ///< Variable used to remember the previous systick saved
+QueueHandle_t                messageStack       = NULL;  ///< Thread-safe message stack
 
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/

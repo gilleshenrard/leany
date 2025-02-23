@@ -30,7 +30,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "LSM6DSO.h"
+#include "BMI270.h"
 #include "ST7735S.h"
 #include "buttons.h"
 /* USER CODE END Includes */
@@ -104,9 +104,10 @@ int main(void)
   MX_USART1_UART_Init();
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
-  createLSM6DSOTask(SPI1);
-  createST7735Stask(SPI2, DMA1, LL_DMA_CHANNEL_5);
-  createButtonsTask();
+  // createLSM6DSOTask(SPI1);
+  createBMI270Task(SPI1);
+  // createST7735Stask(SPI2, DMA1, LL_DMA_CHANNEL_5);
+  // createButtonsTask();
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in cmsis_os2.c) */
@@ -124,23 +125,23 @@ int main(void)
     //reset the watchdog
     LL_IWDG_ReloadCounter(IWDG);
 
-    //if zero button is pressed, zero down measurements
-    if(buttonHasRisingEdge(ZERO)){
-     lsm6dsoZeroDown();
-      // ssd1306PrintReferentialIcon(RELATIVE);
-    }
+    // //if zero button is pressed, zero down measurements
+    // if(buttonHasRisingEdge(ZERO)){
+    //  lsm6dsoZeroDown();
+    //  ssd1306PrintReferentialIcon(RELATIVE);
+    // }
 
-    //if zero button is held down, get back to absolute measurements
-    if(isButtonHeldDown(ZERO)){
-     lsm6dsoCancelZeroing();
-      // ssd1306PrintReferentialIcon(ABSOLUTE);
-    }
+    // // if zero button is held down, get back to absolute measurements
+    // if(isButtonHeldDown(ZERO)){
+    //  lsm6dsoCancelZeroing();
+    //   ssd1306PrintReferentialIcon(ABSOLUTE);
+    // }
 
-    if(buttonHasRisingEdge(HOLD)){
-      holdingValues = !holdingValues;
-      lsm6dsoHold(holdingValues);
-      // ssd1306PrintHoldIcon(holdingValues);
-    }
+    // if(buttonHasRisingEdge(HOLD)){
+    //   holdingValues = !holdingValues;
+    //   lsm6dsoHold(holdingValues);
+    //   ssd1306PrintHoldIcon(holdingValues);
+    // }
 
 	  // //if X axis angle changed, update the screen
 	  // if(lsm6dsoHasChanged(X_AXIS)){
