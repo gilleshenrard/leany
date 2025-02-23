@@ -1,0 +1,4 @@
+[submodule "firmware/Middlewares/Third_Party/BMI270_SensorAPI"]
+	path = firmware/Middlewares/Third_Party/BMI270_SensorAPI
+	url = https://github.com/boschsensortec/BMI270_SensorAPI.git
+	branch = master

@@ -1,0 +1,124 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "shell",
+            "label": "CubeProg: Flash project (SWD)",
+            "command": "STM32_Programmer_CLI",
+            "args": [
+                "--connect",
+                "port=swd",
+                "--download",
+                "${command:cmake.launchTargetPath}",
+                "-hardRst"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
+            "type": "shell",
+            "label": "Display symbols size",
+            "command": "arm-none-eabi-nm",
+            "args": [
+                "--print-size",
+                "--size-sort",
+                "--reverse-sort",
+                "--format=sysv",
+                "--radix=d",
+                "Leany.elf",
+            ],
+            "options": {
+                "cwd": "${command:cmake.buildDirectory}"
+            },
+            "problemMatcher": []
+        },
+        {
+            "type": "shell",
+            "label": "Run clang-tidy",
+            "windows": {
+                "command": "python.exe",
+                "args": [
+                    "C:/msys64/ucrt64/bin/run-clang-tidy",
+                    "-quiet",
+                    "-p${command:cmake.buildDirectory}",
+                    "-extra-arg=--sysroot=C:/msys64/ucrt64/arm-none-eabi",
+                    "-extra-arg=--target=armv7m-none-eabi",
+                    "-extra-arg=-mthumb",
+                    "-header-filter=.*",
+                    "(Components|UI)"
+                ],
+            },
+            "linux": {
+                "command": "run-clang-tidy",
+                "args": [
+                    "-quiet",
+                    "-p${command:cmake.buildDirectory}",
+                    "-extra-arg=--sysroot=/opt/arm-none-eabi/arm-none-eabi/",
+                    "-extra-arg=--target=armv7m-none-eabi",
+                    "-extra-arg=-mthumb",
+                    "-header-filter=.*",
+                    "(Components|UI)"
+                ],
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
+            "type": "shell",
+            "label": "Run Doxygen",
+            "command": "doxygen",
+            "args": [
+                "firmware/resources/Doxyfile"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/.."
+            },
+            "problemMatcher": []
+        },
+        {
+            "type": "shell",
+            "label": "Create the CppCheck output directory",
+            "hide": true,
+            "command": "mkdir",
+            "args": [
+                "config-cppcheck-build-dir"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
+            "type": "shell",
+            "label": "Run CppCheck",
+            "dependsOn": [
+                "Create the CppCheck output directory"
+            ],
+            "command": "cppcheck",
+            "args": [
+                "--enable=all",
+                "--language=c",
+                "--inconclusive",
+                "--inline-suppr",
+                "--error-exitcode=2",
+                "--project=build/Debug/compile_commands.json",
+                "--cppcheck-build-dir=config-cppcheck-build-dir/",
+                "-ibuild/",
+                "-iDrivers/",
+                "-iMiddlewares/",
+                "-iCore/",
+                "--suppress=missingIncludeSystem",
+                "--suppress=missingInclude",
+                "--suppress=unusedFunction",
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        }
+    ]
+}

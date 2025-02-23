@@ -30,9 +30,10 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "LSM6DSO.h"
+#include "memsBMI270.h"
 #include "ST7735S.h"
 #include "buttons.h"
+#include "ui.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -104,9 +105,9 @@ int main(void)
   MX_USART1_UART_Init();
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
-  createLSM6DSOTask(SPI1);
-  createST7735Stask(SPI2, DMA1, LL_DMA_CHANNEL_5);
+  createBMI270Task();
   createButtonsTask();
+  createUItask();
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in cmsis_os2.c) */
@@ -123,34 +124,6 @@ int main(void)
   {
     //reset the watchdog
     LL_IWDG_ReloadCounter(IWDG);
-
-    //if zero button is pressed, zero down measurements
-    if(buttonHasRisingEdge(ZERO)){
-     lsm6dsoZeroDown();
-      // ssd1306PrintReferentialIcon(RELATIVE);
-    }
-
-    //if zero button is held down, get back to absolute measurements
-    if(isButtonHeldDown(ZERO)){
-     lsm6dsoCancelZeroing();
-      // ssd1306PrintReferentialIcon(ABSOLUTE);
-    }
-
-    if(buttonHasRisingEdge(HOLD)){
-      holdingValues = !holdingValues;
-      lsm6dsoHold(holdingValues);
-      // ssd1306PrintHoldIcon(holdingValues);
-    }
-
-	  // //if X axis angle changed, update the screen
-	  // if(lsm6dsoHasChanged(X_AXIS)){
-		//   ssd1306PrintAngleTenths(getAngleDegreesTenths(X_AXIS), ROLL);
-    // }
-
-	  // //if Y axis angle changed, update the screen
-	  // if(lsm6dsoHasChanged(Y_AXIS)){
-		//   ssd1306PrintAngleTenths(getAngleDegreesTenths(Y_AXIS), PITCH);
-    // }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -227,7 +200,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   /* USER CODE BEGIN Callback 0 */
 
   /* USER CODE END Callback 0 */
-  if (htim->Instance == TIM1) {
+  if (htim->Instance == TIM1)
+  {
     HAL_IncTick();
   }
   /* USER CODE BEGIN Callback 1 */
