@@ -73,7 +73,7 @@ build/
 doxygen/
 
 #VSCode files
-.vscode/
+firmware/.vscode/
 
 #Clangd
 .cache/
