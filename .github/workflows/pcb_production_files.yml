@@ -3,10 +3,12 @@ on:
   push:
     paths:
       - 'pcb/*'
+      - '!pcb/resources/*'
       - '.github/workflows/pcb_production_files.yml'
   pull_request:
     paths:
       - 'pcb/*'
+      - '!pcb/resources/*'
       - '.github/workflows/pcb_production_files.yml'
 
 env:

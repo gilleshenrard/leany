@@ -3,10 +3,12 @@ on:
   push:
     paths:
       - 'firmware/*'
+      - '!firmware/resources/*'
       - '.github/workflows/firmware_build_lint.yml'
   pull_request:
     paths:
       - 'firmware/*'
+      - '!firmware/resources/*'
       - '.github/workflows/firmware_build_lint.yml'
 
 jobs:
@@ -121,9 +123,12 @@ jobs:
               /usr/bin/run-clang-tidy-19
               -quiet
               -p ${{github.workspace}}/firmware/build/Debug/
-              -header-filter=.*
               -extra-arg=--sysroot=${{ steps.arm-none-eabi-gcc-action.outputs.path }}/../arm-none-eabi
-              -extra-arg=--target=arm-none-eabi
+              -extra-arg=--target=armv7m-none-eabi
+              -extra-arg=-march=armv7-m
+              -extra-arg=-mcpu=cortex-m3
+              -extra-arg=-mthumb
+              -header-filter=.*
               Components
 
   cppcheck:
