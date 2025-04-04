@@ -577,17 +577,17 @@ static errorCode_u stateInitialising(void) {
  * @retval 1 Error while writing a register
  */
 static errorCode_u stateConfiguring(void) {
-    static const register_t BMI2_ACC_RANGE_ADDR = 0x41U;
-    static const register_t BMI2_GYR_RANGE_ADDR = 0x43U;
+    static const register_t BMI2_ACC_RANGE_ADDR = 0x41U;  ///< Accelerometer range value register number
+    static const register_t BMI2_GYR_RANGE_ADDR = 0x43U;  ///< Gyroscope range value register number
 
     // clang-format off
     static const BMI270register_t configuration[][2] = {
-        {BMI2_PWR_CTRL_ADDR, (BMI2_GYR_EN_MASK | BMI2_ACC_EN_MASK | BMI2_TEMP_EN_MASK)},
-        {BMI2_ACC_CONF_ADDR, (BMI2_ACC_FILTER_PERF_MODE_MASK | (BMI270register_t)(BMI2_ACC_NORMAL_AVG4 << 4U) | BMI2_ACC_ODR_100HZ)},
-        {BMI2_ACC_RANGE_ADDR, BMI2_ACC_RANGE_2G},
-        {BMI2_GYR_CONF_ADDR, (BMI2_GYR_FILTER_PERF_MODE_MASK | (BMI270register_t)(BMI2_GYR_NORMAL_MODE << 4U) | BMI2_GYR_ODR_100HZ)},
-        {BMI2_GYR_RANGE_ADDR, BMI2_GYR_RANGE_500},
-        {BMI2_PWR_CONF_ADDR, BMI2_FIFO_SELF_WAKE_UP_MASK},
+        {BMI2_PWR_CTRL_ADDR,                                              (BMI2_GYR_EN_MASK | BMI2_ACC_EN_MASK | BMI2_TEMP_EN_MASK)},   //enable temp, gyroscope and accel.
+        {BMI2_ACC_CONF_ADDR, (BMI2_ACC_FILTER_PERF_MODE_MASK | (BMI270register_t)(BMI2_ACC_NORMAL_AVG4 << 4U) | BMI2_ACC_ODR_100HZ)},   //
+        {BMI2_ACC_RANGE_ADDR,                                                                                     BMI2_ACC_RANGE_2G},   //set the accel. range to +-2G
+        {BMI2_GYR_CONF_ADDR, (BMI2_GYR_FILTER_PERF_MODE_MASK | (BMI270register_t)(BMI2_GYR_NORMAL_MODE << 4U) | BMI2_GYR_ODR_100HZ)},   //
+        {BMI2_GYR_RANGE_ADDR,                                                                                    BMI2_GYR_RANGE_500},   //set the gyroscope range to +-500°/s
+        {BMI2_PWR_CONF_ADDR,                                                                            BMI2_FIFO_SELF_WAKE_UP_MASK},   //enable FIFO self wake-up
     };
     // clang-format on
 
@@ -612,7 +612,8 @@ static errorCode_u stateConfiguring(void) {
 /**
  * State in which measurements are received from the BMI270
  * 
- * @return Success
+ * @retval 0 Success
+ * @retval 1 Error while reading the data registers
  */
 static errorCode_u stateMeasuring(void) {
     float       accelerometer_mG[NB_AXIS];  ///< Accelerometer values in [mG]
@@ -624,7 +625,7 @@ static errorCode_u stateMeasuring(void) {
     result = readRegisters(BMI2_ACC_X_LSB_ADDR, LSBvalues.registers8bits, NB_REGISTERS_TO_READ);
     if(isError(result)) {
         state = BMI270_STATE_ERROR;
-        return (pushErrorCode(result, BMI270_STATE_MEASURING, 2));
+        return (pushErrorCode(result, BMI270_STATE_MEASURING, 1));
     }
 
     accelerometer_mG[0] = (float)(LSBvalues.values16bits[0]) * ACC_LSB_TO_MG;
