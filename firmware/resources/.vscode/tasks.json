@@ -45,6 +45,8 @@
                     "-p${command:cmake.buildDirectory}",
                     "-extra-arg=--sysroot=C:/msys64/ucrt64/arm-none-eabi",
                     "-extra-arg=--target=armv7m-none-eabi",
+                    "-extra-arg=-mthumb",
+                    "-header-filter=.*",
                     "Components"
                 ],
             },
@@ -55,8 +57,6 @@
                     "-p${command:cmake.buildDirectory}",
                     "-extra-arg=--sysroot=/opt/arm-none-eabi/arm-none-eabi/",
                     "-extra-arg=--target=armv7m-none-eabi",
-                    "-extra-arg=-march=armv7-m",
-                    "-extra-arg=-mcpu=cortex-m3",
                     "-extra-arg=-mthumb",
                     "-header-filter=.*",
                     "Components"

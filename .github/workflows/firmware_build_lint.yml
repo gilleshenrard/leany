@@ -1,12 +1,14 @@
 name: Firmware Build and lint
-on: 
+on:
   push:
     paths:
-      - 'firmware/*'
+      - 'firmware/**'
+      - '!firmware/resources/**'
       - '.github/workflows/firmware_build_lint.yml'
   pull_request:
     paths:
-      - 'firmware/*'
+      - 'firmware/**'
+      - '!firmware/resources/**'
       - '.github/workflows/firmware_build_lint.yml'
 
 jobs:
@@ -123,8 +125,6 @@ jobs:
               -p ${{github.workspace}}/firmware/build/Debug/
               -extra-arg=--sysroot=${{ steps.arm-none-eabi-gcc-action.outputs.path }}/../arm-none-eabi
               -extra-arg=--target=armv7m-none-eabi
-              -extra-arg=-march=armv7-m
-              -extra-arg=-mcpu=cortex-m3
               -extra-arg=-mthumb
               -header-filter=.*
               Components
