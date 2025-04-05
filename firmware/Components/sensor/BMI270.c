@@ -118,6 +118,26 @@ static float         latestAngles_rad[NB_AXIS - 1] = {0.0F, 0.0F};  ///< Latest 
 /****************************************************************************************************************/
 
 /**
+ * @brief BMI270 INT1 and INT2 GPIO pins interrupt handler
+ * 
+ * @param interruptPin Number of the pin triggered (1 or 2)
+ */
+void bmi270InterruptTriggered(uint8_t interruptPin) {
+    BaseType_t hasWoken = 0;
+
+    // vPortEnterCritical();
+
+    //if INT1, notify the LSM6DSO task
+    if(interruptPin == 1) {
+        vTaskNotifyGiveFromISR(taskHandle, &hasWoken);
+    }
+
+    // vPortExitCritical();
+
+    portYIELD_FROM_ISR(hasWoken);
+}
+
+/**
  * Create a BMI270 FreeRTOS static task
  *
  * @param handle SPI handle used by the BMI270
@@ -186,7 +206,7 @@ static errorCode_u readRegisters(BMI270register_t firstRegister, BMI270register_
 
     //set timeout timer and enable CS
     uint32_t SPIstartTick = HAL_GetTick();
-    LL_GPIO_ResetOutputPin(LSM6DSO_CS_GPIO_Port, LSM6DSO_CS_Pin);
+    LL_GPIO_ResetOutputPin(BMI270_CS_GPIO_Port, BMI270_CS_Pin);
 
     //send the read request and a dummy byte to synchronize the SPI clock
     (void)receiveSPIbyte(BMI_READ | (uint8_t)firstRegister, SPIstartTick);
@@ -204,7 +224,7 @@ static errorCode_u readRegisters(BMI270register_t firstRegister, BMI270register_
     LL_SPI_ClearFlag_OVR(spiHandle);
 
     //disable CS
-    LL_GPIO_SetOutputPin(LSM6DSO_CS_GPIO_Port, LSM6DSO_CS_Pin);
+    LL_GPIO_SetOutputPin(BMI270_CS_GPIO_Port, BMI270_CS_Pin);
 
     //if timeout, error
     if(timeout(SPIstartTick, SPI_TIMEOUT_MS)) {
@@ -243,7 +263,7 @@ static errorCode_u writeRegisters(BMI270register_t registerNumber, const BMI270r
 
     //set timeout timer and enable CS
     uint32_t SPIstartTick = HAL_GetTick();
-    LL_GPIO_ResetOutputPin(LSM6DSO_CS_GPIO_Port, LSM6DSO_CS_Pin);
+    LL_GPIO_ResetOutputPin(BMI270_CS_GPIO_Port, BMI270_CS_Pin);
 
     //send the write instruction
     LL_SPI_TransmitData8(spiHandle, BMI_WRITE | registerNumber);
@@ -261,7 +281,7 @@ static errorCode_u writeRegisters(BMI270register_t registerNumber, const BMI270r
     LL_SPI_ClearFlag_OVR(spiHandle);
 
     //disable CS
-    LL_GPIO_SetOutputPin(LSM6DSO_CS_GPIO_Port, LSM6DSO_CS_Pin);
+    LL_GPIO_SetOutputPin(BMI270_CS_GPIO_Port, BMI270_CS_Pin);
 
     //if timeout, error
     if(timeout(SPIstartTick, SPI_TIMEOUT_MS)) {
@@ -316,7 +336,7 @@ static errorCode_u checkConfigurationFile(void) {
 
     //set timeout timer and enable CS
     uint32_t SPIstartTick = HAL_GetTick();
-    LL_GPIO_ResetOutputPin(LSM6DSO_CS_GPIO_Port, LSM6DSO_CS_Pin);
+    LL_GPIO_ResetOutputPin(BMI270_CS_GPIO_Port, BMI270_CS_Pin);
 
     //send the config data read request and receive a dummy byte
     (void)receiveSPIbyte(BMI_READ | (uint8_t)BMI2_INIT_DATA_ADDR, SPIstartTick);
@@ -336,7 +356,7 @@ static errorCode_u checkConfigurationFile(void) {
     LL_SPI_ClearFlag_OVR(spiHandle);
 
     //disable CS
-    LL_GPIO_SetOutputPin(LSM6DSO_CS_GPIO_Port, LSM6DSO_CS_Pin);
+    LL_GPIO_SetOutputPin(BMI270_CS_GPIO_Port, BMI270_CS_Pin);
 
     //if timeout, error
     if(timeout(SPIstartTick, SPI_TIMEOUT_MS)) {
@@ -579,21 +599,25 @@ static errorCode_u stateInitialising(void) {
 static errorCode_u stateConfiguring(void) {
     static const register_t BMI2_ACC_RANGE_ADDR = 0x41U;  ///< Accelerometer range value register number
     static const register_t BMI2_GYR_RANGE_ADDR = 0x43U;  ///< Gyroscope range value register number
+    static const register_t NO_FIFO             = 0x00;   ///< Value used to disable the FIFO
 
     // clang-format off
     static const BMI270register_t configuration[][2] = {
-        {BMI2_PWR_CTRL_ADDR,                                              (BMI2_GYR_EN_MASK | BMI2_ACC_EN_MASK | BMI2_TEMP_EN_MASK)},   //enable temp, gyroscope and accel.
-        {BMI2_ACC_CONF_ADDR, (BMI2_ACC_FILTER_PERF_MODE_MASK | (BMI270register_t)(BMI2_ACC_NORMAL_AVG4 << 4U) | BMI2_ACC_ODR_100HZ)},   //
-        {BMI2_ACC_RANGE_ADDR,                                                                                     BMI2_ACC_RANGE_2G},   //set the accel. range to +-2G
-        {BMI2_GYR_CONF_ADDR, (BMI2_GYR_FILTER_PERF_MODE_MASK | (BMI270register_t)(BMI2_GYR_NORMAL_MODE << 4U) | BMI2_GYR_ODR_100HZ)},   //
-        {BMI2_GYR_RANGE_ADDR,                                                                                    BMI2_GYR_RANGE_500},   //set the gyroscope range to +-500°/s
-        {BMI2_PWR_CONF_ADDR,                                                                            BMI2_FIFO_SELF_WAKE_UP_MASK},   //enable FIFO self wake-up
+        {BMI2_PWR_CTRL_ADDR,                            (BMI2_GYR_EN_MASK | BMI2_ACC_EN_MASK | BMI2_TEMP_EN_MASK)}, //enable temp, gyroscope and accel.
+        {BMI2_ACC_CONF_ADDR, (BMI2_ACC_FILTER_PERF_MODE_MASK | (BMI2_ACC_NORMAL_AVG4 << 4U) | BMI2_ACC_ODR_100HZ)}, //
+        {BMI2_ACC_RANGE_ADDR,                                                                   BMI2_ACC_RANGE_2G}, //set the accel. range to +-2G
+        {BMI2_GYR_CONF_ADDR, (BMI2_GYR_FILTER_PERF_MODE_MASK | (BMI2_GYR_NORMAL_MODE << 4U) | BMI2_GYR_ODR_100HZ)}, //
+        {BMI2_GYR_RANGE_ADDR,                                                                  BMI2_GYR_RANGE_500}, //set the gyroscope range to +-500°/s
+        {BMI2_FIFO_CONFIG_1_ADDR,                                                                         NO_FIFO}, //disable the FIFO (streaming mode)
+        {BMI2_INT_MAP_DATA_ADDR,                                                                    BMI2_DRDY_INT}, //enable Data Ready interrupt on INT1
+        {BMI2_INT1_IO_CTRL_ADDR,         BMI2_INT_OUTPUT_EN_MASK | BMI2_INT_OPEN_DRAIN_MASK | BMI2_INT_LEVEL_MASK}, //enable INT1 active high, open drain
+        {BMI2_PWR_CONF_ADDR,                                                                                 0x00}, //disable advanced power mode
     };
     // clang-format on
 
     //write all the configuration registers
     BMI270register_t reg         = 0;
-    const uint8_t    nbRegisters = sizeof(configuration) / (sizeof(BMI270register_t) << 1U);
+    const uint8_t    nbRegisters = sizeof(configuration) / sizeof(configuration)[0];
     do {
         result = writeRegisters(configuration[reg][0], &configuration[reg][1], 1);
         reg++;
@@ -613,19 +637,25 @@ static errorCode_u stateConfiguring(void) {
  * State in which measurements are received from the BMI270
  * 
  * @retval 0 Success
- * @retval 1 Error while reading the data registers
+ * @retval 1 Did not receive any data ready interrupt
+ * @retval 2 Error while reading the data registers
  */
 static errorCode_u stateMeasuring(void) {
     float       accelerometer_mG[NB_AXIS];  ///< Accelerometer values in [mG]
     float       gyroscope_radps[NB_AXIS];   ///< Gyroscope values in [rad/s]
     rawValues_u LSBvalues = {0};
-    vTaskDelay(pdMS_TO_TICKS(10U));
+
+    //wait for measurements to be ready
+    if(ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(TIMEOUT_MS)) == pdFALSE) {
+        state = BMI270_STATE_ERROR;
+        return (createErrorCode(BMI270_STATE_MEASURING, 1, ERR_CRITICAL));
+    }
 
     //read all temp/accelerometer/gyroscope values
     result = readRegisters(BMI2_ACC_X_LSB_ADDR, LSBvalues.registers8bits, NB_REGISTERS_TO_READ);
     if(isError(result)) {
         state = BMI270_STATE_ERROR;
-        return (pushErrorCode(result, BMI270_STATE_MEASURING, 1));
+        return (pushErrorCode(result, BMI270_STATE_MEASURING, 2));
     }
 
     accelerometer_mG[0] = (float)(LSBvalues.values16bits[0]) * ACC_LSB_TO_MG;
