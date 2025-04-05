@@ -12,5 +12,6 @@ typedef enum {
     NB_AXIS
 } axis_e;
 
+void bmi270InterruptTriggered(uint8_t interruptPin);
 void createBMI270Task(const SPI_TypeDef* handle);
 #endif

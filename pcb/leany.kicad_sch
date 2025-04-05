@@ -6,7 +6,7 @@
 	(paper "A4")
 	(title_block
 		(title "Leany")
-		(date "2025-02-12")
+		(date "2025-04-05")
 		(comment 1 "MIT License")
 		(comment 2 "Copyright (c) 2023 Gilles Henrard")
 	)
@@ -5954,7 +5954,7 @@
 		)
 		(uuid "ee4f17dd-b575-4d3b-bccf-e4f64c2b2700")
 	)
-	(label "LSM6DSO_SDA"
+	(label "BMI270_SDA"
 		(at 153.67 86.36 0)
 		(effects
 			(font
@@ -5964,7 +5964,7 @@
 		)
 		(uuid "073b25d9-bdb4-4454-8bfd-2499e39a9412")
 	)
-	(label "LSM6DSO_INT1"
+	(label "BMI270_INT1"
 		(at 106.68 96.52 180)
 		(effects
 			(font
@@ -5974,7 +5974,7 @@
 		)
 		(uuid "0a97e36d-fc5f-499e-90ad-35ad56631374")
 	)
-	(label "LSM6DSO_INT2"
+	(label "BMI270_INT2"
 		(at 106.68 101.6 180)
 		(effects
 			(font
@@ -6074,7 +6074,7 @@
 		)
 		(uuid "5d6d41e1-45d0-492e-87c3-f6179ae922c6")
 	)
-	(label "LSM6DSO_INT1"
+	(label "BMI270_INT1"
 		(at 243.84 54.61 0)
 		(effects
 			(font
@@ -6104,7 +6104,7 @@
 		)
 		(uuid "757a0bb1-03b2-46b3-a119-82f0deb6a7c4")
 	)
-	(label "LSM6DSO_SCL"
+	(label "BMI270_SCL"
 		(at 208.28 57.15 180)
 		(effects
 			(font
@@ -6124,7 +6124,7 @@
 		)
 		(uuid "83f585c2-c440-4418-a469-623d35f16efe")
 	)
-	(label "LSM6DSO_CS"
+	(label "BMI270_CS"
 		(at 153.67 78.74 0)
 		(effects
 			(font
@@ -6134,7 +6134,7 @@
 		)
 		(uuid "84e6cd8d-aa0c-484f-bc94-d1967676855c")
 	)
-	(label "LSM6DSO_SCL"
+	(label "BMI270_SCL"
 		(at 153.67 81.28 0)
 		(effects
 			(font
@@ -6164,7 +6164,7 @@
 		)
 		(uuid "9e429502-fb5e-413d-bb35-43b72e71dd36")
 	)
-	(label "LSM6DSO_INT2"
+	(label "BMI270_INT2"
 		(at 243.84 57.15 0)
 		(effects
 			(font
@@ -6254,7 +6254,7 @@
 		)
 		(uuid "c36d54bb-61e3-4b14-80bd-111224ee3228")
 	)
-	(label "LSM6DSO_SDO"
+	(label "BMI270_SDO"
 		(at 220.98 52.07 90)
 		(effects
 			(font
@@ -6284,7 +6284,7 @@
 		)
 		(uuid "cfab2db0-f136-433e-86d7-02a1127ea2b2")
 	)
-	(label "LSM6DSO_SDO"
+	(label "BMI270_SDO"
 		(at 153.67 83.82 0)
 		(effects
 			(font
@@ -6314,7 +6314,7 @@
 		)
 		(uuid "e5f171c7-049e-43c7-9fd4-8f4ae98b8f5f")
 	)
-	(label "LSM6DSO_SDA"
+	(label "BMI270_SDA"
 		(at 208.28 54.61 180)
 		(effects
 			(font
@@ -6334,7 +6334,7 @@
 		)
 		(uuid "efe1ffc0-db81-4f29-a86c-0aa16def8ebe")
 	)
-	(label "LSM6DSO_CS"
+	(label "BMI270_CS"
 		(at 208.28 59.69 180)
 		(effects
 			(font
