@@ -157,6 +157,7 @@ jobs:
               --enable=all
               --language=c
               --inconclusive
+              --inline-suppr
               --error-exitcode=2
               --project=${{github.workspace}}/firmware/build/Debug/compile_commands.json
               --cppcheck-build-dir=${{github.workspace}}/firmware/config-cppcheck-build-dir/

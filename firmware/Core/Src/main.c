@@ -30,7 +30,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "BMI270.h"
+#include "memsBMI270.h"
 #include "ST7735S.h"
 #include "buttons.h"
 /* USER CODE END Includes */

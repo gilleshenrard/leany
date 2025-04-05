@@ -287,8 +287,8 @@ static errorCode_u writeRegister(LSM6DSOregister_e registerNumber, uint8_t value
  * @retval 1 New values are available
  */
 uint8_t lsm6dsoHasChanged(axis_e axis) {
-    static _Thread_local const float ANGLE_DELTA_MINIMUM             = 0.001745329F;  //0.1° in radians
-    static _Thread_local float       previousAngles_rad[NB_AXIS - 1] = {0.0F, 0.0F};
+    static const float ANGLE_DELTA_MINIMUM             = 0.001745329F;  //0.1° in radians
+    static float       previousAngles_rad[NB_AXIS - 1] = {0.0F, 0.0F};
 
     //if axis index too high, return false
     if(axis >= (NB_AXIS - 1)) {
@@ -539,11 +539,11 @@ errorCode_u stateIgnoringSamples(void) {
  * @retval 2 Error while reading the status register value
  */
 static errorCode_u stateMeasuring(void) {
-    rawValues_u                  LSBvalues = {0};              ///< Buffer in which read values will be stored
-    float                        accelerometer_mG[NB_AXIS];    ///< Accelerometer values in [mG]
-    float                        gyroscope_radps[NB_AXIS];     ///< Gyroscope values in [rad/s]
-    int16_t*                     valueIterator    = (void*)0;  ///< Pointer used to browse through read values
-    static _Thread_local int16_t previousTemp_LSB = 0;         ///< Previously read temperature LSB values
+    rawValues_u    LSBvalues = {0};              ///< Buffer in which read values will be stored
+    float          accelerometer_mG[NB_AXIS];    ///< Accelerometer values in [mG]
+    float          gyroscope_radps[NB_AXIS];     ///< Gyroscope values in [rad/s]
+    int16_t*       valueIterator    = (void*)0;  ///< Pointer used to browse through read values
+    static int16_t previousTemp_LSB = 0;         ///< Previously read temperature LSB values
 
     //wait for measurements to be ready
     if(ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(TIMEOUT_MS)) == pdFALSE) {

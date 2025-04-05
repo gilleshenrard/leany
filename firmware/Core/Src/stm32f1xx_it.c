@@ -25,7 +25,7 @@
 /* USER CODE BEGIN Includes */
 #include "stm32f1xx_ll_dma.h"
 #include "ST7735S.h"
-#include "BMI270.h"
+#include "memsBMI270.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/

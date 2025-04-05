@@ -278,7 +278,7 @@ static errorCode_u sendCommand(ST7735register_e regNumber, const uint8_t paramet
  */
 //NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 static errorCode_u sendData(uint32_t* dataRemaining) {
-    static _Thread_local uint8_t WriteCommandSent = 0;
+    static uint8_t WriteCommandSent = 0;
 
     if(!dataRemaining) {
         return ERR_SUCCESS;

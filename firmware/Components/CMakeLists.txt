@@ -40,7 +40,7 @@ target_link_libraries(st7735s PRIVATE sysUtils)
 
 #create the BMI270 library, taking care of the MEMS sensor
 add_library(bmi270
-	sensor/BMI270.c)
+	sensor/memsBMI270.c)
 target_include_directories(bmi270 PUBLIC sensor/)
 target_link_libraries(bmi270 PRIVATE sysUtils)
 target_link_libraries(bmi270 PRIVATE st7735s)
