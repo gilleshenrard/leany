@@ -104,6 +104,7 @@ static void taskButtons(void* argument) {
         for(uint8_t i = 0; i < (uint8_t)NB_BUTTONS; i++) {
             (*buttons[i].state)(i);
         }
+        vTaskDelay(pdMS_TO_TICKS(5U));
     }
 }
 
