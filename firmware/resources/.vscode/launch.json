@@ -7,7 +7,6 @@
             "request": "launch",
             "type": "cortex-debug",
             "servertype": "openocd",
-            "gdbPath": "arm-none-eabi-gdb",
             "interface": "swd",
             "rtos": "FreeRTOS",
             "device": "STM32F103C8T6",
@@ -15,11 +14,13 @@
             "svdFile": "STM32F103.svd",
             "preLaunchTask": "CMake: build",
             "windows": {
+                "gdbPath": "gdb-multiarch",
                 "searchDir": [
                     "C:/msys64/ucrt64/share/openocd/scripts"
                 ],
             },
             "linux": {
+                "gdbPath": "arm-none-eabi-gdb",
                 "searchDir": [
                     "/usr/share/openocd/st_scripts/"
                 ],

@@ -22,6 +22,10 @@ add_custom_command(TARGET sysUtils
 	COMMENT "Populating the latest git commit hash"
 )
 
+add_library(hal HAL/halspi.c)
+target_include_directories(hal PUBLIC HAL)
+target_link_libraries(hal PRIVATE sysUtils)
+
 #create the ssd1306 library, taking care of the display
 add_library(st7735s
 	display/ST7735S.c
@@ -31,18 +35,12 @@ target_include_directories(st7735s PUBLIC display)
 target_include_directories(st7735s PUBLIC sensor/)
 target_link_libraries(st7735s PRIVATE sysUtils)
 
-# #create the LSM6DSO library, taking care of the MEMS sensor
-# add_library(lsm6dso
-# 	sensor/LSM6DSO.c)
-# target_include_directories(lsm6dso PUBLIC sensor/)
-# target_link_libraries(lsm6dso PRIVATE sysUtils)
-# target_link_libraries(lsm6dso PRIVATE st7735s)
-
 #create the BMI270 library, taking care of the MEMS sensor
 add_library(bmi270
 	sensor/memsBMI270.c)
 target_include_directories(bmi270 PUBLIC sensor/)
 target_link_libraries(bmi270 PRIVATE sysUtils)
+target_link_libraries(bmi270 PRIVATE hal)
 target_link_libraries(bmi270 PRIVATE st7735s)
 target_link_libraries(bmi270 PRIVATE bmi270_api)
 

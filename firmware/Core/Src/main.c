@@ -104,10 +104,9 @@ int main(void)
   MX_USART1_UART_Init();
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
-  // createLSM6DSOTask(SPI1);
   createBMI270Task(SPI1);
-  // createST7735Stask(SPI2, DMA1, LL_DMA_CHANNEL_5);
-  // createButtonsTask();
+  createST7735Stask(SPI2, DMA1, LL_DMA_CHANNEL_5);
+  createButtonsTask();
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in cmsis_os2.c) */
@@ -141,16 +140,6 @@ int main(void)
     //   holdingValues = !holdingValues;
     //   lsm6dsoHold(holdingValues);
     //   ssd1306PrintHoldIcon(holdingValues);
-    // }
-
-	  // //if X axis angle changed, update the screen
-	  // if(lsm6dsoHasChanged(X_AXIS)){
-		//   ssd1306PrintAngleTenths(getAngleDegreesTenths(X_AXIS), ROLL);
-    // }
-
-	  // //if Y axis angle changed, update the screen
-	  // if(lsm6dsoHasChanged(Y_AXIS)){
-		//   ssd1306PrintAngleTenths(getAngleDegreesTenths(Y_AXIS), PITCH);
     // }
     /* USER CODE END WHILE */
 
@@ -228,7 +217,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   /* USER CODE BEGIN Callback 0 */
 
   /* USER CODE END Callback 0 */
-  if (htim->Instance == TIM1) {
+  if (htim->Instance == TIM1)
+  {
     HAL_IncTick();
   }
   /* USER CODE BEGIN Callback 1 */
