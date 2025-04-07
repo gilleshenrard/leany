@@ -10,12 +10,12 @@
 #include <stddef.h>
 #include <stdint.h>
 #include "FreeRTOS.h"
-#include "LSM6DSO.h"
 #include "ST7735_initialisation.h"
 #include "ST7735_registers.h"
 #include "errorstack.h"
 #include "icons.h"
 #include "main.h"
+#include "memsBMI270.h"
 #include "portmacro.h"
 #include "projdefs.h"
 #include "queue.h"
@@ -516,7 +516,7 @@ static errorCode_u stateConfiguring(void) {
     }
 
     //set screen orientation
-    result = st7735sSetOrientation(LANDSCAPE_180);
+    result = st7735sSetOrientation(LANDSCAPE);
     if(isError(result)) {
         state = stateError;
         return pushErrorCode(result, CONFIG, 2);
@@ -566,11 +566,11 @@ static errorCode_u stateIdle(void) {
 
     vTaskDelayUntil(&previousTick, pdMS_TO_TICKS(REFRESH_DELAY_MS));
 
-    if(lsm6dsoHasChanged(X_AXIS)) {
+    if(anglesChanged(X_AXIS)) {
         printMeasurements(X_AXIS);
     }
 
-    if(lsm6dsoHasChanged(Y_AXIS)) {
+    if(anglesChanged(Y_AXIS)) {
         printMeasurements(Y_AXIS);
     }
 
