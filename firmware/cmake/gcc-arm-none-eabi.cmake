@@ -24,6 +24,12 @@ set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 # MCU specific flags
 set(ARM_FLAGS "-march=armv7-m -mcpu=cortex-m3 -mthumb")
 
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O1 -g3 -ggdb")
+else()
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Os -g1")
+endif()
+
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${ARM_FLAGS}")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fdata-sections -ffunction-sections")
 
@@ -83,6 +89,6 @@ set(WARNING_FLAGS
 	-Wundef
 	-fno-common
 	-Wdouble-promotion	# only on 32-bits microcontrollers
-	# $<$<CONFIG:Debug>:-fanalyzer>
-	$<$<CONFIG:Debug>:-fstack-usage>
+	-fstack-usage
+	-fanalyzer
 )
