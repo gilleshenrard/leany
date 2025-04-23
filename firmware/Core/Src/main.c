@@ -104,7 +104,7 @@ int main(void)
   MX_USART1_UART_Init();
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
-  createBMI270Task(SPI1);
+  createBMI270Task();
   createST7735Stask(SPI2, DMA1, LL_DMA_CHANNEL_5);
   createButtonsTask();
   /* USER CODE END 2 */
@@ -123,24 +123,6 @@ int main(void)
   {
     //reset the watchdog
     LL_IWDG_ReloadCounter(IWDG);
-
-    // //if zero button is pressed, zero down measurements
-    // if(buttonHasRisingEdge(ZERO)){
-    //  lsm6dsoZeroDown();
-    //  ssd1306PrintReferentialIcon(RELATIVE);
-    // }
-
-    // // if zero button is held down, get back to absolute measurements
-    // if(isButtonHeldDown(ZERO)){
-    //  lsm6dsoCancelZeroing();
-    //   ssd1306PrintReferentialIcon(ABSOLUTE);
-    // }
-
-    // if(buttonHasRisingEdge(HOLD)){
-    //   holdingValues = !holdingValues;
-    //   lsm6dsoHold(holdingValues);
-    //   ssd1306PrintHoldIcon(holdingValues);
-    // }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
