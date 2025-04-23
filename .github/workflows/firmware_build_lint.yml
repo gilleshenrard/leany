@@ -118,6 +118,9 @@ jobs:
       - name: Install clang-tidy
         run: sudo apt-get install -y clang-19 clang-tidy-19
 
+      - name: Remove "-fanalyzer" from compile_commands.json
+        run: sed -i 's/-fanalyzer//g' ${{github.workspace}}/firmware/build/Debug/compile_commands.json
+
       - name: run clang-tidy
         run:  >
               /usr/bin/run-clang-tidy-19

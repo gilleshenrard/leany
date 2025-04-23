@@ -24,6 +24,8 @@
 #include "stm32f103xb.h"
 #include "stm32f1xx_hal.h"
 #include "stm32f1xx_hal_def.h"
+#include "stm32f1xx_ll_gpio.h"
+#include "stm32f1xx_ll_spi.h"
 #include "task.h"
 
 #define RADIANS_TO_DEGREES_TENTHS 572.957795F  ///< Ratio between radians and tenths of degrees (= 10 * (180°/PI))
