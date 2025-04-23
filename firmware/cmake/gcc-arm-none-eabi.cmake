@@ -91,4 +91,5 @@ set(WARNING_FLAGS
 	-Wdouble-promotion	# only on 32-bits microcontrollers
 	-fstack-usage
 	-fanalyzer
+	-ffast-math
 )

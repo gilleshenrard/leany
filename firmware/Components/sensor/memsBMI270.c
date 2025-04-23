@@ -21,6 +21,7 @@
 #include "portmacro.h"
 #include "projdefs.h"
 #include "semphr.h"
+#include "sensorfusion.h"
 #include "stm32f103xb.h"
 #include "stm32f1xx_hal.h"
 #include "stm32f1xx_hal_def.h"
@@ -83,8 +84,6 @@ static errorCode_u checkSPICommunication(void);
 static errorCode_u checkConfigurationFile(void);
 static errorCode_u readTemperature(float* latestValue_celsius);
 static errorCode_u runSelfTest(rawValues_u* valuesRead, uint8_t positiveSign);
-static void        complementaryFilter(const float accelerometer_mG[], const float gyroscope_radps[],
-                                       float filteredAngles_rad[]);
 
 // State machine functions
 static void        taskBMI270(void* argument);
@@ -97,13 +96,13 @@ static errorCode_u stateMeasuring(void);
 static void        stateError(void);
 
 /**
- * Accelerometer nominal sensitivity ratio from LSB to mG, at 2G range and 25°C
+ * Accelerometer nominal sensitivity ratio from LSB to G, at 2G range and 25°C
  * @details Equation :
- * Value(mG) = (Value(LSB) / 16384(LSB/G)) * 1000(mG/G)
+ * Value(G) = Value(LSB) / 16384(LSB/G)
  *
  * See datasheet p. 12, section "Sensitivity"
  */
-static const float ACC_NOMINAL_LSB_TO_MG = (1.0F / (float)BMI2_ACC_FOC_2G_REF) * 1000.0F;
+static const float ACC_NOMINAL_LSB_TO_G = (1.0F / (float)BMI2_ACC_FOC_2G_REF);
 
 /**
  * Accelerometer nominal sensitivity ratio from LSB to G, at 16G range and 25°C
@@ -134,9 +133,8 @@ static const float ACC_TEMPDRIFT_100PERCENT_PER_KELVIN = 0.00004F;
 static const float GYR_TEMPDRIFT_100PERCENT_PER_KELVIN = 0.0002F;
 
 //state variables
-static volatile TaskHandle_t taskHandle    = NULL;      ///< handle of the FreeRTOS task
-static SemaphoreHandle_t     anglesMutex   = NULL;      ///< handle of the mutex used to protect angles measurements
-static SPI_TypeDef*          spiHandle     = (void*)0;  ///< SPI handle used by the LSM6DSO device
+static volatile TaskHandle_t taskHandle    = NULL;  ///< handle of the FreeRTOS task
+static SemaphoreHandle_t     anglesMutex   = NULL;  ///< handle of the mutex used to protect angles measurements
 static BMI270function_e      state         = BMI270_STATE_STARTUP;  ///< State machine current state
 static uint8_t               resetOccurred = 1;  ///< Flag used to ensure config is written only once after reset
 static errorCode_u           result;             ///< Variable used to store error codes
@@ -164,7 +162,7 @@ void bmi270InterruptTriggered(uint8_t interruptPin) {
 
     // vPortEnterCritical();
 
-    //if INT1, notify the LSM6DSO task
+    //if INT1, notify the BMI270 task
     if(interruptPin == 1) {
         vTaskNotifyGiveFromISR(taskHandle, &hasWoken);
     }
@@ -176,17 +174,13 @@ void bmi270InterruptTriggered(uint8_t interruptPin) {
 
 /**
  * Create a BMI270 FreeRTOS static task
- *
- * @param handle SPI handle used by the BMI270
  */
-void createBMI270Task(const SPI_TypeDef* handle) {
+void createBMI270Task(void) {
     static StackType_t       taskStack[STACK_SIZE] = {0};  ///< Buffer used as the task stack
     static StaticTask_t      taskState             = {0};  ///< Task state variables
     static StaticSemaphore_t measureMutexState     = {0};  ///< ADC value mutex state variables
 
-    //save the SPI handle used by LSM6DSO and disable SPI1
-    spiHandle = (SPI_TypeDef*)handle;
-    LL_SPI_Enable(spiHandle);
+    LL_SPI_Enable(spiDescriptor.handle);
 
     //create the static task
     taskHandle =
@@ -242,7 +236,7 @@ static errorCode_u checkSPICommunication(void) {
  * @retval 2 Data difference between configuration files
  */
 static errorCode_u checkConfigurationFile(void) {
-    static const uint8_t SPI_RX_FILLER = 0xFFU;  ///< Value to send as a filler while receiving multiple bytes
+    const uint8_t SPI_RX_FILLER = 0xFFU;  ///< Value to send as a filler while receiving multiple bytes
 
     //set timeout timer and enable CS
     uint32_t SPIstartTick = HAL_GetTick();
@@ -262,8 +256,8 @@ static errorCode_u checkConfigurationFile(void) {
     } while(!failure && (byteIndex < CONFIGFILE_SIZE) && !timeout(SPIstartTick, SPI_TIMEOUT_MS));
 
     //wait for transaction to be finished and clear Overrun flag
-    while(LL_SPI_IsActiveFlag_BSY(spiHandle) && !timeout(SPIstartTick, SPI_TIMEOUT_MS)) {};
-    LL_SPI_ClearFlag_OVR(spiHandle);
+    while(LL_SPI_IsActiveFlag_BSY(spiDescriptor.handle) && !timeout(SPIstartTick, SPI_TIMEOUT_MS)) {};
+    LL_SPI_ClearFlag_OVR(spiDescriptor.handle);
 
     //disable CS
     LL_GPIO_SetOutputPin(BMI270_CS_GPIO_Port, BMI270_CS_Pin);
@@ -297,73 +291,17 @@ static errorCode_u readTemperature(float* latestValue_celsius) {
     }
 
     //check if the temperature LSB read is valid
-    static const int16_t INVALID_TEMPERATURE_LSB = (int16_t)0x8000;
+    const int16_t INVALID_TEMPERATURE_LSB = (int16_t)0x8000;
     if(readBuffer == INVALID_TEMPERATURE_LSB) {
         return ERR_SUCCESS;
     }
 
     //transform temperature LSB to °C
-    static const float BASE_TEMP_CELSIUS = 23.0F;
-    static const float KELVIN_PER_LSB    = 0.001953125F;
-    *latestValue_celsius                 = BASE_TEMP_CELSIUS + ((float)readBuffer * KELVIN_PER_LSB);
+    const float BASE_TEMP_CELSIUS = 23.0F;
+    const float KELVIN_PER_LSB    = 0.001953125F;
+    *latestValue_celsius          = BASE_TEMP_CELSIUS + ((float)readBuffer * KELVIN_PER_LSB);
 
     return ERR_SUCCESS;
-}
-
-/**
- * @brief Compute a complementary filter on accelerometer/gyroscope values
- * 
- * @param[in] accelerometer_mG    Array of acceleration values in [mG] on all axis
- * @param[in] gyroscope_radps       Array of gyroscope values  in [rad/s] on X and Y axis
- * @param[out] filteredAngles_rad     Array of final angle values in [rad] on X and Y axis
- */
-//NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
-void complementaryFilter(const float accelerometer_mG[], const float gyroscope_radps[], float filteredAngles_rad[]) {
-    static const float ANGLE_DELTA_MINIMUM = 0.001745329F;  //0.1° in radians
-    static const float alpha               = 0.02F;  ///< Proportion applied to the gyro. and accel. in the final result
-    static const float dtPeriod_sec   = 0.00240385F;  ///< Time period between two updates (LSM6DSO config. at 416Hz)
-    static const float GRAVITATION_MG = 1000.0F;      ///< Grativation value in mG
-    float              AccelEstimatedX_rad = 0.0F;    ///< Estimated accelerator angle on the X axis in [rad]
-    float              AccelEstimatedY_rad = 0.0F;    ///< Estimated accelerator angle on the Y axis in [rad]
-    float eulerAngleRateX_radps = 0.0F;  ///< Euler angle rate (with reference to Earth) around X axis in rad/s
-    float eulerAngleRateY_radps = 0.0F;  ///< Euler angle rate (with reference to Earth) around Y axis in rad/s
-
-    //calculate the accelerometer roll (X) angle estimations
-    AccelEstimatedX_rad = asinf(accelerometer_mG[X_AXIS] / GRAVITATION_MG);
-
-    //calculate the accelerometer pitch (Y) angle estimations + be careful around 90° angles
-    if(fabsf(accelerometer_mG[Z_AXIS]) >= ANGLE_DELTA_MINIMUM) {
-        AccelEstimatedY_rad = atanf(accelerometer_mG[Y_AXIS] / accelerometer_mG[Z_AXIS]);
-    } else {
-        static const float HALF_PI = 1.57079632679489661923F;
-        const float        sign    = ((accelerometer_mG[Y_AXIS] > 0.0F) ? 1.0F : -1.0F);
-        AccelEstimatedY_rad        = sign * HALF_PI;
-    }
-
-    //take the measurements mutex before updating angle values
-    if(xSemaphoreTake(anglesMutex, pdMS_TO_TICKS(SPI_TIMEOUT_MS)) == pdFALSE) {
-        return;
-    }
-
-    //Transform gyroscope rates (reference is the solid body) to Euler rates (reference is Earth)
-    eulerAngleRateX_radps =
-        gyroscope_radps[X_AXIS]
-        + (sinf(filteredAngles_rad[X_AXIS]) * tanf(filteredAngles_rad[Y_AXIS]) * gyroscope_radps[Y_AXIS])
-        + (cosf(filteredAngles_rad[X_AXIS]) * tanf(filteredAngles_rad[Y_AXIS]) * gyroscope_radps[Z_AXIS]);
-
-    eulerAngleRateY_radps = (cosf(filteredAngles_rad[X_AXIS]) * gyroscope_radps[Y_AXIS])
-                            - (sinf(filteredAngles_rad[X_AXIS]) * gyroscope_radps[Z_AXIS]);
-
-    //combine accelerometer estimates with Euler angle rates estimates
-    filteredAngles_rad[X_AXIS] =
-        ((1.0F - alpha) * (filteredAngles_rad[X_AXIS] + (eulerAngleRateX_radps * dtPeriod_sec)))
-        + (alpha * AccelEstimatedX_rad);
-    filteredAngles_rad[Y_AXIS] =
-        ((1.0F - alpha) * (filteredAngles_rad[Y_AXIS] + (eulerAngleRateY_radps * dtPeriod_sec)))
-        + (alpha * AccelEstimatedY_rad);
-
-    //release the mutex
-    xSemaphoreGive(anglesMutex);
 }
 
 /**
@@ -419,8 +357,8 @@ int16_t getAngleDegreesTenths(axis_e axis) {
  * @retval 1 New values are available
  */
 uint8_t anglesChanged(axis_e axis) {
-    static const float ANGLE_DELTA_MINIMUM             = 0.001745329F;  //0.1° in radians
-    static float       previousAngles_rad[NB_AXIS - 1] = {0.0F, 0.0F};
+    const float  ANGLE_DELTA_MINIMUM             = 0.001745329F;  //0.1° in radians
+    static float previousAngles_rad[NB_AXIS - 1] = {0.0F, 0.0F};
 
     //if axis index too high, return false
     if(axis >= (NB_AXIS - 1)) {
@@ -589,9 +527,9 @@ static errorCode_u stateStartup(void) {
  * @retval 7 Invalid internal status
  */
 static errorCode_u stateInitialising(void) {
-    static const BMI270register_t START_CONFIGFILE_LOAD  = 0x00U;
-    static const BMI270register_t FINISH_CONFIGFILE_LOAD = 0x01U;
-    BMI270register_t              value                  = 0;
+    const BMI270register_t START_CONFIGFILE_LOAD  = 0x00U;
+    const BMI270register_t FINISH_CONFIGFILE_LOAD = 0x01U;
+    BMI270register_t       value                  = 0;
 
     //Disable advanced power mode
     value  = 0x00;
@@ -671,11 +609,11 @@ static errorCode_u stateInitialising(void) {
  * @retval 5 Self-test value deltas do not match the ones stated in the datasheet
  */
 static errorCode_u stateSelfTestingAccelerometer(void) {
-    static const register_t BMI2_ACC_RANGE_ADDR = 0x41U;  ///< Accelerometer range value register number
-    BMI270register_t        value               = 0;
+    const register_t BMI2_ACC_RANGE_ADDR = 0x41U;  ///< Accelerometer range value register number
+    BMI270register_t value               = 0;
 
     // clang-format off
-    static const BMI270register_t configuration[][2] = {
+    const BMI270register_t configuration[][2] = {
         {BMI2_PWR_CTRL_ADDR,                      (BMI2_ACC_EN_MASK)}, //enable temp, gyroscope and accel.
         {BMI2_ACC_RANGE_ADDR,                     BMI2_ACC_RANGE_16G}, //set the accel. range to +-16G
         {BMI2_ACC_CONF_ADDR,
@@ -794,21 +732,24 @@ static errorCode_u stateSelfTestingGyroscope(void) {
  * @retval 1 Error while writing a register
  */
 static errorCode_u stateConfiguring(void) {
-    static const register_t BMI2_ACC_RANGE_ADDR = 0x41U;  ///< Accelerometer range value register number
-    static const register_t BMI2_GYR_RANGE_ADDR = 0x43U;  ///< Gyroscope range value register number
-    static const register_t NO_FIFO             = 0x00;   ///< Value used to disable the FIFO
+    const register_t BMI2_ACC_RANGE_ADDR = 0x41U;  ///< Accelerometer range value register number
+    const register_t BMI2_GYR_RANGE_ADDR = 0x43U;  ///< Gyroscope range value register number
+    const register_t NO_FIFO             = 0x00;   ///< Value used to disable the FIFO
 
     // clang-format off
-    static const BMI270register_t configuration[][2] = {
-        {BMI2_PWR_CTRL_ADDR,                            (BMI2_GYR_EN_MASK | BMI2_ACC_EN_MASK | BMI2_TEMP_EN_MASK)}, //enable temp, gyroscope and accel.
-        {BMI2_ACC_CONF_ADDR, (BMI2_ACC_FILTER_PERF_MODE_MASK | (BMI2_ACC_NORMAL_AVG4 << 4U) | BMI2_ACC_ODR_100HZ)}, //
-        {BMI2_ACC_RANGE_ADDR,                                                                   BMI2_ACC_RANGE_2G}, //set the accel. range to +-2G
-        {BMI2_GYR_CONF_ADDR, (BMI2_GYR_FILTER_PERF_MODE_MASK | (BMI2_GYR_NORMAL_MODE << 4U) | BMI2_GYR_ODR_100HZ)}, //
-        {BMI2_GYR_RANGE_ADDR,                                                                  BMI2_GYR_RANGE_500}, //set the gyroscope range to +-500°/s
-        {BMI2_FIFO_CONFIG_1_ADDR,                                                                         NO_FIFO}, //disable the FIFO (streaming mode)
-        {BMI2_INT_MAP_DATA_ADDR,                                                                    BMI2_DRDY_INT}, //enable Data Ready interrupt on INT1
-        {BMI2_INT1_IO_CTRL_ADDR,         BMI2_INT_OUTPUT_EN_MASK | BMI2_INT_OPEN_DRAIN_MASK | BMI2_INT_LEVEL_MASK}, //enable INT1 active high, open drain
-        {BMI2_PWR_CONF_ADDR,                                                                                 0x00}, //disable advanced power mode
+    const BMI270register_t configuration[][2] = {
+        {BMI2_PWR_CTRL_ADDR,                          (BMI2_GYR_EN_MASK | BMI2_ACC_EN_MASK | BMI2_TEMP_EN_MASK)}, //enable temp, gyroscope and accel.
+        {BMI2_ACC_CONF_ADDR, (BMI2_ACC_FILTER_PERF_MODE_MASK | (BMI2_ACC_CIC_AVG8 << 4U) | BMI2_ACC_ODR_1600HZ)}, //
+        {BMI2_ACC_RANGE_ADDR,                                                                 BMI2_ACC_RANGE_2G}, //set the accel. range to +-2G
+        {BMI2_GYR_CONF_ADDR, (BMI2_GYR_FILTER_PERF_MODE_MASK
+                                        | BMI2_GYR_NOISE_PERF_MODE_MASK
+                                        | (BMI2_GYR_NORMAL_MODE << 4U)
+                                        | BMI2_GYR_ODR_1600HZ)},
+        {BMI2_GYR_RANGE_ADDR,                                                                BMI2_GYR_RANGE_500}, //set the gyroscope range to +-500°/s
+        {BMI2_FIFO_CONFIG_1_ADDR,                                                                       NO_FIFO}, //disable the FIFO (streaming mode)
+        {BMI2_INT_MAP_DATA_ADDR,                                                                  BMI2_DRDY_INT}, //enable Data Ready interrupt on INT1
+        {BMI2_INT1_IO_CTRL_ADDR,       BMI2_INT_OUTPUT_EN_MASK | BMI2_INT_OPEN_DRAIN_MASK | BMI2_INT_LEVEL_MASK}, //enable INT1 active high, open drain
+        {BMI2_PWR_CONF_ADDR,                                                                               0x00}, //disable advanced power mode
     };
     // clang-format on
 
@@ -838,9 +779,9 @@ static errorCode_u stateConfiguring(void) {
  * @retval 3 Error while reading the temperature registers
  */
 static errorCode_u stateMeasuring(void) {
-    float       accelerometer_mG[NB_AXIS];  ///< Accelerometer values in [mG]
-    float       gyroscope_radps[NB_AXIS];   ///< Gyroscope values in [rad/s]
-    rawValues_u LSBvalues = {0};            ///< Buffer holding the LSB values read from the IC
+    float       accelerometer_G[NB_AXIS];  ///< Accelerometer values in [G]
+    float       gyroscope_radps[NB_AXIS];  ///< Gyroscope values in [rad/s]
+    rawValues_u LSBvalues = {0};           ///< Buffer holding the LSB values read from the IC
 
     //wait for measurements to be ready
     if(ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(TIMEOUT_MS)) == pdFALSE) {
@@ -868,18 +809,21 @@ static errorCode_u stateMeasuring(void) {
     const float REFERENCE_TEMPERATURE_CELSIUS = 25.0F;
     const float temperatureDelta_celsius      = internalTemperature_celsius - REFERENCE_TEMPERATURE_CELSIUS;
     const float accelCorrectedSensitivity =
-        ACC_NOMINAL_LSB_TO_MG * (1.0F + (temperatureDelta_celsius * ACC_TEMPDRIFT_100PERCENT_PER_KELVIN));
+        ACC_NOMINAL_LSB_TO_G * (1.0F + (temperatureDelta_celsius * ACC_TEMPDRIFT_100PERCENT_PER_KELVIN));
     const float gyroCorrectedSensitivity =
         GYR_NOMINAL_LSB_TO_RADPS * (1.0F + (temperatureDelta_celsius * GYR_TEMPDRIFT_100PERCENT_PER_KELVIN));
 
     //transform position readings to usable physical units
     for(uint8_t axis = 0; axis < (uint8_t)NB_AXIS; axis++) {
-        accelerometer_mG[axis] = (float)(LSBvalues.values16bits[axis]) * accelCorrectedSensitivity;
-        gyroscope_radps[axis]  = (float)(LSBvalues.values16bits[axis + 3]) * gyroCorrectedSensitivity;
+        accelerometer_G[axis] = (float)(LSBvalues.values16bits[axis]) * accelCorrectedSensitivity;
+        gyroscope_radps[axis] = (float)(LSBvalues.values16bits[axis + 3]) * gyroCorrectedSensitivity;
     }
 
-    //apply a complementary filter on read values
-    complementaryFilter(accelerometer_mG, gyroscope_radps, angles_rad);
+    //apply sensor fusion to the measurements
+    if(xSemaphoreTake(anglesMutex, pdMS_TO_TICKS(SPI_TIMEOUT_MS)) == pdTRUE) {
+        complementaryFilter(accelerometer_G, gyroscope_radps, angles_rad);
+        xSemaphoreGive(anglesMutex);
+    }
 
     return ERR_SUCCESS;
 }

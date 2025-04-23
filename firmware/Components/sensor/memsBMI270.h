@@ -13,7 +13,7 @@ typedef enum {
 } axis_e;
 
 void    bmi270InterruptTriggered(uint8_t interruptPin);
-void    createBMI270Task(const SPI_TypeDef* handle);
+void    createBMI270Task(void);
 int16_t getAngleDegreesTenths(axis_e axis);
 uint8_t anglesChanged(axis_e axis);
 void    bmi270ZeroDown(void);
