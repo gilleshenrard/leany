@@ -11,6 +11,7 @@
 #include "FreeRTOSConfig.h"
 #include "main.h"
 #include "portmacro.h"
+#include "projdefs.h"
 #include "stm32f103xb.h"
 #include "stm32f1xx_hal.h"
 #include "stm32f1xx_hal_def.h"

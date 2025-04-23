@@ -13,16 +13,14 @@
             "name": "Debug",
             "inherits": "default",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_C_FLAGS": "-O0 -g3"
+                "CMAKE_BUILD_TYPE": "Debug"
             }
         },
         {
             "name": "Release",
             "inherits": "default",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release",
-                "CMAKE_C_FLAGS": "-Os -g0"
+                "CMAKE_BUILD_TYPE": "Release"
             }
         }
     ],

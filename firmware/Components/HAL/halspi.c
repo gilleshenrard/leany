@@ -1,5 +1,11 @@
 #include "halspi.h"
+#include <stddef.h>
+#include <stdint.h>
+#include "errorstack.h"
 #include "main.h"
+#include "stm32f1xx_hal.h"
+#include "stm32f1xx_ll_gpio.h"
+#include "stm32f1xx_ll_spi.h"
 
 /**
  * Receive a byte from the SPI bus
