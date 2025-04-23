@@ -79,9 +79,7 @@ static volatile TaskHandle_t taskHandle = NULL;  ///< handle of the FreeRTOS tas
 /********************************************************************************************************************************************/
 
 /**
- * @brief Create a LSM6DSO FreeRTOS static task
- *
- * @param handle SPI handle used by the LSM6DSO
+ * @brief Create FreeRTOS static task for the buttons
  */
 void createButtonsTask(void) {
     static StackType_t  taskStack[STACK_SIZE] = {0};  ///< Buffer used as the task stack

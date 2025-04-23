@@ -1048,9 +1048,7 @@ RECURSIVE              = YES
 # Note that relative paths are relative to the directory from which doxygen is
 # run.
 
-EXCLUDE                = firmware/Components/sensor/LSM6DSO.c \
-                         firmware/Components/sensor/LSM6DSO.h \
-                         firmware/Components/sensor/LSM6DSO_registers.h
+EXCLUDE                = 
 
 # The EXCLUDE_SYMLINKS tag can be used to select whether or not files or
 # directories that are symbolic links (a Unix file system feature) are excluded

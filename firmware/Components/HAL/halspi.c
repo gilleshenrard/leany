@@ -34,7 +34,7 @@ uint8_t receiveSPIbyte(spi_t* descriptor, uint8_t byteToTransmit, uint32_t txSta
  * @retval 2 Timeout
  */
 errorCode_u readRegisters(spi_t* descriptor, spiregister_t firstRegister, spiregister_t value[], size_t size) {
-    static const uint8_t SPI_RX_FILLER = 0xFFU;  ///< Value to send as a filler while receiving multiple bytes
+    const uint8_t SPI_RX_FILLER = 0xFFU;  ///< Value to send as a filler while receiving multiple bytes
 
     //if no bytes to read, success
     if(!size) {
