@@ -216,7 +216,7 @@ static errorCode_u setWindow(uint8_t Xstart, uint8_t Ystart, uint8_t width, uint
 //NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 static errorCode_u sendCommand(ST7735register_e regNumber, const uint8_t parameters[], uint8_t nbParameters,
                                uint8_t finalise) {
-    static const uint8_t MAX_PARAMETERS = 16U;
+    const uint8_t MAX_PARAMETERS = 16U;
 
     //if nb of params non-zero and parameters array NULL, error
     if(!parameters && nbParameters) {
@@ -438,11 +438,11 @@ static errorCode_u printCharacter(verdanaCharacter_e character, uint8_t xLeft, u
  * @return Success
  */
 static errorCode_u printMeasurements(axis_e axis) {
-    static const uint8_t SECOND_LINE_Y = 50U;
-    static const uint8_t MULTIPLE_10   = 10U;
-    static const uint8_t MULTIPLE_100  = 100U;
-    int16_t              measurement   = getAngleDegreesTenths(axis);
-    uint8_t              yTop          = (axis == X_AXIS ? 0 : SECOND_LINE_Y);
+    const uint8_t SECOND_LINE_Y = 50U;
+    const uint8_t MULTIPLE_10   = 10U;
+    const uint8_t MULTIPLE_100  = 100U;
+    int16_t       measurement   = getAngleDegreesTenths(axis);
+    uint8_t       yTop          = (axis == X_AXIS ? 0 : SECOND_LINE_Y);
 
     if(measurement >= 0) {
         printCharacter(VERDANA_PLUS, 0, yTop);
@@ -468,8 +468,8 @@ static errorCode_u printMeasurements(axis_e axis) {
  * @retval 2 Error while transmitting the sleep out command
  */
 static errorCode_u stateStartup(void) {
-    static const uint8_t RESET_DELAY_MS    = 150U;  ///< Number of milliseconds to wait after reset
-    static const uint8_t SLEEPOUT_DELAY_MS = 255U;  ///< Number of milliseconds to wait sleep out
+    const uint8_t RESET_DELAY_MS    = 150U;  ///< Number of milliseconds to wait after reset
+    const uint8_t SLEEPOUT_DELAY_MS = 255U;  ///< Number of milliseconds to wait sleep out
 
     //send the reset command and, if error, exit
     result = sendCommand(SWRESET, NULL, 0, true);
@@ -562,7 +562,7 @@ static errorCode_u stateFillingBackground(void) {
  * @return Success
  */
 static errorCode_u stateIdle(void) {
-    static const uint8_t REFRESH_DELAY_MS = 30U;
+    const uint8_t REFRESH_DELAY_MS = 30U;
 
     vTaskDelayUntil(&previousTick, pdMS_TO_TICKS(REFRESH_DELAY_MS));
 
