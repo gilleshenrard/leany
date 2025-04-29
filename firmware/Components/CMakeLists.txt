@@ -10,7 +10,7 @@ add_library(sysUtils
 	sysutils/errorstack.c)
 target_include_directories(sysUtils PUBLIC sysutils/)
 target_compile_definitions(sysUtils PUBLIC $<TARGET_PROPERTY:stm32cubemx,INTERFACE_COMPILE_DEFINITIONS>)
-target_include_directories(sysUtils SYSTEM INTERFACE $<TARGET_PROPERTY:stm32cubemx,INTERFACE_INCLUDE_DIRECTORIES>)
+target_include_directories(sysUtils SYSTEM PUBLIC $<TARGET_PROPERTY:stm32cubemx,INTERFACE_INCLUDE_DIRECTORIES>)
 target_compile_options(sysUtils PUBLIC ${WARNING_FLAGS})
 
 #populate softVersion.c with the latest git commit hash

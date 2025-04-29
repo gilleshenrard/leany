@@ -15,7 +15,7 @@ typedef enum {
 void    bmi270InterruptTriggered(uint8_t interruptPin);
 void    createBMI270Task(void);
 int16_t getAngleDegreesTenths(axis_e axis);
-uint8_t anglesChanged(axis_e axis);
+uint8_t anglesChanged(void);
 void    bmi270ZeroDown(void);
 void    bmi270CancelZeroing(void);
 #endif
