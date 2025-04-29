@@ -566,11 +566,8 @@ static errorCode_u stateIdle(void) {
 
     vTaskDelayUntil(&previousTick, pdMS_TO_TICKS(REFRESH_DELAY_MS));
 
-    if(anglesChanged(X_AXIS)) {
+    if(anglesChanged()) {
         printMeasurements(X_AXIS);
-    }
-
-    if(anglesChanged(Y_AXIS)) {
         printMeasurements(Y_AXIS);
     }
 

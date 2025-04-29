@@ -17,7 +17,6 @@
 #include "bmi2_defs.h"
 #include "errorstack.h"
 #include "halspi.h"
-#include "main.h"
 #include "portmacro.h"
 #include "projdefs.h"
 #include "semphr.h"
@@ -28,8 +27,6 @@
 #include "stm32f1xx_ll_gpio.h"
 #include "stm32f1xx_ll_spi.h"
 #include "task.h"
-
-#define RADIANS_TO_DEGREES_TENTHS 572.957795F  ///< Ratio between radians and tenths of degrees (= 10 * (180°/PI))
 
 enum {
     STACK_SIZE            = 128U,   ///< Amount of words in the task stack
@@ -76,8 +73,10 @@ typedef union {
 typedef uint8_t BMI270register_t;  ///< type definition for BMI270 registers
 
 // Read/Write bit value
-static const BMI270register_t BMI_WRITE = 0x00U;  ///< Address byte value for a write operation
-static const BMI270register_t BMI_READ  = 0x80U;  ///< Address byte value for a read operation
+static const BMI270register_t BMI_WRITE      = 0x00U;         ///< Address byte value for a write operation
+static const BMI270register_t BMI_READ       = 0x80U;         ///< Address byte value for a read operation
+static const float RADIANS_TO_DEGREES_TENTHS = 572.957795F;   ///< One radian in tenths of degrees (= 10 * (180°/PI))
+static const float DEGREES_TENTHS_TO_RADIANS = 0.001745329F;  ///< One tenth of degree in radians (= (180°/PI) / 10)
 
 // Utility functions
 static errorCode_u checkSPICommunication(void);
@@ -114,13 +113,13 @@ static const float ACC_NOMINAL_LSB_TO_G = (1.0F / (float)BMI2_ACC_FOC_2G_REF);
 static const float ACC_NOMINAL_LSB_TO_16G = (1.0F / (float)BMI2_ACC_FOC_16G_REF);
 
 /**
- * Gyroscope nominal sensitivity ratio from LSB to rad/s, at 500°/s range and 25°C
+ * Gyroscope nominal sensitivity ratio from LSB to rad/s, at 125°/s range and 25°C
  * @details Equation :
- * Value(rad/s) = (Value(LSB) / 65,536(LSB/dps)) * (PI/180°)
+ * Value(rad/s) = (Value(LSB) / 262,144(LSB/dps)) * (PI/180°)
  *
  * See datasheet p. 14, section "Sensitivity"
  */
-static const float GYR_NOMINAL_LSB_TO_RADPS = (1.0F / 65.536F) * 0.017453293F;
+static const float GYR_NOMINAL_LSB_TO_RADPS = (1.0F / 262.144F) * 0.017453293F;
 
 /**
  * Accelerometer temperature drift in [%/K], divided by 100 because percents
@@ -139,15 +138,16 @@ static BMI270function_e      state         = BMI270_STATE_STARTUP;  ///< State m
 static uint8_t               resetOccurred = 1;  ///< Flag used to ensure config is written only once after reset
 static errorCode_u           result;             ///< Variable used to store error codes
 extern const uint8_t bmi270_config_file[];  ///< BMI270 config file provided by Bosch Sensortec, declared in bmi270.c
-static float         angles_rad[NB_AXIS - 1]          = {0.0F, 0.0F};  ///< Latest angles measured and filtered in [rad]
-static float         anglesAtZeroing_rad[NB_AXIS - 1] = {0.0F, 0.0F};  ///< Latest angles measured and filtered in [rad]
-static float         internalTemperature_celsius      = 0x0000;        ///< Latest internal temperature in [°C]
+static float         anglesAtZeroing_rad[NB_AXIS - 1] = {0, 0};  ///< Latest angles measured and filtered in [rad]
+static float         internalTemperature_celsius      = 0x0000;  ///< Latest internal temperature in [°C]
 static spi_t         spiDescriptor                    = {.handle                = SPI1,
                                                          .CSport                = BMI270_CS_GPIO_Port,
                                                          .pin                   = BMI270_CS_Pin,
                                                          .highestRegisterNumber = BMI2_CMD_REG_ADDR,
                                                          .readMask              = BMI_READ,
                                                          .writeMask             = BMI_WRITE};
+static uint8_t       taskNotifiable = 0;          ///< Flag used to avoid notifying the BMI270 task if it's not ready
+static const float   dtPeriod_sec   = 0.000625F;  ///< Time period between two updates (BMI270 config. at 1600Hz)
 
 /****************************************************************************************************************/
 /****************************************************************************************************************/
@@ -163,7 +163,8 @@ void bmi270InterruptTriggered(uint8_t interruptPin) {
     // vPortEnterCritical();
 
     //if INT1, notify the BMI270 task
-    if(interruptPin == 1) {
+    // (the event of concurrent access to bmi270configured will not be of consequence)
+    if(taskNotifiable && (interruptPin == 1)) {
         vTaskNotifyGiveFromISR(taskHandle, &hasWoken);
     }
 
@@ -342,43 +343,35 @@ static errorCode_u runSelfTest(rawValues_u* valuesRead, uint8_t positiveSign) {
  * @return Angle with the Z axis
  */
 int16_t getAngleDegreesTenths(axis_e axis) {
-    xSemaphoreTake(anglesMutex, portMAX_DELAY);
-    float angle = angles_rad[axis];
+    if(xSemaphoreTake(anglesMutex, pdMS_TO_TICKS(SPI_TIMEOUT_MS)) == pdFALSE) {
+        return 0;
+    }
+    float currentAngle_rad = angleAlongAxis(axis);
     xSemaphoreGive(anglesMutex);
 
-    return ((int16_t)((angle + anglesAtZeroing_rad[axis]) * RADIANS_TO_DEGREES_TENTHS));
+    float total = (currentAngle_rad + anglesAtZeroing_rad[axis]);
+    return (int16_t)(total * RADIANS_TO_DEGREES_TENTHS);
 }
 
 /**
  * @brief Check if angle measurements have changed
  *
- * @param axis Axis to check for a change
  * @retval 0 No new values available
  * @retval 1 New values are available
  */
-uint8_t anglesChanged(axis_e axis) {
-    const float  ANGLE_DELTA_MINIMUM             = 0.001745329F;  //0.1° in radians
-    static float previousAngles_rad[NB_AXIS - 1] = {0.0F, 0.0F};
-
-    //if axis index too high, return false
-    if(axis >= (NB_AXIS - 1)) {
-        return 0;
-    }
-
-    //take angles mutex
+uint8_t anglesChanged(void) {
     if(xSemaphoreTake(anglesMutex, pdMS_TO_TICKS(SPI_TIMEOUT_MS)) == pdFALSE) {
         return 0;
     }
-
-    //check if angle changed above minimum threshold
-    uint8_t changed = 0;
-    if(fabsf(angles_rad[axis] - previousAngles_rad[axis]) > ANGLE_DELTA_MINIMUM) {
-        previousAngles_rad[axis] = angles_rad[axis];
-        changed                  = 1;
-    }
-
-    //release angles mutex
+    const float currentAngle_rad = getAttitudeAngle();
     xSemaphoreGive(anglesMutex);
+
+    //check if angle changed above minimum threshold (0.1° in any direction)
+    static float previousAngle_rad = 0.0F;
+    uint8_t      changed           = (fabsf(previousAngle_rad - currentAngle_rad) > DEGREES_TENTHS_TO_RADIANS);
+    if(changed) {
+        previousAngle_rad = currentAngle_rad;
+    }
 
     return (changed);
 }
@@ -391,8 +384,8 @@ void bmi270ZeroDown(void) {
         return;
     }
 
-    anglesAtZeroing_rad[X_AXIS] = -angles_rad[X_AXIS];
-    anglesAtZeroing_rad[Y_AXIS] = -angles_rad[Y_AXIS];
+    anglesAtZeroing_rad[X_AXIS] = -angleAlongAxis(X_AXIS);
+    anglesAtZeroing_rad[Y_AXIS] = -angleAlongAxis(Y_AXIS);
 
     xSemaphoreGive(anglesMutex);
 }
@@ -484,6 +477,7 @@ static errorCode_u stateStartup(void) {
     BMI270register_t value = 0;
 
     //wait for a while for the sensor to boot properly, and enable SPI
+    taskNotifiable = 0;
     vTaskDelay(pdMS_TO_TICKS(STARTUP_TIME_MS));
 
     result = checkSPICommunication();
@@ -561,8 +555,11 @@ static errorCode_u stateInitialising(void) {
         return pushErrorCode(result, BMI270_STATE_INITIALISING, 3);
     }
 
-    //re-read the configuration file written to make sure it is correct
-    result = checkConfigurationFile();
+    //re-read the configuration file written to make sure it is correct (max. 3 attempts)
+    uint8_t attempts = 3;
+    do {
+        result = checkConfigurationFile();
+    } while((--attempts) && isError(result));
     if(isError(result)) {
         return pushErrorCode(result, BMI270_STATE_INITIALISING, 4);  // NOLINT(*-magic-numbers)
     }
@@ -745,7 +742,7 @@ static errorCode_u stateConfiguring(void) {
                                         | BMI2_GYR_NOISE_PERF_MODE_MASK
                                         | (BMI2_GYR_NORMAL_MODE << 4U)
                                         | BMI2_GYR_ODR_1600HZ)},
-        {BMI2_GYR_RANGE_ADDR,                                                                BMI2_GYR_RANGE_500}, //set the gyroscope range to +-500°/s
+        {BMI2_GYR_RANGE_ADDR,                                                                BMI2_GYR_RANGE_125}, //set the gyroscope range to +-500°/s
         {BMI2_FIFO_CONFIG_1_ADDR,                                                                       NO_FIFO}, //disable the FIFO (streaming mode)
         {BMI2_INT_MAP_DATA_ADDR,                                                                  BMI2_DRDY_INT}, //enable Data Ready interrupt on INT1
         {BMI2_INT1_IO_CTRL_ADDR,       BMI2_INT_OUTPUT_EN_MASK | BMI2_INT_OPEN_DRAIN_MASK | BMI2_INT_LEVEL_MASK}, //enable INT1 active high, open drain
@@ -766,7 +763,9 @@ static errorCode_u stateConfiguring(void) {
         return pushErrorCode(result, BMI270_STATE_CONFIGURING, 1);
     }
 
-    state = BMI270_STATE_MEASURING;
+    resetMahonyFilter();
+    taskNotifiable = 1;
+    state          = BMI270_STATE_MEASURING;
     return ERR_SUCCESS;
 }
 
@@ -821,7 +820,7 @@ static errorCode_u stateMeasuring(void) {
 
     //apply sensor fusion to the measurements
     if(xSemaphoreTake(anglesMutex, pdMS_TO_TICKS(SPI_TIMEOUT_MS)) == pdTRUE) {
-        complementaryFilter(accelerometer_G, gyroscope_radps, angles_rad);
+        updateMahonyFilter(accelerometer_G, gyroscope_radps, dtPeriod_sec);
         xSemaphoreGive(anglesMutex);
     }
 
