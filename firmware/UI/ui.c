@@ -1,0 +1,208 @@
+#include "ui.h"
+#include <errorstack.h>
+#include <stdint.h>
+#include "FreeRTOS.h"
+#include "ST7735S.h"
+#include "icons.h"
+#include "main.h"
+#include "memsBMI270.h"
+#include "queue.h"
+#include "task.h"
+
+enum {
+    STACK_SIZE         = 200U,  ///< Amount of words in the task stack
+    TASK_LOW_PRIORITY  = 8U,    ///< FreeRTOS number for a low priority task
+    NB_QUEUE_ELEM      = 10U,
+    SCREENSIZE_DIVIDER = 16U,
+    FRAME_BUFFER_SIZE  = (DISPLAY_WIDTH * DISPLAY_HEIGHT) / SCREENSIZE_DIVIDER,  ///< Size of the frame buffer in bytes
+};
+
+static void        runUItask(void *argument);
+static errorCode_u printMeasurements(axis_e axis);
+static errorCode_u printCharacter(verdanaCharacter_e character, uint8_t xLeft, uint8_t yTop);
+static errorCode_u fillBackground(void);
+
+static volatile TaskHandle_t taskHandle   = NULL;  ///< handle of the FreeRTOS task
+QueueHandle_t                messageStack = NULL;
+static TickType_t            previousTick = 0;
+static pixel_t               displayBuffer[FRAME_BUFFER_SIZE];  ///< Buffer used to send data to the display
+
+/********************************************************************************************************************************************/
+/********************************************************************************************************************************************/
+
+/**
+ * @brief Create the UI FreeRTOS task
+ *
+ * @return Success
+ */
+errorCode_u createUItask(void) {
+    static StackType_t   taskStack[STACK_SIZE] = {0};  ///< Buffer used as the task stack
+    static StaticTask_t  taskState             = {0};  ///< Task state variables}
+    static uint8_t       queueStorage[sizeof(displayMessage_t) * NB_QUEUE_ELEM] = {0};
+    static StaticQueue_t queueState                                             = {0};
+
+    // create the static task
+    taskHandle = xTaskCreateStatic(runUItask, "UI task", STACK_SIZE, NULL, TASK_LOW_PRIORITY, taskStack, &taskState);
+    if(!taskHandle) {
+        Error_Handler();
+    }
+
+    messageStack = xQueueCreateStatic(NB_QUEUE_ELEM, sizeof(displayMessage_t), queueStorage, &queueState);
+    if(!messageStack) {
+        Error_Handler();
+    }
+
+    return (ERR_SUCCESS);
+}
+
+/**
+ * @brief Run the UI task
+ *
+ * @param argument Unused
+ */
+static void runUItask(void *argument) {
+    UNUSED(argument);
+    errorCode_u result;
+
+    attachUItask(taskHandle);
+    result = configureST7735S();
+    if(isError(result)) {
+        Error_Handler();
+    }
+
+    result = fillBackground();
+    if(isError(result)) {
+        Error_Handler();
+    }
+
+    //turn on backlight
+    turnBacklightON();
+
+    while(1) {
+        static const uint8_t REFRESH_DELAY_MS = 30U;
+
+        vTaskDelayUntil(&previousTick, pdMS_TO_TICKS(REFRESH_DELAY_MS));
+
+        if(anglesChanged()) {
+            result = printMeasurements(X_AXIS);
+            if(isError(result)) {
+                result = pushErrorCode(result, 1, 1);
+            }
+            if(!isError(result)) {
+                result = printMeasurements(Y_AXIS);
+                if(isError(result)) {
+                    result = pushErrorCode(result, 1, 2);
+                }
+            }
+        }
+
+        if(isError(result)) {
+            Error_Handler();
+        }
+
+        // displayMessage_t message = {0};
+        // while(xQueueReceive(messageStack, &message,
+        // pdMS_TO_TICKS(MSG_TIMEOUT_MS)) == pdTRUE) {
+        //     switch(message.ID) {
+        //         case MSG_HOLD:
+        //         case MSG_ZERO:
+        //         case MSG_PWROFF:
+        //         case NB_MESSAGES:
+        //         default:
+        //             break;
+        //     }
+        // }
+    }
+}
+
+/********************************************************************************************************************************************/
+/********************************************************************************************************************************************/
+
+static errorCode_u printMeasurements(axis_e axis) {
+    static const uint8_t NB_MEAS_CHARACTERS = 5U;
+    static const uint8_t SECOND_LINE_Y      = 50U;
+    static const uint8_t MULTIPLE_10        = 10U;
+    static const uint8_t MULTIPLE_100       = 100U;
+    int16_t              measurement        = getAngleDegreesTenths(axis);
+    uint8_t              yTop               = (axis == X_AXIS ? 0 : SECOND_LINE_Y);
+    uint8_t              toPrint[NB_MEAS_CHARACTERS];
+    errorCode_u          result;
+
+    if(measurement >= 0) {
+        toPrint[0] = VERDANA_PLUS;
+    } else {
+        toPrint[0]  = VERDANA_MIN;
+        measurement = (int16_t)-measurement;
+    }
+    toPrint[1] = (uint8_t)(measurement / MULTIPLE_100);
+    toPrint[2] = (uint8_t)((measurement / MULTIPLE_10) % MULTIPLE_10);
+    toPrint[3] = VERDANA_DOT;
+    toPrint[4] = (uint8_t)(measurement % MULTIPLE_10);
+
+    result            = ERR_SUCCESS;
+    uint8_t character = 0;
+    while((character < NB_MEAS_CHARACTERS) && !isError(result)) {
+        result = printCharacter((verdanaCharacter_e)toPrint[character], (VERDANA_NB_COLUMNS * character), yTop);
+        character++;
+    }
+    if(isError(result)) {
+        return pushErrorCode(result, 1, 1);
+    }
+
+    return ERR_SUCCESS;
+}
+
+/**
+ * @brief Print a Verdana character on screen
+ *
+ * @param character Character to print
+ * @param xLeft Left-most coordinate of the character
+ * @param yTop Top-most coordinate of the character
+ * @return Success
+ * @retval 1 Error while setting the window
+ * @retval 2 Error while sending the pixel data to the screen
+ */
+static errorCode_u printCharacter(verdanaCharacter_e character, uint8_t xLeft, uint8_t yTop) {
+    //fill the frame buffer with background pixels
+    uncompressCharacter(displayBuffer, character);
+
+    const size_t characterSize = VERDANA_NB_COLUMNS * VERDANA_NB_ROWS * sizeof(pixel_t);
+    const area_t characterArea = {xLeft, yTop, xLeft + VERDANA_NB_COLUMNS - 1U, yTop + VERDANA_NB_ROWS - 1U};
+    sendScreenData(displayBuffer, characterSize, FRAME_BUFFER_SIZE * sizeof(pixel_t), &characterArea);
+    return ERR_SUCCESS;
+}
+
+/**
+ * Fill the screen background
+ * @retval 0 Success
+ * @retval 1 Error while setting the data window
+ * @retval 2 Error while sending the data
+ */
+static errorCode_u fillBackground(void) {
+    errorCode_u result = ERR_SUCCESS;
+
+    //fill the frame buffer with background pixels
+    for(pixel_t pixel = 0; pixel < (pixel_t)FRAME_BUFFER_SIZE; pixel++) {
+        *(&displayBuffer[pixel]) = DARK_CHARCOAL_BIGENDIAN;
+    }
+
+    uint8_t linesSent = 0;
+    do {
+        uint8_t chunkHeight = FRAME_BUFFER_SIZE / DISPLAY_WIDTH;
+        if((linesSent + chunkHeight) > DISPLAY_HEIGHT) {
+            chunkHeight = (uint8_t)(DISPLAY_HEIGHT - linesSent);
+        }
+
+        const size_t nbBytes   = chunkHeight * DISPLAY_WIDTH * sizeof(pixel_t);
+        const area_t chunkArea = {0, linesSent, DISPLAY_WIDTH - 1U, (uint8_t)(linesSent + chunkHeight - 1U)};
+        sendScreenData(displayBuffer, nbBytes, FRAME_BUFFER_SIZE * sizeof(pixel_t), &chunkArea);
+
+        linesSent += chunkHeight;
+    } while((linesSent < DISPLAY_HEIGHT) && !isError(result));
+
+    if(isError(result)) {
+        return pushErrorCode(result, 3, 2);
+    }
+
+    return ERR_SUCCESS;
+}

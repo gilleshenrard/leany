@@ -1,0 +1,30 @@
+BasedOnStyle: Google
+Language: Cpp
+Standard: Latest
+IndentWidth: 4
+ColumnLimit: 120
+ReflowComments: false
+IncludeBlocks: Merge
+AlignArrayOfStructures: Right
+AlignConsecutiveDeclarations: Consecutive
+AlignConsecutiveAssignments: Consecutive
+AlignConsecutiveBitFields: Consecutive
+AlignConsecutiveMacros:
+  Enabled: true
+  AcrossEmptyLines: true
+  AcrossComments: false
+InsertNewlineAtEOF: true
+AllowShortFunctionsOnASingleLine: None
+AllowShortEnumsOnASingleLine: false
+AllowShortBlocksOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+BreakBeforeBinaryOperators: NonAssignment
+AlignOperands: Align
+IndentCaseLabels: true
+IndentCaseBlocks: true
+Cpp11BracedListStyle: true
+SpaceBeforeParens: Custom
+SpaceBeforeParensOptions:
+  AfterControlStatements: false
+  AfterFunctionDefinitionName: false

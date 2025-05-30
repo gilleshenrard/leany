@@ -29,7 +29,7 @@
 #include "task.h"
 
 enum {
-    STACK_SIZE            = 128U,   ///< Amount of words in the task stack
+    STACK_SIZE            = 180U,   ///< Amount of words in the task stack
     TASK_LOW_PRIORITY     = 8U,     ///< FreeRTOS number for a low priority task
     STARTUP_TIME_MS       = 2U,     ///< Number of milliseconds required after Power On Reset or soft reset
     TIMEOUT_MS            = 1000U,  ///< Max number of milliseconds to wait for the device ID
@@ -57,7 +57,7 @@ typedef enum {
     BMI270_READ_TEMPERATURE    = 11,  ///< readTemperature() : Function reading the BMI270 internal temp. registers
     BMI270_STATE_SELFTEST_ACC  = 12,  ///< stateSelfTestingAccelerometer() : State in which the chip self-tests the acc.
     BMI270_STATE_SELFTEST_GYRO = 13,  ///< stateSelfTestingGyro() : State in which the BMI270 self-tests the gyroscope
-    BMI270_RUN_SELFTEST        = 14,  ///< runSelfTest() : Run the self-test command on the BMI270
+    BMI270_RUN_ACCSELFTEST     = 14,  ///< runAccelerometerSelfTest() : Run the self-test command on the BMI270
 } BMI270function_e;
 
 /**
@@ -82,7 +82,8 @@ static const float DEGREES_TENTHS_TO_RADIANS = 0.001745329F;  ///< One tenth of 
 static errorCode_u checkSPICommunication(void);
 static errorCode_u checkConfigurationFile(void);
 static errorCode_u readTemperature(float* latestValue_celsius);
-static errorCode_u runSelfTest(rawValues_u* valuesRead, uint8_t positiveSign);
+static errorCode_u runAccelerometerSelfTest(rawValues_u* valuesRead, uint8_t positiveSign);
+static errorCode_u runGyroscopeSelfTest(void);
 
 // State machine functions
 static void        taskBMI270(void* argument);
@@ -137,17 +138,17 @@ static SemaphoreHandle_t     anglesMutex   = NULL;  ///< handle of the mutex use
 static BMI270function_e      state         = BMI270_STATE_STARTUP;  ///< State machine current state
 static uint8_t               resetOccurred = 1;  ///< Flag used to ensure config is written only once after reset
 static errorCode_u           result;             ///< Variable used to store error codes
-extern const uint8_t bmi270_config_file[];  ///< BMI270 config file provided by Bosch Sensortec, declared in bmi270.c
-static float         anglesAtZeroing_rad[NB_AXIS - 1] = {0, 0};  ///< Latest angles measured and filtered in [rad]
-static float         internalTemperature_celsius      = 0x0000;  ///< Latest internal temperature in [°C]
-static spi_t         spiDescriptor                    = {.handle                = SPI1,
-                                                         .CSport                = BMI270_CS_GPIO_Port,
-                                                         .pin                   = BMI270_CS_Pin,
-                                                         .highestRegisterNumber = BMI2_CMD_REG_ADDR,
-                                                         .readMask              = BMI_READ,
-                                                         .writeMask             = BMI_WRITE};
-static uint8_t       taskNotifiable = 0;          ///< Flag used to avoid notifying the BMI270 task if it's not ready
-static const float   dtPeriod_sec   = 0.000625F;  ///< Time period between two updates (BMI270 config. at 1600Hz)
+extern const uint8_t    bmi270_config_file[];  ///< BMI270 config file provided by Bosch Sensortec, declared in bmi270.c
+static float            anglesAtZeroing_rad[NB_AXIS - 1] = {0, 0};  ///< Latest angles measured and filtered in [rad]
+static float            internalTemperature_celsius      = 0x0000;  ///< Latest internal temperature in [°C]
+static spi_t            spiDescriptor                    = {.handle                = SPI1,
+                                                            .CSport                = BMI270_CS_GPIO_Port,
+                                                            .pin                   = BMI270_CS_Pin,
+                                                            .highestRegisterNumber = BMI2_CMD_REG_ADDR,
+                                                            .readMask              = BMI_READ,
+                                                            .writeMask             = BMI_WRITE};
+static volatile uint8_t taskNotifiable = 0;          ///< Flag used to avoid notifying the BMI270 task if it's not ready
+static const float      dtPeriod_sec   = 0.000625F;  ///< Time period between two updates (BMI270 config. at 1600Hz)
 
 /****************************************************************************************************************/
 /****************************************************************************************************************/
@@ -314,7 +315,7 @@ static errorCode_u readTemperature(float* latestValue_celsius) {
  * @retval 1 Error while sending the self-test request
  * @retval 2 Error while reading the self-test results
  */
-static errorCode_u runSelfTest(rawValues_u* valuesRead, uint8_t positiveSign) {
+static errorCode_u runAccelerometerSelfTest(rawValues_u* valuesRead, uint8_t positiveSign) {
     //prepare the register value to write to start the self-testing
     BMI270register_t value = (uint8_t)(positiveSign << BMI2_ACC_SELF_TEST_SIGN_POS);
     value |= (1U << BMI2_ACC_SELF_TEST_AMP_POS);
@@ -323,14 +324,53 @@ static errorCode_u runSelfTest(rawValues_u* valuesRead, uint8_t positiveSign) {
     //write the self-test request and wait for it to finish
     result = writeRegisters(&spiDescriptor, BMI2_ACC_SELF_TEST_ADDR, &value, 1U);
     if(isError(result)) {
-        return pushErrorCode(result, BMI270_RUN_SELFTEST, 1);
+        return pushErrorCode(result, BMI270_RUN_ACCSELFTEST, 1);
     }
     vTaskDelay(pdMS_TO_TICKS(51U));
 
     //read all accelerometer/gyroscope values
     result = readRegisters(&spiDescriptor, BMI2_ACC_X_LSB_ADDR, valuesRead->registers8bits, NB_POSITION_REGISTERS);
     if(isError(result)) {
-        return (pushErrorCode(result, BMI270_RUN_SELFTEST, 2));
+        return (pushErrorCode(result, BMI270_RUN_ACCSELFTEST, 2));
+    }
+
+    return ERR_SUCCESS;
+}
+
+static errorCode_u runGyroscopeSelfTest(void) {
+    BMI270register_t value = 0;
+
+    //set the gyro self-test trigger command
+    value  = BMI2_G_TRIGGER_CMD;
+    result = writeRegisters(&spiDescriptor, BMI2_CMD_REG_ADDR, &value, 1);
+    if(isError(result)) {
+        return pushErrorCode(result, BMI270_STATE_SELFTEST_GYRO, 1);  // NOLINT(*-magic-numbers)
+    }
+
+    //wait for the self-test done flag
+    uint32_t startTick = HAL_GetTick();
+    do {
+        result = readRegisters(&spiDescriptor, BMI2_GYR_SELF_TEST_AXES_ADDR, &value, 1);
+    } while(!isError(result) && !timeout(startTick, TIMEOUT_MS)
+            && ((value & BMI2_ACC_SELF_TEST_DONE_MASK) != BMI2_ACC_SELF_TEST_DONE_MASK));
+
+    if(isError(result)) {
+        return pushErrorCode(result, BMI270_STATE_SELFTEST_GYRO, 2);  // NOLINT(*-magic-numbers)
+    }
+
+    //check if all axis are flagged as ok
+    const BMI270register_t GYR_GAIN_STATUS_ADDR = 0x38;
+    const BMI270register_t allGyroscopeOK =
+        (BMI2_ACC_X_OK_MASK | BMI2_ACC_Y_OK_MASK | BMI2_ACC_Z_OK_MASK | BMI2_ACC_SELF_TEST_DONE_MASK);
+    if((value & allGyroscopeOK) != allGyroscopeOK) {
+        BMI270register_t triggerStatus = 0;
+        result                         = readRegisters(&spiDescriptor, GYR_GAIN_STATUS_ADDR, &triggerStatus, 1);
+        if(isError(result)) {
+            return pushErrorCode(result, BMI270_STATE_SELFTEST_GYRO, 3);  // NOLINT(*-magic-numbers)
+        }
+        state  = BMI270_STATE_ERROR;
+        result = createErrorCodeLayer1(BMI270_STATE_SELFTEST_GYRO, value, triggerStatus, ERR_CRITICAL);
+        return pushErrorCode(result, BMI270_STATE_SELFTEST_GYRO, 4);  // NOLINT(*-magic-numbers)
     }
 
     return ERR_SUCCESS;
@@ -452,7 +492,7 @@ static void taskBMI270(void* argument) {
             case BMI270_CHECK_CONFIGURATION:
             case BMI270_READ_TEMPERATURE:
             case BMI270_TASK:
-            case BMI270_RUN_SELFTEST:
+            case BMI270_RUN_ACCSELFTEST:
             default:
                 result = createErrorCode(BMI270_TASK, 0, ERR_CRITICAL);
                 break;
@@ -637,11 +677,11 @@ static errorCode_u stateSelfTestingAccelerometer(void) {
     rawValues_u LSBvaluesPositive = {0};  ///< Buffer holding the LSB values read from the IC
     rawValues_u LSBvaluesNegative = {0};  ///< Buffer holding the LSB values read from the IC
 
-    result = runSelfTest(&LSBvaluesPositive, 1);
+    result = runAccelerometerSelfTest(&LSBvaluesPositive, 1);
     if(isError(result)) {
         return pushErrorCode(result, BMI270_STATE_SELFTEST_ACC, 2);
     }
-    result = runSelfTest(&LSBvaluesNegative, 0);
+    result = runAccelerometerSelfTest(&LSBvaluesNegative, 0);
     if(isError(result)) {
         return pushErrorCode(result, BMI270_STATE_SELFTEST_ACC, 3);
     }
@@ -686,36 +726,17 @@ static errorCode_u stateSelfTestingAccelerometer(void) {
  * @retval 4 Gyroscope self-test internal error @note Internal error code stored one layer lower
  */
 static errorCode_u stateSelfTestingGyroscope(void) {
-    BMI270register_t value = 0;
+    uint8_t attempts = 3;
+    do {
+        result = runGyroscopeSelfTest();
+    } while(--attempts && isError(result));
 
-    value  = BMI2_G_TRIGGER_CMD;
-    result = writeRegisters(&spiDescriptor, BMI2_CMD_REG_ADDR, &value, 1);
     if(isError(result)) {
         return pushErrorCode(result, BMI270_STATE_SELFTEST_GYRO, 1);  // NOLINT(*-magic-numbers)
     }
 
-    uint32_t startTick = HAL_GetTick();
-    do {
-        result = readRegisters(&spiDescriptor, BMI2_GYR_SELF_TEST_AXES_ADDR, &value, 1);
-    } while(!isError(result) && !timeout(startTick, TIMEOUT_MS)
-            && ((value & BMI2_ACC_SELF_TEST_DONE_MASK) != BMI2_ACC_SELF_TEST_DONE_MASK));
-
-    if(isError(result)) {
+    if(!attempts) {
         return pushErrorCode(result, BMI270_STATE_SELFTEST_GYRO, 2);  // NOLINT(*-magic-numbers)
-    }
-
-    const BMI270register_t GYR_GAIN_STATUS_ADDR = 0x38;
-    const BMI270register_t allGyroscopeOK =
-        (BMI2_ACC_X_OK_MASK | BMI2_ACC_Y_OK_MASK | BMI2_ACC_Z_OK_MASK | BMI2_ACC_SELF_TEST_DONE_MASK);
-    if((value & allGyroscopeOK) != allGyroscopeOK) {
-        BMI270register_t triggerStatus = 0;
-        result                         = readRegisters(&spiDescriptor, GYR_GAIN_STATUS_ADDR, &triggerStatus, 1);
-        if(isError(result)) {
-            return pushErrorCode(result, BMI270_STATE_SELFTEST_GYRO, 3);  // NOLINT(*-magic-numbers)
-        }
-        state  = BMI270_STATE_ERROR;
-        result = createErrorCodeLayer1(BMI270_STATE_SELFTEST_GYRO, value, triggerStatus, ERR_CRITICAL);
-        return pushErrorCode(result, BMI270_STATE_SELFTEST_GYRO, 4);  // NOLINT(*-magic-numbers)
     }
 
     state = BMI270_STATE_CONFIGURING;

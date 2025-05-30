@@ -8,6 +8,47 @@
 #include "stm32f1xx_ll_spi.h"
 
 /**
+ * @brief SPI Data/command pin status enumeration
+ */
+typedef enum {
+    COMMAND = 0,  ///< Command is to be sent
+    DATA,         ///< Data is to be sent
+} DCgpio_e;
+
+static inline void           setDataCommandGPIO(const spi_t* descriptor, DCgpio_e function);
+static volatile TaskHandle_t latestTask = NULL;
+
+/********************************************************************************************************************************************/
+/********************************************************************************************************************************************/
+
+void st7735sDMAinterruptHandler(void) {
+    BaseType_t hasWoken = 0;
+    vTaskNotifyGiveFromISR(latestTask, &hasWoken);
+    portYIELD_FROM_ISR(hasWoken);
+}
+
+/**
+ * brief Set the Data/Command pin
+ * 
+ * @param function Value of the data/command pin
+ */
+static inline void setDataCommandGPIO(const spi_t* descriptor, DCgpio_e function) {
+    if(!descriptor->dataCommandPort) {
+        return;
+    }
+
+    if(function == COMMAND) {
+        LL_GPIO_ResetOutputPin(descriptor->dataCommandPort, descriptor->dataCommandPin);
+    } else {
+        LL_GPIO_SetOutputPin(descriptor->dataCommandPort, descriptor->dataCommandPin);
+    }
+}
+
+void closeTransmission(const spi_t* descriptor) {
+    LL_GPIO_SetOutputPin(descriptor->CSport, descriptor->pin);
+}
+
+/**
  * Receive a byte from the SPI bus
  * 
  * @param byteToTransmit Byte to transmit either as a command or as a filler to keep the SPI clock running
@@ -48,7 +89,7 @@ errorCode_u readRegisters(spi_t* descriptor, spiregister_t firstRegister, spireg
 
     //set timeout timer and enable CS
     uint32_t SPIstartTick = HAL_GetTick();
-    LL_GPIO_ResetOutputPin(BMI270_CS_GPIO_Port, BMI270_CS_Pin);
+    LL_GPIO_ResetOutputPin(descriptor->CSport, descriptor->pin);
 
     //send the read request and a dummy byte to synchronize the SPI clock
     (void)receiveSPIbyte(descriptor, firstRegister, SPIstartTick);
@@ -66,7 +107,7 @@ errorCode_u readRegisters(spi_t* descriptor, spiregister_t firstRegister, spireg
     LL_SPI_ClearFlag_OVR(descriptor->handle);
 
     //disable CS
-    LL_GPIO_SetOutputPin(BMI270_CS_GPIO_Port, BMI270_CS_Pin);
+    LL_GPIO_SetOutputPin(descriptor->CSport, descriptor->pin);
 
     //if timeout, error
     if(timeout(SPIstartTick, SPI_TIMEOUT_MS)) {
@@ -87,49 +128,101 @@ errorCode_u readRegisters(spi_t* descriptor, spiregister_t firstRegister, spireg
  * @retval 2 Register number out of range
  * @retval 3 Timeout
  */
-errorCode_u writeRegisters(spi_t* descriptor, spiregister_t registerNumber, const spiregister_t value[], size_t size) {
-    //if no bytes to write, success
-    if(!size) {
-        return ERR_SUCCESS;
-    }
-
+errorCode_u writeRegistersAndContinue(spi_t* descriptor, spiregister_t registerNumber, const spiregister_t parameters[],
+                                      size_t size) {
     //if handle not specified, error
     if(!descriptor->handle) {
         return (createErrorCode(SPI_WRITEREGISTERS, 1, ERR_WARNING));
     }
 
+    //if no parameters provided and size not zero, error
+    if(!parameters && size) {
+        return (createErrorCode(SPI_WRITEREGISTERS, 2, ERR_WARNING));
+    }
+
     //if register number above known or within the reserved range, error
     if(registerNumber > descriptor->highestRegisterNumber) {
-        return (createErrorCode(SPI_WRITEREGISTERS, 2, ERR_WARNING));
+        return (createErrorCode(SPI_WRITEREGISTERS, 3, ERR_WARNING));
     }
 
     //set timeout timer and enable CS
     uint32_t SPIstartTick = HAL_GetTick();
-    LL_GPIO_ResetOutputPin(BMI270_CS_GPIO_Port, BMI270_CS_Pin);
+    setDataCommandGPIO(descriptor, COMMAND);
+    LL_GPIO_ResetOutputPin(descriptor->CSport, descriptor->pin);
 
     //send the write instruction
     LL_SPI_TransmitData8(descriptor->handle,
                          descriptor->writeMask | registerNumber);  // cppcheck-suppress badBitmaskCheck
+    while(!LL_SPI_IsActiveFlag_TXE(descriptor->handle) && !timeout(SPIstartTick, SPI_TIMEOUT_MS)) {};
 
     //write the value data
-    do {
+    setDataCommandGPIO(descriptor, DATA);
+    while(size && !timeout(SPIstartTick, SPI_TIMEOUT_MS)) {
         while(!LL_SPI_IsActiveFlag_TXE(descriptor->handle) && !timeout(SPIstartTick, SPI_TIMEOUT_MS)) {};
-        LL_SPI_TransmitData8(descriptor->handle, *value);
-        value++;
+        if(LL_SPI_IsActiveFlag_TXE(descriptor->handle)) {
+            LL_SPI_TransmitData8(descriptor->handle, *parameters);
+        }
+        parameters++;
         size--;
-    } while(size && !timeout(SPIstartTick, SPI_TIMEOUT_MS));
+    }
 
     //wait for transaction to be finished and clear Overrun flag
     while(LL_SPI_IsActiveFlag_BSY(descriptor->handle) && !timeout(SPIstartTick, SPI_TIMEOUT_MS)) {};
     LL_SPI_ClearFlag_OVR(descriptor->handle);
 
-    //disable CS
-    LL_GPIO_SetOutputPin(BMI270_CS_GPIO_Port, BMI270_CS_Pin);
-
     //if timeout, error
     if(timeout(SPIstartTick, SPI_TIMEOUT_MS)) {
-        return (createErrorCode(SPI_WRITEREGISTERS, 3, ERR_WARNING));
+        return (createErrorCode(SPI_WRITEREGISTERS, 4, ERR_WARNING));
     }
 
     return (ERR_SUCCESS);
+}
+
+errorCode_u writeRegisters(spi_t* descriptor, spiregister_t registerNumber, const spiregister_t parameters[],
+                           size_t size) {
+    errorCode_u result = writeRegistersAndContinue(descriptor, registerNumber, parameters, size);
+    closeTransmission(descriptor);
+    return result;
+}
+
+errorCode_u sendDMA(dma_t* dma, uint8_t* buffer, size_t nbBytes, size_t maxBytes) {
+    errorCode_u result;
+
+    if(nbBytes > maxBytes) {
+        return createErrorCode(1, 1, ERR_CRITICAL);
+    }
+
+    if(!nbBytes) {
+        return ERR_SUCCESS;
+    }
+
+    latestTask = dma->task;
+
+    //configure the DMA transaction
+    LL_DMA_DisableChannel(dma->dma, dma->Channel);
+    LL_DMA_ClearFlag_GI5(dma->dma);
+    LL_DMA_EnableIT_TC(dma->dma, dma->Channel);
+    LL_DMA_ConfigAddresses(dma->dma, dma->Channel, (uint32_t)buffer, LL_SPI_DMA_GetRegAddr(dma->spi.handle),
+                           LL_DMA_DIRECTION_MEMORY_TO_PERIPH);
+    LL_DMA_SetDataLength(dma->dma, dma->Channel, nbBytes);  //must be reset every time
+    LL_DMA_EnableChannel(dma->dma, dma->Channel);
+    LL_SPI_EnableDMAReq_TX(dma->spi.handle);
+
+    result = ERR_SUCCESS;
+
+    //wait for measurements to be ready
+    if(ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(SPI_TIMEOUT_MS)) == pdFALSE) {
+        result = createErrorCode(1, 2, ERR_ERROR);
+        goto finaliseDMA;
+    }
+
+    if(LL_DMA_IsActiveFlag_TE5(dma->dma)) {
+        result = createErrorCode(1, 3, ERR_ERROR);
+        goto finaliseDMA;
+    }
+
+finaliseDMA:
+    LL_DMA_DisableChannel(dma->dma, dma->Channel);
+    closeTransmission(&dma->spi);
+    return result;
 }

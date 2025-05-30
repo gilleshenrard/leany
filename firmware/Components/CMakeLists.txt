@@ -29,11 +29,11 @@ target_link_libraries(hal PRIVATE sysUtils)
 #create the ssd1306 library, taking care of the display
 add_library(st7735s
 	display/ST7735S.c
-	display/icons.c
 	display/ST7735_initialisation.c)
 target_include_directories(st7735s PUBLIC display)
 target_include_directories(st7735s PUBLIC sensor/)
 target_link_libraries(st7735s PRIVATE sysUtils)
+target_link_libraries(st7735s PRIVATE hal)
 
 #create the BMI270 library, taking care of the MEMS sensor
 add_library(bmi270

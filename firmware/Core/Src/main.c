@@ -33,6 +33,7 @@
 #include "memsBMI270.h"
 #include "ST7735S.h"
 #include "buttons.h"
+#include "ui.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -105,8 +106,8 @@ int main(void)
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
   createBMI270Task();
-  createST7735Stask(SPI2, DMA1, LL_DMA_CHANNEL_5);
   createButtonsTask();
+  createUItask();
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in cmsis_os2.c) */

@@ -1,35 +1,35 @@
 #ifndef INC_HARDWARE_SCREEN_ST7735S_H_
 #define INC_HARDWARE_SCREEN_ST7735S_H_
-
 #include <stdint.h>
+#include "FreeRTOS.h"
 #include "ST7735_initialisation.h"
 #include "errorstack.h"
-#include "stm32f103xb.h"
+#include "task.h"
 
 enum {
-    MESSAGE_ALIGNMENT = 8U,
+    DISPLAY_WIDTH  = 160U,  ///< Number of pixels in width
+    DISPLAY_HEIGHT = 128U,  ///< Number of pixels in height
 };
 
-/**
- * Enumeration of the message types
- */
-typedef enum {
-    MSG_HOLD = 0,  ///< A hold operation has been performed
-    MSG_ZERO,      ///< A Zeroing operation has been performed
-    MSG_PWROFF,    ///< A power off operation has been performed
-    NB_MESSAGES    ///< Number of available messages
-} messageID_e;
-
-/**
- * Structure of a message in the queue used to communicate with the ST7735S
- */
 typedef struct {
-    messageID_e ID;     ///< Message type
-    int16_t     value;  ///< Message value
-} __attribute__((aligned(MESSAGE_ALIGNMENT))) displayMessage_t;
+    uint8_t x0;
+    uint8_t y0;
+    uint8_t x1;
+    uint8_t y1;
+} __attribute((aligned(4))) area_t;
 
-errorCode_u createST7735Stask(SPI_TypeDef* handle, DMA_TypeDef* dma, uint32_t dmaChannel);
 errorCode_u st7735sSetOrientation(orientation_e orientation);
-uint8_t     sendDisplayMessage(const displayMessage_t* message);
-void        st7735sDMAinterruptHandler(void);
+void        attachUItask(TaskHandle_t handle);
+errorCode_u configureST7735S(void);
+errorCode_u setWindow(uint8_t Xstart, uint8_t Ystart, uint8_t width, uint8_t height);
+void        turnBacklightON(void);
+errorCode_u sendScreenData(const uint16_t data[], size_t nbBytes, size_t maxBytes, const area_t* screenArea);
+
+static inline uint8_t getAreaWidth(const area_t* area) {
+    return (uint8_t)(area->x1 - area->x0 + 1U);
+}
+
+static inline uint8_t getAreaHeight(const area_t* area) {
+    return (uint8_t)(area->y1 - area->y0 + 1U);
+}
 #endif
