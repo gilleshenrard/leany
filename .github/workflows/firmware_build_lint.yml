@@ -130,7 +130,7 @@ jobs:
               -extra-arg=--target=armv7m-none-eabi
               -extra-arg=-mthumb
               -header-filter=.*
-              Components
+              "(Components|UI)"
 
   cppcheck:
     name: Coding constructs (Cppcheck)
@@ -162,6 +162,7 @@ jobs:
               --inconclusive
               --inline-suppr
               --error-exitcode=2
+              --check-level=exhaustive
               --project=${{github.workspace}}/firmware/build/Debug/compile_commands.json
               --cppcheck-build-dir=${{github.workspace}}/firmware/config-cppcheck-build-dir/
               -i${{github.workspace}}/firmware/build/
