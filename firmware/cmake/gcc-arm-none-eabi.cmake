@@ -25,7 +25,7 @@ set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 set(ARM_FLAGS "-march=armv7-m -mcpu=cortex-m3 -mthumb")
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O1 -g3 -ggdb")
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Og -g3 -ggdb")
 else()
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Os -g1")
 endif()

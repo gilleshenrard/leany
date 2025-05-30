@@ -9,7 +9,7 @@
     //
     //
     //Clangd (llvm-vs-code-extensions.vscode-clangd)
-    "clangd.path": "clangd-19",
+    "clangd.path": "clangd",
     "clangd.checkUpdates": true,
     "clangd.detectExtensionConflicts": true,
     "clangd.onConfigChanged": "restart",
@@ -27,6 +27,9 @@
     "c-cpp-flylint.cppcheck.language": "C",
     "c-cpp-flylint.cppcheck.inconclusive": true,
     "c-cpp-flylint.cppcheck.verbose": false,
+    "c-cpp-flylint.cppcheck.extraArgs": [
+        "--check-level=exhaustive"
+    ],
     "c-cpp-flylint.cppcheck.suppressions": [
         "unusedFunction"
     ],

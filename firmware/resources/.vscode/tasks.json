@@ -47,7 +47,7 @@
                     "-extra-arg=--target=armv7m-none-eabi",
                     "-extra-arg=-mthumb",
                     "-header-filter=.*",
-                    "Components"
+                    "(Components|UI)"
                 ],
             },
             "linux": {
@@ -59,7 +59,7 @@
                     "-extra-arg=--target=armv7m-none-eabi",
                     "-extra-arg=-mthumb",
                     "-header-filter=.*",
-                    "Components"
+                    "(Components|UI)"
                 ],
             },
             "options": {
