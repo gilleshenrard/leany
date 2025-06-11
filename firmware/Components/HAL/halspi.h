@@ -23,15 +23,18 @@ typedef struct {
     spiregister_t readMask;               ///< Bit mask used to code in a read request
     spiregister_t writeMask;              ///< Bit mask used to code in a write request
     spiregister_t highestRegisterNumber;  ///< Highest register number a request can be
-    GPIO_TypeDef* dataCommandPort;
-    uint32_t      dataCommandPin;
+    GPIO_TypeDef* dataCommandPort;        ///< GPIO port used by the DC pin
+    uint32_t      dataCommandPin;         ///< GPIO mask used by the DC pin
 } __attribute__((aligned(SPISTRUCT_ALIGNMENT))) spi_t;
 
+/**
+ * Structure defining a SPI DMA channel descriptor
+ */
 typedef struct {
-    TaskHandle_t task;
-    spi_t        spi;
-    DMA_TypeDef* dma;
-    uint32_t     Channel;
+    spi_t        spi;      ///< SPI handle used
+    TaskHandle_t task;     ///< Task to which the channel is linked
+    DMA_TypeDef* dma;      ///< DMA handle used
+    uint32_t     Channel;  ///< DMA channel used
 } __attribute__((aligned(DMASTRUCT_ALIGNMENT))) dma_t;
 
 uint8_t     receiveSPIbyte(spi_t* descriptor, uint8_t byteToTransmit, uint32_t txStartTick);

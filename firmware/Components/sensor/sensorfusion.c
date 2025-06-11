@@ -1,6 +1,13 @@
+/**
+ * @file sensorfusion.c
+ * @details Implement a sensor fusion algorithm, to mix up accelerometer and gyroscope measurements
+ * @author Gilles Henrard
+ * @date 12/06/2025
+ */
 #include "sensorfusion.h"
 #include <math.h>
 #include <stdint.h>
+#include "memsBMI270.h"
 
 enum {
     QUATER_ALIGNMENT = 16U,  ///< Memory alignment of the quaternion structure
@@ -51,7 +58,7 @@ void resetMahonyFilter(void) {
  * @param[in] dtPeriod_sec      Period between two filter updates in [s]
  */
 //NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
-void updateMahonyFilter(float accelerometer_G[], float gyroscope_radps[], const float dtPeriod_sec) {
+void updateMahonyFilter(float accelerometer_G[], const float gyroscope_radps[], const float dtPeriod_sec) {
     //normalise accelerometer measurements
     float norm =
         sqrtf(squared(accelerometer_G[X_AXIS]) + squared(accelerometer_G[Y_AXIS]) + squared(accelerometer_G[Z_AXIS]));

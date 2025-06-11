@@ -2,51 +2,67 @@
 #define INC_HARDWARE_SCREEN_ST7735S_REGISTERS_H_
 
 //  Frame Rate Control (In normal mode/ Full colors) (register 0xB1) values
-#define ONELINEPERIOD_1    0x01U  ///< 1 line period value of 1
-#define FRONTPORCH_DEFAULT 0x2CU  ///< Default front porch value after sleep out
-#define BACKPORCH_DEFAULT  0x2DU  ///< Default back porch value after sleep out
+enum {
+    ONELINEPERIOD_1    = 0x01U,  ///< 1 line period value of 1
+    FRONTPORCH_DEFAULT = 0x2CU,  ///< Default front porch value after sleep out
+    BACKPORCH_DEFAULT  = 0x2DU,  ///< Default back porch value after sleep out
+};
 
 //  Display Inversion Control (register 0xB4) values
-#define ALL_MODES_NO_INVERSION 0x07U  ///< Disable inversion in all screen modes
+enum {
+    ALL_MODES_NO_INVERSION = 0x07U,  ///< Disable inversion in all screen modes
+};
 
 // Power Control 1 (register 0xC0) values
-#define AVDD_5V         0xA0U  ///< AVDD voltage = 5V
-#define GVDD_4_6V       0x02U  ///< GVDD voltage = 4.6V
-#define GVCL_NEG_4_6V   0x02U  ///< GVCL voltage = -4.6V
-#define POWER_MODE_AUTO 0x84U  ///< Power mode auto
+enum {
+    AVDD_5V         = 0xA0U,  ///< AVDD voltage = 5V
+    GVDD_4_6V       = 0x02U,  ///< GVDD voltage = 4.6V
+    GVCL_NEG_4_6V   = 0x02U,  ///< GVCL voltage = -4.6V
+    POWER_MODE_AUTO = 0x84U,  ///< Power mode auto
+};
 
 // Power control 2 (register 0xC1) values
-#define VGH25_2_4C 0xC0U  ///< VGH25 = 2.4C
-#define VGL_10     0x04U  ///< VGL = -10
-#define VGH_3ADD   0x01U  ///< VGH = 3*ADD
+enum {
+    VGH25_2_4C = 0xC0U,  ///< VGH25 = 2.4C
+    VGL_10     = 0x04U,  ///< VGL = -10
+    VGH_3ADD   = 0x01U,  ///< VGH = 3*ADD
+};
 
 // Power control 3, 4 and 5 (registers 0xC2 to 0xC4) values
-#define OPAMP_HIGH_SMALL_CUR 0x08U  ///< OpAmp SAPA small current
-#define OPAMP_LOW_MEDLOW_CUR 0x02U  ///< OpAmp APA medium low current
-#define BOOST_LSB_MAX        0x00U  ///< Maximum booster value for bits 0 to 7
-#define BOOST_LSB_BCLK_2     0x2AU  ///< BCLK/2 booster value for bits 0 to 7
-#define BOOST_76_BCLK_2      0x2AU  ///< BCLK/2 booster value for bits 0 to 7
-#define BOOST_MAX            0x00U  ///< Maximum booster value for 2 bits
-#define BOOST_BCLK_2         0x02U  ///< BCLK/2 booster value for 2 bits
-#define BOOST_LSB_IDLE_MODE  0xEEU  ///< Boost LSB value for idle mode
+enum {
+    OPAMP_HIGH_SMALL_CUR = 0x08U,  ///< OpAmp SAPA small current
+    OPAMP_LOW_MEDLOW_CUR = 0x02U,  ///< OpAmp APA medium low current
+    BOOST_LSB_MAX        = 0x00U,  ///< Maximum booster value for bits 0 to 7
+    BOOST_LSB_BCLK_2     = 0x2AU,  ///< BCLK/2 booster value for bits 0 to 7
+    BOOST_76_BCLK_2      = 0x2AU,  ///< BCLK/2 booster value for bits 0 to 7
+    BOOST_MAX            = 0x00U,  ///< Maximum booster value for 2 bits
+    BOOST_BCLK_2         = 0x02U,  ///< BCLK/2 booster value for 2 bits
+    BOOST_LSB_IDLE_MODE  = 0xEEU,  ///< Boost LSB value for idle mode
+};
 
 //  VCOM Control 1 (register 0xC5) values
-#define VCOM_NEG_0_775V 0x0EU  ///< VCOM voltage = -0.775V
+enum {
+    VCOM_NEG_0_775V = 0x0EU,  ///< VCOM voltage = -0.775V
+};
 
 // Address control (register 0x36) values
-#define REFRESH_TOP_BOTTOM   0x00U  ///< refresh top to bottom
-#define REFRESH_BOTTOM_TOP   0x10U  ///< refresh bottom to top
-#define REFRESH_LEFT_RIGHT   0x00U  ///< refresh left to right
-#define REFRESH_RIGHT_LEFT   0x04U  ///< refresh right to left
-#define COLORS_ORDER_RGB     0x00U  ///< RGB instead of BGR
-#define COLORS_ORDER_BGR     0x08U  ///< BGR instead of RGB
-#define ORIENT_PORTRAIT      0x00U  ///< MV, MX and MY values for portrait orientation
-#define ORIENT_PORTRAIT_180  0xC0U  ///< MV, MX and MY values for portrait orientation (180°)
-#define ORIENT_LANDSCAPE     0x60U  ///< MV, MX and MY values for landscape orientation
-#define ORIENT_LANDSCAPE_180 0xA0U  ///< MV, MX and MY values for landscape orientation (180°)
+enum {
+    REFRESH_TOP_BOTTOM   = 0x00U,  ///< refresh top to bottom
+    REFRESH_BOTTOM_TOP   = 0x10U,  ///< refresh bottom to top
+    REFRESH_LEFT_RIGHT   = 0x00U,  ///< refresh left to right
+    REFRESH_RIGHT_LEFT   = 0x04U,  ///< refresh right to left
+    COLORS_ORDER_RGB     = 0x00U,  ///< RGB instead of BGR
+    COLORS_ORDER_BGR     = 0x08U,  ///< BGR instead of RGB
+    ORIENT_PORTRAIT      = 0x00U,  ///< MV, MX and MY values for portrait orientation
+    ORIENT_PORTRAIT_180  = 0xC0U,  ///< MV, MX and MY values for portrait orientation (180°)
+    ORIENT_LANDSCAPE     = 0x60U,  ///< MV, MX and MY values for landscape orientation
+    ORIENT_LANDSCAPE_180 = 0xA0U,  ///< MV, MX and MY values for landscape orientation (180°)
+};
 
 //  Colour mode (register 0x3A) values
-#define COLOUR_16BITS 0x05U  ///< 16 bits colours
+enum {
+    COLOUR_16BITS = 0x05U,  ///< 16 bits colours
+};
 
 /**
  * @brief ST7735 System Function command List

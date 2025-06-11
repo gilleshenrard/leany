@@ -1,12 +1,22 @@
+/**
+ * @file ui.c
+ * @brief Implement the display UI
+ * @author Gilles Henrard
+ * @date 12/06/2025
+ */
 #include "ui.h"
 #include <errorstack.h>
+#include <stddef.h>
 #include <stdint.h>
 #include "FreeRTOS.h"
 #include "ST7735S.h"
 #include "icons.h"
 #include "main.h"
 #include "memsBMI270.h"
+#include "portmacro.h"
+#include "projdefs.h"
 #include "queue.h"
+#include "stm32f1xx_hal_def.h"
 #include "task.h"
 
 enum {
@@ -118,6 +128,13 @@ static void runUItask(void *argument) {
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
 
+/**
+ * Print angles measurements on the display
+ *
+ * @param axis Axis for which display the measurements
+ * @retval 0 Success
+ * @retval 1 Error while printing a character
+ */
 static errorCode_u printMeasurements(axis_e axis) {
     static const uint8_t NB_MEAS_CHARACTERS = 5U;
     static const uint8_t SECOND_LINE_Y      = 50U;
@@ -159,24 +176,28 @@ static errorCode_u printMeasurements(axis_e axis) {
  * @param xLeft Left-most coordinate of the character
  * @param yTop Top-most coordinate of the character
  * @return Success
- * @retval 1 Error while setting the window
- * @retval 2 Error while sending the pixel data to the screen
+ * @retval 1 Error while sending data to the display
  */
 static errorCode_u printCharacter(verdanaCharacter_e character, uint8_t xLeft, uint8_t yTop) {
     //fill the frame buffer with background pixels
     uncompressCharacter(displayBuffer, character);
 
+    errorCode_u result = ERR_SUCCESS;
+
     const size_t characterSize = VERDANA_NB_COLUMNS * VERDANA_NB_ROWS * sizeof(pixel_t);
     const area_t characterArea = {xLeft, yTop, xLeft + VERDANA_NB_COLUMNS - 1U, yTop + VERDANA_NB_ROWS - 1U};
-    sendScreenData(displayBuffer, characterSize, FRAME_BUFFER_SIZE * sizeof(pixel_t), &characterArea);
-    return ERR_SUCCESS;
+    result = sendScreenData(displayBuffer, characterSize, FRAME_BUFFER_SIZE * sizeof(pixel_t), &characterArea);
+    if(isError(result)) {
+        return pushErrorCode(result, 1, 1);
+    }
+    return result;
 }
 
 /**
  * Fill the screen background
+ *
  * @retval 0 Success
- * @retval 1 Error while setting the data window
- * @retval 2 Error while sending the data
+ * @retval 1 Error while sending data to the display
  */
 static errorCode_u fillBackground(void) {
     errorCode_u result = ERR_SUCCESS;
@@ -186,6 +207,7 @@ static errorCode_u fillBackground(void) {
         *(&displayBuffer[pixel]) = DARK_CHARCOAL_BIGENDIAN;
     }
 
+    //send whole chunks to the display
     uint8_t linesSent = 0;
     do {
         uint8_t chunkHeight = FRAME_BUFFER_SIZE / DISPLAY_WIDTH;
@@ -195,13 +217,13 @@ static errorCode_u fillBackground(void) {
 
         const size_t nbBytes   = chunkHeight * DISPLAY_WIDTH * sizeof(pixel_t);
         const area_t chunkArea = {0, linesSent, DISPLAY_WIDTH - 1U, (uint8_t)(linesSent + chunkHeight - 1U)};
-        sendScreenData(displayBuffer, nbBytes, FRAME_BUFFER_SIZE * sizeof(pixel_t), &chunkArea);
+        result = sendScreenData(displayBuffer, nbBytes, FRAME_BUFFER_SIZE * sizeof(pixel_t), &chunkArea);
 
         linesSent += chunkHeight;
     } while((linesSent < DISPLAY_HEIGHT) && !isError(result));
 
     if(isError(result)) {
-        return pushErrorCode(result, 3, 2);
+        return pushErrorCode(result, 2, 1);
     }
 
     return ERR_SUCCESS;

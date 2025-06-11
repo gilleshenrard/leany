@@ -2,22 +2,30 @@
  * @file ST7735S.c
  * @brief Implement the functioning of the ST7735S TFT screen via SPI and DMA
  * @author Gilles Henrard
- * @date 06/10/2024
+ * @date 12/06/2025
  *
  * @note Datasheet : https://cdn-shop.adafruit.com/datasheets/ST7735R_V0.2.pdf
  */
 #include "ST7735S.h"
+#include <stddef.h>
+#include <stdint.h>
+#include "ST7735_initialisation.h"
 #include "ST7735_registers.h"
+#include "errorstack.h"
 #include "halspi.h"
 #include "main.h"
+#include "projdefs.h"
 #include "stm32f103xb.h"
+#include "stm32f1xx_ll_dma.h"
+#include "stm32f1xx_ll_gpio.h"
+#include "stm32f1xx_ll_spi.h"
 
 /**
  * @brief Enumeration of the function IDs of the SSD1306
  */
 typedef enum {
     SET_WINDOW = 0,  ///< setWindow()
-    SEND_DATA,       ///< sendData()
+    SEND_DATA,       ///< sendScreenData()
     PRT_CHAR,        ///< printCharacter()
     PRT_MEAS,        ///< printMeasurements()
     ORIENT,          ///< st7735sSetOrientation()
@@ -26,9 +34,12 @@ typedef enum {
     SET_CONFIG,      ///< configureST7735S()
 } SSD1306functionCodes_e;
 
+/**
+ * Structure describing the backporch offsets of the display
+ */
 typedef struct {
-    uint8_t xOffset_px;
-    uint8_t yOffset_px;
+    uint8_t xOffset_px;  ///< X backporch offset in [pixels]
+    uint8_t yOffset_px;  ///< Y backporch offset in [pixels]
 } __attribute((aligned(2))) backporch_t;
 
 //state machine
@@ -38,24 +49,36 @@ static errorCode_u writeConfiguration(void);
 //State variables
 static errorCode_u       result;                               ///< Buffer used to store function return codes
 static orientation_e     currentOrientation = NB_ORIENTATION;  ///< Current display orientation
-static TickType_t        previousTick       = 0;
-static const backporch_t offsets[]          = {
-    {1, 2},
+static const backporch_t offsets[]          =                  ///< default backporch offsets
+    {
+        {1, 2},
 };
-static dma_t dmaDescriptor = {
-    .dma     = DMA1,
-    .Channel = LL_DMA_CHANNEL_5,
-    .spi     = {.handle                = SPI2,
-                .CSport                = ST7735S_CS_GPIO_Port,
-                .pin                   = ST7735S_CS_Pin,
-                .dataCommandPort       = ST7735S_DC_GPIO_Port,
-                .dataCommandPin        = ST7735S_DC_Pin,
-                .highestRegisterNumber = VCOM4L}
+static dma_t dmaDescriptor =  ///< Descriptor of the DMA channel used to send data to the display
+    {
+        .dma     = DMA1,
+        .Channel = LL_DMA_CHANNEL_5,
+        .spi     = {.handle                = SPI2,
+                    .CSport                = ST7735S_CS_GPIO_Port,
+                    .pin                   = ST7735S_CS_Pin,
+                    .dataCommandPort       = ST7735S_DC_GPIO_Port,
+                    .dataCommandPin        = ST7735S_DC_Pin,
+                    .highestRegisterNumber = VCOM4L}
 };
 
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
 
+/**
+ * Send the coordinates of the window in which the following data should be displayed on the screen
+ *
+ * @param Xstart    X left-most coordinate of the window in [pixels]
+ * @param Ystart    X top-most coordinate of the window in [pixels]
+ * @param width     Width of the window in [pixels]
+ * @param height    Height of the window in [pixels]
+ * @retval 0 Success
+ * @retval 1 Error while sending the X coordinates of the window
+ * @retval 2 Error while sending the Y coordinates of the window
+ */
 //NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 errorCode_u setWindow(uint8_t Xstart, uint8_t Ystart, uint8_t width, uint8_t height) {
     //set the data window columns count
@@ -115,10 +138,23 @@ void turnBacklightON(void) {
     LL_GPIO_ResetOutputPin(ST7735S_BL_GPIO_Port, ST7735S_BL_Pin);
 }
 
+/**
+ * Attach a FreeRTOS UI task to the screen
+ * @details This is used because the task should sleep on DMA send and wake up at DMA done
+ *
+ * @param handle FreeRTOS task handle
+ */
 void attachUItask(TaskHandle_t handle) {
     dmaDescriptor.task = handle;
 }
 
+/**
+ * Send the configuration registers and value to the ST7735S
+ *
+ * @retval 0 Success
+ * @retval 1 Error while restarting the display
+ * @retval 2 Error while writing the configuration
+ */
 errorCode_u configureST7735S(void) {
     //make sure to disable ST7735S SPI communication
     LL_SPI_Enable(dmaDescriptor.spi.handle);
@@ -194,24 +230,35 @@ static errorCode_u writeConfiguration(void) {
         return pushErrorCode(result, CONFIG, 2);
     }
 
-    previousTick = xTaskGetTickCount();
     return (ERR_SUCCESS);
 }
 
+/**
+ * Send a data chunk to the display
+ *
+ * @param data          Data to send
+ * @param nbBytes       Number of bytes to send
+ * @param maxBytes      Maximum number of bytes allowed (usually size of a display buffer)
+ * @param screenArea    Display window which will contain the data on the display
+ * @retval 0 Success
+ * @retval 1 Error while setting the window
+ * @retval 2 Error while sending RAM write command
+ * @retval 3 Error while sending the data via DMA
+ */
 errorCode_u sendScreenData(const uint16_t data[], size_t nbBytes, size_t maxBytes, const area_t* screenArea) {
     result = setWindow(screenArea->x0, screenArea->y0, getAreaWidth(screenArea), getAreaHeight(screenArea));
     if(isError(result)) {
-        return pushErrorCode(result, 2, 1);
+        return pushErrorCode(result, SEND_DATA, 1);
     }
 
     result = writeRegistersAndContinue(&dmaDescriptor.spi, RAMWR, NULL, 0);
     if(isError(result)) {
-        return pushErrorCode(result, 1, 1);
+        return pushErrorCode(result, SEND_DATA, 2);
     }
 
     result = sendDMA(&dmaDescriptor, (uint8_t*)data, nbBytes, maxBytes);
     if(isError(result)) {
-        return pushErrorCode(result, 2, 2);
+        return pushErrorCode(result, SEND_DATA, 3);
     }
 
     return ERR_SUCCESS;

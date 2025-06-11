@@ -3,7 +3,7 @@
 #include "memsBMI270.h"
 
 void  resetMahonyFilter(void);
-void  updateMahonyFilter(float accelerometer_G[], float gyroscope_radps[], float dtPeriod_sec);
+void  updateMahonyFilter(float accelerometer_G[], const float gyroscope_radps[], float dtPeriod_sec);
 float angleAlongAxis(axis_e axis);
 float getAttitudeAngle(void);
 
