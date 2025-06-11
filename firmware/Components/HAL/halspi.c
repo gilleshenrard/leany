@@ -1,9 +1,18 @@
+/**
+ * @file halspi.c
+ * @brief Implement a generic HAL for SPI communication
+ * @author Gilles Henrard
+ * @date 12/06/2025
+ */
 #include "halspi.h"
 #include <stddef.h>
 #include <stdint.h>
 #include "errorstack.h"
 #include "main.h"
+#include "portmacro.h"
+#include "projdefs.h"
 #include "stm32f1xx_hal.h"
+#include "stm32f1xx_ll_dma.h"
 #include "stm32f1xx_ll_gpio.h"
 #include "stm32f1xx_ll_spi.h"
 
