@@ -36,7 +36,7 @@ enum {
     TIMEOUT_MS            = 1000U,  ///< Max number of milliseconds to wait for the device ID
     CONFIG_TIMEOUT_MS     = 20U,    ///< Max number of milliseconds after which the configuration should be ok
     CONFIGFILE_SIZE       = 8192U,  ///< Size of the config file in bytes
-    NB_POSITION_REGISTERS = 12U,    ///< Number of registers holding Accelerometer and Gyroscope data
+    NB_POSITION_REGISTERS = 16U,    ///< Number of registers holding Accelerometer and Gyroscope data
     NB_TEMP_REGISTERS     = 2U,     ///< Number of registers holding Temperature data
     TEMP_REFRESH_MS       = 10U,    ///< Number of milliseconds between temperature value refreshes
 };
@@ -71,6 +71,9 @@ typedef union {
     int16_t values16bits[((uint8_t)(NB_POSITION_REGISTERS) >> 1U)];  ///< 16-bits values array
 } rawValues_u;
 
+_Static_assert(((uint8_t)NB_POSITION_REGISTERS & (NB_POSITION_REGISTERS - 1U)) == 0,
+               "NB_POSITION_REGISTERS must be an even number");
+
 typedef uint8_t BMI270register_t;  ///< type definition for BMI270 registers
 
 // Read/Write bit value
@@ -82,9 +85,11 @@ static const float DEGREES_TENTHS_TO_RADIANS = 0.001745329F;  ///< One tenth of 
 // Utility functions
 static errorCode_u checkSPICommunication(void);
 static errorCode_u checkConfigurationFile(void);
-static errorCode_u readTemperature(float* latestValue_celsius);
+static errorCode_u readTemperature(float* temperature_celsius);
 static errorCode_u runAccelerometerSelfTest(rawValues_u* valuesRead, uint8_t positiveSign);
 static errorCode_u runGyroscopeSelfTest(void);
+static float       getDT(const uint8_t registers[3]);
+static void applyTemperatureSensitivity(float temperature_celcius, float accelerometer_G[3], float gyroscope_radps[3]);
 
 // State machine functions
 static void        taskBMI270(void* argument);
@@ -133,6 +138,11 @@ static const float ACC_TEMPDRIFT_100PERCENT_PER_KELVIN = 0.00004F;
  */
 static const float GYR_TEMPDRIFT_100PERCENT_PER_KELVIN = 0.0002F;
 
+/**
+ * Temperature in [°C] at which the internal temperature value read is 0x0000
+ */
+static const float REFERENCE_TEMPERATURE_CELSIUS = 23.0F;
+
 //state variables
 static volatile TaskHandle_t taskHandle    = NULL;  ///< handle of the FreeRTOS task
 static SemaphoreHandle_t     anglesMutex   = NULL;  ///< handle of the mutex used to protect angles measurements
@@ -141,15 +151,13 @@ static uint8_t               resetOccurred = 1;  ///< Flag used to ensure config
 static errorCode_u           result;             ///< Variable used to store error codes
 extern const uint8_t    bmi270_config_file[];  ///< BMI270 config file provided by Bosch Sensortec, declared in bmi270.c
 static float            anglesAtZeroing_rad[NB_AXIS - 1] = {0, 0};  ///< Latest angles measured and filtered in [rad]
-static float            internalTemperature_celsius      = 0x0000;  ///< Latest internal temperature in [°C]
 static spi_t            spiDescriptor                    = {.handle                = SPI1,
                                                             .CSport                = BMI270_CS_GPIO_Port,
                                                             .pin                   = BMI270_CS_Pin,
                                                             .highestRegisterNumber = BMI2_CMD_REG_ADDR,
                                                             .readMask              = BMI_READ,
                                                             .writeMask             = BMI_WRITE};
-static volatile uint8_t taskNotifiable = 0;          ///< Flag used to avoid notifying the BMI270 task if it's not ready
-static const float      dtPeriod_sec   = 0.000625F;  ///< Time period between two updates (BMI270 config. at 1600Hz)
+static volatile uint8_t taskNotifiable = 0;  ///< Flag used to avoid notifying the BMI270 task if it's not ready
 
 /****************************************************************************************************************/
 /****************************************************************************************************************/
@@ -284,7 +292,7 @@ static errorCode_u checkConfigurationFile(void) {
  * @retval 0 Success
  * @retval 1 Error while reading the registers
  */
-static errorCode_u readTemperature(float* latestValue_celsius) {
+static errorCode_u readTemperature(float* temperature_celsius) {
     int16_t readBuffer = 0x0000;
 
     //read temperature value
@@ -300,9 +308,8 @@ static errorCode_u readTemperature(float* latestValue_celsius) {
     }
 
     //transform temperature LSB to °C
-    const float BASE_TEMP_CELSIUS = 23.0F;
-    const float KELVIN_PER_LSB    = 0.001953125F;
-    *latestValue_celsius          = BASE_TEMP_CELSIUS + ((float)readBuffer * KELVIN_PER_LSB);
+    const float KELVIN_PER_LSB = 0.001953125F;
+    *temperature_celsius       = REFERENCE_TEMPERATURE_CELSIUS + ((float)readBuffer * KELVIN_PER_LSB);
 
     return ERR_SUCCESS;
 }
@@ -338,6 +345,15 @@ static errorCode_u runAccelerometerSelfTest(rawValues_u* valuesRead, uint8_t pos
     return ERR_SUCCESS;
 }
 
+/**
+ * Apply the gyroscope self-test procedure
+ *
+ * @retval 0 Success
+ * @retval 1 Error while sending the gyro test trigger command
+ * @retval 2 Could not get a self-test done signal in time
+ * @retval 3 Error while retrieving the self-test status
+ * @retval 4 At least one axis failed the self-test
+ */
 static errorCode_u runGyroscopeSelfTest(void) {
     BMI270register_t value = 0;
 
@@ -443,6 +459,50 @@ void bmi270CancelZeroing(void) {
     anglesAtZeroing_rad[Y_AXIS] = 0.0F;
 
     xSemaphoreGive(anglesMutex);
+}
+
+/**
+ * Compute the time delta between the current sensor time registers and the previous call to getDT()
+ *
+ * @param registers Registers holding the current sensor time value
+ * @return time delta in [s]
+ */
+static float getDT(const uint8_t registers[3]) {
+    const float  SENSORTIME_RESOLUTION_SECONDS = 0.0000390625F;
+    static float previousSensorTime_sec        = 0.0F;
+    float        dtPeriod_sec                  = 0.0F;
+
+    //assemble the sensor time register values and apply the time resolution
+    float sensorTime_sec = (float)((uint32_t)registers[0] | (uint32_t)(registers[1U] << 8U)  //NOLINT (*-magic-numbers)
+                                   | (uint32_t)(registers[2] << 16U))                        //NOLINT (*-magic-numbers)
+                           * SENSORTIME_RESOLUTION_SECONDS;
+
+    dtPeriod_sec           = (sensorTime_sec - previousSensorTime_sec);
+    previousSensorTime_sec = sensorTime_sec;
+
+    return dtPeriod_sec;
+}
+
+/**
+ * Apply the value delta due to temperature sensitivity
+ *
+ * @param temperature_celcius Internal temperature in [°C]
+ * @param[out] accelerometer_G Accelerometer values in [G]
+ * @param[out] gyroscope_radps Gyroscope values in [rad/s]
+ */
+//NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
+static void applyTemperatureSensitivity(const float temperature_celcius, float accelerometer_G[3],
+                                        float gyroscope_radps[3]) {
+    //compute the delta and sensitivity relative to 25°C
+    const float delta_celsius             = temperature_celcius - REFERENCE_TEMPERATURE_CELSIUS;
+    const float accelCorrectedSensitivity = (delta_celsius * ACC_TEMPDRIFT_100PERCENT_PER_KELVIN);
+    const float gyroCorrectedSensitivity  = (delta_celsius * GYR_TEMPDRIFT_100PERCENT_PER_KELVIN);
+
+    //transform position readings to usable physical units
+    for(uint8_t axis = 0; axis < (uint8_t)NB_AXIS; axis++) {
+        accelerometer_G[axis] += accelCorrectedSensitivity;
+        gyroscope_radps[axis] += gyroCorrectedSensitivity;
+    }
 }
 
 /****************************************************************************************************************/
@@ -800,9 +860,10 @@ static errorCode_u stateConfiguring(void) {
  * @retval 3 Error while reading the temperature registers
  */
 static errorCode_u stateMeasuring(void) {
-    float       accelerometer_G[NB_AXIS];  ///< Accelerometer values in [G]
-    float       gyroscope_radps[NB_AXIS];  ///< Gyroscope values in [rad/s]
-    rawValues_u LSBvalues = {0};           ///< Buffer holding the LSB values read from the IC
+    float       accelerometer_G[NB_AXIS];    ///< Accelerometer values in [G]
+    float       gyroscope_radps[NB_AXIS];    ///< Gyroscope values in [rad/s]
+    rawValues_u LSBvalues           = {0};   ///< Buffer holding the LSB values read from the IC
+    float       temperature_celsius = 0.0F;  ///< Latest internal temperature in [°C]
 
     //wait for measurements to be ready
     if(ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(TIMEOUT_MS)) == pdFALSE) {
@@ -815,30 +876,29 @@ static errorCode_u stateMeasuring(void) {
         return (pushErrorCode(result, BMI270_STATE_MEASURING, 2));
     }
 
+    //apply the nominal sensitivity to the measurements to change them to usable units
+    for(uint8_t axis = 0; axis < (uint8_t)NB_AXIS; axis++) {
+        accelerometer_G[axis] = (float)(LSBvalues.values16bits[axis]) * ACC_NOMINAL_LSB_TO_G;
+        gyroscope_radps[axis] = (float)(LSBvalues.values16bits[axis + NB_AXIS]) * GYR_NOMINAL_LSB_TO_RADPS;
+    }
+
     //read the BMI270 temperature every 10ms
     static TickType_t latestTemperatureTick = 0;
     if(timeout(latestTemperatureTick, TEMP_REFRESH_MS)) {
         latestTemperatureTick = HAL_GetTick();
 
-        result = readTemperature(&internalTemperature_celsius);
+        result = readTemperature(&temperature_celsius);
         if(isError(result)) {
             return (pushErrorCode(result, BMI270_STATE_MEASURING, 3));
         }
     }
 
     //take temperature drift into account with sensitivity
-    const float REFERENCE_TEMPERATURE_CELSIUS = 25.0F;
-    const float temperatureDelta_celsius      = internalTemperature_celsius - REFERENCE_TEMPERATURE_CELSIUS;
-    const float accelCorrectedSensitivity =
-        ACC_NOMINAL_LSB_TO_G * (1.0F + (temperatureDelta_celsius * ACC_TEMPDRIFT_100PERCENT_PER_KELVIN));
-    const float gyroCorrectedSensitivity =
-        GYR_NOMINAL_LSB_TO_RADPS * (1.0F + (temperatureDelta_celsius * GYR_TEMPDRIFT_100PERCENT_PER_KELVIN));
+    applyTemperatureSensitivity(temperature_celsius, accelerometer_G, gyroscope_radps);
 
-    //transform position readings to usable physical units
-    for(uint8_t axis = 0; axis < (uint8_t)NB_AXIS; axis++) {
-        accelerometer_G[axis] = (float)(LSBvalues.values16bits[axis]) * accelCorrectedSensitivity;
-        gyroscope_radps[axis] = (float)(LSBvalues.values16bits[axis + 3]) * gyroCorrectedSensitivity;
-    }
+    //use the BMI270 internal sensor time to compute the exact dt since last measured
+    const uint8_t NB_MEASURE_REGISTERS = (uint8_t)NB_AXIS << 2U;
+    const float   dtPeriod_sec         = getDT(&LSBvalues.registers8bits[NB_MEASURE_REGISTERS]);
 
     //apply sensor fusion to the measurements
     if(xSemaphoreTake(anglesMutex, pdMS_TO_TICKS(SPI_TIMEOUT_MS)) == pdTRUE) {
