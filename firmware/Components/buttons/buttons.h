@@ -6,8 +6,8 @@
  * @brief Enumeration of all the managed buttons
  */
 typedef enum {
-    ZERO = 0,
-    HOLD,
+    BTN_ZERO = 0,
+    BTN_HOLD,
     NB_BUTTONS
 } button_e;
 

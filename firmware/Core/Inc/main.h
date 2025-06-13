@@ -46,6 +46,8 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "FreeRTOS.h"
+#include "projdefs.h"
 
 /* USER CODE END Includes */
 
@@ -69,15 +71,15 @@ void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
 /**
- * Check if a timeout has occurred
+ * Check if a timeout in [ms] has occurred
  *
- * @param startTick The tick at which the timeout started
- * @param timeout The timeout in milliseconds
+ * @param startTick The tick to compare to now to check for a timeout
+ * @param timeout The timeout span in milliseconds
  * @retval 1 Timeout has occurred
  * @retval 0 Timeout has not occurred
  */
 static inline uint8_t timeout(uint32_t startTick, uint16_t timeout_ms) {
-  return ((HAL_GetTick() - startTick) >= timeout_ms);
+  return ((HAL_GetTick() - startTick) >= pdMS_TO_TICKS(timeout_ms));
 }
 /* USER CODE END EFP */
 
