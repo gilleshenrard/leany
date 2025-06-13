@@ -59,9 +59,14 @@ void resetMahonyFilter(void) {
  */
 //NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 void updateMahonyFilter(float accelerometer_G[], const float gyroscope_radps[], const float dtPeriod_sec) {
+    const float MIN_NORM = 1e-3F;
+
     //normalise accelerometer measurements
     float norm =
         sqrtf(squared(accelerometer_G[X_AXIS]) + squared(accelerometer_G[Y_AXIS]) + squared(accelerometer_G[Z_AXIS]));
+    if(norm < MIN_NORM) {
+        return;
+    }
     accelerometer_G[X_AXIS] /= norm;
     accelerometer_G[Y_AXIS] /= norm;
     accelerometer_G[Z_AXIS] /= norm;
@@ -122,6 +127,9 @@ void updateMahonyFilter(float accelerometer_G[], const float gyroscope_radps[], 
     //normalise the current attitude quaternion
     norm = sqrtf(squared(currentAttit.q0) + squared(currentAttit.q1) + squared(currentAttit.q2)
                  + squared(currentAttit.q3));
+    if(norm < MIN_NORM) {
+        return;
+    }
     currentAttit.q0 /= norm;
     currentAttit.q1 /= norm;
     currentAttit.q2 /= norm;
