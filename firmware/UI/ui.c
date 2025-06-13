@@ -2,7 +2,7 @@
  * @file ui.c
  * @brief Implement the display UI
  * @author Gilles Henrard
- * @date 12/06/2025
+ * @date 13/06/2025
  */
 #include "ui.h"
 #include <errorstack.h>
@@ -23,7 +23,6 @@
 enum {
     STACK_SIZE         = 300U,  ///< Amount of words in the task stack
     TASK_LOW_PRIORITY  = 8U,    ///< FreeRTOS number for a low priority task
-    NB_QUEUE_ELEM      = 10U,   ///< Maximum number of elements in the UI message queue
     SCREENSIZE_DIVIDER = 16U,   ///< Number of times the buffer fits in the display
     FRAME_BUFFER_SIZE  = (DISPLAY_WIDTH * DISPLAY_HEIGHT) / SCREENSIZE_DIVIDER,  ///< Size of the frame buffer in bytes
 };
@@ -33,8 +32,7 @@ static errorCode_u printMeasurements(axis_e axis);
 static errorCode_u printCharacter(verdanaCharacter_e character, uint8_t xLeft, uint8_t yTop);
 static errorCode_u fillBackground(void);
 
-static volatile TaskHandle_t taskHandle   = NULL;               ///< handle of the FreeRTOS task
-QueueHandle_t                messageStack = NULL;               ///< Handle of the UI message queue
+static volatile TaskHandle_t taskHandle = NULL;                 ///< handle of the FreeRTOS task
 static pixel_t               displayBuffer[FRAME_BUFFER_SIZE];  ///< Buffer used to send data to the display
 
 /********************************************************************************************************************************************/
@@ -46,19 +44,12 @@ static pixel_t               displayBuffer[FRAME_BUFFER_SIZE];  ///< Buffer used
  * @return Success
  */
 errorCode_u createUItask(void) {
-    static StackType_t   taskStack[STACK_SIZE] = {0};  ///< Buffer used as the task stack
-    static StaticTask_t  taskState             = {0};  ///< Task state variables}
-    static uint8_t       queueStorage[sizeof(displayMessage_t) * NB_QUEUE_ELEM] = {0};
-    static StaticQueue_t queueState                                             = {0};
+    static StackType_t  taskStack[STACK_SIZE] = {0};  ///< Buffer used as the task stack
+    static StaticTask_t taskState             = {0};  ///< Task state variables}
 
     // create the static task
     taskHandle = xTaskCreateStatic(runUItask, "UI task", STACK_SIZE, NULL, TASK_LOW_PRIORITY, taskStack, &taskState);
     if(!taskHandle) {
-        Error_Handler();
-    }
-
-    messageStack = xQueueCreateStatic(NB_QUEUE_ELEM, sizeof(displayMessage_t), queueStorage, &queueState);
-    if(!messageStack) {
         Error_Handler();
     }
 
@@ -118,19 +109,6 @@ static void runUItask(void *argument) {
         if(isError(result)) {
             Error_Handler();
         }
-
-        // displayMessage_t message = {0};
-        // while(xQueueReceive(messageStack, &message,
-        // pdMS_TO_TICKS(MSG_TIMEOUT_MS)) == pdTRUE) {
-        //     switch(message.ID) {
-        //         case MSG_HOLD:
-        //         case MSG_ZERO:
-        //         case MSG_PWROFF:
-        //         case NB_MESSAGES:
-        //         default:
-        //             break;
-        //     }
-        // }
     }
 }
 
