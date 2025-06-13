@@ -130,7 +130,7 @@ jobs:
               -extra-arg=--target=armv7m-none-eabi
               -extra-arg=-mthumb
               -header-filter=.*
-              "(Components|UI)"
+              "(Hardware|UI)"
 
   cppcheck:
     name: Coding constructs (Cppcheck)
@@ -187,7 +187,7 @@ jobs:
       - name: Run flawfinder
         uses: david-a-wheeler/flawfinder@2.0.19
         with:
-          arguments: firmware/Components/
+          arguments: firmware/Hardware/
 
   lizard:
     name: Cyclomatic complexity (Lizard)
@@ -202,7 +202,7 @@ jobs:
       - name: Run Lizard
         uses: Uno-Takashi/Lizard-Runner@v3
         with:
-          path: firmware/Components/
+          path: firmware/Hardware/
           language: cpp
 
   doxygen:

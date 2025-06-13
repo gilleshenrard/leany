@@ -1,5 +1,5 @@
-#ifndef COMPONENTS_SYSUTILS_DEBUGPIN
-#define COMPONENTS_SYSUTILS_DEBUGPIN
+#ifndef HARDWARE_SYSUTILS_DEBUGPIN
+#define HARDWARE_SYSUTILS_DEBUGPIN
 #include "main.h"
 
 static inline void setDebugPin(void) {
