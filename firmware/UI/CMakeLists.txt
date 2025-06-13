@@ -1,4 +1,4 @@
-include_directories(${CMAKE_SOURCE_DIR}/Components)
+include_directories(${CMAKE_SOURCE_DIR}/Hardware)
 
 add_library(UI STATIC
 	icons.c
