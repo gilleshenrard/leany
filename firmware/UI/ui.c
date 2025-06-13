@@ -10,6 +10,7 @@
 #include <stdint.h>
 #include "FreeRTOS.h"
 #include "ST7735S.h"
+#include "buttons.h"
 #include "icons.h"
 #include "main.h"
 #include "memsBMI270.h"
@@ -20,10 +21,10 @@
 #include "task.h"
 
 enum {
-    STACK_SIZE         = 200U,  ///< Amount of words in the task stack
+    STACK_SIZE         = 300U,  ///< Amount of words in the task stack
     TASK_LOW_PRIORITY  = 8U,    ///< FreeRTOS number for a low priority task
-    NB_QUEUE_ELEM      = 10U,
-    SCREENSIZE_DIVIDER = 16U,
+    NB_QUEUE_ELEM      = 10U,   ///< Maximum number of elements in the UI message queue
+    SCREENSIZE_DIVIDER = 16U,   ///< Number of times the buffer fits in the display
     FRAME_BUFFER_SIZE  = (DISPLAY_WIDTH * DISPLAY_HEIGHT) / SCREENSIZE_DIVIDER,  ///< Size of the frame buffer in bytes
 };
 
@@ -32,9 +33,8 @@ static errorCode_u printMeasurements(axis_e axis);
 static errorCode_u printCharacter(verdanaCharacter_e character, uint8_t xLeft, uint8_t yTop);
 static errorCode_u fillBackground(void);
 
-static volatile TaskHandle_t taskHandle   = NULL;  ///< handle of the FreeRTOS task
-QueueHandle_t                messageStack = NULL;
-static TickType_t            previousTick = 0;
+static volatile TaskHandle_t taskHandle   = NULL;               ///< handle of the FreeRTOS task
+QueueHandle_t                messageStack = NULL;               ///< Handle of the UI message queue
 static pixel_t               displayBuffer[FRAME_BUFFER_SIZE];  ///< Buffer used to send data to the display
 
 /********************************************************************************************************************************************/
@@ -88,6 +88,7 @@ static void runUItask(void *argument) {
     //turn on backlight
     turnBacklightON();
 
+    TickType_t previousTick = 0;
     while(1) {
         static const uint8_t REFRESH_DELAY_MS = 30U;
 
@@ -104,6 +105,14 @@ static void runUItask(void *argument) {
                     result = pushErrorCode(result, 1, 2);
                 }
             }
+        }
+
+        if(buttonHasRisingEdge(BTN_ZERO)) {
+            bmi270ZeroDown();
+        }
+
+        if(isButtonHeldDown(BTN_ZERO)) {
+            bmi270CancelZeroing();
         }
 
         if(isError(result)) {

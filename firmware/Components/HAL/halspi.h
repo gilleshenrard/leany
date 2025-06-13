@@ -10,8 +10,6 @@ enum {
     SPI_TIMEOUT_MS      = 100U,  ///< Number of milliseconds beyond which SPI is in timeout
     SPISTRUCT_ALIGNMENT = 32U,   ///< Optimised memory alignment for the SPI structure
     DMASTRUCT_ALIGNMENT = 64U,   ///< Optimised memory alignment for the DMA structure
-    SPI_READREGISTERS   = 1U,    ///< Function ID for the readRegisters()
-    SPI_WRITEREGISTERS  = 2U,    ///< Function ID for the writeRegisters()
 };
 
 typedef uint8_t spiregister_t;
