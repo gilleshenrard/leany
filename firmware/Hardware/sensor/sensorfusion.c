@@ -2,7 +2,7 @@
  * @file sensorfusion.c
  * @details Implement a sensor fusion algorithm, to mix up accelerometer and gyroscope measurements
  * @author Gilles Henrard
- * @date 12/06/2025
+ * @date 14/06/2025
  */
 #include "sensorfusion.h"
 #include <math.h>
@@ -30,10 +30,10 @@ static inline __attribute((always_inline)) float squared(float number);
 static inline uint8_t                            normInvalid(float norm);
 
 //constants
-static const float PROPORTIONAL_GAIN = 2.5F;    ///< Propotional gain (KP) of the Mahony filter
-static const float INTEGRAL_GAIN     = 0.5F;    ///< Integral gain (KI) of the Mahony filter
-static const float NO_INTEGRAL       = 0.001F;  ///< Value below which the integral gain is considered inexistant
-const float MIN_ALIGNMENT = 0.96F;  ///< Threshold for acceptable align. between accel and estimates (cos(15°) ≈ 0.9659)
+static const float PROPORTIONAL_GAIN   = 2.5F;     ///< Propotional gain (KP) of the Mahony filter
+static const float INTEGRAL_GAIN       = 0.5F;     ///< Integral gain (KI) of the Mahony filter
+static const float CLOSE_TO_ZERO       = 1e-3F;    ///< Value used to compare floats to 0
+const float        MIN_ALIGNMENT_15DEG = 0.9659F;  ///< Threshold for acceptable align. between accel and estimates
 
 // global variables
 static quaternion_t currentAttit;               ///< Quaternion representing the current attitude (axis and angle)
@@ -59,12 +59,10 @@ void resetMahonyFilter(void) {
  */
 //NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 void updateMahonyFilter(float accelerometer_G[], const float gyroscope_radps[], const float dtPeriod_sec) {
-    const float MIN_NORM = 1e-3F;
-
     //normalise accelerometer measurements
     float norm =
         sqrtf(squared(accelerometer_G[X_AXIS]) + squared(accelerometer_G[Y_AXIS]) + squared(accelerometer_G[Z_AXIS]));
-    if(norm < MIN_NORM) {
+    if(norm < CLOSE_TO_ZERO) {
         return;
     }
     accelerometer_G[X_AXIS] /= norm;
@@ -87,7 +85,7 @@ void updateMahonyFilter(float accelerometer_G[], const float gyroscope_radps[], 
     float xError = 0.0F;
     float yError = 0.0F;
     float zError = 0.0F;
-    if((dotProduct > MIN_ALIGNMENT) && !normInvalid(norm)) {
+    if((dotProduct > MIN_ALIGNMENT_15DEG) && !normInvalid(norm)) {
         xError = ((accelerometer_G[Y_AXIS] * zBodyEstimate) - (accelerometer_G[Z_AXIS] * yBodyEstimate));
         yError = ((accelerometer_G[Z_AXIS] * xBodyEstimate) - (accelerometer_G[X_AXIS] * zBodyEstimate));
         zError = ((accelerometer_G[X_AXIS] * yBodyEstimate) - (accelerometer_G[Y_AXIS] * xBodyEstimate));
@@ -95,7 +93,7 @@ void updateMahonyFilter(float accelerometer_G[], const float gyroscope_radps[], 
 
     //apply the integral gain to the error measured
     // (avoid if gain is 0 to avoid integral windup due to float 0.0F)
-    if(INTEGRAL_GAIN > NO_INTEGRAL) {
+    if(INTEGRAL_GAIN > CLOSE_TO_ZERO) {
         integratedErrors[X_AXIS] += (INTEGRAL_GAIN * xError * dtPeriod_sec);
         integratedErrors[Y_AXIS] += (INTEGRAL_GAIN * yError * dtPeriod_sec);
         integratedErrors[Z_AXIS] += (INTEGRAL_GAIN * zError * dtPeriod_sec);
@@ -127,7 +125,7 @@ void updateMahonyFilter(float accelerometer_G[], const float gyroscope_radps[], 
     //normalise the current attitude quaternion
     norm = sqrtf(squared(currentAttit.q0) + squared(currentAttit.q1) + squared(currentAttit.q2)
                  + squared(currentAttit.q3));
-    if(norm < MIN_NORM) {
+    if(norm < CLOSE_TO_ZERO) {
         return;
     }
     currentAttit.q0 /= norm;
@@ -143,8 +141,9 @@ void updateMahonyFilter(float accelerometer_G[], const float gyroscope_radps[], 
  * @return Angle in [rad]
  */
 float angleAlongAxis(axis_e axis) {
-    float raw  = 0.0F;
-    float safe = 0.0F;
+    float rawSin  = 0.0F;
+    float safeSin = 0.0F;
+
     switch(axis) {
         case X_AXIS:  //roll
             return atan2f((twice((currentAttit.q0 * currentAttit.q1) + (currentAttit.q2 * currentAttit.q3))),
@@ -152,9 +151,9 @@ float angleAlongAxis(axis_e axis) {
             break;
 
         case Y_AXIS:  //pitch
-            raw  = twice((currentAttit.q1 * currentAttit.q3) - (currentAttit.q0 * currentAttit.q2));
-            safe = fmaxf(-1.0F, fminf(1.0F, raw));  //make sure to clamp the asin() value between [-1, 1]
-            return asinf(safe);
+            rawSin  = twice((currentAttit.q1 * currentAttit.q3) - (currentAttit.q0 * currentAttit.q2));
+            safeSin = fmaxf(-1.0F, fminf(1.0F, rawSin));  //make sure to clamp the sin value between [-1, 1]
+            return asinf(safeSin);
             break;
 
         case Z_AXIS:
@@ -212,6 +211,7 @@ static inline __attribute((always_inline)) float squared(const float number) {
 
 /**
  * Check if a norm is invalid, i.e. outside of [0.85, 1.15]
+ * @details This is used to filter out linear accelerations, and keep only rotary ones
  *
  * @param norm Norm to check
  * @retval 0 The norm is valid
