@@ -89,7 +89,7 @@ static errorCode_u readTemperature(float* temperature_celsius);
 static errorCode_u runAccelerometerSelfTest(rawValues_u* valuesRead, uint8_t positiveSign);
 static errorCode_u runGyroscopeSelfTest(void);
 static float       getDT(const uint8_t registers[3]);
-static void applyTemperatureSensitivity(float temperature_celcius, float accelerometer_G[3], float gyroscope_radps[3]);
+static void        applyTemperatureDrift(float temperature_celcius, float accelerometer_G[3], float gyroscope_radps[3]);
 
 // State machine functions
 static void        taskBMI270(void* argument);
@@ -131,12 +131,12 @@ static const float GYR_NOMINAL_LSB_TO_RADPS = (1.0F / 262.144F) * 0.017453293F;
 /**
  * Accelerometer temperature drift in [%/K], divided by 100 because percents
  */
-static const float ACC_TEMPDRIFT_100PERCENT_PER_KELVIN = 0.00004F;
+static const float ACC_TEMPDRIFT_100PERCENT_PER_KELVIN = (0.004F / 100.0F);
 
 /**
  * Gyroscope temperature drift in [%/K], divided by 100 because percents
  */
-static const float GYR_TEMPDRIFT_100PERCENT_PER_KELVIN = 0.0002F;
+static const float GYR_TEMPDRIFT_100PERCENT_PER_KELVIN = (0.02F / 100.0F);
 
 /**
  * Temperature in [°C] at which the internal temperature value read is 0x0000
@@ -462,46 +462,43 @@ void bmi270CancelZeroing(void) {
 }
 
 /**
- * Compute the time delta between the current sensor time registers and the previous call to getDT()
+ * Compute the elapsed time in [s] between now and the last call to getDT()
  *
  * @param registers Registers holding the current sensor time value
  * @return time delta in [s]
  */
 static float getDT(const uint8_t registers[3]) {
-    const float  SENSORTIME_RESOLUTION_SECONDS = 0.0000390625F;
-    static float previousSensorTime_sec        = 0.0F;
-    float        dtPeriod_sec                  = 0.0F;
+    const uint32_t  MAX_SENSORTIME_TICKS          = 0xFFFFFFU;  ///< The maximum tick value before it wraps around to 0
+    const float     SENSORTIME_RESOLUTION_SECONDS = 0.0000390625F;  ///< How many seconds a tick lasts
+    static uint32_t previousTime_ticks            = 0;
 
-    //assemble the sensor time register values and apply the time resolution
-    float sensorTime_sec = (float)((uint32_t)registers[0] | (uint32_t)(registers[1U] << 8U)  //NOLINT (*-magic-numbers)
-                                   | (uint32_t)(registers[2] << 16U))                        //NOLINT (*-magic-numbers)
-                           * SENSORTIME_RESOLUTION_SECONDS;
+    //assemble the time bytes to get the 24 bits value
+    const uint32_t currentTime_ticks = (registers[0] | (uint32_t)(registers[1U] << 8U)  //NOLINT (*-magic-numbers)
+                                        | (uint32_t)(registers[2] << 16U));             //NOLINT (*-magic-numbers)
 
-    dtPeriod_sec           = (sensorTime_sec - previousSensorTime_sec);
-    previousSensorTime_sec = sensorTime_sec;
+    //compute the time delta and avoid issues with the overflow after 0xFFFFFF ticks
+    const uint32_t delta_ticks = (currentTime_ticks - previousTime_ticks) & MAX_SENSORTIME_TICKS;
 
-    return dtPeriod_sec;
+    previousTime_ticks = currentTime_ticks;
+    return ((float)delta_ticks * SENSORTIME_RESOLUTION_SECONDS);
 }
 
 /**
- * Apply the value delta due to temperature sensitivity
+ * Apply temperature drifts to the measurements
  *
  * @param temperature_celcius Internal temperature in [°C]
  * @param[out] accelerometer_G Accelerometer values in [G]
  * @param[out] gyroscope_radps Gyroscope values in [rad/s]
  */
 //NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
-static void applyTemperatureSensitivity(const float temperature_celcius, float accelerometer_G[3],
-                                        float gyroscope_radps[3]) {
-    //compute the delta and sensitivity relative to 25°C
-    const float delta_celsius             = temperature_celcius - REFERENCE_TEMPERATURE_CELSIUS;
-    const float accelCorrectedSensitivity = (delta_celsius * ACC_TEMPDRIFT_100PERCENT_PER_KELVIN);
-    const float gyroCorrectedSensitivity  = (delta_celsius * GYR_TEMPDRIFT_100PERCENT_PER_KELVIN);
+static void applyTemperatureDrift(const float temperature_celcius, float accelerometer_G[3], float gyroscope_radps[3]) {
+    const float delta_celsius      = temperature_celcius - REFERENCE_TEMPERATURE_CELSIUS;
+    const float accelDrift_percent = (delta_celsius * ACC_TEMPDRIFT_100PERCENT_PER_KELVIN);
+    const float gyroDrift_percent  = (delta_celsius * GYR_TEMPDRIFT_100PERCENT_PER_KELVIN);
 
-    //transform position readings to usable physical units
     for(uint8_t axis = 0; axis < (uint8_t)NB_AXIS; axis++) {
-        accelerometer_G[axis] += accelCorrectedSensitivity;
-        gyroscope_radps[axis] += gyroCorrectedSensitivity;
+        accelerometer_G[axis] += (accelDrift_percent * accelerometer_G[axis]);
+        gyroscope_radps[axis] += (gyroDrift_percent * gyroscope_radps[axis]);
     }
 }
 
@@ -894,7 +891,7 @@ static errorCode_u stateMeasuring(void) {
     }
 
     //take temperature drift into account with sensitivity
-    applyTemperatureSensitivity(temperature_celsius, accelerometer_G, gyroscope_radps);
+    applyTemperatureDrift(temperature_celsius, accelerometer_G, gyroscope_radps);
 
     //use the BMI270 internal sensor time to compute the exact dt since last measured
     const uint8_t NB_MEASURE_REGISTERS = (uint8_t)NB_AXIS << 2U;
