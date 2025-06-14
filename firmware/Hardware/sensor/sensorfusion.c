@@ -11,6 +11,7 @@
 
 enum {
     QUATER_ALIGNMENT = 16U,  ///< Memory alignment of the quaternion structure
+    GAIN_ALIGNMENT   = 16U,  ///< Memory alignment of the quaternion structure
 };
 
 /**
@@ -23,17 +24,42 @@ typedef struct {
     float q3;  ///< Value which multiplies the unit vector along the Z axis
 } __attribute__((aligned(QUATER_ALIGNMENT))) quaternion_t;
 
+/**
+ * Structure depicting the values of a scheduled gain
+ */
+typedef struct {
+    float slow;       ///< Gain to apply on a slow movement
+    float fast;       ///< Gain to apply on a fast movement
+    float threshold;  ///< Threshold
+} __attribute__((aligned(GAIN_ALIGNMENT))) scheduledgain_t;
+
+/**
+ * Enumeration of gain parameters used in sensor fusion PID
+ */
+typedef enum {
+    KP = 0,   ///< Proportional gain
+    KI,       ///< Integral gain
+    NB_GAINS  ///< Number of gain parameters
+} pidgain_e;
+
 // utility functions
 static inline __attribute((always_inline)) float half(float number);
 static inline __attribute((always_inline)) float twice(float number);
 static inline __attribute((always_inline)) float squared(float number);
 static inline uint8_t                            normInvalid(float norm);
+static inline float                              computeScheduledGain(float rate, scheduledgain_t* gains);
 
 //constants
-static const float PROPORTIONAL_GAIN   = 2.5F;     ///< Propotional gain (KP) of the Mahony filter
-static const float INTEGRAL_GAIN       = 0.5F;     ///< Integral gain (KI) of the Mahony filter
 static const float CLOSE_TO_ZERO       = 1e-3F;    ///< Value used to compare floats to 0
 const float        MIN_ALIGNMENT_15DEG = 0.9659F;  ///< Threshold for acceptable align. between accel and estimates
+
+/**
+ * Array of scheduled gains used
+ */
+static const scheduledgain_t scheduledGains[NB_GAINS] = {
+    [KP] = {.slow = 0.5F, .fast = 2.5F,  .threshold = 1.5F},
+    [KI] = {.slow = 0.5F, .fast = 0.5F, .threshold = 0.35F},
+};
 
 // global variables
 static quaternion_t currentAttit;               ///< Quaternion representing the current attitude (axis and angle)
@@ -91,19 +117,26 @@ void updateMahonyFilter(float accelerometer_G[], const float gyroscope_radps[], 
         zError = ((accelerometer_G[X_AXIS] * yBodyEstimate) - (accelerometer_G[Y_AXIS] * xBodyEstimate));
     }
 
+    norm =
+        sqrtf(squared(gyroscope_radps[X_AXIS]) + squared(gyroscope_radps[Y_AXIS]) + squared(gyroscope_radps[Z_AXIS]));
+    const float proportionalGain = computeScheduledGain(norm, (scheduledgain_t*)&scheduledGains[KP]);
+    const float integralGain =
+        ((norm < scheduledGains[KI].threshold) ? computeScheduledGain(norm, (scheduledgain_t*)&scheduledGains[KI])
+                                               : 0.0F);
+
     //apply the integral gain to the error measured
     // (avoid if gain is 0 to avoid integral windup due to float 0.0F)
-    if(INTEGRAL_GAIN > CLOSE_TO_ZERO) {
-        integratedErrors[X_AXIS] += (INTEGRAL_GAIN * xError * dtPeriod_sec);
-        integratedErrors[Y_AXIS] += (INTEGRAL_GAIN * yError * dtPeriod_sec);
-        integratedErrors[Z_AXIS] += (INTEGRAL_GAIN * zError * dtPeriod_sec);
+    if(integralGain > CLOSE_TO_ZERO) {
+        integratedErrors[X_AXIS] += (integralGain * xError * dtPeriod_sec);
+        integratedErrors[Y_AXIS] += (integralGain * yError * dtPeriod_sec);
+        integratedErrors[Z_AXIS] += (integralGain * zError * dtPeriod_sec);
     }
 
     //apply the PI-filtered error to the gyroscope measurements
     const float correctedGyro_radps[NB_AXIS] = {
-        [X_AXIS] = (gyroscope_radps[X_AXIS] + (PROPORTIONAL_GAIN * xError) + integratedErrors[X_AXIS]),
-        [Y_AXIS] = (gyroscope_radps[Y_AXIS] + (PROPORTIONAL_GAIN * yError) + integratedErrors[Y_AXIS]),
-        [Z_AXIS] = (gyroscope_radps[Z_AXIS] + (PROPORTIONAL_GAIN * zError) + integratedErrors[Z_AXIS])};
+        [X_AXIS] = (gyroscope_radps[X_AXIS] + (proportionalGain * xError) + integratedErrors[X_AXIS]),
+        [Y_AXIS] = (gyroscope_radps[Y_AXIS] + (proportionalGain * yError) + integratedErrors[Y_AXIS]),
+        [Z_AXIS] = (gyroscope_radps[Z_AXIS] + (proportionalGain * zError) + integratedErrors[Z_AXIS])};
 
     //compute the derivative quaternion (rate of change since last update)
     const quaternion_t rateChange = {
@@ -219,4 +252,26 @@ static inline __attribute((always_inline)) float squared(const float number) {
  */
 static inline uint8_t normInvalid(const float norm) {
     return ((norm < 0.85F) || (norm > 1.15F));  // NOLINT(*-magic-numbers)
+}
+
+/**
+ * Apply gain scheduling to a measured rate
+ * @details The rate can be either a linear acceleration in [G], or an angular rate in [rad/s].
+ *  Depending on the rate measured, a gain will be computed in a min/max range.
+ *  This allows for low gains when static or slowly moving (more precision, less jitter),
+ *  and more reactivity when moving fast
+ *
+ * @param rate Rate measured on an instrument (accelerometer or gyroscope)
+ * @param gains Scheduled gains to use
+ * @return Scheduled KI or KP gain
+ */
+static inline float computeScheduledGain(float rate, scheduledgain_t* gains) {
+    //make sure the rate does not cross the threshold
+    if(rate >= gains->threshold) {
+        return gains->fast;
+    }
+
+    //compute the scaled gain
+    const float scaledGain = gains->slow + ((rate / gains->threshold) * (gains->fast - gains->slow));
+    return ((scaledGain > gains->fast) ? gains->fast : scaledGain);
 }
