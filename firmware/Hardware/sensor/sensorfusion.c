@@ -2,7 +2,7 @@
  * @file sensorfusion.c
  * @details Implement a sensor fusion algorithm, to mix up accelerometer and gyroscope measurements
  * @author Gilles Henrard
- * @date 14/06/2025
+ * @date 16/06/2025
  */
 #include "sensorfusion.h"
 #include <math.h>
@@ -11,7 +11,7 @@
 
 enum {
     QUATER_ALIGNMENT = 16U,  ///< Memory alignment of the quaternion structure
-    GAIN_ALIGNMENT   = 16U,  ///< Memory alignment of the quaternion structure
+    GAIN_ALIGNMENT   = 16U,  ///< Memory alignment of the gain structure
 };
 
 /**
@@ -46,12 +46,16 @@ typedef enum {
 static inline __attribute((always_inline)) float half(float number);
 static inline __attribute((always_inline)) float twice(float number);
 static inline __attribute((always_inline)) float squared(float number);
-static inline uint8_t                            normInvalid(float norm);
-static inline float                              computeScheduledGain(float rate, scheduledgain_t* gains);
+static inline uint8_t                            normValid(float norm);
+static inline uint8_t alignmentValid(const float accelerometer_G[NB_AXIS], const float estimates[NB_AXIS]);
+static void           computeErrors(float errors[NB_AXIS], const float accelerometer_G[NB_AXIS],
+                                    const float bodyEstimates[NB_AXIS]);
+static void           integrateGyroMeasurements(quaternion_t* currentAttitude, const float gyroscope_radps[NB_AXIS],
+                                                float dtPeriod_sec);
+static float          computeScheduledGain(float rate, const scheduledgain_t* gains);
 
 //constants
-static const float CLOSE_TO_ZERO       = 1e-3F;    ///< Value used to compare floats to 0
-const float        MIN_ALIGNMENT_15DEG = 0.9659F;  ///< Threshold for acceptable align. between accel and estimates
+static const float CLOSE_TO_ZERO = 1e-3F;  ///< Value used to compare floats to 0
 
 /**
  * Array of scheduled gains used
@@ -85,6 +89,8 @@ void resetMahonyFilter(void) {
  */
 //NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 void updateMahonyFilter(float accelerometer_G[], const float gyroscope_radps[], const float dtPeriod_sec) {
+    float bodyEstimates[NB_AXIS];
+
     //normalise accelerometer measurements
     float norm =
         sqrtf(squared(accelerometer_G[X_AXIS]) + squared(accelerometer_G[Y_AXIS]) + squared(accelerometer_G[Z_AXIS]));
@@ -96,64 +102,43 @@ void updateMahonyFilter(float accelerometer_G[], const float gyroscope_radps[], 
     accelerometer_G[Z_AXIS] /= norm;
 
     //estimate the current body frame gravity vector from the current orientation quaternion
-    const float xBodyEstimate = twice((currentAttit.q1 * currentAttit.q3) - (currentAttit.q0 * currentAttit.q2));
-    const float yBodyEstimate = twice((currentAttit.q0 * currentAttit.q1) + (currentAttit.q2 * currentAttit.q3));
-    const float zBodyEstimate =
+    bodyEstimates[X_AXIS] = twice((currentAttit.q1 * currentAttit.q3) - (currentAttit.q0 * currentAttit.q2));
+    bodyEstimates[Y_AXIS] = twice((currentAttit.q0 * currentAttit.q1) + (currentAttit.q2 * currentAttit.q3));
+    bodyEstimates[Z_AXIS] =
         squared(currentAttit.q0) - squared(currentAttit.q1) - squared(currentAttit.q2) + squared(currentAttit.q3);
 
-    //compute the dot product of the accelerometer measurements and the body estimations
-    const float dotProduct = (accelerometer_G[X_AXIS] * xBodyEstimate) + (accelerometer_G[Y_AXIS] * yBodyEstimate)
-                             + (accelerometer_G[Z_AXIS] * zBodyEstimate);
-
     //compute the error rotation vectors, which align estimations to the gravity measured by accelerometer
-    // This is done through a cross-product
-    // Only do it if no linear motion has been detected (i.e. accel aligns well enough with estimates and accel norm is of proper magnitude)
-    float xError = 0.0F;
-    float yError = 0.0F;
-    float zError = 0.0F;
-    if((dotProduct > MIN_ALIGNMENT_15DEG) && !normInvalid(norm)) {
-        xError = ((accelerometer_G[Y_AXIS] * zBodyEstimate) - (accelerometer_G[Z_AXIS] * yBodyEstimate));
-        yError = ((accelerometer_G[Z_AXIS] * xBodyEstimate) - (accelerometer_G[X_AXIS] * zBodyEstimate));
-        zError = ((accelerometer_G[X_AXIS] * yBodyEstimate) - (accelerometer_G[Y_AXIS] * xBodyEstimate));
+    //  (Only do it if no linear motion has been detected)
+    float errors[NB_AXIS] = {0.0F, 0.0F, 0.0F};
+    if(alignmentValid(accelerometer_G, bodyEstimates) && normValid(norm)) {
+        computeErrors(errors, accelerometer_G, bodyEstimates);
     }
 
-    norm =
+    //apply proportional and integral gains depending on the angle rate
+    const float angleRate =
         sqrtf(squared(gyroscope_radps[X_AXIS]) + squared(gyroscope_radps[Y_AXIS]) + squared(gyroscope_radps[Z_AXIS]));
-    const float proportionalGain = computeScheduledGain(norm, (scheduledgain_t*)&scheduledGains[KP]);
+    const float proportionalGain = computeScheduledGain(angleRate, &scheduledGains[KP]);
     const float integralGain =
-        ((norm < scheduledGains[KI].threshold) ? computeScheduledGain(norm, (scheduledgain_t*)&scheduledGains[KI])
-                                               : 0.0F);
+        ((angleRate < scheduledGains[KI].threshold) ? computeScheduledGain(angleRate, &scheduledGains[KI]) : 0.0F);
 
-    //apply the integral gain to the error measured
+    //apply the integral gain to the error measured + clamp it between maximum and minimum values
     // (avoid if gain is 0 to avoid integral windup due to float 0.0F)
     if(integralGain > CLOSE_TO_ZERO) {
-        integratedErrors[X_AXIS] += (integralGain * xError * dtPeriod_sec);
-        integratedErrors[Y_AXIS] += (integralGain * yError * dtPeriod_sec);
-        integratedErrors[Z_AXIS] += (integralGain * zError * dtPeriod_sec);
+        for(uint8_t axis = 0; axis < (uint8_t)NB_AXIS; axis++) {
+            const float MAX_INTEGRATED_ERROR = 1.0F;
+            integratedErrors[axis] += (integralGain * errors[axis] * dtPeriod_sec);
+            integratedErrors[axis] = fmaxf(-MAX_INTEGRATED_ERROR, fminf(MAX_INTEGRATED_ERROR, integratedErrors[axis]));
+        }
     }
 
     //apply the PI-filtered error to the gyroscope measurements
     const float correctedGyro_radps[NB_AXIS] = {
-        [X_AXIS] = (gyroscope_radps[X_AXIS] + (proportionalGain * xError) + integratedErrors[X_AXIS]),
-        [Y_AXIS] = (gyroscope_radps[Y_AXIS] + (proportionalGain * yError) + integratedErrors[Y_AXIS]),
-        [Z_AXIS] = (gyroscope_radps[Z_AXIS] + (proportionalGain * zError) + integratedErrors[Z_AXIS])};
+        [X_AXIS] = (gyroscope_radps[X_AXIS] + (proportionalGain * errors[X_AXIS]) + integratedErrors[X_AXIS]),
+        [Y_AXIS] = (gyroscope_radps[Y_AXIS] + (proportionalGain * errors[Y_AXIS]) + integratedErrors[Y_AXIS]),
+        [Z_AXIS] = (gyroscope_radps[Z_AXIS] + (proportionalGain * errors[Z_AXIS]) + integratedErrors[Z_AXIS])};
 
-    //compute the derivative quaternion (rate of change since last update)
-    const quaternion_t rateChange = {
-        .q0 = half((-currentAttit.q1 * correctedGyro_radps[X_AXIS]) - (currentAttit.q2 * correctedGyro_radps[Y_AXIS])
-                   - (currentAttit.q3 * correctedGyro_radps[Z_AXIS])),
-        .q1 = half((currentAttit.q0 * correctedGyro_radps[X_AXIS]) + (currentAttit.q2 * correctedGyro_radps[Z_AXIS])
-                   - (currentAttit.q3 * correctedGyro_radps[Y_AXIS])),
-        .q2 = half((currentAttit.q0 * correctedGyro_radps[Y_AXIS]) - (currentAttit.q1 * correctedGyro_radps[Z_AXIS])
-                   + (currentAttit.q3 * correctedGyro_radps[X_AXIS])),
-        .q3 = half((currentAttit.q0 * correctedGyro_radps[Z_AXIS]) + (currentAttit.q1 * correctedGyro_radps[Y_AXIS])
-                   - (currentAttit.q2 * correctedGyro_radps[X_AXIS]))};
-
-    //integrate the current quaternion with the change rate
-    currentAttit.q0 += (rateChange.q0 * dtPeriod_sec);
-    currentAttit.q1 += (rateChange.q1 * dtPeriod_sec);
-    currentAttit.q2 += (rateChange.q2 * dtPeriod_sec);
-    currentAttit.q3 += (rateChange.q3 * dtPeriod_sec);
+    //integrate
+    integrateGyroMeasurements(&currentAttit, correctedGyro_radps, dtPeriod_sec);
 
     //normalise the current attitude quaternion
     norm = sqrtf(squared(currentAttit.q0) + squared(currentAttit.q1) + squared(currentAttit.q2)
@@ -181,19 +166,16 @@ float angleAlongAxis(axis_e axis) {
         case X_AXIS:  //roll
             return atan2f((twice((currentAttit.q0 * currentAttit.q1) + (currentAttit.q2 * currentAttit.q3))),
                           1.0F - (twice((currentAttit.q1 * currentAttit.q1) + (currentAttit.q2 * currentAttit.q2))));
-            break;
 
         case Y_AXIS:  //pitch
             rawSin  = twice((currentAttit.q1 * currentAttit.q3) - (currentAttit.q0 * currentAttit.q2));
             safeSin = fmaxf(-1.0F, fminf(1.0F, rawSin));  //make sure to clamp the sin value between [-1, 1]
             return asinf(safeSin);
-            break;
 
         case Z_AXIS:
         case NB_AXIS:
         default:
             return 0.0F;
-            break;
     };
 }
 
@@ -243,15 +225,79 @@ static inline __attribute((always_inline)) float squared(const float number) {
 }
 
 /**
- * Check if a norm is invalid, i.e. outside of [0.85, 1.15]
+ * Check if a norm is valid, i.e. inside of [0.85, 1.15]
  * @details This is used to filter out linear accelerations, and keep only rotary ones
  *
  * @param norm Norm to check
- * @retval 0 The norm is valid
- * @retval 1 The norm is invalid
+ * @retval 1 The norm is valid
+ * @retval 0 The norm is invalid
  */
-static inline uint8_t normInvalid(const float norm) {
-    return ((norm < 0.85F) || (norm > 1.15F));  // NOLINT(*-magic-numbers)
+static inline uint8_t normValid(const float norm) {
+    return ((norm >= 0.85F) && (norm <= 1.15F));  // NOLINT(*-magic-numbers)
+}
+
+/**
+ * Check if the linear acceleration measured on all axis align well enough with the estimations
+ *
+ * @param accelerometer_G Accelerometer measurements
+ * @param estimates Angles estimations
+ * @return Whether the measurements are not off by more than 15°
+ */
+static inline uint8_t alignmentValid(const float accelerometer_G[NB_AXIS], const float estimates[NB_AXIS]) {
+    const float MIN_ALIGNMENT_15DEG = 0.9659F;  ///< Threshold for acceptable align. between accel and estimates
+
+    //compute the cross-product of the accelerometer measurements with the estimates
+    const float dotProduct = (accelerometer_G[X_AXIS] * estimates[X_AXIS])
+                             + (accelerometer_G[Y_AXIS] * estimates[Y_AXIS])
+                             + (accelerometer_G[Z_AXIS] * estimates[Z_AXIS]);
+
+    return (dotProduct > MIN_ALIGNMENT_15DEG);
+}
+
+/**
+ * Compute the error rotation vectors, which align estimations to the gravity measured by accelerometer
+ * @details This is done through a cross-product.
+ *
+ * @param errors Array of error values for each axis
+ * @param accelerometer_G Accelerometer values in [G]
+ * @param bodyEstimates Body angles estimations
+ * @param norm Quaternion norm
+ */
+static void computeErrors(float errors[NB_AXIS], const float accelerometer_G[NB_AXIS],
+                          const float bodyEstimates[NB_AXIS]) {
+    errors[X_AXIS] =
+        ((accelerometer_G[Y_AXIS] * bodyEstimates[Z_AXIS]) - (accelerometer_G[Z_AXIS] * bodyEstimates[Y_AXIS]));
+    errors[Y_AXIS] =
+        ((accelerometer_G[Z_AXIS] * bodyEstimates[X_AXIS]) - (accelerometer_G[X_AXIS] * bodyEstimates[Z_AXIS]));
+    errors[Z_AXIS] =
+        ((accelerometer_G[X_AXIS] * bodyEstimates[Y_AXIS]) - (accelerometer_G[Y_AXIS] * bodyEstimates[X_AXIS]));
+}
+
+/**
+ * Integrate gyroscope measurements and add it to the current attitude quaternion
+ *
+ * @param currentAttitude Current attitude quaternion to update
+ * @param gyroscope_radps Gyroscope measurements
+ * @param dtPeriod_sec Period between now and the last update
+ */
+static void integrateGyroMeasurements(quaternion_t* currentAttitude, const float gyroscope_radps[NB_AXIS],
+                                      float dtPeriod_sec) {
+    //compute the derivative quaternion, composed of the current attitude and the gyroscope measurements
+    const quaternion_t rateChange = {
+        .q0 = half((-currentAttitude->q1 * gyroscope_radps[X_AXIS]) - (currentAttitude->q2 * gyroscope_radps[Y_AXIS])
+                   - (currentAttitude->q3 * gyroscope_radps[Z_AXIS])),
+        .q1 = half((currentAttitude->q0 * gyroscope_radps[X_AXIS]) + (currentAttitude->q2 * gyroscope_radps[Z_AXIS])
+                   - (currentAttitude->q3 * gyroscope_radps[Y_AXIS])),
+        .q2 = half((currentAttitude->q0 * gyroscope_radps[Y_AXIS]) - (currentAttitude->q1 * gyroscope_radps[Z_AXIS])
+                   + (currentAttitude->q3 * gyroscope_radps[X_AXIS])),
+        .q3 = half((currentAttitude->q0 * gyroscope_radps[Z_AXIS]) + (currentAttitude->q1 * gyroscope_radps[Y_AXIS])
+                   - (currentAttitude->q2 * gyroscope_radps[X_AXIS]))};
+
+    //integrate the current quaternion with the change rate
+    currentAttitude->q0 += (rateChange.q0 * dtPeriod_sec);
+    currentAttitude->q1 += (rateChange.q1 * dtPeriod_sec);
+    currentAttitude->q2 += (rateChange.q2 * dtPeriod_sec);
+    currentAttitude->q3 += (rateChange.q3 * dtPeriod_sec);
 }
 
 /**
@@ -265,10 +311,14 @@ static inline uint8_t normInvalid(const float norm) {
  * @param gains Scheduled gains to use
  * @return Scheduled KI or KP gain
  */
-static inline float computeScheduledGain(float rate, scheduledgain_t* gains) {
+static float computeScheduledGain(float rate, const scheduledgain_t* gains) {
     //make sure the rate does not cross the threshold
     if(rate >= gains->threshold) {
         return gains->fast;
+    }
+
+    if(gains->threshold < CLOSE_TO_ZERO) {
+        return gains->slow;
     }
 
     //compute the scaled gain
