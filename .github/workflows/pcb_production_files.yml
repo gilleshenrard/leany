@@ -10,6 +10,8 @@ on:
       - 'pcb/**'
       - '!pcb/resources/**'
       - '.github/workflows/pcb_production_files.yml'
+  schedule:
+    - cron: "0 3 1 * *" #Automatically run at 03:00 every 1st of the month
 
 env:
   SCH_PATH: ${{github.workspace}}/pcb
@@ -28,7 +30,7 @@ jobs:
         name: Run KiCad checks
         runs-on: ubuntu-latest
         container:
-          image: kicad/kicad:8.0
+          image: kicad/kicad:9.0
           options: --user root -v ${{ github.workspace }}:${{ github.workspace }}
 
         steps:
@@ -43,7 +45,7 @@ jobs:
           - name: Check if library tables are present
             run:  |
                   echo "Global footprint library table"
-                  test -f ~/.config/kicad/8.0/fp-lib-table
+                  test -f ~/.config/kicad/9.0/fp-lib-table
 
                   echo " "
                   echo "Project footprint library table:"
@@ -51,7 +53,7 @@ jobs:
 
                   echo " "
                   echo "Global symbol library table:"
-                  test -f ~/.config/kicad/8.0/sym-lib-table
+                  test -f ~/.config/kicad/9.0/sym-lib-table
 
                   echo " "
                   echo "Project symbol library table:"
@@ -95,7 +97,7 @@ jobs:
       needs: kicad_checks
       runs-on: ubuntu-latest
       container:
-        image: kicad/kicad:8.0
+        image: kicad/kicad:9.0
         options: --user root -v ${{ github.workspace }}:${{ github.workspace }}
 
       steps:
