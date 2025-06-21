@@ -3372,7 +3372,7 @@
 			(net 49 "Net-(R14-Pad2)")
 			(pinfunction "1")
 			(pintype "passive")
-			(uuid "2aa02777-1402-47ef-b8af-421263b4f8ab")
+			(uuid "e469fb68-a07d-4452-a835-440bd53b5820")
 		)
 		(pad "2" smd rect
 			(at -3 1.875)
@@ -3390,18 +3390,18 @@
 			(net 30 "/BOOT0")
 			(pinfunction "2")
 			(pintype "passive")
-			(uuid "49780d90-fd44-41d8-9d0a-05e1defa670b")
+			(uuid "82d877fa-f89e-467e-b847-b6601a30d421")
 		)
 		(embedded_fonts no)
-		(model "${KICAD9_3DMODEL_DIR}/Button_Switch_SMD.3dshapes/SW_Push_1P1T_XKB_TS-1187A.step"
+		(model "${KIPRJMOD}/3d-models/grabcad/Paul_Thelu/tact_switch_2.5mm_paul-thelu.stp"
 			(offset
-				(xyz 0 0 0)
+				(xyz -2.5 -2.6 0)
 			)
 			(scale
 				(xyz 1 1 1)
 			)
 			(rotate
-				(xyz 0 0 0)
+				(xyz -90 -0 -0)
 			)
 		)
 	)
@@ -6302,7 +6302,7 @@
 			(net 2 "GND")
 			(pinfunction "SHIELD")
 			(pintype "passive")
-			(uuid "19aac383-f7cf-49c1-b827-3ecbae8f512f")
+			(uuid "7731f8e2-da1a-407e-a074-eed5b5928df5")
 		)
 		(pad "S1" thru_hole oval
 			(at 4.32 -3.13 270)
@@ -6314,7 +6314,7 @@
 			(net 2 "GND")
 			(pinfunction "SHIELD")
 			(pintype "passive")
-			(uuid "19aac383-f7cf-49c1-b827-3ecbae8f512f")
+			(uuid "6bb37db0-4163-49df-b802-b78ec866a10f")
 		)
 		(pad "S1" thru_hole oval
 			(at 4.32 1.05 270)
@@ -6326,18 +6326,18 @@
 			(net 2 "GND")
 			(pinfunction "SHIELD")
 			(pintype "passive")
-			(uuid "19aac383-f7cf-49c1-b827-3ecbae8f512f")
+			(uuid "11c12ea6-fb40-4db0-a05c-d66a122c2172")
 		)
 		(embedded_fonts no)
-		(model "${KICAD9_3DMODEL_DIR}/Connector_USB.3dshapes/USB_C_Receptacle_HRO_TYPE-C-31-M-12.step"
+		(model "${KIPRJMOD}/3d-models/grabcad/Ni_Ni/USB_type_C_smd_12p_ni-ni.stp"
 			(offset
-				(xyz 0 0 0)
+				(xyz 0 2.5 0)
 			)
 			(scale
 				(xyz 1 1 1)
 			)
 			(rotate
-				(xyz 0 0 0)
+				(xyz -90 -0 -180)
 			)
 		)
 	)
@@ -6728,7 +6728,7 @@
 			(net 50 "Net-(U1-PB10)")
 			(pinfunction "1")
 			(pintype "passive")
-			(uuid "d8bc97df-9281-4dbb-b88c-c66d4ff6f5aa")
+			(uuid "c2e2ad91-52f8-496b-b88b-1d95a63e2308")
 		)
 		(pad "2" smd rect
 			(at -3.975 2.25)
@@ -6746,10 +6746,10 @@
 			(net 2 "GND")
 			(pinfunction "2")
 			(pintype "passive")
-			(uuid "25487bd8-858f-4a55-a575-57faafb9b5b7")
+			(uuid "cdc7de85-97ae-49ff-99f8-436285d3c469")
 		)
 		(embedded_fonts no)
-		(model "${KICAD8_3DMODEL_DIR}/Button_Switch_SMD.3dshapes/SW_PUSH_6mm_H9.5mm.wrl"
+		(model "${KIPRJMOD}/3d-models/grabcad/Stelian_Stefan/SW-DTSM-66N-V_Nicola-Stelian-Stefan.stp"
 			(offset
 				(xyz 0 0 0)
 			)
@@ -9432,7 +9432,7 @@
 			(net 2 "GND")
 			(pinfunction "1")
 			(pintype "passive")
-			(uuid "f43a8136-b444-442a-901d-f04743b8a3f6")
+			(uuid "18ea812f-341c-4389-96c4-fa69542a6c68")
 		)
 		(pad "2" smd rect
 			(at -3.975 2.25 180)
@@ -9450,10 +9450,10 @@
 			(net 52 "Net-(U1-PB11)")
 			(pinfunction "2")
 			(pintype "passive")
-			(uuid "57d59f06-aff8-4fda-9a1b-8bbd69c44f5a")
+			(uuid "3ae0069e-b203-4ad0-be00-db846dc3555e")
 		)
 		(embedded_fonts no)
-		(model "${KICAD8_3DMODEL_DIR}/Button_Switch_SMD.3dshapes/SW_PUSH_6mm_H9.5mm.wrl"
+		(model "${KIPRJMOD}/3d-models/grabcad/Stelian_Stefan/SW-DTSM-66N-V_Nicola-Stelian-Stefan.stp"
 			(offset
 				(xyz 0 0 0)
 			)
@@ -10512,7 +10512,7 @@
 			(net 2 "GND")
 			(pinfunction "1")
 			(pintype "passive")
-			(uuid "34588f17-82cb-4b78-8bb1-d0213a9b5b65")
+			(uuid "dd54198f-713f-41c7-9ef7-a2f05922429d")
 		)
 		(pad "2" smd rect
 			(at -3 1.875)
@@ -10530,18 +10530,18 @@
 			(net 7 "Net-(U1-NRST)")
 			(pinfunction "2")
 			(pintype "passive")
-			(uuid "7089d087-ede4-4303-b5b6-f0ed616c2bf8")
+			(uuid "d4242334-f217-4084-8a32-055764fcb9f8")
 		)
 		(embedded_fonts no)
-		(model "${KICAD9_3DMODEL_DIR}/Button_Switch_SMD.3dshapes/SW_Push_1P1T_XKB_TS-1187A.step"
+		(model "${KIPRJMOD}/3d-models/grabcad/Paul_Thelu/tact_switch_2.5mm_paul-thelu.stp"
 			(offset
-				(xyz 0 0 0)
+				(xyz -2.5 -2.6 0)
 			)
 			(scale
 				(xyz 1 1 1)
 			)
 			(rotate
-				(xyz 0 0 0)
+				(xyz -90 -0 -0)
 			)
 		)
 	)
@@ -13267,7 +13267,7 @@
 			(net 2 "GND")
 			(pinfunction "GND")
 			(pintype "power_in")
-			(uuid "6dc96ab4-9e6d-4231-96cb-2390d584b2a7")
+			(uuid "42ab2565-7967-416e-9688-909543d7adeb")
 		)
 		(pad "25" thru_hole circle
 			(at -1.1 1.1 270)
@@ -13279,7 +13279,7 @@
 			(net 2 "GND")
 			(pinfunction "GND")
 			(pintype "power_in")
-			(uuid "6dc96ab4-9e6d-4231-96cb-2390d584b2a7")
+			(uuid "a6f39d7b-37d3-4e0e-a760-acee67ab60ec")
 		)
 		(pad "25" thru_hole circle
 			(at 0 -1.1 270)
@@ -13291,7 +13291,7 @@
 			(net 2 "GND")
 			(pinfunction "GND")
 			(pintype "power_in")
-			(uuid "6dc96ab4-9e6d-4231-96cb-2390d584b2a7")
+			(uuid "2bc9c46d-7b5d-483e-961e-5b0a7333f96b")
 		)
 		(pad "25" thru_hole circle
 			(at 0 0 270)
@@ -13303,7 +13303,7 @@
 			(net 2 "GND")
 			(pinfunction "GND")
 			(pintype "power_in")
-			(uuid "6dc96ab4-9e6d-4231-96cb-2390d584b2a7")
+			(uuid "7922ecc3-6c04-4363-ac1a-1a391fdf9b53")
 		)
 		(pad "25" smd rect
 			(at 0 0 270)
@@ -13314,7 +13314,7 @@
 			(pinfunction "GND")
 			(pintype "power_in")
 			(zone_connect 2)
-			(uuid "6dc96ab4-9e6d-4231-96cb-2390d584b2a7")
+			(uuid "532c26a2-3a00-4538-92a5-41ca2751c303")
 		)
 		(pad "25" smd rect
 			(at 0 0 270)
@@ -13325,7 +13325,7 @@
 			(pinfunction "GND")
 			(pintype "power_in")
 			(zone_connect 2)
-			(uuid "6dc96ab4-9e6d-4231-96cb-2390d584b2a7")
+			(uuid "aab0f179-0cd2-45a4-9e82-11811c2b1225")
 		)
 		(pad "25" thru_hole circle
 			(at 0 1.1 270)
@@ -13337,7 +13337,7 @@
 			(net 2 "GND")
 			(pinfunction "GND")
 			(pintype "power_in")
-			(uuid "6dc96ab4-9e6d-4231-96cb-2390d584b2a7")
+			(uuid "532dca4e-2df8-4364-8192-60b102364262")
 		)
 		(pad "25" thru_hole circle
 			(at 1.1 -1.1 270)
@@ -13349,7 +13349,7 @@
 			(net 2 "GND")
 			(pinfunction "GND")
 			(pintype "power_in")
-			(uuid "6dc96ab4-9e6d-4231-96cb-2390d584b2a7")
+			(uuid "cf2b9e91-3a9d-474d-94a7-537516e297e8")
 		)
 		(pad "25" thru_hole circle
 			(at 1.1 0 270)
@@ -13361,7 +13361,7 @@
 			(net 2 "GND")
 			(pinfunction "GND")
 			(pintype "power_in")
-			(uuid "6dc96ab4-9e6d-4231-96cb-2390d584b2a7")
+			(uuid "3135554c-9987-4a38-87c8-c2bcd9a90a99")
 		)
 		(pad "25" thru_hole circle
 			(at 1.1 1.1 270)
@@ -13373,7 +13373,7 @@
 			(net 2 "GND")
 			(pinfunction "GND")
 			(pintype "power_in")
-			(uuid "6dc96ab4-9e6d-4231-96cb-2390d584b2a7")
+			(uuid "a31da74a-d82d-4bf0-aff6-420a6c5721b5")
 		)
 		(embedded_fonts no)
 		(model "${KICAD9_3DMODEL_DIR}/Package_DFN_QFN.3dshapes/Texas_RGE0024H_VQFN-24-1EP_4x4mm_P0.5mm_EP2.7x2.7mm.step"
@@ -14187,7 +14187,7 @@
 			(uuid "c5f6d5da-f817-4449-93ac-eaf17a3e77b2")
 		)
 		(embedded_fonts no)
-		(model "${KIPRJMOD}/3d-models/wago_2060-452_998-404.stp"
+		(model "${KIPRJMOD}/3d-models/wago/wago_2060-452_998-404.stp"
 			(offset
 				(xyz 4 -6.5 0)
 			)
@@ -20090,7 +20090,7 @@
 				(xyz 0 0 0)
 			)
 		)
-		(model "${KIPRJMOD}/3d-models/Spacer M2 M F 10mm_mart-berghs.stp"
+		(model "${KIPRJMOD}/3d-models/grabcad/Mart_Berghs/Spacer-M2-M-F-10mm_mart-berghs.stp"
 			(offset
 				(xyz -1 -73.75 10)
 			)
@@ -20101,7 +20101,7 @@
 				(xyz 0 180 0)
 			)
 		)
-		(model "${KIPRJMOD}/3d-models/Spacer M2 M F 10mm_mart-berghs.stp"
+		(model "${KIPRJMOD}/3d-models/grabcad/Mart_Berghs/Spacer-M2-M-F-10mm_mart-berghs.stp"
 			(offset
 				(xyz -1 -44 10)
 			)
@@ -20112,7 +20112,7 @@
 				(xyz 0 180 0)
 			)
 		)
-		(model "${KIPRJMOD}/3d-models/Spacer M2 M F 10mm_mart-berghs.stp"
+		(model "${KIPRJMOD}/3d-models/grabcad/Mart_Berghs/Spacer-M2-M-F-10mm_mart-berghs.stp"
 			(offset
 				(xyz -52 -43.75 10)
 			)
@@ -20123,7 +20123,7 @@
 				(xyz 0 180 0)
 			)
 		)
-		(model "${KIPRJMOD}/3d-models/Spacer M2 M F 10mm_mart-berghs.stp"
+		(model "${KIPRJMOD}/3d-models/grabcad/Mart_Berghs/Spacer-M2-M-F-10mm_mart-berghs.stp"
 			(offset
 				(xyz -52 -73.75 10)
 			)
@@ -20134,7 +20134,7 @@
 				(xyz 0 -180 0)
 			)
 		)
-		(model "${KIPRJMOD}/3d-models/pin_header_male_2.54mm_0.1in_mohamed-owais.STEP"
+		(model "${KIPRJMOD}/3d-models/grabcad/Mohamed_Owais/pin_header_male_2.54mm_0.1in_mohamed-owais.STEP"
 			(offset
 				(xyz -0.5 -17.75 8.5)
 			)
@@ -20145,7 +20145,7 @@
 				(xyz 90 0 0)
 			)
 		)
-		(model "${KIPRJMOD}/3d-models/1.8_inches_128x160_RGB_TFT_LCD_Pablo-Queiroz.stp"
+		(model "${KIPRJMOD}/3d-models/grabcad/Pablo_Queiroz/1.8_inches_128x160_RGB_TFT_LCD_Pablo-Queiroz.stp"
 			(offset
 				(xyz -55 8.5 10)
 			)
