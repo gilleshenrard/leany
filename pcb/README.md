@@ -40,15 +40,17 @@ This documentation provides an overview of the PCB schematics and layouts used i
 pcb/
 ├── 3d-models
 └── resources
-    └── generate_production_files.sh
+    ├── generate_production_files.sh
+    └── generate_model.bat
 ```
 
 ### `3d-models`
-This directory contains the additional 3D models needed to export the PCB as an STL file
+This directory contains the additional 3D models needed to export the PCB as an STEP file
 
 ### `resources`
 Contains additional resources :
-- `generate_production_files.sh` : A script to automatically generate and organise production files, with respect to JLCPCB standards.
+- `generate_production_files.sh` : A Linux script to generate and organise production files, with respect to JLCPCB standards.
+- `generate_model.bat` : A Windows script to generate a 3D STEP file of the PCB and display.
 
 ## CI/CD workflows
 The PCB files are instected by a [Github Action](https://github.com/gilleshenrard/leany/actions/workflows/pcb_production_files.yml) upon push and pull request to run the **Electrical Rules Check** and **Design Rules Check** ensure the production files are easily generated.
