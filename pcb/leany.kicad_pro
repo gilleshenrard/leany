@@ -505,7 +505,7 @@
       "plot": "gerbers/",
       "pos_files": "production_files/",
       "specctra_dsn": "",
-      "step": "",
+      "step": "production_files/pcb_3dmodel.stp",
       "svg": "",
       "vrml": ""
     },
