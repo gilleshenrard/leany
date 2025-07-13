@@ -43,7 +43,7 @@
  *   DOI: [10.1109/TAC.2008.923738](https://doi.org/10.1109/TAC.2008.923738)
  *
  * @author Gilles Henrard
- * @date 11/07/2025
+ * @date 14/07/2025
  */
 #include "sensorfusion.h"
 #include <math.h>
@@ -190,7 +190,8 @@ float angleAlongAxis(const quaternion_t* currentAttitude, axis_e axis) {
  * @return Angle in [rad]
  */
 float getAttitudeAngle(const quaternion_t* currentAttitude) {
-    return twice(acosf(fmaxf(-1.0F, fminf(1.0F, currentAttitude->q0))));
+    const float safeCos = fmaxf(-1.0F, fminf(1.0F, currentAttitude->q0));
+    return twice(acosf(safeCos));
 }
 
 /*************************************************************************************************/
