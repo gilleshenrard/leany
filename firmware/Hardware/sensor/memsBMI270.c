@@ -147,8 +147,10 @@ static const float REFERENCE_TEMPERATURE_CELSIUS = 23.0F;
 static volatile TaskHandle_t taskHandle    = NULL;  ///< handle of the FreeRTOS task
 static SemaphoreHandle_t     anglesMutex   = NULL;  ///< handle of the mutex used to protect angles measurements
 static BMI270function_e      state         = BMI270_STATE_STARTUP;  ///< State machine current state
-static uint8_t               resetOccurred = 1;  ///< Flag used to ensure config is written only once after reset
-static errorCode_u           result;             ///< Variable used to store error codes
+static uint8_t               resetOccurred = 1;     ///< Flag used to ensure config is written only once after reset
+static errorCode_u           result;                ///< Variable used to store error codes
+static quaternion_t          currentAttitude;       ///< Quaternion representing the current axis and angle
+static float            integratedErrors[NB_AXIS];  ///< Array holding the current integrated error vector for each axis
 extern const uint8_t    bmi270_config_file[];  ///< BMI270 config file provided by Bosch Sensortec, declared in bmi270.c
 static float            anglesAtZeroing_rad[NB_AXIS - 1] = {0, 0};  ///< Latest angles measured and filtered in [rad]
 static spi_t            spiDescriptor                    = {.handle                = SPI1,
@@ -403,7 +405,7 @@ int16_t getAngleDegreesTenths(axis_e axis) {
     if(xSemaphoreTake(anglesMutex, pdMS_TO_TICKS(SPI_TIMEOUT_MS)) == pdFALSE) {
         return 0;
     }
-    float currentAngle_rad = angleAlongAxis(axis);
+    float currentAngle_rad = angleAlongAxis(&currentAttitude, axis);
     xSemaphoreGive(anglesMutex);
 
     float total = (currentAngle_rad + anglesAtZeroing_rad[axis]);
@@ -420,7 +422,7 @@ uint8_t anglesChanged(void) {
     if(xSemaphoreTake(anglesMutex, pdMS_TO_TICKS(SPI_TIMEOUT_MS)) == pdFALSE) {
         return 0;
     }
-    const float currentAngle_rad = getAttitudeAngle();
+    const float currentAngle_rad = getAttitudeAngle(&currentAttitude);
     xSemaphoreGive(anglesMutex);
 
     //check if angle changed above minimum threshold (0.1° in any direction)
@@ -441,8 +443,8 @@ void bmi270ZeroDown(void) {
         return;
     }
 
-    anglesAtZeroing_rad[X_AXIS] = -angleAlongAxis(X_AXIS);
-    anglesAtZeroing_rad[Y_AXIS] = -angleAlongAxis(Y_AXIS);
+    anglesAtZeroing_rad[X_AXIS] = -angleAlongAxis(&currentAttitude, X_AXIS);
+    anglesAtZeroing_rad[Y_AXIS] = -angleAlongAxis(&currentAttitude, Y_AXIS);
 
     xSemaphoreGive(anglesMutex);
 }
@@ -842,7 +844,7 @@ static errorCode_u stateConfiguring(void) {
         return pushErrorCode(result, BMI270_STATE_CONFIGURING, 1);
     }
 
-    resetMahonyFilter();
+    resetMahonyFilter(&currentAttitude, integratedErrors);
     taskNotifiable = 1;
     state          = BMI270_STATE_MEASURING;
     return ERR_SUCCESS;
@@ -899,7 +901,7 @@ static errorCode_u stateMeasuring(void) {
 
     //apply sensor fusion to the measurements
     if(xSemaphoreTake(anglesMutex, pdMS_TO_TICKS(SPI_TIMEOUT_MS)) == pdTRUE) {
-        updateMahonyFilter(accelerometer_G, gyroscope_radps, dtPeriod_sec);
+        updateMahonyFilter(&currentAttitude, integratedErrors, accelerometer_G, gyroscope_radps, dtPeriod_sec);
         xSemaphoreGive(anglesMutex);
     }
 
