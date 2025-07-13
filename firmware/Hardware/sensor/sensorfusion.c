@@ -1,29 +1,54 @@
+// SPDX-License-Identifier: MIT
 /**
  * @file sensorfusion.c
- * @brief Mahony sensor fusion algorithm (quaternion-based)
- * @details Computes 3D orientation from gyroscope and accelerometer data using the Mahony complementary filter. 
- * The filter uses a quaternion to represent orientation and applies a proportional-integral correction to 
- * estimate attitude accurately without a magnetometer.
- * @date 17/06/2025
+ * @brief Mahony filter implementation for 6DoF attitude estimation using gyroscope and accelerometer.
+ *
+ * @details
+ * This file implements a simplified Mahony filter to estimate orientation using gyroscope and
+ * accelerometer data. It uses a quaternion representation of attitude to avoid gimbal lock
+ * and ensure numerical stability.
+ *
+ * The Mahony filter operates by:
+ * 1. Estimating the direction of gravity using the current quaternion.
+ * 2. Comparing it to the gravity direction measured by the accelerometer.
+ * 3. Computing the error between these two directions using a cross-product.
+ * 4. Feeding this error through a PI (proportional-integral) controller.
+ * 5. Applying the resulting correction to the raw gyroscope measurements.
+ * 6. Integrating the corrected angular rate into the quaternion over time.
+ *
+ * It is lightweight and suitable for systems without a magnetometer, where heading drift
+ * is acceptable or can be corrected by other means.
+ *
+ * ## Basic Usage
+ *
+ * ```c
+ * quaternion_t attitude;
+ * float integratedErrors[NB_AXIS];
+ *
+ * // Set the quaternion to a unit orientation (no rotation) and clear the integral terms
+ * resetMahonyFilter(&attitude, integratedErrors);
+ *
+ * while (1) {
+ *     float accel[NB_AXIS], gyro[NB_AXIS];
+ *     readIMU(accel, gyro);  // User-provided sensor read
+ *
+ *     // Update both the orientation quaternion and the integral error terms
+ *     updateMahonyFilter(&attitude, integratedErrors, accel, gyro, dt);
+ * }
+ * ```
+ *
+ * ## References
+ * - Mahony, R., Hamel, T., & Pflimlin, J.-M. (2008). Nonlinear Complementary Filters on the Special
+ *   Orthogonal Group. *IEEE Transactions on Automatic Control*, 53(5), 1203–1218.
+ *   DOI: [10.1109/TAC.2008.923738](https://doi.org/10.1109/TAC.2008.923738)
+ *
+ * @author Gilles Henrard
+ * @date 11/07/2025
  */
 #include "sensorfusion.h"
 #include <math.h>
 #include <stdint.h>
 #include "memsBMI270.h"
-
-enum {
-    QUATER_ALIGNMENT = 16U,  ///< Memory alignment of the quaternion structure
-};
-
-/**
- * Structure defining a quaternion
- */
-typedef struct {
-    float q0;  ///< Scalar value
-    float q1;  ///< Value which multiplies the unit vector along the X axis
-    float q2;  ///< Value which multiplies the unit vector along the Y axis
-    float q3;  ///< Value which multiplies the unit vector along the Z axis
-} __attribute__((aligned(QUATER_ALIGNMENT))) quaternion_t;
 
 // utility functions
 static inline __attribute((always_inline)) float half(float number);
@@ -45,30 +70,34 @@ static const float INTEGRAL_GAIN     = 0.5F;    ///< Integral gain (KI) of the M
 static const float NO_INTEGRAL       = 0.001F;  ///< Value below which the integral gain is considered inexistant
 static const float CLOSE_TO_ZERO     = 1e-3F;   ///< Value used to compare floats to 0
 
-// global variables
-static quaternion_t currentAttit;               ///< Quaternion representing the current attitude (axis and angle)
-static float        integratedErrors[NB_AXIS];  ///< Integrated feedback errors
-
 /*************************************************************************************************/
 /*************************************************************************************************/
 
 /**
  * Reset the quaternion and integral values used by the Mahony filter
+ *
+ * @param[out] currentAttitude Current attitude quaternion
+ * @param[out] integratedErrors Array of current error integrated vector for each axis
  */
-void resetMahonyFilter(void) {
-    currentAttit             = (quaternion_t){.q0 = 1.0F, .q1 = 0.0F, .q2 = 0.0F, .q3 = 0.0F};
+void resetMahonyFilter(quaternion_t* currentAttitude, float integratedErrors[NB_AXIS]) {
+    *currentAttitude         = (quaternion_t){.q0 = 1.0F, .q1 = 0.0F, .q2 = 0.0F, .q3 = 0.0F};
     integratedErrors[X_AXIS] = integratedErrors[Y_AXIS] = integratedErrors[Z_AXIS] = 0.0F;
 }
 
 /**
  * Update the quaternion and integral values used by the Mahony filter with fresh ones
  *
+ * @warning accelerometer_G[] values are internally normalised and cannot therefore be reused as is after this function
+ *
+ * @param[out] currentAttitude   Current attitude quaternion
+ * @param[out] integratedErrors  Array of current error integrated vector for each axis
  * @param[in] accelerometer_G   Accelerometer measurements in [G] (m/s²)
  * @param[in] gyroscope_radps   Gyroscope measurements in [rad/s]
  * @param[in] dtPeriod_sec      Period between two filter updates in [s]
  */
 //NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
-void updateMahonyFilter(float accelerometer_G[], const float gyroscope_radps[], const float dtPeriod_sec) {
+void updateMahonyFilter(quaternion_t* currentAttitude, float integratedErrors[NB_AXIS], float accelerometer_G[NB_AXIS],
+                        const float gyroscope_radps[NB_AXIS], float dtPeriod_sec) {
     //normalise accelerometer vectors to unit length, to avoid drift
     float norm = getArrayNorm(accelerometer_G);
     if(norm < CLOSE_TO_ZERO) {
@@ -80,10 +109,12 @@ void updateMahonyFilter(float accelerometer_G[], const float gyroscope_radps[], 
 
     //estimate the current body frame gravity vectors from the current orientation quaternion
     float bodyEstimates[NB_AXIS];
-    bodyEstimates[X_AXIS] = twice((currentAttit.q1 * currentAttit.q3) - (currentAttit.q0 * currentAttit.q2));
-    bodyEstimates[Y_AXIS] = twice((currentAttit.q0 * currentAttit.q1) + (currentAttit.q2 * currentAttit.q3));
-    bodyEstimates[Z_AXIS] =
-        squared(currentAttit.q0) - squared(currentAttit.q1) - squared(currentAttit.q2) + squared(currentAttit.q3);
+    bodyEstimates[X_AXIS] =
+        twice((currentAttitude->q1 * currentAttitude->q3) - (currentAttitude->q0 * currentAttitude->q2));
+    bodyEstimates[Y_AXIS] =
+        twice((currentAttitude->q0 * currentAttitude->q1) + (currentAttitude->q2 * currentAttitude->q3));
+    bodyEstimates[Z_AXIS] = squared(currentAttitude->q0) - squared(currentAttitude->q1) - squared(currentAttitude->q2)
+                            + squared(currentAttitude->q3);
 
     //compute the error rotation vectors, which will be used to realign the estimations to the measured vectors
     //  (Only do it if no linear motion has been detected)
@@ -107,37 +138,41 @@ void updateMahonyFilter(float accelerometer_G[], const float gyroscope_radps[], 
         [Z_AXIS] = (gyroscope_radps[Z_AXIS] + (PROPORTIONAL_GAIN * errors[Z_AXIS]) + integratedErrors[Z_AXIS])};
 
     //integrate the corrected gyroscope data into the current attitude quaternion
-    integrateGyroMeasurements(&currentAttit, correctedGyro_radps, dtPeriod_sec);
+    integrateGyroMeasurements(currentAttitude, correctedGyro_radps, dtPeriod_sec);
 
     //normalise the current attitude quaternion to avoid drift
-    norm = getQuaternionNorm(&currentAttit);
+    norm = getQuaternionNorm(currentAttitude);
     if(norm < CLOSE_TO_ZERO) {
         return;
     }
-    currentAttit.q0 /= norm;
-    currentAttit.q1 /= norm;
-    currentAttit.q2 /= norm;
-    currentAttit.q3 /= norm;
+    currentAttitude->q0 /= norm;
+    currentAttitude->q1 /= norm;
+    currentAttitude->q2 /= norm;
+    currentAttitude->q3 /= norm;
 }
 
 /**
  * Get the current angle in [rad] along an axis
  * @note Yaw angle (around the Z axis) will always return 0, due to the absence of a magnetometer
  *
- * @param axis Axis along which getting the angle
+ * @param currentAttitude   Current attitude quaternion
+ * @param axis              Axis along which getting the angle
  * @return Angle in [rad]
  */
-float angleAlongAxis(axis_e axis) {
+float angleAlongAxis(const quaternion_t* currentAttitude, axis_e axis) {
     float rawSin  = 0.0F;
     float safeSin = 0.0F;
 
     switch(axis) {
         case X_AXIS:  //roll
-            return atan2f((twice((currentAttit.q0 * currentAttit.q1) + (currentAttit.q2 * currentAttit.q3))),
-                          1.0F - (twice((currentAttit.q1 * currentAttit.q1) + (currentAttit.q2 * currentAttit.q2))));
+            return atan2f(
+                (twice((currentAttitude->q0 * currentAttitude->q1) + (currentAttitude->q2 * currentAttitude->q3))),
+                1.0F
+                    - (twice((currentAttitude->q1 * currentAttitude->q1)
+                             + (currentAttitude->q2 * currentAttitude->q2))));
 
         case Y_AXIS:  //pitch
-            rawSin  = twice((currentAttit.q1 * currentAttit.q3) - (currentAttit.q0 * currentAttit.q2));
+            rawSin  = twice((currentAttitude->q1 * currentAttitude->q3) - (currentAttitude->q0 * currentAttitude->q2));
             safeSin = fmaxf(-1.0F, fminf(1.0F, rawSin));  //make sure to clamp the sin value between [-1, 1]
             return asinf(safeSin);
 
@@ -151,10 +186,11 @@ float angleAlongAxis(axis_e axis) {
 /**
  * Get the angle in [rad] along the current quaternion attitude axis
  *
+ * @param currentAttitude   Current attitude quaternion
  * @return Angle in [rad]
  */
-float getAttitudeAngle(void) {
-    return twice(acosf(fmaxf(-1.0F, fminf(1.0F, currentAttit.q0))));
+float getAttitudeAngle(const quaternion_t* currentAttitude) {
+    return twice(acosf(fmaxf(-1.0F, fminf(1.0F, currentAttitude->q0))));
 }
 
 /*************************************************************************************************/
