@@ -36,6 +36,8 @@ jobs:
         steps:
           - name: Checkout the repository
             uses: actions/checkout@v4
+            with:
+              lfs: false
           
           - name: Copy the KiCad configuration to the docker container
             run:  |
@@ -103,6 +105,8 @@ jobs:
       steps:
         - name: Checkout the repository
           uses: actions/checkout@v4
+          with:
+            lfs: false
 
         - name: Create the export directories
           run: |
