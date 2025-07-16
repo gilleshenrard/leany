@@ -17,6 +17,7 @@
 #include "portmacro.h"
 #include "projdefs.h"
 #include "queue.h"
+#include "sensorfusion.h"
 #include "stm32f1xx_hal_def.h"
 #include "task.h"
 
