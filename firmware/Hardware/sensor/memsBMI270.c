@@ -77,19 +77,21 @@ _Static_assert(((uint8_t)NB_POSITION_REGISTERS & (NB_POSITION_REGISTERS - 1U)) =
 typedef uint8_t BMI270register_t;  ///< type definition for BMI270 registers
 
 // Read/Write bit value
-static const BMI270register_t BMI_WRITE      = 0x00U;         ///< Address byte value for a write operation
-static const BMI270register_t BMI_READ       = 0x80U;         ///< Address byte value for a read operation
-static const float RADIANS_TO_DEGREES_TENTHS = 572.957795F;   ///< One radian in tenths of degrees (= 10 * (180°/PI))
-static const float DEGREES_TENTHS_TO_RADIANS = 0.001745329F;  ///< One tenth of degree in radians (= (180°/PI) / 10)
+static const BMI270register_t BMI_WRITE          = 0x00U;        ///< Address byte value for a write operation
+static const BMI270register_t BMI_READ           = 0x80U;        ///< Address byte value for a read operation
+static const float RADIANS_TO_DEGREES_TENTHS     = 572.957795F;  ///< One radian in tenths of degrees (= 10 * (180°/PI))
+static const float DEGREES_TENTHS_TO_RADIANS     = 0.001745329F;  ///< One tenth of degree in radians (= (180°/PI) / 10)
+const uint32_t     MAX_SENSORTIME_TICKS          = 0xFFFFFFU;  ///< The maximum tick value before it wraps around to 0
+const float        SENSORTIME_RESOLUTION_SECONDS = 0.0000390625F;  ///< How many seconds a tick lasts
 
 // Utility functions
-static errorCode_u checkSPICommunication(void);
-static errorCode_u checkConfigurationFile(void);
-static errorCode_u readTemperature(float* temperature_celsius);
-static errorCode_u runAccelerometerSelfTest(rawValues_u* valuesRead, uint8_t positiveSign);
-static errorCode_u runGyroscopeSelfTest(void);
-static float       getDT(const uint8_t registers[3]);
-static void        applyTemperatureDrift(float temperature_celcius, float accelerometer_G[3], float gyroscope_radps[3]);
+static errorCode_u     checkSPICommunication(void);
+static errorCode_u     checkConfigurationFile(void);
+static errorCode_u     readTemperature(float* temperature_celsius);
+static errorCode_u     runAccelerometerSelfTest(rawValues_u* valuesRead, uint8_t positiveSign);
+static errorCode_u     runGyroscopeSelfTest(void);
+static inline uint32_t toTicks(const uint8_t registers[3]);
+static void applyTemperatureDrift(float temperature_celcius, float accelerometer_G[3], float gyroscope_radps[3]);
 
 // State machine functions
 static void        taskBMI270(void* argument);
@@ -147,10 +149,14 @@ static const float REFERENCE_TEMPERATURE_CELSIUS = 23.0F;
 static volatile TaskHandle_t taskHandle    = NULL;  ///< handle of the FreeRTOS task
 static SemaphoreHandle_t     anglesMutex   = NULL;  ///< handle of the mutex used to protect angles measurements
 static BMI270function_e      state         = BMI270_STATE_STARTUP;  ///< State machine current state
-static uint8_t               resetOccurred = 1;     ///< Flag used to ensure config is written only once after reset
-static errorCode_u           result;                ///< Variable used to store error codes
-static quaternion_t          currentAttitude;       ///< Quaternion representing the current axis and angle
-static float            integratedErrors[NB_AXIS];  ///< Array holding the current integrated error vector for each axis
+static uint8_t               resetOccurred = 1;  ///< Flag used to ensure config is written only once after reset
+static errorCode_u           result;             ///< Variable used to store error codes
+static mahonycontext_t       filterContext = {
+          .KI = INTEGRAL_GAIN,
+          .KP = PROPORTIONAL_GAIN,
+          .dt = {.maxTick           = MAX_SENSORTIME_TICKS,
+                 .resolutionSeconds = SENSORTIME_RESOLUTION_SECONDS}
+};  ///< Current Mahony filter context
 extern const uint8_t    bmi270_config_file[];  ///< BMI270 config file provided by Bosch Sensortec, declared in bmi270.c
 static float            anglesAtZeroing_rad[NB_AXIS - 1] = {0, 0};  ///< Latest angles measured and filtered in [rad]
 static spi_t            spiDescriptor                    = {.handle                = SPI1,
@@ -158,7 +164,7 @@ static spi_t            spiDescriptor                    = {.handle             
                                                             .pin                   = BMI270_CS_Pin,
                                                             .highestRegisterNumber = BMI2_CMD_REG_ADDR,
                                                             .readMask              = BMI_READ,
-                                                            .writeMask             = BMI_WRITE};
+                                                            .writeMask             = BMI_WRITE};  ///< Descriptor of the SPI port used
 static volatile uint8_t taskNotifiable = 0;  ///< Flag used to avoid notifying the BMI270 task if it's not ready
 
 /****************************************************************************************************************/
@@ -290,7 +296,7 @@ static errorCode_u checkConfigurationFile(void) {
 /**
  * Read the BMI270 internal temperature
  * 
- * @param[out] latestValue_celsius Temperature in [°C] to update if the temperature read is valid
+ * @param[out] temperature_celsius Temperature in [°C] to update if the temperature read is valid
  * @retval 0 Success
  * @retval 1 Error while reading the registers
  */
@@ -405,7 +411,7 @@ int16_t getAngleDegreesTenths(axis_e axis) {
     if(xSemaphoreTake(anglesMutex, pdMS_TO_TICKS(SPI_TIMEOUT_MS)) == pdFALSE) {
         return 0;
     }
-    float currentAngle_rad = angleAlongAxis(&currentAttitude, axis);
+    float currentAngle_rad = angleAlongAxis(&filterContext, axis);
     xSemaphoreGive(anglesMutex);
 
     float total = (currentAngle_rad + anglesAtZeroing_rad[axis]);
@@ -422,7 +428,7 @@ uint8_t anglesChanged(void) {
     if(xSemaphoreTake(anglesMutex, pdMS_TO_TICKS(SPI_TIMEOUT_MS)) == pdFALSE) {
         return 0;
     }
-    const float currentAngle_rad = getAttitudeAngle(&currentAttitude);
+    const float currentAngle_rad = getAttitudeAngle(&filterContext);
     xSemaphoreGive(anglesMutex);
 
     //check if angle changed above minimum threshold (0.1° in any direction)
@@ -443,8 +449,8 @@ void bmi270ZeroDown(void) {
         return;
     }
 
-    anglesAtZeroing_rad[X_AXIS] = -angleAlongAxis(&currentAttitude, X_AXIS);
-    anglesAtZeroing_rad[Y_AXIS] = -angleAlongAxis(&currentAttitude, Y_AXIS);
+    anglesAtZeroing_rad[X_AXIS] = -angleAlongAxis(&filterContext, X_AXIS);
+    anglesAtZeroing_rad[Y_AXIS] = -angleAlongAxis(&filterContext, Y_AXIS);
 
     xSemaphoreGive(anglesMutex);
 }
@@ -464,25 +470,14 @@ void bmi270CancelZeroing(void) {
 }
 
 /**
- * Compute the elapsed time in [s] between now and the last call to getDT()
+ * Assemble sensor time registers into tick value
  *
- * @param registers Registers holding the current sensor time value
- * @return time delta in [s]
+ * @param registers Sensor time registers
+ * @return Tick value
  */
-static float getDT(const uint8_t registers[3]) {
-    const uint32_t  MAX_SENSORTIME_TICKS          = 0xFFFFFFU;  ///< The maximum tick value before it wraps around to 0
-    const float     SENSORTIME_RESOLUTION_SECONDS = 0.0000390625F;  ///< How many seconds a tick lasts
-    static uint32_t previousTime_ticks            = 0;
-
-    //assemble the time bytes to get the 24 bits value
-    const uint32_t currentTime_ticks = (registers[0] | (uint32_t)(registers[1U] << 8U)  //NOLINT (*-magic-numbers)
-                                        | (uint32_t)(registers[2] << 16U));             //NOLINT (*-magic-numbers)
-
-    //compute the time delta and avoid issues with the overflow after 0xFFFFFF ticks
-    const uint32_t delta_ticks = (currentTime_ticks - previousTime_ticks) & MAX_SENSORTIME_TICKS;
-
-    previousTime_ticks = currentTime_ticks;
-    return ((float)delta_ticks * SENSORTIME_RESOLUTION_SECONDS);
+static inline uint32_t toTicks(const uint8_t registers[3]) {
+    return (registers[0] | (uint32_t)(registers[1U] << 8U)  //NOLINT (*-magic-numbers)
+            | (uint32_t)(registers[2] << 16U));             //NOLINT (*-magic-numbers)
 }
 
 /**
@@ -844,7 +839,7 @@ static errorCode_u stateConfiguring(void) {
         return pushErrorCode(result, BMI270_STATE_CONFIGURING, 1);
     }
 
-    resetMahonyFilter(&currentAttitude, integratedErrors);
+    resetMahonyFilter(&filterContext);
     taskNotifiable = 1;
     state          = BMI270_STATE_MEASURING;
     return ERR_SUCCESS;
@@ -895,13 +890,13 @@ static errorCode_u stateMeasuring(void) {
     //take temperature drift into account with sensitivity
     applyTemperatureDrift(temperature_celsius, accelerometer_G, gyroscope_radps);
 
-    //use the BMI270 internal sensor time to compute the exact dt since last measured
+    //update the current sensor time ticks
     const uint8_t NB_MEASURE_REGISTERS = (uint8_t)NB_AXIS << 2U;
-    const float   dtPeriod_sec         = getDT(&LSBvalues.registers8bits[NB_MEASURE_REGISTERS]);
+    filterContext.dt.currentTick       = toTicks(&LSBvalues.registers8bits[NB_MEASURE_REGISTERS]);
 
     //apply sensor fusion to the measurements
     if(xSemaphoreTake(anglesMutex, pdMS_TO_TICKS(SPI_TIMEOUT_MS)) == pdTRUE) {
-        updateMahonyFilter(&currentAttitude, integratedErrors, accelerometer_G, gyroscope_radps, dtPeriod_sec);
+        updateMahonyFilter(&filterContext, accelerometer_G, gyroscope_radps);
         xSemaphoreGive(anglesMutex);
     }
 

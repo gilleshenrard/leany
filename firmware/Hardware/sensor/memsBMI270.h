@@ -1,16 +1,7 @@
 #ifndef HARDWARE_SENSOR_BMI270
 #define HARDWARE_SENSOR_BMI270
 #include <main.h>
-
-/**
- * @brief Enumeration of the axis of which to get measurements
- */
-typedef enum {
-    X_AXIS = 0,
-    Y_AXIS,
-    Z_AXIS,
-    NB_AXIS
-} axis_e;
+#include "sensorfusion.h"
 
 void    bmi270InterruptTriggered(uint8_t interruptPin);
 void    createBMI270Task(void);
