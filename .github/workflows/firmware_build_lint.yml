@@ -182,12 +182,12 @@ jobs:
         continue-on-error: true
         run: doxygen firmware/resources/Doxyfile
 
-      - name: Check format correctness
+      - name: Check Clang-format
         id: clang-format
         continue-on-error: true
-        run: |
-          find firmware/Hardware -name '*.c' -o -name '*.h' | xargs clang-format --dry-run --Werror
-          find firmware/UI -name '*.c' -o -name '*.h' | xargs clang-format --dry-run --Werror
+        run: >
+          find firmware/Hardware firmware/UI -name '*.c' -o -name '*.h'
+          | xargs clang-format --style=file --dry-run --Werror
 
       - name: Final result
         run: |
