@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
+#
+# SPDX-License-Identifier: MIT
+
 #clang-tidy examples command-line :
 #    python.exe C:\msys64\ucrt64\bin\run-clang-tidy -quiet -p .\build\Debug\ -extra-arg=--sysroot=C:/msys64/ucrt64/arm-none-eabi -extra-arg=--target=armv7m-none-eabi -extra-arg=-mthumb -header-filter=.* "(Hardware|UI)"
 ---
