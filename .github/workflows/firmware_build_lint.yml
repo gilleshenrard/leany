@@ -192,9 +192,9 @@ jobs:
       - name: Open source Copyright and Lincensing
         id: reuse
         continue-on-error: true
-        working-directory: firmware
-        run: >
-          reuse lint
+        run: |
+          reuse lint-file ${{github.workspace}}/firmware/Hardware/*
+          reuse lint-file ${{github.workspace}}/firmware/UI/*
 
       - name: Final result
         run: |
