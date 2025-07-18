@@ -1,0 +1,46 @@
+TERMS AND CONDITIONS
+LEGAL INFORMATION
+https://www.ultralibrarian.com/legal
+
+COPYRIGHT AND TRADEMARK
+
+The software and any content on the Website are proprietary property of EMA or third parties from whom EMA has obtained rights and
+are protected by the United States copyright laws and international treaty provisions. You acknowledge that EMA or any third parties
+from whom EMA has obtained rights are the sole and exclusive owners of all right, title and interest, including all trademarks,
+copyrights, patents, trade names, trade secrets and other intellectual property rights.
+
+Warranty
+THE CONTENT PROVIDED ON THE WEBSITE IS PROVIDED ON AN “AS IS” BASIS.  WE DO NOT WARRANT THAT THE FUNCTION PERFORMED BY THIS OR ANY
+SITE WILL BE SECURED, WITHOUT INTERRUPTIONS OR DELAYS OR ERROR FREE.  WE MAKE NO WARRANTY OR MAKE ANY REPRESENTATIONS CONCERNING THE
+ACCURACY OR RELIABILITY OF THE USE OF THE MATERIALS ON THE WEBSITE OR ANY SITES LINKED TO THE WEBSITE.  WE DISCLAIM ALL WARRANTIES,
+EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE IMPLIED WARRANTIES OF MERCHANTABILITY, NON-INFRINGEMENT OF THIRD PARTY
+PROPRIETARY RIGHTS, AND FITNESS FOR A PARTICULAR PURPOSE, RELATED TO THE WEBSITE, THE SERVICES, THE SOFTWARE, AND THE CONTENT.
+
+Limitation of Liability
+YOU ASSUME ALL RESPONSIBILITY AND RISK FOR THE USE OF THIS WEBSITE, CONTENT, AND THE INTERNET GENERALLY.  ALTHOUGH WE BELIEVE THE
+CONTENT ON THE WEBSITE TO BE ACCURATE, COMPLETE, AND CURRENT, WE MAKE NO WARRANTY AS TO THE ACCURACY OR COMPLETENESS OR CURRENCY OF
+THE CONTENT.  IT IS YOUR RESPONSIBILITY TO VERIFY ANY INFORMATION BEFORE RELYING ON IT.  THE CONTENT OF THIS WEBSITE MAY INCLUDE
+TECHNICAL INACCURACIES OR TYPOGRAPHICAL ERRORS.  WE MAY MAKE CHANGES TO THE CONTENT OF THE WEBSITE AT ANY TIME AND WITHOUT NOTICE.
+
+Severability
+If any of these provisions herein is found to be unenforceable or invalid by a Court of competent jurisdiction, such unenforceability
+or invalidity shall not render the Terms invalid or unenforceable as a whole, and the provision will be deleted without affecting the
+remaining provisions herein.
+
+Entire Agreement
+The Terms, including any legal notices and disclaimers contained on the Website constitute the entire agreement between you and EMA
+in relation to your use of the Website and supersede all prior agreements and understandings with respect to the same.
+
+Changes to the Terms and Conditions
+The current Terms when using the Website apply.  Registered users receive notifications about changes by email.  Users may download
+and print the current Terms on their own computer system.
+
+Applicable Law and Place of Jurisdiction
+The laws of the State of New York, USA apply.
+
+Copyright
+2017 EMA Design Automation, Inc.  All Rights Reserved.
+
+Trademark
+The EMA Design Automation logo and Ultra Librarian are registered trademarks, and the Ultra Librarian logo is a trademark of EMA
+Design Automation, Inc.  All other trademarks on the Website are the property of their respective owners.

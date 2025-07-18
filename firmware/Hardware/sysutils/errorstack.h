@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
 #ifndef INC_ERRORS_ERRORS_H_
 #define INC_ERRORS_ERRORS_H_
 #include <stdint.h>
