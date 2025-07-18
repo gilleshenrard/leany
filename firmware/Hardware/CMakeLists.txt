@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
+#
+# SPDX-License-Identifier: MIT
+
 include_directories(${CMAKE_SOURCE_DIR}/cmake/bosch-sensortec)
 
 #make sure STM32CubeMX library knows about sysutils/ (to use it in interrupts, ...)

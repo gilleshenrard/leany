@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
 #include "ST7735_initialisation.h"
 #include <stddef.h>
 #include "ST7735_registers.h"
