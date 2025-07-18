@@ -2,12 +2,12 @@ version = 1
 
 # A simple glob of all files in resources/img/
 [[annotations]]
-path = "Core/*"
+path = "firmware/Core/*"
 SPDX-FileCopyrightText = "2024 STMicroelectronics"
 #SPDX-License-Identifier = "CC0-1.0"
 
 # All files in resources/vid/, with multiple copyright holders
 [[annotations]]
-path = "Drivers/STM32F1xx_HAL_Driver/*"
+path = "firmware/Drivers/STM32F1xx_HAL_Driver/*"
 SPDX-FileCopyrightText = "2019 STMicroelectronics"
 SPDX-License-Identifier = "BSD-3-Clause"
