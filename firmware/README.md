@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
+
+SPDX-License-Identifier: MIT
+-->
+
 # Leany Firmware
 
 Firmware for **Leany**, an inclinometer project based on the **STM32F103 (ARM Cortex-M3)** microcontroller.

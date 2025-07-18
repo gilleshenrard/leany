@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
+#
+# SPDX-License-Identifier: MIT
+
 [submodule "firmware/Middlewares/Third_Party/BMI270_SensorAPI"]
 	path = firmware/Middlewares/Third_Party/BMI270_SensorAPI
 	url = https://github.com/boschsensortec/BMI270_SensorAPI.git

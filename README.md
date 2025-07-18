@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
+
+SPDX-License-Identifier: MIT
+-->
+
 # Leany - An open-Source Inclinometer
 
 Leany is a fully open-source, production-ready inclinometer based on an ARM Cortex-M3 32-bits microcontroller.
