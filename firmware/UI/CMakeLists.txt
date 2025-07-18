@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
+#
+# SPDX-License-Identifier: MIT
+
 include_directories(${CMAKE_SOURCE_DIR}/Hardware)
 
 add_library(UI STATIC

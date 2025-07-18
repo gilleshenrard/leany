@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
 #ifndef HARDWARE_SYSUTILS_DEBUGPIN
 #define HARDWARE_SYSUTILS_DEBUGPIN
 #include "main.h"

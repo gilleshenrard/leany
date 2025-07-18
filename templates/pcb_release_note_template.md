@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
+
+SPDX-License-Identifier: MIT
+-->
+
 Product Name: `Leany`
 
 PCB Version: `rev0.3`

@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
 #ifndef HARDWARE_SENSOR_BMI270
 #define HARDWARE_SENSOR_BMI270
 #include <main.h>

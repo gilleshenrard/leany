@@ -1,5 +1,9 @@
 #! /bin/sh
 
+# SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
+#
+# SPDX-License-Identifier: MIT
+
 # Download the ARM toolchain
 echo " "
 echo "Retrieve the latest version of the ARM toolchain"

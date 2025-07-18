@@ -1,0 +1,46 @@
+GrabCAD® Website Terms of Use
+https://grabcad.com/terms
+
+6. USER SUBMISSIONS
+
+If and when you submit, post, upload or otherwise make available Content (such as CAD files) on or through the Site for public
+viewing ("User Submissions") you hereby grant:
+    6.1. Stratasys and all Stratasys Affiliates a worldwide, non-exclusive, royalty-free, fully-paid, perpetual, irrevocable,
+         sublicensable (through multiple tiers of sublicensees), assignable, and transferable license to use, reproduce, copy,
+         modify, adapt, arrange, translate, create derivative works of, and publicly display, perform and communicate such User
+         Submissions, for the sole purpose of making available, improving, and/or promoting the Site and/or Site Materials
+         (the "User Submission License"); 
+    and
+    6.2. each user of the Site a worldwide, non-exclusive, royalty-free, fully-paid, perpetual, irrevocable, non-sublicensable,
+         non-assignable, and non-transferable license to use, reproduce, copy, modify, adapt, arrange, translate, and create
+         derivative works of such User Submissions for such user's own benefit and non-commercial, internal use (the "Cross License").
+
+You hereby represent and warrant that: (a) your User Submissions will not infringe, misappropriate or violate any third party's
+Intellectual Property Rights, moral rights, privacy or other personal right, or any Law; and (b) you have, and will maintain during
+and after any termination of this Agreement, all licenses, consents, permissions and approvals required to grant the User Submission
+License and the Cross License. Furthermore, you hereby irrevocably and unconditionally waive (and will caused to be waived), and
+covenant never (whether during or after the Term) to assert against Stratasys, Stratasys Affiliates, and/or any user of the Site,
+any moral, privacy or other personal right in or to your User Submissions. The User Submission License and the Cross License shall
+survive any termination of this Agreement. User Submissions made publicly available will not be deemed (or treated as) confidential
+or sensitive to you.
+You are solely responsible and liable for your User Submissions. Stratasys has no obligation to accept, display, review, or maintain
+any of your User Submissions, or enforce the Cross License or any of your Intellectual Property Rights in and to User Submissions.
+Stratasys may, for any reason and at any time, and without notice to you, edit, replace and/or delete your User Submissions, such as,
+but not limited to, if Stratasys: (a) determines that you are in breach of any provision of this Agreement or have violated (or are
+suspected by Stratasys of violating) any applicable Law; and/or (b) deems it helpful or reasonably necessary to comply with any
+applicable Law, legal process, or governmental request, to enforce this Agreement (including investigations of potential breaches
+thereof), detect, prevent, or otherwise address fraud or security issues, or protect against harm to the rights, property or safety
+of Stratasys, its users, yourself or the public.
+It is Stratasys' policy to respect the legitimate rights of copyright owners, and Stratasys will respond to clear notices of alleged
+copyright infringement in accordance with its then-current Intellectual Property Policy.
+
+
+13. OWNERSHIP
+
+You hereby acknowledge that the Site and Site Materials are or may be protected by Laws, treaties, and conventions governing
+Intellectual Property. Any rights not expressly granted herein are hereby reserved by Stratasys and its licensors and suppliers.
+Except for your User Submissions, Stratasys and/or its licensors and suppliers are the sole and exclusive owners of all Intellectual
+Property Rights in and to the Site and Site Materials. Marks displayed on the Site (such as, but not limited to, GrabCAD, GrabCAD
+Community, GrabCAD Workbench, and GrabCAD Print) are the Intellectual Property Rights of Stratasys and/or its licensors and suppliers.
+For the avoidance of doubt, and except for the User Submission License and Cross License, you retain ownership of all Intellectual
+Property Rights in and to your User Submissions.
