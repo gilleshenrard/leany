@@ -1,7 +1,14 @@
+/*
+ * SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
 /**
  * @file memsBMI270.c
- * @author Gilles Henrard
  * @brief Implement the behavior of the BMI270 MEMS
+ *
+ * @author Gilles Henrard
  * @date 12/06/2025
  *
  * @details Datasheet : https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bmi270-ds000.pdf 

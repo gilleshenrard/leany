@@ -2,5 +2,5 @@
 #
 # SPDX-License-Identifier: MIT
 
-CompileFlags:
-    Remove: -fanalyzer
+*.step filter=lfs diff=lfs merge=lfs -text
+*.stp filter=lfs diff=lfs merge=lfs -text
