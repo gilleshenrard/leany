@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
+#
+# SPDX-License-Identifier: MIT
+
 # Retrieve the reduced hash code of the latest git commit
 execute_process(
     COMMAND git log -1 --format=%h
