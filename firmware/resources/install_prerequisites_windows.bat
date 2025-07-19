@@ -1,3 +1,7 @@
+REM SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
+REM
+REM SPDX-License-Identifier: MIT
+
 @echo off
 setlocal enabledelayedexpansion
 

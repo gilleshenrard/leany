@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
 /**
  * @file sensorfusion.c
  * @brief Mahony filter implementation for 6DoF attitude estimation using gyroscope and accelerometer.
@@ -40,8 +46,7 @@
  *   Orthogonal Group. *IEEE Transactions on Automatic Control*, 53(5), 1203–1218.
  *   DOI: [10.1109/TAC.2008.923738](https://doi.org/10.1109/TAC.2008.923738)
  *
- * SPDX-License-Identifier: MIT
- * SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
+ * @author Gilles Henrard
  * @date 17/07/2025
  */
 #include "sensorfusion.h"

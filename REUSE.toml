@@ -8,6 +8,7 @@ path = [
     "firmware/STM32F103**",
     "firmware/startup**",
     "firmware/cmake/stm32cubemx/CMakeLists.txt",
+    "firmware/Leany.ioc",
 ]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2016-2025 STMicroelectronics"
