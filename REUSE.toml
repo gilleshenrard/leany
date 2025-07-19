@@ -5,6 +5,7 @@ version = 1
 path = [
     "firmware/Core/**",
     "firmware/Drivers/STM32F1xx_HAL_Driver/**",
+    "firmware/Drivers/CMSIS/Device/ST/STM32F1xx/Include/**",
     "firmware/STM32F103**",
     "firmware/startup**",
     "firmware/cmake/stm32cubemx/CMakeLists.txt",
@@ -26,6 +27,13 @@ SPDX-License-Identifier = "MIT"
 path = "firmware/Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/**"
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2016 STMicroelectronics"
+SPDX-License-Identifier = "Apache-2.0"
+
+# CMSIS files
+[[annotations]]
+path = "firmware/Drivers/CMSIS/Include/cmsis_iccarm.h"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2017-2018 IAR Systems"
 SPDX-License-Identifier = "MIT"
 
 # PCB files are CERN Open Hardware Permissive licensed
