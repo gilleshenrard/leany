@@ -1,5 +1,4 @@
 /* USER CODE BEGIN Header */
-// clang-format off
 /**
   ******************************************************************************
   * @file    stm32f1xx_it.c
@@ -23,9 +22,9 @@
 #include "stm32f1xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "stm32f1xx_ll_dma.h"
 #include "halspi.h"
-#include "memsBMI270.h"
+#include "mems_bmi270.h"
+#include "stm32f1xx_ll_dma.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
