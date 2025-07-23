@@ -4,9 +4,9 @@
  * SPDX-License-Identifier: MIT
  */
 
-#ifndef INC_SOFTWARE_VERSION_H_
-#define INC_SOFTWARE_VERSION_H_
+#ifndef INC_SOFTWARE_VERSION_H
+#define INC_SOFTWARE_VERSION_H
 
-extern const char GIT_COMMIT_HASH[];
+extern const char kGitCommitHash[];
 
 #endif
