@@ -109,7 +109,7 @@ ErrorCode createErrorCode(uint8_t function_id, uint8_t new_error, ErrorLevel lev
  */
 //NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 ErrorCode createErrorCodeLayer1(uint8_t function_id, uint8_t new_error, uint8_t layer1_code, ErrorLevel level) {
-    const uint8_t LAYER1CODE_OFFSET = 8U;  ///< Number of bits to shift a code to reach the layer 1
+    const uint8_t layer1_code_offset = 8U;  ///< Number of bits to shift a code to reach the layer 1
     ErrorCode code = kSuccessCode;
 
     //if code means success, return success
@@ -121,7 +121,7 @@ ErrorCode createErrorCodeLayer1(uint8_t function_id, uint8_t new_error, uint8_t 
     code.dword |= ((uint32_t)level << kLevelOffset);
     code.dword |= ((uint32_t)(function_id & kFunctionIDclamp) << kFunctionIDoffset);
     code.dword |= ((uint32_t)(new_error & kErrorCodeClamp) << kLayer0codeOffset);
-    code.dword |= ((uint32_t)(layer1_code & kErrorCodeClamp) << LAYER1CODE_OFFSET);
+    code.dword |= ((uint32_t)(layer1_code & kErrorCodeClamp) << layer1_code_offset);
 
     return (code);
 }
@@ -137,9 +137,9 @@ ErrorCode createErrorCodeLayer1(uint8_t function_id, uint8_t new_error, uint8_t 
  */
 //NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 ErrorCode pushErrorCode(ErrorCode old_code, uint8_t function_id, uint8_t new_error) {
-    const uint32_t CODESTACK_MASK = 0xFFFF0000U;   ///< Value used to erase the codes stack
-    const uint32_t FUNCTIONID_MASK = 0xFF80FFFFU;  ///< Value used to erase the function ID
-    uint32_t new_error_stack = (old_code.dword & ~CODESTACK_MASK);
+    const uint32_t code_stack_mask = 0xFFFF0000U;   ///< Value used to erase the codes stack
+    const uint32_t function_id_mask = 0xFF80FFFFU;  ///< Value used to erase the function ID
+    uint32_t new_error_stack = (old_code.dword & ~code_stack_mask);
 
     //if code means success, return success
     if (new_error == kSuccessValue) {
@@ -147,7 +147,7 @@ ErrorCode pushErrorCode(ErrorCode old_code, uint8_t function_id, uint8_t new_err
     }
 
     //erase and replace the function ID
-    old_code.dword &= FUNCTIONID_MASK;
+    old_code.dword &= function_id_mask;
     old_code.dword |= ((uint32_t)(function_id & kFunctionIDclamp) << kFunctionIDoffset);
 
     //shift the code stack and push a new code
@@ -156,7 +156,7 @@ ErrorCode pushErrorCode(ErrorCode old_code, uint8_t function_id, uint8_t new_err
     new_error_stack |= ((uint32_t)(new_error & kErrorCodeClamp) << kLayer0codeOffset);
 
     //erase the codes stack and replace it with the new one
-    old_code.dword &= CODESTACK_MASK;
+    old_code.dword &= code_stack_mask;
     old_code.dword |= new_error_stack;
 
     //return the final code

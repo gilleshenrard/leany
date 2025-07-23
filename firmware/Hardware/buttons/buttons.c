@@ -270,11 +270,11 @@ static void stateReleased(ButtonType button) {
         return;
     }
 
-    const uint32_t currentTick = HAL_GetTick();
+    const uint32_t current_tick = HAL_GetTick();
 
     //if button released, restart debouncing timer
     if (LL_GPIO_IsInputPinSet(buttons[button].port, buttons[button].pin)) {
-        buttons_timers[button].debouncing_ms = currentTick;
+        buttons_timers[button].debouncing_ms = current_tick;
     }
 
     //if button not pressed for long enough, exit
@@ -284,8 +284,8 @@ static void stateReleased(ButtonType button) {
     }
 
     //set the timer during which rising edge can be read, and get to pressed state
-    buttons_timers[button].rising_edge_ms = currentTick;
-    buttons_timers[button].holding_ms = currentTick;
+    buttons_timers[button].rising_edge_ms = current_tick;
+    buttons_timers[button].holding_ms = current_tick;
     buttons[button].state = kButtonPressed;
 
     xSemaphoreGive(buttons[button].mutex);

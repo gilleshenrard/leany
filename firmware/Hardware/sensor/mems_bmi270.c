@@ -9,7 +9,7 @@
  * @brief Implement the behavior of the BMI270 MEMS
  *
  * @author Gilles Henrard
- * @date 25/07/2025
+ * @date 26/07/2025
  *
  * @details Datasheet : https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bmi270-ds000.pdf 
  */
@@ -48,6 +48,7 @@ enum {
     kNBpositionRegisters = 16U,    ///< Number of registers holding Accelerometer and Gyroscope data
     kNBTemperatureRegisters = 2U,  ///< Number of registers holding Temperature data
     kTemperatureRefreshMS = 10U,   ///< Number of milliseconds between temperature value refreshes
+    kConfigCheckAttempts = 3U,     ///< Maximum number of attempts to re-read a correct config file
 };
 
 /**
@@ -66,8 +67,9 @@ typedef enum {
     kBMI270stateMeasuring = 10,      ///< stateMeasuring() : State in which measurements are received from the BMI270
     kBMI270readTemperature = 11,     ///< readTemperature() : Function reading the BMI270 internal temp. registers
     kBMI270stateSelfTestAccel = 12,  ///< stateSelfTestingAccelerometer() : State in which the chip self-tests the acc.
-    kBMI270stateSelfTestGyto = 13,   ///< stateSelfTestingGyro() : State in which the BMI270 self-tests the gyroscope
+    kBMI270stateSelfTestGyro = 13,   ///< stateSelfTestingGyro() : State in which the BMI270 self-tests the gyroscope
     kBMI270runAccelSelfTest = 14,    ///< runAccelerometerSelfTest() : Run the self-test command on the BMI270
+    kBMI270configureRegisters = 15,  ///< configureRegisters() : Write an array of register number/value pairs
 } FunctionCode;
 
 /**
@@ -95,12 +97,14 @@ const float kSensorTimeResolutionSeconds = 0.0000390625F;   ///< How many second
 
 // Utility functions
 static ErrorCode checkSPICommunication(void);
+static ErrorCode writeConfigurationFile(void);
 static ErrorCode checkConfigurationFile(void);
 static ErrorCode readTemperature(float* temperature_celsius);
 static ErrorCode runAccelerometerSelfTest(RawValues* values_read, uint8_t positive_sign);
 static ErrorCode runGyroscopeSelfTest(void);
 static inline uint32_t toTicks(const uint8_t registers[3]);
 static void applyTemperatureDrift(float temperature_celcius, float accelerometer_g[3], float gyroscope_radps[3]);
+static ErrorCode configureRegisters(const BMI270register registers[][2], uint8_t nb_registers);
 
 // State machine functions
 static void taskBMI270(void* argument);
@@ -260,6 +264,32 @@ static ErrorCode checkSPICommunication(void) {
 }
 
 /**
+ * Write the configuration file to the BMI270 and check it is correct
+ *
+ * @retval 0 Success
+ * @retval 1 Error while writing the config file
+ * @retval 2 The Config file was not written correctly
+ */
+static ErrorCode writeConfigurationFile(void) {
+    //Write the config file provided by Bosch Sensortec
+    result = writeRegisters(&spi_descriptor, BMI2_INIT_DATA_ADDR, bmi270_config_file, kConfigFileSize);
+    if (isError(result)) {
+        return pushErrorCode(result, kBMI270stateInitialising, 1);
+    }
+
+    //re-read the configuration file written to make sure it is correct (max. 3 attempts)
+    uint8_t attempts = kConfigCheckAttempts;
+    do {
+        result = checkConfigurationFile();
+    } while ((--attempts) && isError(result));
+    if (isError(result)) {
+        return pushErrorCode(result, kBMI270stateInitialising, 2);
+    }
+
+    return result;
+}
+
+/**
  * Read the configuration file stored in the BMI270 and make sure it corresponds to the one provided by Bosch
  * 
  * @retval 0 Success
@@ -267,7 +297,7 @@ static ErrorCode checkSPICommunication(void) {
  * @retval 2 Data difference between configuration files
  */
 static ErrorCode checkConfigurationFile(void) {
-    const uint8_t SPI_RX_FILLER = 0xFFU;  ///< Value to send as a filler while receiving multiple bytes
+    const uint8_t spi_rx_filler = 0xFFU;  ///< Value to send as a filler while receiving multiple bytes
 
     //set timeout timer and enable CS
     uint32_t spi_start_tick = HAL_GetTick();
@@ -275,13 +305,13 @@ static ErrorCode checkConfigurationFile(void) {
 
     //send the config data read request and receive a dummy byte
     (void)receiveSPIbyte(&spi_descriptor, BMI2_INIT_DATA_ADDR, spi_start_tick);
-    (void)receiveSPIbyte(&spi_descriptor, SPI_RX_FILLER, spi_start_tick);
+    (void)receiveSPIbyte(&spi_descriptor, spi_rx_filler, spi_start_tick);
 
     //receive the bytes to read
     uint8_t failure = 0;
     uint16_t byte_index = 0;
     do {
-        BMI270register value = receiveSPIbyte(&spi_descriptor, SPI_RX_FILLER, spi_start_tick);
+        BMI270register value = receiveSPIbyte(&spi_descriptor, spi_rx_filler, spi_start_tick);
         failure = (value != bmi270_config_file[byte_index]);
         byte_index++;
     } while (!failure && (byte_index < kConfigFileSize) && !timeout(spi_start_tick, kSPItimeoutMS));
@@ -323,14 +353,14 @@ static ErrorCode readTemperature(float* temperature_celsius) {
     }
 
     //check if the temperature LSB read is valid
-    const int16_t INVALID_TEMPERATURE_LSB = (int16_t)0x8000;
-    if (read_buffer == INVALID_TEMPERATURE_LSB) {
+    const int16_t invalid_temperature_lsb = (int16_t)0x8000;
+    if (read_buffer == invalid_temperature_lsb) {
         return kSuccessCode;
     }
 
     //transform temperature LSB to °C
-    const float KELVIN_PER_LSB = 0.001953125F;
-    *temperature_celsius = kReferenceTemperatureCelsius + ((float)read_buffer * KELVIN_PER_LSB);
+    const float kelvin_per_lsb = 0.001953125F;
+    *temperature_celsius = kReferenceTemperatureCelsius + ((float)read_buffer * kelvin_per_lsb);
 
     return kSuccessCode;
 }
@@ -382,7 +412,7 @@ static ErrorCode runGyroscopeSelfTest(void) {
     value = BMI2_G_TRIGGER_CMD;
     result = writeRegisters(&spi_descriptor, BMI2_CMD_REG_ADDR, &value, 1);
     if (isError(result)) {
-        return pushErrorCode(result, kBMI270stateSelfTestGyto, 1);  // NOLINT(*-magic-numbers)
+        return pushErrorCode(result, kBMI270stateSelfTestGyro, 1);  // NOLINT(*-magic-numbers)
     }
 
     //wait for the self-test done flag
@@ -393,22 +423,22 @@ static ErrorCode runGyroscopeSelfTest(void) {
              ((value & BMI2_ACC_SELF_TEST_DONE_MASK) != BMI2_ACC_SELF_TEST_DONE_MASK));
 
     if (isError(result)) {
-        return pushErrorCode(result, kBMI270stateSelfTestGyto, 2);  // NOLINT(*-magic-numbers)
+        return pushErrorCode(result, kBMI270stateSelfTestGyro, 2);  // NOLINT(*-magic-numbers)
     }
 
     //check if all axis are flagged as ok
-    const BMI270register GYR_GAIN_STATUS_ADDR = 0x38;
-    const BMI270register allGyroscopeOK =
+    const BMI270register gyro_gain_status_registernumber = 0x38;
+    const BMI270register all_gyroscope_ok =
         (BMI2_ACC_X_OK_MASK | BMI2_ACC_Y_OK_MASK | BMI2_ACC_Z_OK_MASK | BMI2_ACC_SELF_TEST_DONE_MASK);
-    if ((value & allGyroscopeOK) != allGyroscopeOK) {
+    if ((value & all_gyroscope_ok) != all_gyroscope_ok) {
         BMI270register trigger_status = 0;
-        result = readRegisters(&spi_descriptor, GYR_GAIN_STATUS_ADDR, &trigger_status, 1);
+        result = readRegisters(&spi_descriptor, gyro_gain_status_registernumber, &trigger_status, 1);
         if (isError(result)) {
-            return pushErrorCode(result, kBMI270stateSelfTestGyto, 3);  // NOLINT(*-magic-numbers)
+            return pushErrorCode(result, kBMI270stateSelfTestGyro, 3);  // NOLINT(*-magic-numbers)
         }
         state = kBMI270stateError;
-        result = createErrorCodeLayer1(kBMI270stateSelfTestGyto, value, trigger_status, kErrorCritical);
-        return pushErrorCode(result, kBMI270stateSelfTestGyto, 4);  // NOLINT(*-magic-numbers)
+        result = createErrorCodeLayer1(kBMI270stateSelfTestGyro, value, trigger_status, kErrorCritical);
+        return pushErrorCode(result, kBMI270stateSelfTestGyro, 4);  // NOLINT(*-magic-numbers)
     }
 
     return kSuccessCode;
@@ -441,14 +471,14 @@ uint8_t anglesChanged(void) {
     if (xSemaphoreTake(angles_mutex, pdMS_TO_TICKS(kSPItimeoutMS)) == pdFALSE) {
         return 0;
     }
-    const float currentAngle_rad = getAttitudeAngle(&filter_context);
+    const float current_angle_rad = getAttitudeAngle(&filter_context);
     xSemaphoreGive(angles_mutex);
 
     //check if angle changed above minimum threshold (0.1° in any direction)
     static float previous_angle_rad = 0.0F;
-    uint8_t changed = (fabsf(previous_angle_rad - currentAngle_rad) > kDegreesTenthsToRadians);
+    uint8_t changed = (fabsf(previous_angle_rad - current_angle_rad) > kDegreesTenthsToRadians);
     if (changed) {
-        previous_angle_rad = currentAngle_rad;
+        previous_angle_rad = current_angle_rad;
     }
 
     return (changed);
@@ -503,13 +533,33 @@ static inline uint32_t toTicks(const uint8_t registers[3]) {
 //NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 static void applyTemperatureDrift(const float temperature_celcius, float accelerometer_g[3], float gyroscope_radps[3]) {
     const float delta_celsius = temperature_celcius - kReferenceTemperatureCelsius;
-    const float accelDrift_percent = (delta_celsius * kAccelTemperatureDriftPercentPerKelvin);
-    const float gyroDrift_percent = (delta_celsius * kGyroTemperatureDriftPercentPerKelvin);
+    const float accel_drift_percent = (delta_celsius * kAccelTemperatureDriftPercentPerKelvin);
+    const float gyro_drift_percent = (delta_celsius * kGyroTemperatureDriftPercentPerKelvin);
 
     for (uint8_t axis = 0; axis < (uint8_t)kNBaxis; axis++) {
-        accelerometer_g[axis] += (accelDrift_percent * accelerometer_g[axis]);
-        gyroscope_radps[axis] += (gyroDrift_percent * gyroscope_radps[axis]);
+        accelerometer_g[axis] += (accel_drift_percent * accelerometer_g[axis]);
+        gyroscope_radps[axis] += (gyro_drift_percent * gyroscope_radps[axis]);
     }
+}
+
+/**
+ * Write an array of register number/value pairs in the BMI270 
+ *
+ * @param registers Registers number/value pairs to write
+ * @param nb_registers Number of registers to write
+ * @return Result of the operation
+ */
+static ErrorCode configureRegisters(const BMI270register registers[][2], const uint8_t nb_registers) {
+    BMI270register reg = 0;
+    do {
+        result = writeRegisters(&spi_descriptor, registers[reg][0], &registers[reg][1], 1);
+        reg++;
+    } while ((reg < nb_registers) && !isError(result));
+    if (isError(result)) {
+        result = pushErrorCode(result, kBMI270configureRegisters, 1);
+    }
+
+    return result;
 }
 
 /****************************************************************************************************************/
@@ -534,7 +584,7 @@ static void taskBMI270(void* argument) {
                 result = stateSelfTestingAccelerometer();
                 break;
 
-            case kBMI270stateSelfTestGyto:
+            case kBMI270stateSelfTestGyro:
                 result = stateSelfTestingGyroscope();
                 break;
 
@@ -561,6 +611,7 @@ static void taskBMI270(void* argument) {
             case kBMI270readTemperature:
             case kBMI270task:
             case kBMI270runAccelSelfTest:
+            case kBMI270configureRegisters:
             default:
                 result = createErrorCode(kBMI270task, 0, kErrorCritical);
                 break;
@@ -608,6 +659,16 @@ static ErrorCode stateStartup(void) {
         return (pushErrorCode(result, kBMI270stateStartup, 3));
     }
 
+    //Disable advanced power mode
+    value = 0x00;
+    result = writeRegisters(&spi_descriptor, BMI2_PWR_CONF_ADDR, &value, 1);
+    if (isError(result)) {
+        return pushErrorCode(result, kBMI270stateInitialising, 1);
+    }
+
+    //Getting out of advanced power mode takes up to 450us
+    vTaskDelay(pdMS_TO_TICKS(1U));
+
     reset_occurred = 1;
     state = kBMI270stateInitialising;
     return kSuccessCode;
@@ -620,28 +681,16 @@ static ErrorCode stateStartup(void) {
  * https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bmi270-ds000.pdf#%5B%7B%22num%22%3A64%2C%22gen%22%3A0%7D%2C%7B%22name%22%3A%22XYZ%22%7D%2C33%2C771%2C0%5D
  * 
  * @retval 0 Success
- * @retval 1 Error while disabling advanced power mode
- * @retval 2 Error while requesting config initialisation start
- * @retval 3 Error while writing the config file
- * @retval 4 Error while checking the config file written
- * @retval 5 Error while requesting config initialisation finish
- * @retval 6 Error while reading the internal status
- * @retval 7 Invalid internal status
+ * @retval 1 Error while requesting config initialisation start
+ * @retval 2 Error while writing the config file
+ * @retval 3 Error while requesting config initialisation finish
+ * @retval 4 Error while reading the internal status
+ * @retval 5 Invalid internal status
  */
 static ErrorCode stateInitialising(void) {
-    const BMI270register START_CONFIGFILE_LOAD = 0x00U;
-    const BMI270register FINISH_CONFIGFILE_LOAD = 0x01U;
+    const BMI270register start_configfile_load = 0x00U;
+    const BMI270register finish_configfile_load = 0x01U;
     BMI270register value = 0;
-
-    //Disable advanced power mode
-    value = 0x00;
-    result = writeRegisters(&spi_descriptor, BMI2_PWR_CONF_ADDR, &value, 1);
-    if (isError(result)) {
-        return pushErrorCode(result, kBMI270stateInitialising, 1);
-    }
-
-    //Getting out of advanced power mode takes up to 450us
-    vTaskDelay(pdMS_TO_TICKS(1U));
 
     //make sure config file is written only once after POR or soft reset
     if (!reset_occurred) {
@@ -651,32 +700,22 @@ static ErrorCode stateInitialising(void) {
     reset_occurred = 0;
 
     //Request configuration start
-    value = START_CONFIGFILE_LOAD;
+    value = start_configfile_load;
     result = writeRegisters(&spi_descriptor, BMI2_INIT_CTRL_ADDR, &value, 1);
+    if (isError(result)) {
+        return pushErrorCode(result, kBMI270stateInitialising, 1);
+    }
+
+    result = writeConfigurationFile();
     if (isError(result)) {
         return pushErrorCode(result, kBMI270stateInitialising, 2);
     }
 
-    //Write the config file provided by Bosch Sensortec
-    result = writeRegisters(&spi_descriptor, BMI2_INIT_DATA_ADDR, bmi270_config_file, kConfigFileSize);
-    if (isError(result)) {
-        return pushErrorCode(result, kBMI270stateInitialising, 3);
-    }
-
-    //re-read the configuration file written to make sure it is correct (max. 3 attempts)
-    uint8_t attempts = 3;
-    do {
-        result = checkConfigurationFile();
-    } while ((--attempts) && isError(result));
-    if (isError(result)) {
-        return pushErrorCode(result, kBMI270stateInitialising, 4);  // NOLINT(*-magic-numbers)
-    }
-
     //Request configuration finish
-    value = FINISH_CONFIGFILE_LOAD;
+    value = finish_configfile_load;
     result = writeRegisters(&spi_descriptor, BMI2_INIT_CTRL_ADDR, &value, 1);
     if (isError(result)) {
-        return pushErrorCode(result, kBMI270stateInitialising, 5);  // NOLINT(*-magic-numbers)
+        return pushErrorCode(result, kBMI270stateInitialising, 3);
     }
 
     //Applying the new config takes up to 20ms
@@ -687,13 +726,13 @@ static ErrorCode stateInitialising(void) {
     do {
         result = readRegisters(&spi_descriptor, BMI2_INTERNAL_STATUS_ADDR, &value, 1);
         if (isError(result)) {
-            return pushErrorCode(result, kBMI270stateInitialising, 6);  // NOLINT(*-magic-numbers)
+            return pushErrorCode(result, kBMI270stateInitialising, 4);
         }
     } while ((value == BMI2_NOT_INIT) && !timeout(config_start_tick, kConfigTimeoutMS));
 
     //check if an initialisation error occurred
     if (value != BMI2_INIT_OK) {
-        return createErrorCodeLayer1(kBMI270stateInitialising, 7, value, kErrorCritical);  // NOLINT(*-magic-numbers)
+        return createErrorCodeLayer1(kBMI270stateInitialising, 5, value, kErrorCritical);  // NOLINT(*-magic-numbers)
     }
 
     state = kBMI270stateSelfTestAccel;
@@ -714,23 +753,18 @@ static ErrorCode stateInitialising(void) {
  * @retval 5 Self-test value deltas do not match the ones stated in the datasheet
  */
 static ErrorCode stateSelfTestingAccelerometer(void) {
-    const Register BMI2_ACC_RANGE_ADDR = 0x41U;  ///< Accelerometer range value register number
+    const Register accel_range_register_number = 0x41U;  ///< Accelerometer range value register number
     BMI270register value = 0;
 
     const BMI270register configuration[][2] = {
-        {BMI2_PWR_CTRL_ADDR, (BMI2_ACC_EN_MASK)},   //enable temp, gyroscope and accel.
-        {BMI2_ACC_RANGE_ADDR, BMI2_ACC_RANGE_16G},  //set the accel. range to +-16G
+        {BMI2_PWR_CTRL_ADDR, (BMI2_ACC_EN_MASK)},           //enable temp, gyroscope and accel.
+        {accel_range_register_number, BMI2_ACC_RANGE_16G},  //set the accel. range to +-16G
         {BMI2_ACC_CONF_ADDR, (1U << BMI2_ACC_FILTER_PERF_MODE_POS) |
                                  (BMI270register)(BMI2_ACC_NORMAL_AVG4 << BMI2_ACC_BW_PARAM_POS) | BMI2_ACC_ODR_1600HZ},
     };
 
-    //write the preliminary self-test registers
-    BMI270register reg = 0;
-    const uint8_t nbRegisters = sizeof(configuration) / sizeof(configuration)[0];
-    do {
-        result = writeRegisters(&spi_descriptor, configuration[reg][0], &configuration[reg][1], 1);
-        reg++;
-    } while ((reg < nbRegisters) && !isError(result));
+    //send the configuration array
+    result = configureRegisters(configuration, (sizeof(configuration) / sizeof(configuration)[0]));
     if (isError(result)) {
         return pushErrorCode(result, kBMI270stateSelfTestAccel, 1);
     }
@@ -758,22 +792,22 @@ static ErrorCode stateSelfTestingAccelerometer(void) {
     }
 
     //transform the values read to values in [G] (9.81 m/s²)
-    const float deltaX_G =
+    const float delta_x_g =
         (float)(lsb_posivite.values16bits[kXaxis] - lsb_negative.values16bits[kXaxis]) * kNominalAccelLSBto16G;
-    const float deltaY_G =
+    const float delta_y_g =
         (float)(lsb_posivite.values16bits[kYaxis] - lsb_negative.values16bits[kYaxis]) * kNominalAccelLSBto16G;
-    const float deltaZ_G =
+    const float delta_z_g =
         (float)(lsb_posivite.values16bits[kZaxis] - lsb_negative.values16bits[kZaxis]) * kNominalAccelLSBto16G;
 
     //check if the minimum delta given in the datasheet is respected
-    const float MIN_DELTAX_G = 16.0F;
-    const float MIN_DELTAY_G = -15.0F;
-    const float MIN_DELTAZ_G = 10.0F;
-    if ((deltaX_G <= MIN_DELTAX_G) || (deltaY_G >= MIN_DELTAY_G) || (deltaZ_G <= MIN_DELTAZ_G)) {
+    const float min_delta_x_g = 16.0F;
+    const float min_delta_y_g = -15.0F;
+    const float min_delta_z_g = 10.0F;
+    if ((delta_x_g <= min_delta_x_g) || (delta_y_g >= min_delta_y_g) || (delta_z_g <= min_delta_z_g)) {
         return createErrorCode(kBMI270stateSelfTestAccel, 5, kErrorCritical);  // NOLINT(*-magic-numbers)
     }
 
-    state = kBMI270stateSelfTestGyto;
+    state = kBMI270stateSelfTestGyro;
     return kSuccessCode;
 }
 
@@ -796,11 +830,11 @@ static ErrorCode stateSelfTestingGyroscope(void) {
     } while (--attempts && isError(result));
 
     if (isError(result)) {
-        return pushErrorCode(result, kBMI270stateSelfTestGyto, 1);  // NOLINT(*-magic-numbers)
+        return pushErrorCode(result, kBMI270stateSelfTestGyro, 1);  // NOLINT(*-magic-numbers)
     }
 
     if (!attempts) {
-        return pushErrorCode(result, kBMI270stateSelfTestGyto, 2);  // NOLINT(*-magic-numbers)
+        return pushErrorCode(result, kBMI270stateSelfTestGyro, 2);  // NOLINT(*-magic-numbers)
     }
 
     state = kBMI270stateConfiguring;
@@ -814,34 +848,27 @@ static ErrorCode stateSelfTestingGyroscope(void) {
  * @retval 1 Error while writing a register
  */
 static ErrorCode stateConfiguring(void) {
-    const Register BMI2_ACC_RANGE_ADDR = 0x41U;  ///< Accelerometer range value register number
-    const Register BMI2_GYR_RANGE_ADDR = 0x43U;  ///< Gyroscope range value register number
-    const Register NO_FIFO = 0x00;               ///< Value used to disable the FIFO
+    const Register accel_range_register_number = 0x41U;  ///< Accelerometer range value register number
+    const Register gyro_range_register_number = 0x43U;   ///< Gyroscope range value register number
+    const Register no_fifo = 0x00;                       ///< Value used to disable the FIFO
 
     const BMI270register configuration[][2] = {
         {BMI2_PWR_CTRL_ADDR,
          (BMI2_GYR_EN_MASK | BMI2_ACC_EN_MASK | BMI2_TEMP_EN_MASK)},  //enable temp, gyroscope and accel.
         {BMI2_ACC_CONF_ADDR, (BMI2_ACC_FILTER_PERF_MODE_MASK | (BMI2_ACC_CIC_AVG8 << 4U) | BMI2_ACC_ODR_1600HZ)},  //
-        {BMI2_ACC_RANGE_ADDR, BMI2_ACC_RANGE_2G},  //set the accel. range to +-2G
+        {accel_range_register_number, BMI2_ACC_RANGE_2G},  //set the accel. range to +-2G
         {BMI2_GYR_CONF_ADDR, (BMI2_GYR_FILTER_PERF_MODE_MASK | BMI2_GYR_NOISE_PERF_MODE_MASK |
                               (BMI2_GYR_NORMAL_MODE << 4U) | BMI2_GYR_ODR_1600HZ)},
-        {BMI2_GYR_RANGE_ADDR, BMI2_GYR_RANGE_125},  //set the gyroscope range to +-500°/s
-        {BMI2_FIFO_CONFIG_1_ADDR, NO_FIFO},         //disable the FIFO (streaming mode)
-        {BMI2_INT_MAP_DATA_ADDR, BMI2_DRDY_INT},    //enable Data Ready interrupt on INT1
+        {gyro_range_register_number, BMI2_GYR_RANGE_125},  //set the gyroscope range to +-500°/s
+        {BMI2_FIFO_CONFIG_1_ADDR, no_fifo},                //disable the FIFO (streaming mode)
+        {BMI2_INT_MAP_DATA_ADDR, BMI2_DRDY_INT},           //enable Data Ready interrupt on INT1
         {BMI2_INT1_IO_CTRL_ADDR, BMI2_INT_OUTPUT_EN_MASK | BMI2_INT_OPEN_DRAIN_MASK |
                                      BMI2_INT_LEVEL_MASK},  //enable INT1 active high, open drain
         {BMI2_PWR_CONF_ADDR, 0x00},                         //disable advanced power mode
     };
 
-    //write all the configuration registers
-    BMI270register reg = 0;
-    const uint8_t nbRegisters = sizeof(configuration) / sizeof(configuration)[0];
-    do {
-        result = writeRegisters(&spi_descriptor, configuration[reg][0], &configuration[reg][1], 1);
-        reg++;
-    } while ((reg < nbRegisters) && !isError(result));
-
-    //if error, exit
+    //send the configuration array
+    result = configureRegisters(configuration, (sizeof(configuration) / sizeof(configuration)[0]));
     if (isError(result)) {
         return pushErrorCode(result, kBMI270stateConfiguring, 1);
     }
@@ -898,8 +925,8 @@ static ErrorCode stateMeasuring(void) {
     applyTemperatureDrift(temperature_celsius, accelerometer_g, gyroscope_radps);
 
     //update the current sensor time ticks
-    const uint8_t NB_MEASURE_REGISTERS = (uint8_t)kNBaxis << 2U;
-    filter_context.dt.current_tick = toTicks(&lsb_values.registers8bits[NB_MEASURE_REGISTERS]);
+    const uint8_t nb_measure_registers = (uint8_t)kNBaxis << 2U;
+    filter_context.dt.current_tick = toTicks(&lsb_values.registers8bits[nb_measure_registers]);
 
     //apply sensor fusion to the measurements
     if (xSemaphoreTake(angles_mutex, pdMS_TO_TICKS(kSPItimeoutMS)) == pdTRUE) {

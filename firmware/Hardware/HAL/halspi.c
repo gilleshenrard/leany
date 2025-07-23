@@ -8,7 +8,7 @@
  * @file halspi.c
  * @brief Implement a generic HAL for SPI communication
  * @author Gilles Henrard
- * @date 25/07/2025
+ * @date 26/07/2025
  */
 #include "halspi.h"
 
@@ -44,6 +44,7 @@ typedef enum {
 //state variables
 
 static inline void setDataCommandGPIO(const SPI* descriptor, DCgpio function);
+static void sendSPIbyte(SPI* descriptor, uint8_t byte_to_transmit, uint32_t tx_start_tick);
 static volatile TaskHandle_t latest_task = NULL;  ///< Handle used by the FreeRTOS task
 
 /********************************************************************************************************************************************/
@@ -102,6 +103,19 @@ uint8_t receiveSPIbyte(SPI* descriptor, uint8_t byte_to_transmit, uint32_t tx_st
 }
 
 /**
+ * Send a byte via SPI
+ *
+ * @param descriptor        SPI descriptor to use
+ * @param byte_to_transmit  Byte to transmit
+ * @param tx_start_tick     Tick to compare to know if a timeout occurred
+ */
+static void sendSPIbyte(SPI* descriptor, uint8_t byte_to_transmit, uint32_t tx_start_tick) {
+    LL_SPI_TransmitData8(descriptor->handle, byte_to_transmit);
+    while (!LL_SPI_IsActiveFlag_TXE(descriptor->handle) && !timeout(tx_start_tick, kSPItimeoutMS)) {
+    };
+}
+
+/**
  * Burst read registers via SPI
  *
  * @param descriptor SPI descriptor to use
@@ -113,7 +127,7 @@ uint8_t receiveSPIbyte(SPI* descriptor, uint8_t byte_to_transmit, uint32_t tx_st
  * @retval 2 Timeout
  */
 ErrorCode readRegisters(SPI* descriptor, SPIregister first_register, SPIregister value[], size_t size) {
-    const uint8_t SPI_RX_FILLER = 0xFFU;  ///< Value to send as a filler while receiving multiple bytes
+    const uint8_t spi_rx_filler = 0xFFU;  ///< Value to send as a filler while receiving multiple bytes
 
     //if no bytes to read, success
     if (!size) {
@@ -131,11 +145,11 @@ ErrorCode readRegisters(SPI* descriptor, SPIregister first_register, SPIregister
 
     //send the read request and a dummy byte to synchronize the SPI clock
     (void)receiveSPIbyte(descriptor, first_register, spi_start_tick);
-    (void)receiveSPIbyte(descriptor, SPI_RX_FILLER, spi_start_tick);
+    (void)receiveSPIbyte(descriptor, spi_rx_filler, spi_start_tick);
 
     //receive the bytes to read
     do {
-        *value = receiveSPIbyte(descriptor, SPI_RX_FILLER, spi_start_tick);
+        *value = receiveSPIbyte(descriptor, spi_rx_filler, spi_start_tick);
         value++;
         size--;
     } while (size && !timeout(spi_start_tick, kSPItimeoutMS));
@@ -165,26 +179,14 @@ ErrorCode readRegisters(SPI* descriptor, SPIregister first_register, SPIregister
  * @param[in] parameters Parameters to send
  * @param size Number of parameter bytes to write
  * @return	 Success
- * @retval 1 No SPI handle specified
- * @retval 2 No parameters given or no size despite parameters
- * @retval 3 Register number out of range
- * @retval 4 Timeout
+ * @retval 1 Invalid parameters provided
+ * @retval 2 Timeout
  */
 ErrorCode writeRegistersAndContinue(SPI* descriptor, SPIregister register_number, const SPIregister parameters[],
                                     size_t size) {
-    //if handle not specified, error
-    if (!descriptor->handle) {
+    //if invalid parameters, error
+    if ((!descriptor->handle) || (!parameters && size) || (register_number > descriptor->highest_register_number)) {
         return (createErrorCode(kSPIwriteRegistersContinue, 1, kErrorWarning));
-    }
-
-    //if no parameters provided and size not zero, error
-    if (!parameters && size) {
-        return (createErrorCode(kSPIwriteRegistersContinue, 2, kErrorWarning));
-    }
-
-    //if register number above known or within the reserved range, error
-    if (register_number > descriptor->highest_register_number) {
-        return (createErrorCode(kSPIwriteRegistersContinue, 3, kErrorWarning));
     }
 
     //set timeout timer and enable CS
@@ -193,19 +195,12 @@ ErrorCode writeRegistersAndContinue(SPI* descriptor, SPIregister register_number
     LL_GPIO_ResetOutputPin(descriptor->cs_port, descriptor->pin);
 
     //send the write instruction
-    LL_SPI_TransmitData8(descriptor->handle,
-                         descriptor->write_mask | register_number);  // cppcheck-suppress badBitmaskCheck
-    while (!LL_SPI_IsActiveFlag_TXE(descriptor->handle) && !timeout(spi_start_tick, kSPItimeoutMS)) {
-    };
+    sendSPIbyte(descriptor, descriptor->write_mask | register_number, spi_start_tick);
 
     //write the value data
     setDataCommandGPIO(descriptor, kData);
     while (size && !timeout(spi_start_tick, kSPItimeoutMS)) {
-        while (!LL_SPI_IsActiveFlag_TXE(descriptor->handle) && !timeout(spi_start_tick, kSPItimeoutMS)) {
-        };
-        if (LL_SPI_IsActiveFlag_TXE(descriptor->handle)) {
-            LL_SPI_TransmitData8(descriptor->handle, *parameters);
-        }
+        sendSPIbyte(descriptor, *parameters, spi_start_tick);
         parameters++;
         size--;
     }
@@ -217,7 +212,7 @@ ErrorCode writeRegistersAndContinue(SPI* descriptor, SPIregister register_number
 
     //if timeout, error
     if (timeout(spi_start_tick, kSPItimeoutMS)) {
-        return (createErrorCode(kSPIwriteRegistersContinue, 4, kErrorWarning));
+        return (createErrorCode(kSPIwriteRegistersContinue, 2, kErrorWarning));
     }
 
     return (kSuccessCode);

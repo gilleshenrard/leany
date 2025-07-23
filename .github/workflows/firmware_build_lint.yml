@@ -14,6 +14,8 @@ on:
       - 'firmware/**'
       - '!firmware/resources/**'
       - '.github/workflows/firmware_build_lint.yml'
+  schedule:
+    - cron: "0 3 1 * *" #Automatically run at 03:00 every 1st of the month
 
 jobs:
 
@@ -178,8 +180,17 @@ jobs:
       - name: Run Lizard
         id: lizard
         continue-on-error: true
-        run: |
-          lizard --languages cpp firmware/Hardware/ firmware/UI/
+        run: >
+          lizard
+          --languages cpp
+          --length 80
+          -Tnloc=80
+          -Tparameter_count=5
+          -Tcyclomatic_complexity=10
+          -Eduplicate
+          -m
+          firmware/Hardware/
+          firmware/UI/
 
       - name: Run Doxygen
         id: doxygen
