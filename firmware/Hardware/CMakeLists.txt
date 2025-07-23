@@ -21,7 +21,7 @@ target_compile_options(sysUtils PUBLIC ${WARNING_FLAGS})
 add_custom_command(TARGET sysUtils
 	PRE_BUILD
 	COMMAND ${CMAKE_COMMAND}
-	-P gitVersion.cmake
+	-P gitversion.cmake
 	WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/sysutils/
 	COMMENT "Populating the latest git commit hash"
 )
@@ -32,8 +32,8 @@ target_link_libraries(hal PRIVATE sysUtils)
 
 #create the ssd1306 library, taking care of the display
 add_library(st7735s
-	display/ST7735S.c
-	display/ST7735_initialisation.c)
+	display/st7735s.c
+	display/st7735_initialisation.c)
 target_include_directories(st7735s PUBLIC display)
 target_include_directories(st7735s PUBLIC sensor/)
 target_link_libraries(st7735s PRIVATE sysUtils)
@@ -41,7 +41,7 @@ target_link_libraries(st7735s PRIVATE hal)
 
 #create the BMI270 library, taking care of the MEMS sensor
 add_library(bmi270
-	sensor/memsBMI270.c
+	sensor/mems_bmi270.c
 	sensor/sensorfusion.c)
 target_include_directories(bmi270 PUBLIC sensor/)
 target_link_libraries(bmi270 PRIVATE sysUtils)
