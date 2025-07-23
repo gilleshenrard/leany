@@ -47,7 +47,7 @@
  *   DOI: [10.1109/TAC.2008.923738](https://doi.org/10.1109/TAC.2008.923738)
  *
  * @author Gilles Henrard
- * @date 25/07/2025
+ * @date 26/07/2025
  */
 #include "sensorfusion.h"
 
@@ -63,17 +63,17 @@
 static inline FORCE_INLINE_SILENT float half(float number);
 static inline FORCE_INLINE_SILENT float twice(float number);
 static inline FORCE_INLINE_SILENT float squared(float number);
-static inline FORCE_INLINE_SILENT uint8_t normValid(float norm);
 static inline FORCE_INLINE_SILENT float normaliseArray(float array[3]);
 static inline FORCE_INLINE_SILENT float normaliseQuaternion(Quaternion* quaternion);
 static inline FORCE_INLINE_SILENT float clamp(float value, float max_absolute_value);
 static inline FORCE_INLINE_SILENT float getDT(const TimeDelta* delta);
 static inline FORCE_INLINE_SILENT uint8_t isDTvalid(float delta_seconds);
 static uint8_t alignmentValid(const float accelerometer_normalised[kNBaxis], const float estimates_normalised[kNBaxis]);
-static void computeErrors(float errors[kNBaxis], const float accelerometer_g[kNBaxis],
-                          const float body_estimates[kNBaxis]);
+static void computeGravityError(float errors[kNBaxis], const float accelerometer_g[kNBaxis],
+                                const float body_estimates[kNBaxis]);
 static void integrateGyroMeasurements(Quaternion* current_attitude, const float corrected_gyro[kNBaxis],
                                       float period_sec);
+static uint8_t validateNorm(MahonyContext* context, float norm, uint8_t* bad_norm_counter);
 
 //constants
 static const float kCloseToZero = 1e-3F;            ///< Value used to compare floats to 0
@@ -126,14 +126,10 @@ void updateMahonyFilter(MahonyContext* context,
 
     //normalise accelerometer vectors to unit length, to avoid drift
     float normalised_accelerometer[kNBaxis] = {accelerometer_g[0], accelerometer_g[1], accelerometer_g[2]};
-    const float accelNorm = normaliseArray(normalised_accelerometer);
-    if (accelNorm < kCloseToZero) {
-        if (++context->bad_acceleration_count >= kMaxBadCounts) {
-            resetMahonyFilter(context);
-        }
+    const float acceleration_norm = normaliseArray(normalised_accelerometer);
+    if (!validateNorm(context, acceleration_norm, &context->bad_acceleration_count)) {
         return;
     }
-    context->bad_acceleration_count = 0;
 
     //if dT out of reasonable bounds, reset the filter
     const float period_sec = getDT(&context->dt);
@@ -151,13 +147,13 @@ void updateMahonyFilter(MahonyContext* context,
                              squared(context->attitude.q2) + squared(context->attitude.q3);
 
     //Abort update if strong linear motion is detected
-    if (!alignmentValid(normalised_accelerometer, body_estimates) || !normValid(accelNorm)) {
+    if (!alignmentValid(normalised_accelerometer, body_estimates)) {
         return;
     }
 
     //compute the error rotation vectors, which will be used to realign the estimations to the measured vectors
     float errors[kNBaxis] = {0.0F, 0.0F, 0.0F};
-    computeErrors(errors, normalised_accelerometer, body_estimates);
+    computeGravityError(errors, normalised_accelerometer, body_estimates);
 
     //apply the proportion term to error vectors and add them to the gyroscope measurements
     float corrected_gyro_radps[kNBaxis] = {[kXaxis] = (gyroscope_radps[kXaxis] + (context->kp * errors[kXaxis])),
@@ -178,14 +174,10 @@ void updateMahonyFilter(MahonyContext* context,
     integrateGyroMeasurements(&context->attitude, corrected_gyro_radps, period_sec);
 
     //normalise the current attitude quaternion to avoid drift
-    const float quaterionNorm = normaliseQuaternion(&context->attitude);
-    if (quaterionNorm < kCloseToZero) {
-        if (++context->bad_quaternion_count >= kMaxBadCounts) {
-            resetMahonyFilter(context);
-        }
+    const float quaterion_norm = normaliseQuaternion(&context->attitude);
+    if (!validateNorm(context, quaterion_norm, &context->bad_quaternion_count)) {
         return;
     }
-    context->bad_quaternion_count = 0;
 
     //update the last update tick on success
     context->dt.previous_tick = context->dt.current_tick;
@@ -238,8 +230,8 @@ float getAttitudeAngle(const MahonyContext* context) {
         return 0.0F;
     }
 
-    const float safeCos = clamp(context->attitude.q0, 1.0F);  //make sure to clamp the cos value between [-1, 1]
-    return twice(acosf(safeCos));
+    const float safe_cosine = clamp(context->attitude.q0, 1.0F);  //make sure to clamp the cos value between [-1, 1]
+    return twice(acosf(safe_cosine));
 }
 
 /*********************************************************************************************************************************/
@@ -327,18 +319,6 @@ static inline FORCE_INLINE_SILENT float clamp(const float value, const float max
 }
 
 /**
- * Check if a normalised value is within a valid range
- * @details A norm should always be as close to 1 as possible.
- *
- * @param norm Norm to check
- * @retval 1 The norm is valid
- * @retval 0 The norm is out of the valid range (sign of large linear acceleration)
- */
-static inline FORCE_INLINE_SILENT uint8_t normValid(const float norm) {
-    return ((norm >= (1.0F - kMaxNormEpsilon)) && (norm <= (1.0F + kMaxNormEpsilon)));
-}
-
-/**
  * Compute the elapsed time in [s] between current and previous timestamps
  *
  * @param delta Time delta structure
@@ -373,11 +353,11 @@ static uint8_t alignmentValid(const float accelerometer_normalised[kNBaxis],
                               const float estimates_normalised[kNBaxis]) {
     //This is done with the means of a dot product between vectors.
     //As the vectors are normalised, their dot product gives the cosine of the angle between them.
-    const float dotProduct = (accelerometer_normalised[kXaxis] * estimates_normalised[kXaxis]) +
-                             (accelerometer_normalised[kYaxis] * estimates_normalised[kYaxis]) +
-                             (accelerometer_normalised[kZaxis] * estimates_normalised[kZaxis]);
+    const float dot_product = (accelerometer_normalised[kXaxis] * estimates_normalised[kXaxis]) +
+                              (accelerometer_normalised[kYaxis] * estimates_normalised[kYaxis]) +
+                              (accelerometer_normalised[kZaxis] * estimates_normalised[kZaxis]);
 
-    return ((dotProduct > kMinAlignmentCosine) && (dotProduct < kMaxAlignmentCosine));
+    return ((dot_product >= kMinAlignmentCosine) && (dot_product <= kMaxAlignmentCosine));
 }
 
 /**
@@ -389,8 +369,8 @@ static uint8_t alignmentValid(const float accelerometer_normalised[kNBaxis],
  * @param body_estimates Estimated gravity direction derived from current orientation quaternion.
  * @param[out] errors Error orientation vector (body frame).
  */
-static void computeErrors(float errors[kNBaxis], const float accelerometer_g[kNBaxis],
-                          const float body_estimates[kNBaxis]) {
+static void computeGravityError(float errors[kNBaxis], const float accelerometer_g[kNBaxis],
+                                const float body_estimates[kNBaxis]) {
     errors[kXaxis] =
         ((accelerometer_g[kYaxis] * body_estimates[kZaxis]) - (accelerometer_g[kZaxis] * body_estimates[kYaxis]));
     errors[kYaxis] =
@@ -415,15 +395,36 @@ static void integrateGyroMeasurements(Quaternion* current_attitude, const float 
     const float q2 = current_attitude->q2;  //NOLINT(readability-identifier-length)
     const float q3 = current_attitude->q3;  //NOLINT(readability-identifier-length)
 
-    const Quaternion rateChange = {
+    const Quaternion rate_of_change = {
         .q0 = half((-q1 * corrected_gyro[kXaxis]) - (q2 * corrected_gyro[kYaxis]) - (q3 * corrected_gyro[kZaxis])),
         .q1 = half((q0 * corrected_gyro[kXaxis]) + (q2 * corrected_gyro[kZaxis]) - (q3 * corrected_gyro[kYaxis])),
         .q2 = half((q0 * corrected_gyro[kYaxis]) - (q1 * corrected_gyro[kZaxis]) + (q3 * corrected_gyro[kXaxis])),
         .q3 = half((q0 * corrected_gyro[kZaxis]) + (q1 * corrected_gyro[kYaxis]) - (q2 * corrected_gyro[kXaxis]))};
 
     //integrate the current quaternion with the change rate
-    current_attitude->q0 += (rateChange.q0 * period_sec);
-    current_attitude->q1 += (rateChange.q1 * period_sec);
-    current_attitude->q2 += (rateChange.q2 * period_sec);
-    current_attitude->q3 += (rateChange.q3 * period_sec);
+    current_attitude->q0 += (rate_of_change.q0 * period_sec);
+    current_attitude->q1 += (rate_of_change.q1 * period_sec);
+    current_attitude->q2 += (rate_of_change.q2 * period_sec);
+    current_attitude->q3 += (rate_of_change.q3 * period_sec);
+}
+
+/**
+ * Check if a norm provided is within a valid range
+ * @details An invalid norm increments a counter which, if too high, will trigger a filter reset
+ *
+ * @param context Filter context
+ * @param norm Norm to validate
+ * @param bad_norm_counter Counter used to see if the filter should be reseted
+ * @retval 1 Norm valid
+ * @retval 0 Norm invalid
+ */
+static uint8_t validateNorm(MahonyContext* context, const float norm, uint8_t* bad_norm_counter) {
+    if ((norm < (1.0F - kMaxNormEpsilon)) || (norm > (1.0F + kMaxNormEpsilon))) {
+        if (++(*bad_norm_counter) >= kMaxBadCounts) {
+            resetMahonyFilter(context);
+        }
+        return 0;
+    }
+    *bad_norm_counter = 0;
+    return 1;
 }
