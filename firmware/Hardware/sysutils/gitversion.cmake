@@ -6,13 +6,13 @@
 execute_process(
     COMMAND git log -1 --format=%h
     WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
-    OUTPUT_VARIABLE GIT_COMMIT_HASH
+    OUTPUT_VARIABLE kGitCommitHash
     OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
 # Populate softVersion.c with the softVersion.c.in template
 configure_file(
-    softVersion.c.in
-    softVersion.c
+    softversion.c.in
+    softversion.c
     @ONLY
 )

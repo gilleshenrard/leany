@@ -7,12 +7,13 @@
 #ifndef HARDWARE_SENSOR_BMI270
 #define HARDWARE_SENSOR_BMI270
 #include <main.h>
+
 #include "sensorfusion.h"
 
-void    bmi270InterruptTriggered(uint8_t interruptPin);
-void    createBMI270Task(void);
-int16_t getAngleDegreesTenths(axis_e axis);
+void bmi270InterruptTriggered(uint8_t interrupt_pin);
+void createBMI270Task(void);
+int16_t getAngleDegreesTenths(Axis axis);
 uint8_t anglesChanged(void);
-void    bmi270ZeroDown(void);
-void    bmi270CancelZeroing(void);
+void bmi270ZeroDown(void);
+void bmi270CancelZeroing(void);
 #endif

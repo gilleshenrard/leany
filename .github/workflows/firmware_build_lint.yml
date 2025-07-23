@@ -124,7 +124,7 @@ jobs:
 
       - name: Install linters
         run: |
-              sudo apt-get install -y clang-19 clang-tidy-19 cppcheck flawfinder doxygen
+              sudo apt-get install -y clang-19 clang-tidy-19 clang-format-19 cppcheck flawfinder doxygen
               sudo pip install lizard reuse
 
       - name: Cleanup compile_commands.json for clang-tidy
@@ -191,12 +191,20 @@ jobs:
         continue-on-error: true
         run: >
           find firmware/Hardware firmware/UI -name '*.c' -o -name '*.h'
-          | xargs clang-format --style=file --dry-run --Werror
+          | xargs clang-format-19 --style=file --dry-run --Werror --verbose
 
       - name: Open source Copyright and Lincensing
         id: reuse
         continue-on-error: true
         run: reuse --include-submodules lint
+
+      #File names must contain only lowercase, numbers or underscores
+      - name : Check for files naming convention
+        id : filenames
+        continue-on-error: true
+        run : |
+          chmod +x firmware/resources/check_filenames.sh
+          ./firmware/resources/check_filenames.sh
 
       - name: Final result
         run: |
@@ -206,6 +214,7 @@ jobs:
             [ "${{ steps.lizard.outcome }}" != "success" ] || \
             [ "${{ steps.clang-format.outcome }}" != "success" ] || \
             [ "${{ steps.reuse.outcome }}" != "success" ] || \
+            [ "${{ steps.filenames.outcome }}" != "success" ] || \
             [ "${{ steps.doxygen.outcome }}" != "success" ]; then
             echo "::error::At least one tool failed"
             exit 1

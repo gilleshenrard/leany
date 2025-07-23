@@ -1,5 +1,4 @@
 /* USER CODE BEGIN Header */
-// clang-format off
 /**
   ******************************************************************************
   * File Name          : freertos.c
