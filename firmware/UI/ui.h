@@ -8,6 +8,6 @@
 #define UI_UI_H
 #include "errorstack.h"
 
-errorCode_u createUItask(void);
+ErrorCode createUItask(void);
 
 #endif  // UI_UI_H

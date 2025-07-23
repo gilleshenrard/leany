@@ -6,6 +6,8 @@
     "files.associations": {
         "*.h": "c",
     },
+    "editor.insertSpaces": true,
+    "editor.detectIndentation": true,
     //
     //
     //Clangd (llvm-vs-code-extensions.vscode-clangd)

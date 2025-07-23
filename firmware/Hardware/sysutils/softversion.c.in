@@ -13,4 +13,4 @@
  */
 #include "softversion.h"
 
-const char GIT_COMMIT_HASH[] = "@GIT_COMMIT_HASH@";  ///< Short hash code of the latest git commit
+const char kGitCommitHash[] = "@kGitCommitHash@";  ///< Short hash code of the latest git commit
