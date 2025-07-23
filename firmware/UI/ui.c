@@ -8,7 +8,7 @@
  * @file ui.c
  * @brief Implement the display UI
  * @author Gilles Henrard
- * @date 25/07/2025
+ * @date 26/07/2025
  */
 #include "ui.h"
 
@@ -98,8 +98,7 @@ static void runUItask(void *argument) {
             result = printMeasurements(kXaxis);
             if (isError(result)) {
                 result = pushErrorCode(result, 1, 1);
-            }
-            if (!isError(result)) {
+            } else {
                 result = printMeasurements(kYaxis);
                 if (isError(result)) {
                     result = pushErrorCode(result, 1, 2);
@@ -180,9 +179,9 @@ static ErrorCode printCharacter(VerdanaCharacter character, uint8_t x_left, uint
 
     ErrorCode result = kSuccessCode;
 
-    const size_t characterSize = kVerdanaNbColumns * kVerdanaNbRows * sizeof(Pixel);
-    const Area characterArea = {x_left, y_top, x_left + kVerdanaNbColumns - 1U, y_top + kVerdanaNbRows - 1U};
-    result = sendScreenData(display_buffer, characterSize, kFrameBufferSize * sizeof(Pixel), &characterArea);
+    const size_t character_size = kVerdanaNbColumns * kVerdanaNbRows * sizeof(Pixel);
+    const Area character_area = {x_left, y_top, x_left + kVerdanaNbColumns - 1U, y_top + kVerdanaNbRows - 1U};
+    result = sendScreenData(display_buffer, character_size, kFrameBufferSize * sizeof(Pixel), &character_area);
     if (isError(result)) {
         return pushErrorCode(result, 1, 1);
     }
@@ -212,8 +211,8 @@ static ErrorCode fillBackground(void) {
         }
 
         const size_t nb_bytes = chunk_height * kDisplayWidth * sizeof(Pixel);
-        const Area chunkArea = {0, lines_sent, kDisplayWidth - 1U, (uint8_t)(lines_sent + chunk_height - 1U)};
-        result = sendScreenData(display_buffer, nb_bytes, kFrameBufferSize * sizeof(Pixel), &chunkArea);
+        const Area chunk_area = {0, lines_sent, kDisplayWidth - 1U, (uint8_t)(lines_sent + chunk_height - 1U)};
+        result = sendScreenData(display_buffer, nb_bytes, kFrameBufferSize * sizeof(Pixel), &chunk_area);
 
         lines_sent += chunk_height;
     } while ((lines_sent < kDisplayHeight) && !isError(result));
