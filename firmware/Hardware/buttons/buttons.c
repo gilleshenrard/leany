@@ -12,6 +12,7 @@
 #include "buttons.h"
 
 #include <FreeRTOS.h>
+#include <hardware_events.h>
 #include <main.h>
 #include <portmacro.h>
 #include <projdefs.h>
@@ -28,7 +29,7 @@
 _Static_assert((bool)(kNBbuttons <= UINT8_MAX), "The application supports maximum 255 buttons");
 
 enum {
-    kStackSize = 32U,               ///< Amount of words in the task stack
+    kStackSize = 45U,               ///< Amount of words in the task stack
     kTaskLowPriority = 8U,          ///< FreeRTOS number for a low priority task
     kDebounceTimeMS = 50U,          ///< Number of milliseconds to wait for debouncing
     kHoldingTimeMS = 1000U,         ///< Number of milliseconds to wait before considering a button is held down
@@ -287,8 +288,11 @@ static void stateReleased(ButtonType button) {
     buttons_timers[button].rising_edge_ms = current_tick;
     buttons_timers[button].holding_ms = current_tick;
     buttons[button].state = kButtonPressed;
-
     xSemaphoreGive(buttons[button].mutex);
+
+    if (button == kButtonZero) {
+        triggerHardwareEvent(kEventZero);
+    }
 }
 
 /**
@@ -308,6 +312,10 @@ static void statePressed(ButtonType button) {
         //if button maintained for long enough, get to held down state
         if (timeout(buttons_timers[button].holding_ms, kHoldingTimeMS)) {
             buttons[button].state = kButtonHeld;
+
+            if (button == kButtonZero) {
+                triggerHardwareEvent(kEventCancelZero);
+            }
         }
     }
 
@@ -320,6 +328,5 @@ static void statePressed(ButtonType button) {
     //set the timer during which falling edge can be read, and get to pressed state
     buttons_timers[button].falling_edge_ms = HAL_GetTick();
     buttons[button].state = kButtonReleased;
-
     xSemaphoreGive(buttons[button].mutex);
 }

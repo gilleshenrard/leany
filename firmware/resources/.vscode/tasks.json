@@ -47,7 +47,7 @@
                     "-extra-arg=--target=armv7m-none-eabi",
                     "-extra-arg=-mthumb",
                     "-header-filter=.*",
-                    "(Hardware^|UI)"
+                    "(Hardware^|UI^|dispatcher)"
                 ],
                 "options": {
                     "shell": {
@@ -68,7 +68,7 @@
                     "-extra-arg=--target=armv7m-none-eabi",
                     "-extra-arg=-mthumb",
                     "-header-filter=.*",
-                    "(Hardware|UI)"
+                    "(Hardware|UI|dispatcher)"
                 ],
             },
             "options": {
@@ -80,10 +80,10 @@
             "type": "shell",
             "label": "Run clang-format validation",
             "windows": {
-                "command": "Get-ChildItem -Path Hardware,UI -Recurse -Include *.c,*.h -File | ForEach-Object {D:\\Downloads\\clang+llvm-19.1.1-x86_64-pc-windows-msvc.tar\\clang+llvm-19.1.1-x86_64-pc-windows-msvc\\bin\\clang-format --style=file --dry-run --Werror --verbose $_.FullName }",
+                "command": "Get-ChildItem -Path Hardware,UI,dispatcher -Recurse -Include *.c,*.h -File | ForEach-Object {D:\\Downloads\\clang+llvm-19.1.1-x86_64-pc-windows-msvc.tar\\clang+llvm-19.1.1-x86_64-pc-windows-msvc\\bin\\clang-format --style=file --dry-run --Werror --verbose $_.FullName }",
             },
             "linux": {
-                "command": "find firmware/Hardware firmware/UI -name '*.c' -o -name '*.h' | xargs clang-format-19 --style=file --dry-run --Werror --verbose",
+                "command": "find firmware/Hardware firmware/UI firmware/dispatcher -name '*.c' -o -name '*.h' | xargs clang-format-19 --style=file --dry-run --Werror --verbose",
             },
             "options": {
                 "cwd": "${workspaceFolder}"
@@ -130,6 +130,7 @@
                 "--error-exitcode=2",
                 "--project=build/Debug/compile_commands.json",
                 "--cppcheck-build-dir=config-cppcheck-build-dir/",
+                "--check-level=exhaustive",
                 "-ibuild/",
                 "-iDrivers/",
                 "-iMiddlewares/",
@@ -155,6 +156,27 @@
                 "cwd": "${workspaceFolder}"
             },
             "problemMatcher": []
-        }
+        },
+        {
+            "type": "shell",
+            "label": "Run Lizard",
+            "command": "lizard",
+            "args": [
+                " --languages cpp",
+                "--length 80",
+                "-Tnloc=80",
+                "-Tparameter_count=5",
+                "-Tcyclomatic_complexity=10",
+                "-Eduplicate",
+                "-m",
+                "firmware/Hardware/",
+                "firmware/UI/",
+                "firmware/dispatcher/",
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
     ]
 }

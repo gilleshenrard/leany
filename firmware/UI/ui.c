@@ -13,19 +13,17 @@
 #include "ui.h"
 
 #include <FreeRTOS.h>
-#include <errorstack.h>
 #include <main.h>
 #include <portmacro.h>
 #include <projdefs.h>
-#include <queue.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stm32f1xx_hal_def.h>
 #include <task.h>
 
-#include "buttons.h"
+#include "dispatcher.h"
+#include "errorstack.h"
 #include "icons.h"
-#include "mems_bmi270.h"
 #include "sensorfusion.h"
 #include "st7735s.h"
 
@@ -37,7 +35,7 @@ enum {
 };
 
 static void runUItask(void *argument);
-static ErrorCode printMeasurements(Axis axis);
+static ErrorCode printMeasurements(Axis axis, int16_t angle_degrees_tenths);
 static ErrorCode printCharacter(VerdanaCharacter character, uint8_t x_left, uint8_t y_top);
 static ErrorCode fillBackground(void);
 
@@ -88,30 +86,35 @@ static void runUItask(void *argument) {
     //turn on backlight
     turnBacklightON();
 
-    TickType_t previous_tick = 0;
+    TickType_t previous_tick = 0;  //force first update as soon as possible
     while (1) {
         static const uint8_t kRefreshDelayMS = 30U;
 
+        //Wait until a specific amount of milliseconds passed since last update
         vTaskDelayUntil(&previous_tick, pdMS_TO_TICKS(kRefreshDelayMS));
 
-        if (anglesChanged()) {
-            result = printMeasurements(kXaxis);
-            if (isError(result)) {
-                result = pushErrorCode(result, 1, 1);
-            } else {
-                result = printMeasurements(kYaxis);
-                if (isError(result)) {
-                    result = pushErrorCode(result, 1, 2);
-                }
+        int16_t latest_values[kNbMessages] = {INT16_MIN, INT16_MIN, INT16_MIN, INT16_MIN};
+
+        //Dequeue all elements to get the latest ones chronologically
+        uint16_t max_attempts = UINT16_MAX;
+        Message ui_message;
+        while (getUImessage(&ui_message) && --max_attempts) {
+            if (ui_message.type >= kNbMessages) {
+                continue;
             }
+
+            latest_values[ui_message.type] = ui_message.value;
         }
 
-        if (buttonHasRisingEdge(kButtonZero)) {
-            bmi270ZeroDown();
+        //if an X angle value is provided, print it
+        result = kSuccessCode;
+        if (latest_values[kMessageXValue] > INT16_MIN) {
+            result = printMeasurements(kXaxis, latest_values[kMessageXValue]);
         }
 
-        if (isButtonHeldDown(kButtonZero)) {
-            bmi270CancelZeroing();
+        //if an Y angle value is provided, print it
+        if (latest_values[kMessageYValue] > INT16_MIN) {
+            result = printMeasurements(kYaxis, latest_values[kMessageYValue]);
         }
 
         if (isError(result)) {
@@ -127,29 +130,29 @@ static void runUItask(void *argument) {
  * Print angles measurements on the display
  *
  * @param axis Axis for which display the measurements
+ * @param angle_degrees_tenths Angle to display, in [0.1°]
  * @retval 0 Success
  * @retval 1 Error while printing a character
  */
-static ErrorCode printMeasurements(Axis axis) {
+static ErrorCode printMeasurements(Axis axis, int16_t angle_degrees_tenths) {
     static const uint8_t kNbMeasureCharacters = 5U;
     static const uint8_t kSecondLineY = 50U;
     static const uint8_t kMultiple10 = 10U;
     static const uint8_t kMultiple100 = 100U;
-    int16_t measurement = getAngleDegreesTenths(axis);
     uint8_t y_top = (axis == kXaxis ? 0 : kSecondLineY);
     uint8_t to_print[kNbMeasureCharacters];
     ErrorCode result;
 
-    if (measurement >= 0) {
+    if (angle_degrees_tenths >= 0) {
         to_print[0] = kVerdanaPlus;
     } else {
         to_print[0] = kVerdanaMinus;
-        measurement = (int16_t)-measurement;
+        angle_degrees_tenths = (int16_t)-angle_degrees_tenths;
     }
-    to_print[1] = (uint8_t)(measurement / kMultiple100);
-    to_print[2] = (uint8_t)((measurement / kMultiple10) % kMultiple10);
+    to_print[1] = (uint8_t)(angle_degrees_tenths / kMultiple100);
+    to_print[2] = (uint8_t)((angle_degrees_tenths / kMultiple10) % kMultiple10);
     to_print[3] = kVerdanaDot;
-    to_print[4] = (uint8_t)(measurement % kMultiple10);
+    to_print[4] = (uint8_t)(angle_degrees_tenths % kMultiple10);
 
     result = kSuccessCode;
     uint8_t character = 0;

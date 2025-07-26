@@ -32,6 +32,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "buttons.h"
+#include "dispatcher.h"
+#include "hardware_events.h"
 #include "mems_bmi270.h"
 #include "ui.h"
 /* USER CODE END Includes */
@@ -103,9 +105,11 @@ int main(void) {
     MX_USART1_UART_Init();
     MX_I2C1_Init();
     /* USER CODE BEGIN 2 */
+    createHardwareEventsGroup();
     createBMI270Task();
     createButtonsTask();
     createUItask();
+    createMessageDispatchertask();
     /* USER CODE END 2 */
 
     /* Call init function for freertos objects (in cmsis_os2.c) */

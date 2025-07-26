@@ -11,7 +11,8 @@ target_include_directories(stm32cubemx INTERFACE sysutils/)
 #	STM32CubeMX includes and definitions are manually added instead of linking the library
 #	to avoid re-compiling STMCube libraries and optimising compilation
 add_library(sysUtils
-	sysutils/errorstack.c)
+	sysutils/errorstack.c
+	sysutils/hardware_events.c)
 target_include_directories(sysUtils PUBLIC sysutils/)
 target_compile_definitions(sysUtils PUBLIC $<TARGET_PROPERTY:stm32cubemx,INTERFACE_COMPILE_DEFINITIONS>)
 target_include_directories(sysUtils SYSTEM PUBLIC $<TARGET_PROPERTY:stm32cubemx,INTERFACE_INCLUDE_DIRECTORIES>)
