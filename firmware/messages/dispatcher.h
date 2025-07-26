@@ -6,5 +6,32 @@
 
 #ifndef CONTROLLER_DISPATCHER_H
 #define CONTROLLER_DISPATCHER_H
+#include <stdint.h>
+
+#include "errorstack.h"
+
+enum {
+    kMessageStructAlignment = 8U,  ///< Optimised memory alignment for the Message structure
+};
+
+/**
+ * Enumeration of all the possible application messages
+ */
+typedef enum {
+    kMessageXValue = 0,  ///< Message : X value update
+    kMessageYValue,      ///< Message : Y value update
+    kMessageZero,        ///< Message : Zero down measurements
+    kMessageCancelZero,  ///< Message : Cancel measurements zeroing
+} MessageID;
+
+/**
+ * Application message descriptor
+ */
+typedef struct {
+    MessageID type;  ///< Message type
+    uint32_t value;  ///< Value of the message
+} __attribute__((aligned(kMessageStructAlignment))) Message;
+
+ErrorCode createMessageDispatchertask(void);
 
 #endif

@@ -46,7 +46,6 @@ add_subdirectory(messages)
 target_link_libraries(${CMAKE_PROJECT_NAME}
     stm32cubemx
     bmi270
-    st7735s
     buttons
     UI
     hal

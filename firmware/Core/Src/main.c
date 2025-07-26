@@ -32,6 +32,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "buttons.h"
+#include "dispatcher.h"
 #include "mems_bmi270.h"
 #include "ui.h"
 /* USER CODE END Includes */
@@ -106,6 +107,7 @@ int main(void) {
     createBMI270Task();
     createButtonsTask();
     createUItask();
+    createMessageDispatchertask();
     /* USER CODE END 2 */
 
     /* Call init function for freertos objects (in cmsis_os2.c) */

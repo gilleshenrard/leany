@@ -13,7 +13,6 @@
 #include "ui.h"
 
 #include <FreeRTOS.h>
-#include <errorstack.h>
 #include <main.h>
 #include <portmacro.h>
 #include <projdefs.h>
@@ -23,6 +22,7 @@
 #include <task.h>
 
 #include "buttons.h"
+#include "errorstack.h"
 #include "icons.h"
 #include "mems_bmi270.h"
 #include "sensorfusion.h"
