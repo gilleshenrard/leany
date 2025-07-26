@@ -43,15 +43,19 @@ firmware/
 ├── CMakeLists.txt
 ├── CMakePresets.json
 ├── Leany.ioc
-└── resources
-    ├── vscode
+├── Hardware/
+├── dispatcher/
+├── UI/
+└── resources/
+    ├── .vscode/
     |   ├── extensions.json
     |   ├── launch.json
     |   ├── settings.json
     |   └── tasks.json
     ├── Doxyfile
     ├── install_prerequisites_ubuntu.sh
-    └── install_prerequisites_windows.bat
+    ├── install_prerequisites_windows.bat
+    └── check_filenames.sh
 ```
 
 ### `CMakeLists.json` and `CMakePresets.json`
@@ -67,19 +71,31 @@ Contains additional resources:
 - **`Doxyfile`**: Configuration for Doxygen documentation generation.
 - **`install_prerequisites_ubuntu.sh`**: Script to install everything needed to build the firmware on Ubuntu.
 - **`install_prerequisites_windows.bat`**: Script to install everything needed to build the firmware on Windows.
+- **`check_filenames.sh`**: Script to make sure the filenames formatting is respected.
 
 ### `resources/.vscode/`
 Contains project-specific VSCode configuration and useful tasks. Should someone want to use it, they simply need to copy .vscode/ to the root of firmware/ :
 - **`extensions.json`**: List of recommended VSCode extensions to use with this project. They will be suggested by VSCode if not already installed.
 - **`launch.json`**: Configuration for OpenOCD to use an STLink to debug the application
 - **`settings.json`**: Project-specific settings. They will override the user's pre-existing settings, and will ensure everyone uses the same configuration.
-- **`tasks.json`**: Some useful custom tasks.
+- **`tasks.json`**: Some useful custom tasks for VSCode on Windows and Ubuntu.
 
-## Code Quality, Linting and Documentation
+### `dispatcher/`
+Contains the implementation of the events and messages queues dispatcher. This is where the business logic is.
 
+### `Hardware/`
+Contains the implementation of the hardware modules (e.g. GPIO buttons, MEMS sensor, ...)
+
+### `UI/`
+Contains the implementation of the user interface
+
+## Formatting, Code Quality, Linting, Documentation and licensing
+
+- Google-style formatting is used and enforced with **clang-format** and **clang-tidy**
 - Strict code quality is maintained with as many **GCC warnings** as possible enabled, all treated as errors.
 - Linters configured: **clang-tidy**, **cppcheck**, **flawfinder**, and **lizard**.
 - **Doxygen** is used for documentation, with strict control to ensure comprehensive code documentation.
+- Licensing and copyrighting compliance is checked with **REUSE tool**
 
 ## Contributing
 
@@ -87,4 +103,4 @@ Contributions to improve the firmware code and documentation are welcome. If you
 
 ## License
 
-Leany is licensed under the MIT license. See the LICENSE file for more information.
+Leany is licensed under the MIT license. See the LICENSE/ directory for more information.

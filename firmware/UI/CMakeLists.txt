@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: MIT
 
 include_directories(${CMAKE_SOURCE_DIR}/Hardware)
+include_directories(${CMAKE_SOURCE_DIR}/dispatcher)
 
 add_library(UI STATIC
 	icons.c
@@ -12,5 +13,5 @@ target_compile_definitions(UI PRIVATE $<TARGET_PROPERTY:stm32cubemx,INTERFACE_CO
 target_include_directories(UI SYSTEM PRIVATE $<TARGET_PROPERTY:stm32cubemx,INTERFACE_INCLUDE_DIRECTORIES>)
 target_link_libraries(UI PRIVATE
 	st7735s
-	buttons)
+	dispatcher)
 target_compile_options(UI PRIVATE ${WARNING_FLAGS})
