@@ -21,9 +21,9 @@
 #include <stm32f1xx_hal_def.h>
 #include <task.h>
 
+#include "dispatcher.h"
 #include "errorstack.h"
 #include "icons.h"
-#include "mems_bmi270.h"
 #include "sensorfusion.h"
 #include "st7735s.h"
 
@@ -35,7 +35,7 @@ enum {
 };
 
 static void runUItask(void *argument);
-static ErrorCode printMeasurements(Axis axis);
+static ErrorCode printMeasurements(Axis axis, int16_t angle_degrees_tenths);
 static ErrorCode printCharacter(VerdanaCharacter character, uint8_t x_left, uint8_t y_top);
 static ErrorCode fillBackground(void);
 
@@ -92,15 +92,21 @@ static void runUItask(void *argument) {
 
         vTaskDelayUntil(&previous_tick, pdMS_TO_TICKS(kRefreshDelayMS));
 
-        if (anglesChanged()) {
-            result = printMeasurements(kXaxis);
-            if (isError(result)) {
-                result = pushErrorCode(result, 1, 1);
-            } else {
-                result = printMeasurements(kYaxis);
-                if (isError(result)) {
-                    result = pushErrorCode(result, 1, 2);
-                }
+        Message ui_message;
+        while (getUImessage(&ui_message)) {
+            switch (ui_message.type) {
+                case kMessageXValue:
+                    result = printMeasurements(kXaxis, ui_message.value);
+                    break;
+
+                case kMessageYValue:
+                    result = printMeasurements(kYaxis, ui_message.value);
+                    break;
+
+                case kMessageZero:
+                case kMessageCancelZero:
+                default:
+                    break;
             }
         }
 
@@ -120,26 +126,25 @@ static void runUItask(void *argument) {
  * @retval 0 Success
  * @retval 1 Error while printing a character
  */
-static ErrorCode printMeasurements(Axis axis) {
+static ErrorCode printMeasurements(Axis axis, int16_t angle_degrees_tenths) {
     static const uint8_t kNbMeasureCharacters = 5U;
     static const uint8_t kSecondLineY = 50U;
     static const uint8_t kMultiple10 = 10U;
     static const uint8_t kMultiple100 = 100U;
-    int16_t measurement = getAngleDegreesTenths(axis);
     uint8_t y_top = (axis == kXaxis ? 0 : kSecondLineY);
     uint8_t to_print[kNbMeasureCharacters];
     ErrorCode result;
 
-    if (measurement >= 0) {
+    if (angle_degrees_tenths >= 0) {
         to_print[0] = kVerdanaPlus;
     } else {
         to_print[0] = kVerdanaMinus;
-        measurement = (int16_t)-measurement;
+        angle_degrees_tenths = (int16_t)-angle_degrees_tenths;
     }
-    to_print[1] = (uint8_t)(measurement / kMultiple100);
-    to_print[2] = (uint8_t)((measurement / kMultiple10) % kMultiple10);
+    to_print[1] = (uint8_t)(angle_degrees_tenths / kMultiple100);
+    to_print[2] = (uint8_t)((angle_degrees_tenths / kMultiple10) % kMultiple10);
     to_print[3] = kVerdanaDot;
-    to_print[4] = (uint8_t)(measurement % kMultiple10);
+    to_print[4] = (uint8_t)(angle_degrees_tenths % kMultiple10);
 
     result = kSuccessCode;
     uint8_t character = 0;

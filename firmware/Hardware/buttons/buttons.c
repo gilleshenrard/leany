@@ -28,7 +28,7 @@
 _Static_assert((bool)(kNBbuttons <= UINT8_MAX), "The application supports maximum 255 buttons");
 
 enum {
-    kStackSize = 32U,               ///< Amount of words in the task stack
+    kStackSize = 45U,               ///< Amount of words in the task stack
     kTaskLowPriority = 8U,          ///< FreeRTOS number for a low priority task
     kDebounceTimeMS = 50U,          ///< Number of milliseconds to wait for debouncing
     kHoldingTimeMS = 1000U,         ///< Number of milliseconds to wait before considering a button is held down

@@ -29,9 +29,10 @@ typedef enum {
  */
 typedef struct {
     MessageID type;  ///< Message type
-    uint32_t value;  ///< Value of the message
+    int16_t value;   ///< Value of the message
 } __attribute__((aligned(kMessageStructAlignment))) Message;
 
 ErrorCode createMessageDispatchertask(void);
+uint8_t getUImessage(Message *message_to_get);
 
 #endif
