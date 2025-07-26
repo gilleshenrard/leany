@@ -17,7 +17,9 @@
 #include <stm32f1xx_hal_def.h>
 #include <task.h>
 
+#include "buttons.h"
 #include "errorstack.h"
+#include "mems_bmi270.h"
 
 enum {
     kStackSize = 300U,      ///< Amount of words in the task stack
@@ -61,5 +63,12 @@ static void runDispatchertask(void *argument) {
     UNUSED(argument);
 
     while (1) {
+        if (buttonHasRisingEdge(kButtonZero)) {
+            bmi270ZeroDown();
+        }
+
+        if (isButtonHeldDown(kButtonZero)) {
+            bmi270CancelZeroing();
+        }
     }
 }

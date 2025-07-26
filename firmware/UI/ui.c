@@ -21,7 +21,6 @@
 #include <stm32f1xx_hal_def.h>
 #include <task.h>
 
-#include "buttons.h"
 #include "errorstack.h"
 #include "icons.h"
 #include "mems_bmi270.h"
@@ -103,14 +102,6 @@ static void runUItask(void *argument) {
                     result = pushErrorCode(result, 1, 2);
                 }
             }
-        }
-
-        if (buttonHasRisingEdge(kButtonZero)) {
-            bmi270ZeroDown();
-        }
-
-        if (isButtonHeldDown(kButtonZero)) {
-            bmi270CancelZeroing();
         }
 
         if (isError(result)) {
