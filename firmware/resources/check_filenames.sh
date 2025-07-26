@@ -12,6 +12,6 @@ while read -r file; do
     printf 'Invalid filename: %s\n' "$file"
     invalid=1
   fi
-done < <(find firmware/Hardware firmware/UI -type f \( -name "*.c" -o -name "*.h" \))
+done < <(find firmware/Hardware firmware/UI firmware/dispatcher -type f \( -name "*.c" -o -name "*.h" \))
 
 exit "$invalid"

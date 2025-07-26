@@ -34,6 +34,7 @@
 
 #include "errorstack.h"
 #include "halspi.h"
+#include "hardware_events.h"
 #include "main.h"
 #include "sensorfusion.h"
 #include "st7735_initialisation.h"
@@ -620,6 +621,10 @@ static void taskBMI270(void* argument) {
         if (isError(result)) {
             state = kBMI270stateError;
             Error_Handler();
+        }
+
+        if (anglesChanged()) {
+            triggerHardwareEvent((EventBits_t)kEventXValue | (EventBits_t)kEventYValue);
         }
     }
 }
