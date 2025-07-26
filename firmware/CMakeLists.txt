@@ -40,13 +40,14 @@ add_subdirectory(cmake/stm32cubemx SYSTEM)
 add_subdirectory(cmake/bosch-sensortec SYSTEM)
 add_subdirectory(Hardware)
 add_subdirectory(UI)
+add_subdirectory(dispatcher)
 
 # Add linked libraries
 target_link_libraries(${CMAKE_PROJECT_NAME}
     stm32cubemx
     bmi270
-    st7735s
     buttons
     UI
     hal
+    dispatcher
 )
