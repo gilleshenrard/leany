@@ -123,6 +123,7 @@ static void runUItask(void *argument) {
  * Print angles measurements on the display
  *
  * @param axis Axis for which display the measurements
+ * @param angle_degrees_tenths Angle to display, in [0.1°]
  * @retval 0 Success
  * @retval 1 Error while printing a character
  */

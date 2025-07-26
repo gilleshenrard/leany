@@ -14,11 +14,10 @@
 
 #include <FreeRTOS.h>
 #include <FreeRTOSConfig.h>
-#include <main.h>
+#include <portmacro.h>
 #include <projdefs.h>
 #include <queue.h>
 #include <stdint.h>
-#include <stm32f1xx_hal_def.h>
 #include <task.h>
 
 #include "buttons.h"
@@ -74,7 +73,7 @@ ErrorCode createMessageDispatchertask(void) {
  * @param argument Unused
  */
 static void runDispatchertask(void *argument) {
-    UNUSED(argument);
+    (void)argument;
 
     Message message;
     while (1) {
