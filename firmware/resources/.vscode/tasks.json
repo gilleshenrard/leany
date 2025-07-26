@@ -47,7 +47,7 @@
                     "-extra-arg=--target=armv7m-none-eabi",
                     "-extra-arg=-mthumb",
                     "-header-filter=.*",
-                    "(Hardware^|UI)"
+                    "(Hardware^|UI^|messages)"
                 ],
                 "options": {
                     "shell": {
@@ -68,7 +68,7 @@
                     "-extra-arg=--target=armv7m-none-eabi",
                     "-extra-arg=-mthumb",
                     "-header-filter=.*",
-                    "(Hardware|UI)"
+                    "(Hardware|UI|messages)"
                 ],
             },
             "options": {

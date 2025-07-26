@@ -40,6 +40,7 @@ add_subdirectory(cmake/stm32cubemx SYSTEM)
 add_subdirectory(cmake/bosch-sensortec SYSTEM)
 add_subdirectory(Hardware)
 add_subdirectory(UI)
+add_subdirectory(messages)
 
 # Add linked libraries
 target_link_libraries(${CMAKE_PROJECT_NAME}
@@ -49,4 +50,5 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
     buttons
     UI
     hal
+    messages
 )
