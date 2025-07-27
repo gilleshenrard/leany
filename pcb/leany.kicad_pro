@@ -54,7 +54,7 @@
       "diff_pair_dimensions": [],
       "drc_exclusions": [
         [
-          "starved_thermal|110650000|120950000|95b3f96e-8578-4ad4-be1f-e46c9851690f|6dc96ab4-9e6d-4231-96cb-2390d584b2a7|F.Cu",
+          "starved_thermal|110650000|120950000|95b3f96e-8578-4ad4-be1f-e46c9851690f|67835765-a63b-4655-87a6-4522e9844702|F.Cu",
           ""
         ]
       ],
