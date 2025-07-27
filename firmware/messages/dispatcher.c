@@ -36,8 +36,8 @@ enum {
 static void runDispatchertask(void *argument);
 
 //state variables
-static TaskHandle_t task_handle = NULL;  ///< handle of the FreeRTOS task
-static QueueHandle_t ui_queue = NULL;
+static TaskHandle_t task_handle = (void *)0;  ///< handle of the FreeRTOS task
+static QueueHandle_t ui_queue = (void *)0;
 static uint8_t ready = 0;
 
 /********************************************************************************************************************************************/
@@ -59,8 +59,8 @@ ErrorCode createMessageDispatchertask(void) {
     configASSERT(ui_queue);
 
     // create the static task
-    task_handle = xTaskCreateStatic(runDispatchertask, "Dispatch task", kStackSize, NULL, kTaskLowPriority, task_stack,
-                                    &task_state);
+    task_handle = xTaskCreateStatic(runDispatchertask, "Dispatch task", kStackSize, (void *)0, kTaskLowPriority,
+                                    task_stack, &task_state);
     configASSERT(task_handle);
 
     ready = 1;
