@@ -20136,13 +20136,13 @@
 		)
 		(model "${KIPRJMOD}/3d-models/grabcad/Mohamed_Owais/pin_header_male_2.54mm_0.1in_mohamed-owais.STEP"
 			(offset
-				(xyz -0.5 -17.75 8.5)
+				(xyz -0.5 -17.75 10)
 			)
 			(scale
 				(xyz 1 1 1)
 			)
 			(rotate
-				(xyz 90 0 0)
+				(xyz 90 -0 -0)
 			)
 		)
 		(model "${KIPRJMOD}/3d-models/grabcad/Pablo_Queiroz/1.8_inches_128x160_RGB_TFT_LCD_Pablo-Queiroz.stp"
