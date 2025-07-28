@@ -19333,6 +19333,17 @@
 			(uuid "9f89a258-0afe-403c-a6fe-1a30dc1ad2fd")
 		)
 		(embedded_fonts no)
+		(model "${KIPRJMOD}/3d-models/grabcad/Ignaz_Kevenaar/2020-RGB-LED.step"
+			(offset
+				(xyz 0 0 1)
+			)
+			(scale
+				(xyz 1 1 1)
+			)
+			(rotate
+				(xyz -90 -0 -0)
+			)
+		)
 	)
 	(footprint "leany_footprints:ST7735S"
 		(layer "F.Cu")
