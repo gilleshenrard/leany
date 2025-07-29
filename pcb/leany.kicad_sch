@@ -7,8 +7,9 @@
 	(title_block
 		(title "Leany")
 		(date "2025-07-29")
-		(comment 1 "MIT License")
-		(comment 2 "Copyright (c) 2023 Gilles Henrard")
+		(rev "0.3")
+		(comment 1 "CERN Open Hardware Licence Version 2 - Permissive")
+		(comment 2 "Copyright (c) 2025 Gilles Henrard")
 	)
 	(lib_symbols
 		(symbol "Connector:Conn_01x04_Pin"

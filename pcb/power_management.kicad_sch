@@ -5,10 +5,10 @@
 	(uuid "9a8be250-e640-4847-94d6-ca6380b175ee")
 	(paper "A4")
 	(title_block
-		(title "Leany power management")
-		(date "2025-02-12")
-		(comment 1 "MIT License")
-		(comment 2 "Copyright (c) 2023 Gilles Henrard")
+		(title "Leany - Power management")
+		(date "2025-07-29")
+		(comment 1 "CERN Open Hardware Licence Version 2 - Permissive")
+		(comment 2 "Copyright (c) 2025 Gilles Henrard")
 	)
 	(lib_symbols
 		(symbol "Connector:TestPoint_Small"
