@@ -5458,7 +5458,7 @@
 		(descr "USB Type-C receptacle for USB 2.0 and PD, http://www.krhro.com/uploads/soft/180320/1-1P320120243.pdf")
 		(tags "usb usb-c 2.0 pd")
 		(property "Reference" "J3"
-			(at 0 -5.645 270)
+			(at -6.09 2.05 0)
 			(layer "F.SilkS")
 			(uuid "a6efefd2-1735-4d4a-b790-c0be87678f81")
 			(effects
@@ -5469,7 +5469,7 @@
 			)
 		)
 		(property "Value" "USB C"
-			(at 0 5.1 270)
+			(at 0 0 270)
 			(layer "F.Fab")
 			(uuid "d256edd8-f5cc-4619-9017-eeed598d5e8b")
 			(effects
