@@ -1,7 +1,7 @@
 (footprint "wago_2060-452_998-404"
-	(version 20240108)
+	(version 20241229)
 	(generator "pcbnew")
-	(generator_version "8.0")
+	(generator_version "9.0")
 	(layer "F.Cu")
 	(tags "2060-452/998-404 ")
 	(property "Reference" "REF**"
@@ -24,18 +24,6 @@
 		(effects
 			(font
 				(size 1 1)
-				(thickness 0.15)
-			)
-		)
-	)
-	(property "Footprint" ""
-		(at 0 0 0)
-		(layer "F.Fab")
-		(hide yes)
-		(uuid "4935f3ea-ae06-44f8-a9fc-ae6436d328bc")
-		(effects
-			(font
-				(size 1.27 1.27)
 				(thickness 0.15)
 			)
 		)
@@ -65,54 +53,6 @@
 		)
 	)
 	(attr smd)
-	(fp_poly
-		(pts
-			(xy -2.000001 -5.493901) (xy -1.949201 -5.493901) (xy -1.949201 -5.405001) (xy -2.000001 -5.405001)
-		)
-		(stroke
-			(width 0)
-			(type solid)
-		)
-		(fill solid)
-		(layer "F.Paste")
-		(uuid "4252ba27-21b4-45f2-954e-2d7674967ecd")
-	)
-	(fp_poly
-		(pts
-			(xy -2.000001 3.756099) (xy -1.949201 3.756099) (xy -1.949201 3.844999) (xy -2.000001 3.844999)
-		)
-		(stroke
-			(width 0)
-			(type solid)
-		)
-		(fill solid)
-		(layer "F.Paste")
-		(uuid "2d78866a-f72c-4f89-b168-3bbd38d47b40")
-	)
-	(fp_poly
-		(pts
-			(xy 2.000001 -5.493901) (xy 2.050801 -5.493901) (xy 2.050801 -5.405001) (xy 2.000001 -5.405001)
-		)
-		(stroke
-			(width 0)
-			(type solid)
-		)
-		(fill solid)
-		(layer "F.Paste")
-		(uuid "7bb90f30-dcc7-4f1b-a15d-7199d58f8296")
-	)
-	(fp_poly
-		(pts
-			(xy 2.000001 3.756099) (xy 2.050801 3.756099) (xy 2.050801 3.844999) (xy 2.000001 3.844999)
-		)
-		(stroke
-			(width 0)
-			(type solid)
-		)
-		(fill solid)
-		(layer "F.Paste")
-		(uuid "deae9858-64bd-4e29-9937-c6870e6c191d")
-	)
 	(fp_line
 		(start -4.077 -6.477)
 		(end -4.077 6.477)
@@ -200,9 +140,57 @@
 			(width 0.508)
 			(type solid)
 		)
-		(fill none)
+		(fill no)
 		(layer "F.SilkS")
 		(uuid "d558c09e-2ee4-4736-b620-0ed98b24eb75")
+	)
+	(fp_poly
+		(pts
+			(xy -2.000001 -5.493901) (xy -1.949201 -5.493901) (xy -1.949201 -5.405001) (xy -2.000001 -5.405001)
+		)
+		(stroke
+			(width 0)
+			(type solid)
+		)
+		(fill yes)
+		(layer "F.Paste")
+		(uuid "4252ba27-21b4-45f2-954e-2d7674967ecd")
+	)
+	(fp_poly
+		(pts
+			(xy -2.000001 3.756099) (xy -1.949201 3.756099) (xy -1.949201 3.844999) (xy -2.000001 3.844999)
+		)
+		(stroke
+			(width 0)
+			(type solid)
+		)
+		(fill yes)
+		(layer "F.Paste")
+		(uuid "2d78866a-f72c-4f89-b168-3bbd38d47b40")
+	)
+	(fp_poly
+		(pts
+			(xy 2.000001 -5.493901) (xy 2.050801 -5.493901) (xy 2.050801 -5.405001) (xy 2.000001 -5.405001)
+		)
+		(stroke
+			(width 0)
+			(type solid)
+		)
+		(fill yes)
+		(layer "F.Paste")
+		(uuid "7bb90f30-dcc7-4f1b-a15d-7199d58f8296")
+	)
+	(fp_poly
+		(pts
+			(xy 2.000001 3.756099) (xy 2.050801 3.756099) (xy 2.050801 3.844999) (xy 2.000001 3.844999)
+		)
+		(stroke
+			(width 0)
+			(type solid)
+		)
+		(fill yes)
+		(layer "F.Paste")
+		(uuid "deae9858-64bd-4e29-9937-c6870e6c191d")
 	)
 	(fp_line
 		(start -4.204 -8.659)
@@ -291,7 +279,7 @@
 			(width 0.508)
 			(type solid)
 		)
-		(fill none)
+		(fill no)
 		(layer "F.Fab")
 		(uuid "1c4a3356-c751-4cf4-b9de-f6f10902f4d8")
 	)
@@ -331,7 +319,8 @@
 		(layers "F.Cu" "F.Mask")
 		(uuid "9099a483-f40c-4548-bc46-cea8667e8a5f")
 	)
-	(model "${KIPRJMOD}/3d-models/wago_2060-452_998-404.stp"
+	(embedded_fonts no)
+	(model "${KIPRJMOD}/3d-models/wago/wago_2060-452_998-404.stp"
 		(offset
 			(xyz 4 -6.5 0)
 		)
