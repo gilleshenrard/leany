@@ -28640,7 +28640,7 @@
 			(justify left bottom)
 		)
 	)
-	(gr_text "leany\nrev 0.2"
+	(gr_text "leany\nrev 0.3"
 		(at 183.2 131.1 90)
 		(layer "F.SilkS")
 		(uuid "5c038403-1bad-4a01-9b45-379538d84709")
