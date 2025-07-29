@@ -12261,7 +12261,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Button_Switch_SMD:SW_Push_1P1T_XKB_TS-1187A"
+		(property "Footprint" "leany_footprints:SW_Push_1P1T_XKB_TS-1187A"
 			(at 247.65 113.03 0)
 			(effects
 				(font
@@ -13697,7 +13697,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Button_Switch_SMD:SW_Push_1P1T_XKB_TS-1187A"
+		(property "Footprint" "leany_footprints:SW_Push_1P1T_XKB_TS-1187A"
 			(at 109.22 59.69 0)
 			(effects
 				(font
