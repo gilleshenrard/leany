@@ -2788,8 +2788,8 @@
 		(descr "SMD Tactile Switch, http://www.helloxkb.com/public/images/pdf/TS-1187A-X-X-X.pdf")
 		(tags "SPST Tactile Switch")
 		(property "Reference" "SW4"
-			(at 0 -3.75 0)
-			(layer "F.SilkS")
+			(at 0 3.815 0)
+			(layer "F.Fab")
 			(uuid "4d0ffa77-f7e2-4c44-a05c-17b79869e105")
 			(effects
 				(font
@@ -2800,7 +2800,7 @@
 		)
 		(property "Value" "FLASH"
 			(at 0 3.75 0)
-			(layer "F.Fab")
+			(layer "F.SilkS")
 			(uuid "4d1a80af-17f0-4f66-9732-f9e13c55ac22")
 			(effects
 				(font
@@ -3337,7 +3337,7 @@
 			(uuid "d0082e2f-6495-4b53-ba1b-65e78d22d85c")
 		)
 		(fp_text user "${REFERENCE}"
-			(at 0 -3.75 0)
+			(at 0 0 0)
 			(layer "F.Fab")
 			(uuid "957f020a-68d7-4bf3-b212-612e79fc53a8")
 			(effects
@@ -9595,8 +9595,8 @@
 		(descr "SMD Tactile Switch, http://www.helloxkb.com/public/images/pdf/TS-1187A-X-X-X.pdf")
 		(tags "SPST Tactile Switch")
 		(property "Reference" "SW3"
-			(at 0 -3.75 0)
-			(layer "F.SilkS")
+			(at 0 0 0)
+			(layer "F.Fab")
 			(uuid "eb77f81d-45e6-4128-b02e-4870e155021d")
 			(effects
 				(font
@@ -9607,7 +9607,7 @@
 		)
 		(property "Value" "RESET"
 			(at 0 3.75 0)
-			(layer "F.Fab")
+			(layer "F.SilkS")
 			(uuid "2e484562-31ad-40a3-8f56-dcaa613f5e3f")
 			(effects
 				(font
@@ -10144,7 +10144,7 @@
 			(uuid "0aeda0cc-a2ed-47c1-a7c0-df139c3b0a74")
 		)
 		(fp_text user "${REFERENCE}"
-			(at 0 -3.75 0)
+			(at 0.04 3.815 0)
 			(layer "F.Fab")
 			(uuid "12be4ab6-28c3-4016-a3fd-87b83f3a1f61")
 			(effects
