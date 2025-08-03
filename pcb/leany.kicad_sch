@@ -4172,6 +4172,12 @@
 		(uuid "192c5e6c-f044-4ddf-9613-9810adee82ae")
 	)
 	(junction
+		(at 232.41 27.94)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "21635437-1c17-437e-81bb-d82add04b09e")
+	)
+	(junction
 		(at 81.28 124.46)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -4292,6 +4298,12 @@
 		(uuid "9d0e862b-2a99-4e5d-884a-8f00088b38bc")
 	)
 	(junction
+		(at 207.01 96.52)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "a1dc6972-50dc-4b05-8fe0-eda75681c87e")
+	)
+	(junction
 		(at 200.66 59.69)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -4370,6 +4382,12 @@
 		(uuid "d7904ece-dea2-4d6a-9e9c-789a2e23166d")
 	)
 	(junction
+		(at 207.01 101.6)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "f9895ffe-ca38-4eb2-a043-71e433f31fb3")
+	)
+	(junction
 		(at 133.35 58.42)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -4416,6 +4434,16 @@
 	(no_connect
 		(at 115.57 119.38)
 		(uuid "b2ba441b-7afe-4bc4-a3ee-98f5b5f952ef")
+	)
+	(wire
+		(pts
+			(xy 232.41 34.29) (xy 238.76 34.29)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "015f3b34-16c4-4879-8ad9-b20e1ab99188")
 	)
 	(wire
 		(pts
@@ -5289,6 +5317,16 @@
 	)
 	(wire
 		(pts
+			(xy 238.76 27.94) (xy 232.41 27.94)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "8d5438f4-7cc0-4cb1-bdb8-79bb1654f971")
+	)
+	(wire
+		(pts
 			(xy 151.13 106.68) (xy 153.67 106.68)
 		)
 		(stroke
@@ -5539,6 +5577,16 @@
 	)
 	(wire
 		(pts
+			(xy 199.39 96.52) (xy 207.01 96.52)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "bd638690-a9fc-4857-b58e-49b2737ad82a")
+	)
+	(wire
+		(pts
 			(xy 151.13 101.6) (xy 153.67 101.6)
 		)
 		(stroke
@@ -5626,6 +5674,16 @@
 			(type default)
 		)
 		(uuid "d1360446-fa26-4331-9b50-6a6dffac2ea0")
+	)
+	(wire
+		(pts
+			(xy 199.39 101.6) (xy 207.01 101.6)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d32c8a59-030f-48a8-864c-98e1ec0e1680")
 	)
 	(wire
 		(pts
@@ -5936,6 +5994,16 @@
 			(type default)
 		)
 		(uuid "fe920dcb-fc2b-4f3c-91b1-b691d7c2e9b7")
+	)
+	(wire
+		(pts
+			(xy 238.76 29.21) (xy 238.76 27.94)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "fe9edf2f-caa8-4cd7-95f1-4b7fadc813fd")
 	)
 	(wire
 		(pts
@@ -8224,6 +8292,164 @@
 		)
 	)
 	(symbol
+		(lib_id "Device:C_Small")
+		(at 199.39 99.06 0)
+		(mirror y)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "39640ca7-bf64-45fd-976d-f9aea173cd4e")
+		(property "Reference" "C26"
+			(at 196.596 99.06 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "100n"
+			(at 194.564 99.568 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
+			(at 199.39 99.06 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 199.39 99.06 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Unpolarized capacitor, small symbol"
+			(at 199.39 99.06 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Category" ""
+			(at 199.39 99.06 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "DK_Datasheet_Link" ""
+			(at 199.39 99.06 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "DK_Detail_Page" ""
+			(at 199.39 99.06 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description_1" ""
+			(at 199.39 99.06 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Digi-Key_PN" ""
+			(at 199.39 99.06 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Family" ""
+			(at 199.39 99.06 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C14663"
+			(at 199.39 99.06 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" ""
+			(at 199.39 99.06 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer" ""
+			(at 199.39 99.06 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Status" ""
+			(at 199.39 99.06 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "c3d942cf-9a91-447a-9441-d300a3154e5f")
+		)
+		(pin "1"
+			(uuid "7aeacdfc-7337-4ea5-b1c1-34a302944543")
+		)
+		(instances
+			(project "leany"
+				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5"
+					(reference "C26")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:+3V3")
 		(at 213.36 96.52 0)
 		(unit 1)
@@ -8886,7 +9112,7 @@
 		(dnp no)
 		(uuid "481ef5f7-e997-4c6e-a125-d1a218a727ab")
 		(property "Reference" "C12"
-			(at 233.68 29.464 0)
+			(at 232.41 29.718 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8895,7 +9121,7 @@
 			)
 		)
 		(property "Value" "100n"
-			(at 234.442 31.75 0)
+			(at 232.918 33.528 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9662,7 +9888,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 207.01 105.918 0)
+			(at 207.01 105.41 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11194,7 +11420,7 @@
 		(dnp no)
 		(uuid "8a3d0edf-cb86-4032-8a5e-58c5ce75bc88")
 		(property "Reference" "U2"
-			(at 208.6767 106.68 0)
+			(at 205.232 108.458 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11203,7 +11429,7 @@
 			)
 		)
 		(property "Value" "CH340N"
-			(at 208.6767 109.22 0)
+			(at 208.788 110.49 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11676,6 +11902,165 @@
 			(project ""
 				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5"
 					(reference "J1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C_Small")
+		(at 238.76 31.75 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "9f3501e6-0970-4c9a-8c38-5483b409477d")
+		(property "Reference" "C25"
+			(at 240.03 29.464 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "100n"
+			(at 240.792 31.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
+			(at 238.76 31.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 238.76 31.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Unpolarized capacitor, small symbol"
+			(at 238.76 31.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Category" ""
+			(at 238.76 31.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "DK_Datasheet_Link" ""
+			(at 238.76 31.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "DK_Detail_Page" ""
+			(at 238.76 31.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description_1" ""
+			(at 238.76 31.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Digi-Key_PN" ""
+			(at 238.76 31.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Family" ""
+			(at 238.76 31.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C14663"
+			(at 238.76 31.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" ""
+			(at 238.76 31.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer" ""
+			(at 238.76 31.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Status" ""
+			(at 238.76 31.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "39c7d671-e57e-45aa-9d56-9b74563cc529")
+		)
+		(pin "1"
+			(uuid "dc24fa5a-328a-4c6e-9871-5eb74a99985e")
+		)
+		(instances
+			(project "leany"
+				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5"
+					(reference "C25")
 					(unit 1)
 				)
 			)
