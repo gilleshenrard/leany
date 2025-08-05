@@ -6511,7 +6511,7 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" "C14663"
+		(property "LCSC" "C1525"
 			(at 231.14 41.91 0)
 			(effects
 				(font
@@ -8881,7 +8881,7 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" "C15849"
+		(property "LCSC" "C52923"
 			(at 113.03 41.91 0)
 			(effects
 				(font
@@ -10343,7 +10343,7 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" "C14663"
+		(property "LCSC" "C1525"
 			(at 166.37 57.15 0)
 			(effects
 				(font
@@ -10659,7 +10659,7 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" "C15849"
+		(property "LCSC" "C52923"
 			(at 236.22 41.91 0)
 			(effects
 				(font
@@ -10984,7 +10984,7 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" "C21122"
+		(property "LCSC" "C1532"
 			(at 226.06 41.91 0)
 			(effects
 				(font
@@ -11854,7 +11854,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 161.29 39.37 0)
 			(effects
 				(font
@@ -12094,7 +12094,7 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" "C15849"
+		(property "LCSC" "C52923"
 			(at 259.08 41.91 0)
 			(effects
 				(font
