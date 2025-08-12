@@ -7136,7 +7136,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
+		(property "Footprint" "leany_footprints:C_0402_1005Metric"
 			(at 161.29 50.8 0)
 			(effects
 				(font
@@ -8159,7 +8159,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
+		(property "Footprint" "leany_footprints:C_0402_1005Metric"
 			(at 91.44 83.82 0)
 			(effects
 				(font
@@ -8317,7 +8317,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
+		(property "Footprint" "leany_footprints:C_0402_1005Metric"
 			(at 199.39 99.06 0)
 			(effects
 				(font
@@ -8541,7 +8541,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
+		(property "Footprint" "leany_footprints:C_0402_1005Metric"
 			(at 66.04 46.99 0)
 			(effects
 				(font
@@ -9129,7 +9129,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
+		(property "Footprint" "leany_footprints:C_0402_1005Metric"
 			(at 232.41 31.75 0)
 			(effects
 				(font
@@ -11277,7 +11277,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
+		(property "Footprint" "leany_footprints:C_0402_1005Metric"
 			(at 109.22 68.58 0)
 			(effects
 				(font
@@ -11934,7 +11934,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
+		(property "Footprint" "leany_footprints:C_0402_1005Metric"
 			(at 238.76 31.75 0)
 			(effects
 				(font
@@ -13124,7 +13124,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
+		(property "Footprint" "leany_footprints:C_0402_1005Metric"
 			(at 154.94 50.8 0)
 			(effects
 				(font
@@ -14020,7 +14020,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
+		(property "Footprint" "leany_footprints:C_0402_1005Metric"
 			(at 91.44 76.2 0)
 			(effects
 				(font
@@ -14245,7 +14245,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
+		(property "Footprint" "leany_footprints:C_0402_1005Metric"
 			(at 142.24 50.8 0)
 			(effects
 				(font
@@ -14404,7 +14404,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
+		(property "Footprint" "leany_footprints:C_0402_1005Metric"
 			(at 148.59 50.8 0)
 			(effects
 				(font
@@ -15038,7 +15038,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
+		(property "Footprint" "leany_footprints:C_0402_1005Metric"
 			(at 207.01 99.06 0)
 			(effects
 				(font
