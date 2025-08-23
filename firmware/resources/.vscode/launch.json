@@ -22,7 +22,7 @@
             "linux": {
                 "gdbPath": "arm-none-eabi-gdb",
                 "searchDir": [
-                    "/usr/share/openocd/st_scripts/"
+                    "/usr/share/openocd/scripts/"
                 ],
             },
             "liveWatch": {

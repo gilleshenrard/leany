@@ -5,6 +5,7 @@
     "files.defaultLanguage": "c",
     "files.associations": {
         "*.h": "c",
+        "*.inc": "c",
     },
     "editor.insertSpaces": true,
     "editor.detectIndentation": true,
