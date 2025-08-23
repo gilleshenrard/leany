@@ -15,6 +15,7 @@
   *
   ******************************************************************************
   */
+// clang-format off
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
@@ -23,7 +24,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "halspi.h"
-#include "mems_bmi270.h"
+#include "imu.h"
 #include "stm32f1xx_ll_dma.h"
 /* USER CODE END Includes */
 
@@ -174,7 +175,7 @@ void EXTI0_IRQHandler(void)
   {
     LL_EXTI_ClearFlag_0_31(LL_EXTI_LINE_0);
     /* USER CODE BEGIN LL_EXTI_LINE_0 */
-    bmi270InterruptTriggered(1);
+    IMUinterruptTriggered(1);
     /* USER CODE END LL_EXTI_LINE_0 */
   }
   /* USER CODE BEGIN EXTI0_IRQn 1 */
@@ -194,7 +195,7 @@ void EXTI1_IRQHandler(void)
   {
     LL_EXTI_ClearFlag_0_31(LL_EXTI_LINE_1);
     /* USER CODE BEGIN LL_EXTI_LINE_1 */
-    bmi270InterruptTriggered(2);
+    IMUinterruptTriggered(2);
     /* USER CODE END LL_EXTI_LINE_1 */
   }
   /* USER CODE BEGIN EXTI1_IRQn 1 */
