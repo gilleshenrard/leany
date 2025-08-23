@@ -72,43 +72,49 @@ SPDX-License-Identifier = "BSD-3-Clause"
 [[annotations]]
 path = ["pcb/3d-models/grabcad/Ignaz_Kevenaar/**"]
 precedence = "aggregate"
-SPDX-FileCopyrightText = "Ignaz Kevenaar <https://grabcad.com/ignaz.kevenaar-1>"
+SPDX-FileCopyrightText = "2023 Ignaz Kevenaar <https://grabcad.com/ignaz.kevenaar-1>"
 SPDX-License-Identifier = "LicenseRef-GrabCAD-Terms"
 
 [[annotations]]
 path = ["pcb/3d-models/grabcad/Mart_Berghs/**"]
 precedence = "aggregate"
-SPDX-FileCopyrightText = "Mart Berghs <https://grabcad.com/mart.berghs-1>"
+SPDX-FileCopyrightText = "2020 Mart Berghs <https://grabcad.com/mart.berghs-1>"
 SPDX-License-Identifier = "LicenseRef-GrabCAD-Terms"
 
 [[annotations]]
 path = ["pcb/3d-models/grabcad/Mohamed_Owais/**"]
 precedence = "aggregate"
-SPDX-FileCopyrightText = "Mohamed Owais <https://grabcad.com/mohamed.owais-1>"
+SPDX-FileCopyrightText = "2019 Mohamed Owais <https://grabcad.com/mohamed.owais-1>"
 SPDX-License-Identifier = "LicenseRef-GrabCAD-Terms"
 
 [[annotations]]
 path = ["pcb/3d-models/grabcad/Ni_Ni/**"]
 precedence = "aggregate"
-SPDX-FileCopyrightText = "ni_ni <https://grabcad.com/ni_ni-1>"
+SPDX-FileCopyrightText = "2023 ni_ni <https://grabcad.com/ni_ni-1>"
 SPDX-License-Identifier = "LicenseRef-GrabCAD-Terms"
 
 [[annotations]]
 path = ["pcb/3d-models/grabcad/Pablo_Queiroz/**"]
 precedence = "aggregate"
-SPDX-FileCopyrightText = "Pablo Queiroz <https://grabcad.com/pablo.queiroz-2>"
+SPDX-FileCopyrightText = "2019 Pablo Queiroz <https://grabcad.com/pablo.queiroz-2>"
 SPDX-License-Identifier = "LicenseRef-GrabCAD-Terms"
 
 [[annotations]]
 path = ["pcb/3d-models/grabcad/Paul_Thelu/**"]
 precedence = "aggregate"
-SPDX-FileCopyrightText = "Paul THELU <https://grabcad.com/paul.thelu-2>"
+SPDX-FileCopyrightText = "2021 Paul THELU <https://grabcad.com/paul.thelu-2>"
 SPDX-License-Identifier = "LicenseRef-GrabCAD-Terms"
 
 [[annotations]]
 path = ["pcb/3d-models/grabcad/Stelian_Stefan/**"]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "Nicola Stelian Stefan <https://grabcad.com/nicola.stelian.stefan-4>"
+SPDX-License-Identifier = "LicenseRef-GrabCAD-Terms"
+
+[[annotations]]
+path = ["pcb/3d-models/grabcad/Nhatkhongbuon/**"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2025 Nhatkhongbuon <https://grabcad.com/nhatkhongbuon-1>"
 SPDX-License-Identifier = "LicenseRef-GrabCAD-Terms"
 
 #
