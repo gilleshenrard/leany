@@ -16,6 +16,16 @@ precedence = "aggregate"
 SPDX-FileCopyrightText = "2016-2025 STMicroelectronics"
 SPDX-License-Identifier = "MIT"
 
+# STM32CubeMX-generated files are provided AS-IS, unless a license file is provided
+# in the component's root directory
+[[annotations]]
+path = [
+    "firmware/Drivers/STM32F1xx_HAL_Driver/**",
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2016-2025 STMicroelectronics"
+SPDX-License-Identifier = "BSD-3-Clause"
+
 # FreeRTOS files contain the MIT licensing text
 [[annotations]]
 path = "firmware/Middlewares/Third_Party/FreeRTOS/**"

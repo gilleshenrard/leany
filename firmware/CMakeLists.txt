@@ -37,15 +37,14 @@ add_executable(${CMAKE_PROJECT_NAME})
 
 # Add STM32CubeMX generated sources
 add_subdirectory(cmake/stm32cubemx SYSTEM)
-add_subdirectory(cmake/bosch-sensortec SYSTEM)
-add_subdirectory(Hardware)
-add_subdirectory(UI)
+add_subdirectory(hardware)
+add_subdirectory(ui)
 add_subdirectory(dispatcher)
 
 # Add linked libraries
 target_link_libraries(${CMAKE_PROJECT_NAME}
     stm32cubemx
-    bmi270
+    IMU
     gpio
     UI
     hal

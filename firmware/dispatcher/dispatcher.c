@@ -29,7 +29,8 @@
 
 #include "errorstack.h"
 #include "hardware_events.h"
-#include "mems_bmi270.h"
+#include "imu.h"
+#include "led.h"
 #include "sensorfusion.h"
 
 enum {
@@ -85,28 +86,41 @@ ErrorCode createMessageDispatchertask(void) {
 static void runDispatchertask(void *argument) {
     (void)argument;
 
+    uint8_t holding = 0;
+
     while (1) {
-        const EventBits_t events = (EventBits_t)kEventXValue | (EventBits_t)kEventYValue | (EventBits_t)kEventZero |
-                                   (EventBits_t)kEventCancelZero;
-        EventBits_t events_triggered = waitForHardwareEvents(events, kEventDelayMS);
+        //if no new event received, loopback
+        if (!waitForHardwareEvents(kEventDelayMS)) {
+            continue;
+        }
 
         //if any angle changed happened, push them in the UI queue
-        if ((events_triggered & ((EventBits_t)kEventXValue | (EventBits_t)kEventYValue))) {
+        if (isHardwareEventTriggered(kEventXValue) || isHardwareEventTriggered(kEventYValue)) {
             dispatchEventToUI(kMessageXValue, getAngleDegreesTenths(kXaxis));
             dispatchEventToUI(kMessageYValue, getAngleDegreesTenths(kYaxis));
         }
 
         //react to a zero button press
-        if ((events_triggered & (EventBits_t)kEventZero)) {
-            bmi270ZeroDown();
+        if (isHardwareEventTriggered(kEventZero)) {
+            LEDblink(&kWhiteDimmed, kSlowblinkPeriod_ms);
+            IMUzeroDown();
             dispatchEventToUI(kMessageZero, 0);
         }
 
         //react to a zero button holding down
-        if ((events_triggered & (EventBits_t)kEventCancelZero)) {
-            bmi270CancelZeroing();
+        if (isHardwareEventTriggered(kEventCancelZero)) {
+            LEDsolid(&kBlack);
+            IMUcancelZeroing();
 
             dispatchEventToUI(kMessageCancelZero, 0);
+        }
+
+        //react to a hold button press
+        if (isHardwareEventTriggered(kEventHold)) {
+            const Colour led_colour = (holding ? kBlue : kBlack);
+
+            LEDsolid(&led_colour);
+            holding = !holding;
         }
     }
 }
