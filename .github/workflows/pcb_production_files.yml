@@ -38,6 +38,11 @@ jobs:
           options: --user root -v ${{ github.workspace }}:${{ github.workspace }}
 
         steps:
+          - name: Install jq json viewer
+            run: |
+                  sudo apt-get update
+                  sudo apt-get install -y jq
+
           - name: Checkout the repository
             uses: actions/checkout@v4
           
@@ -72,6 +77,32 @@ jobs:
                   --exit-code-violations
                   ${{env.SCH_PATH}}/${{env.SCH_FILE}}
 
+          - name: Summarize ERC report
+            if: ${{ failure() && steps.erc.conclusion == 'failure' }}
+            run: |
+              echo "========== ERC Violations =========="
+              erc_json=$(cat ${{ env.SCH_PATH }}/${{ env.ERC_FILE }})
+
+              sheet_count=$(echo "$erc_json" | jq '.sheets | length')
+              for sheet_index in $(seq 0 $((sheet_count - 1))); do
+                sheet_path=$(echo "$erc_json" | jq -r ".sheets[$sheet_index].path")
+                echo "Sheet: $sheet_path"
+
+                violation_count=$(echo "$erc_json" | jq ".sheets[$sheet_index].violations | length")
+                for violation_index in $(seq 0 $((violation_count - 1))); do
+                  description=$(echo "$erc_json" | jq -r ".sheets[$sheet_index].violations[$violation_index].description")
+                  echo "  Violation: $description"
+
+                  item_count=$(echo "$erc_json" | jq ".sheets[$sheet_index].violations[$violation_index].items | length")
+                  for item_index in $(seq 0 $((item_count - 1))); do
+                    item_desc=$(echo "$erc_json" | jq -r ".sheets[$sheet_index].violations[$violation_index].items[$item_index].description")
+                    echo "    Item: $item_desc"
+                  done
+                done
+              done
+              echo "==================================="
+
+
           - name: Upload ERC report if ERC failed
             uses: actions/upload-artifact@v4
             if: ${{ failure() && steps.erc.conclusion == 'failure' }}
@@ -87,6 +118,33 @@ jobs:
                   --format json
                   --exit-code-violations
                   ${{env.SCH_PATH}}/${{env.PCB_FILE}}
+
+          - name: Summarize DRC report
+            if: ${{ failure() && steps.drc.conclusion == 'failure' }}
+            run: |
+              echo "========== DRC Violations =========="
+              drc_json=$(cat ${{ env.SCH_PATH }}/${{ env.DRC_FILE }})
+
+              echo "Unconnected items :"
+              unconnected_count=$(echo "$drc_json" | jq ".unconnected_items | length")
+              for unconnected_index in $(seq 0 $((unconnected_count - 1))); do
+                description=$(echo "$drc_json" | jq -r ".unconnected_items[$unconnected_index].description")
+                echo "  Violation: $description"
+              done
+
+              echo "Violations :"
+              violations_count=$(echo "$drc_json" | jq ".violations | length")
+              for violation_index in $(seq 0 $((violations_count - 1))); do
+                description=$(echo "$drc_json" | jq -r ".violations[$violation_index].description")
+                echo "  Violation: $description"
+
+                items_count=$(echo "$drc_json" | jq ".violations[$violation_index].items | length")
+                for item_index in $(seq 0 $((items_count - 1))); do
+                  description=$(echo "$drc_json" | jq -r ".violations[$violation_index].items[$item_index].description")
+                  echo "    Item: $description"
+                done
+              done
+              echo "==================================="
 
           - name: Upload DRC report if DRC failed
             uses: actions/upload-artifact@v4

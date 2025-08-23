@@ -1,7 +1,7 @@
 (footprint "NH-B2020RGBA-HF"
-	(version 20240108)
+	(version 20241229)
 	(generator "pcbnew")
-	(generator_version "8.0")
+	(generator_version "9.0")
 	(layer "F.Cu")
 	(property "Reference" "REF**"
 		(at 0 12.9 0)
@@ -20,19 +20,6 @@
 		(unlocked yes)
 		(layer "F.Fab")
 		(uuid "9244bfbe-f1b0-471b-9f23-f914dea62fad")
-		(effects
-			(font
-				(size 1 1)
-				(thickness 0.15)
-			)
-		)
-	)
-	(property "Footprint" ""
-		(at 0 13.4 0)
-		(unlocked yes)
-		(layer "F.Fab")
-		(hide yes)
-		(uuid "0f9c8e87-70fb-40c8-ba49-4bdb19d7719a")
 		(effects
 			(font
 				(size 1 1)
@@ -95,7 +82,7 @@
 			(width 0.1)
 			(type solid)
 		)
-		(fill solid)
+		(fill yes)
 		(layer "F.SilkS")
 		(uuid "e99a5e07-7e38-4f87-b5e2-9c0d2a23799d")
 	)
@@ -106,7 +93,7 @@
 			(width 0.1)
 			(type default)
 		)
-		(fill none)
+		(fill no)
 		(layer "F.CrtYd")
 		(uuid "2eb7703a-6c7f-4e46-98e8-1d803af1c93d")
 	)
@@ -125,29 +112,41 @@
 	(pad "1" smd rect
 		(at 0.85 0.55)
 		(size 0.8 0.7)
-		(layers "F.Cu" "F.Paste" "F.Mask")
+		(layers "F.Cu" "F.Mask" "F.Paste")
 		(thermal_bridge_angle 45)
 		(uuid "7f484dff-0ed1-4871-a9a1-8a67f062bb59")
 	)
 	(pad "2" smd rect
 		(at -0.85 0.55)
 		(size 0.8 0.7)
-		(layers "F.Cu" "F.Paste" "F.Mask")
+		(layers "F.Cu" "F.Mask" "F.Paste")
 		(thermal_bridge_angle 45)
 		(uuid "d64b03b4-4b69-4bfd-8eb0-2d63b1d8e724")
 	)
 	(pad "3" smd rect
 		(at -0.85 -0.55)
 		(size 0.8 0.7)
-		(layers "F.Cu" "F.Paste" "F.Mask")
+		(layers "F.Cu" "F.Mask" "F.Paste")
 		(thermal_bridge_angle 45)
 		(uuid "41db931f-7bc8-41eb-9aae-10346aebe5c7")
 	)
 	(pad "4" smd rect
 		(at 0.85 -0.55)
 		(size 0.8 0.7)
-		(layers "F.Cu" "F.Paste" "F.Mask")
+		(layers "F.Cu" "F.Mask" "F.Paste")
 		(thermal_bridge_angle 45)
 		(uuid "63df22b3-3f50-41d3-a6d4-ed90c76d323d")
+	)
+	(embedded_fonts no)
+	(model "${KIPRJMOD}/3d-models/grabcad/Ignaz_Kevenaar/2020-RGB-LED.step"
+		(offset
+			(xyz 0 0 1)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz -90 -0 -0)
+		)
 	)
 )
