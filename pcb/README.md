@@ -1,8 +1,10 @@
 # Leany Project PCB Documentation
 
-**Revision:** 0.2
+**Revision:** 0.3
 
 Welcome to the Leany project's PCB documentation. This repository contains all the necessary files and information related to the PCB schematics and layouts for the Leany project.
+
+![pcb_overall](resources/images/pcb_angled.png?raw=true "PCB Overall")
 
 ## Table of Contents
 
@@ -16,7 +18,7 @@ Welcome to the Leany project's PCB documentation. This repository contains all t
 
 This documentation provides an overview of the PCB schematics and layouts used in the Leany project. It includes detailed information on the design, components, and assembly instructions.
 
-## Generate the production files
+## Generate the production files (Linux only)
 
 1. Download KiCad from the [official website](https://kicad.org/).
 2. Go to the pcb/ directory
@@ -44,7 +46,8 @@ pcb/
 ```
 
 ### `3d-models`
-This directory contains the additional 3D models needed to export the PCB as an STL file
+This directory contains the additional 3D models needed to export the PCB as an STL file.
+All the models are organised as [source]/[author]/[file]
 
 ### `resources`
 Contains additional resources :
@@ -53,10 +56,14 @@ Contains additional resources :
 ## CI/CD workflows
 The PCB files are instected by a [Github Action](https://github.com/gilleshenrard/leany/actions/workflows/pcb_production_files.yml) upon push and pull request to run the **Electrical Rules Check** and **Design Rules Check** ensure the production files are easily generated.
 
+## Gallery
+![pcb_front](resources/images/pcb_front.png?raw=true "PCB Front")
+![pcb_back](resources/images/pcb_back.png?raw=true "PCB Back")
+
 ## Contributing
 
 Contributions to improve the PCB design and documentation are welcome. If you have any suggestions or improvements, please create a pull request or open an issue on the repository.
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](https://github.com/gilleshenrard/leany/blob/main/LICENSE) file for more details.
+The PCB files are licensed under CERN Open Hardware Licence Version 2 - Permissive. See the [CERN-OHL-P-2.0](https://github.com/gilleshenrard/leany/blob/27-fix-pcb-rev02-issues/LICENSES/CERN-OHL-P-2.0.txt) file for more details.
