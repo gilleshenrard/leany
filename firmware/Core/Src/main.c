@@ -15,6 +15,7 @@
   *
   ******************************************************************************
   */
+// clang-format off
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
@@ -33,7 +34,7 @@
 #include "dispatcher.h"
 #include "gpiotask.h"
 #include "hardware_events.h"
-#include "mems_bmi270.h"
+#include "imu.h"
 #include "ui.h"
 
 /* USER CODE END Includes */
@@ -109,7 +110,7 @@ int main(void)
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
     createHardwareEventsGroup();
-    createBMI270Task();
+    createIMUtask();
     createGPIOtask();
     createUItask();
     createMessageDispatchertask();

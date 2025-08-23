@@ -2,8 +2,8 @@
 #
 # SPDX-License-Identifier: MIT
 
-include_directories(${CMAKE_SOURCE_DIR}/Hardware)
-include_directories(${CMAKE_SOURCE_DIR}/UI)
+include_directories(${CMAKE_SOURCE_DIR}/hardware)
+include_directories(${CMAKE_SOURCE_DIR}/ui)
 
 add_library(dispatcher STATIC
 	dispatcher.c)
@@ -13,7 +13,7 @@ target_include_directories(dispatcher SYSTEM PRIVATE $<TARGET_PROPERTY:stm32cube
 target_compile_options(dispatcher PRIVATE ${WARNING_FLAGS})
 target_link_libraries(dispatcher PRIVATE
 	st7735s
-	bmi270
+	IMU
 	gpio
 	UI
 )

@@ -6,19 +6,30 @@
             "hidden": true,
             "generator": "Ninja",
             "binaryDir": "${sourceDir}/build/${presetName}",
-            "toolchainFile": "${sourceDir}/cmake/gcc-arm-none-eabi.cmake",
             "cacheVariables": {}
         },
         {
-            "name": "Debug",
+            "name": "GCC",
+            "hidden": true,
             "inherits": "default",
+            "toolchainFile": "${sourceDir}/cmake/gcc-arm-none-eabi.cmake"
+        },
+        {
+            "name": "ARMclang",
+            "hidden": true,
+            "inherits": "default",
+            "toolchainFile": "${sourceDir}/cmake/starm-clang.cmake"
+        },
+        {
+            "name": "Debug",
+            "inherits": "GCC",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug"
             }
         },
         {
             "name": "Release",
-            "inherits": "default",
+            "inherits": "GCC",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release"
             }

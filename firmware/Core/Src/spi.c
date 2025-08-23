@@ -45,15 +45,15 @@ void MX_SPI1_Init(void)
   PA6   ------> SPI1_MISO
   PA7   ------> SPI1_MOSI
   */
-  GPIO_InitStruct.Pin = BMI270_SCL_Pin|BMI270_SDA_Pin;
+  GPIO_InitStruct.Pin = IMU_SCL_Pin|IMU_MOSI_Pin;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
   GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_HIGH;
   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
   LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  GPIO_InitStruct.Pin = BMI270_SDO_Pin;
+  GPIO_InitStruct.Pin = IMU_MISO_Pin;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_FLOATING;
-  LL_GPIO_Init(BMI270_SDO_GPIO_Port, &GPIO_InitStruct);
+  LL_GPIO_Init(IMU_MISO_GPIO_Port, &GPIO_InitStruct);
 
   /* USER CODE BEGIN SPI1_Init 1 */
 

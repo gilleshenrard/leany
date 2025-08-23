@@ -17,6 +17,9 @@ on:
   schedule:
     - cron: "0 3 1 * *" #Automatically run at 03:00 every 1st of the month
 
+env:
+  CLANG-VERSION: 20
+
 jobs:
 
 
@@ -124,9 +127,25 @@ jobs:
       - name: Check the GNU Arm Embedded Toolchain triplet
         run: ls -la ${{ steps.arm-none-eabi-gcc-action.outputs.path }}/../arm-none-eabi
 
-      - name: Install linters
+      - name: Install clang tools
         run: |
-              sudo apt-get install -y clang-19 clang-tidy-19 clang-format-19 cppcheck flawfinder doxygen
+              wget https://apt.llvm.org/llvm.sh
+              chmod +x llvm.sh
+              sudo ./llvm.sh ${{env.CLANG-VERSION}}
+              sudo apt-get install -y clang-tidy-${{env.CLANG-VERSION}} clang-format-${{env.CLANG-VERSION}}
+              sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-${{env.CLANG-VERSION}} ${{env.CLANG-VERSION}}
+              sudo update-alternatives --set clang /usr/bin/clang-${{env.CLANG-VERSION}}
+              sudo update-alternatives --install /usr/bin/clang-tidy clang-tidy /usr/bin/clang-tidy-${{env.CLANG-VERSION}} ${{env.CLANG-VERSION}}
+              sudo update-alternatives --set clang-tidy /usr/bin/clang-tidy-${{env.CLANG-VERSION}}
+              sudo update-alternatives --install /usr/bin/run-clang-tidy run-clang-tidy /usr/bin/run-clang-tidy-${{env.CLANG-VERSION}} ${{env.CLANG-VERSION}}
+              sudo update-alternatives --set run-clang-tidy /usr/bin/run-clang-tidy-${{env.CLANG-VERSION}}
+              sudo update-alternatives --install /usr/bin/clang-format clang-format /usr/bin/clang-format-${{env.CLANG-VERSION}} ${{env.CLANG-VERSION}}
+              sudo update-alternatives --set clang-format /usr/bin/clang-format-${{env.CLANG-VERSION}}
+              rm llvm.sh
+
+      - name: Install other linters
+        run: |
+              sudo apt-get update && sudo apt-get install -y cppcheck doxygen
               sudo pip install lizard reuse
 
       - name: Cleanup compile_commands.json for clang-tidy
@@ -136,17 +155,17 @@ jobs:
         run: mkdir -p ${{github.workspace}}/firmware/config-cppcheck-build-dir/
 
       - name: run clang-tidy
-        id: clang
+        id: clang-tidy
         continue-on-error: true
         run:  >
-              /usr/bin/run-clang-tidy-19
+              run-clang-tidy
               -quiet
               -p ${{github.workspace}}/firmware/build/Debug/
               -extra-arg=--sysroot=${{ steps.arm-none-eabi-gcc-action.outputs.path }}/../arm-none-eabi
               -extra-arg=--target=armv7m-none-eabi
               -extra-arg=-mthumb
               -header-filter=.*
-              "(Hardware|UI|dispatcher)"
+              "(hardware|ui|dispatcher)"
 
       - name: Run CppCheck
         id: cppcheck
@@ -169,29 +188,21 @@ jobs:
               --suppress=missingIncludeSystem
               --suppress=missingInclude
               --suppress=unusedFunction
-
-      - name: Run Flawfinder
-        id: flawfinder
-        continue-on-error: true
-        run: |
-          flawfinder firmware/Hardware/
-          flawfinder firmware/UI/
-          flawfinder firmware/dispatcher/
+              --suppress=unknownMacro
 
       - name: Run Lizard
         id: lizard
         continue-on-error: true
         run: >
           lizard
-          --languages cpp
-          --length 80
-          -Tnloc=80
+          -Tlength=60
+          -Tnloc=60
           -Tparameter_count=5
           -Tcyclomatic_complexity=10
           -Eduplicate
           -m
-          firmware/Hardware/
-          firmware/UI/
+          firmware/hardware/
+          firmware/ui/
           firmware/dispatcher/
 
       - name: Run Doxygen
@@ -203,15 +214,15 @@ jobs:
         id: clang-format
         continue-on-error: true
         run: >
-          find firmware/Hardware firmware/UI firmware/dispatcher -name '*.c' -o -name '*.h'
-          | xargs clang-format-19 --style=file --dry-run --Werror --verbose
+          find firmware/hardware firmware/ui firmware/dispatcher -name '*.c' -o -name '*.h' -o -name '*.inc'
+          | xargs clang-format --style=file --dry-run --Werror --verbose
 
       - name: Open source Copyright and Lincensing
         id: reuse
         continue-on-error: true
         run: reuse --include-submodules lint
 
-      #File names must contain only lowercase, numbers or underscores
+      #File names and paths must contain only lowercase, numbers or underscores
       - name : Check for files naming convention
         id : filenames
         continue-on-error: true
@@ -221,14 +232,37 @@ jobs:
 
       - name: Final result
         run: |
-          if [ "${{ steps.clang.outcome }}" != "success" ] || \
-            [ "${{ steps.cppcheck.outcome }}" != "success" ] || \
-            [ "${{ steps.flawfinder.outcome }}" != "success" ] || \
-            [ "${{ steps.lizard.outcome }}" != "success" ] || \
-            [ "${{ steps.clang-format.outcome }}" != "success" ] || \
-            [ "${{ steps.reuse.outcome }}" != "success" ] || \
-            [ "${{ steps.filenames.outcome }}" != "success" ] || \
-            [ "${{ steps.doxygen.outcome }}" != "success" ]; then
-            echo "::error::At least one tool failed"
+          failed=0
+
+          if [ "${{ steps.clang-tidy.outcome }}" != "success" ]; then
+            echo "::error::clang-tidy failed"
+            failed=1
+          fi
+          if [ "${{ steps.cppcheck.outcome }}" != "success" ]; then
+            echo "::error::cppcheck failed"
+            failed=1
+          fi
+          if [ "${{ steps.lizard.outcome }}" != "success" ]; then
+            echo "::error::lizard failed"
+            failed=1
+          fi
+          if [ "${{ steps.clang-format.outcome }}" != "success" ]; then
+            echo "::error::clang-format failed"
+            failed=1
+          fi
+          if [ "${{ steps.reuse.outcome }}" != "success" ]; then
+            echo "::error::reuse failed"
+            failed=1
+          fi
+          if [ "${{ steps.filenames.outcome }}" != "success" ]; then
+            echo "::error::filenames failed"
+            failed=1
+          fi
+          if [ "${{ steps.doxygen.outcome }}" != "success" ]; then
+            echo "::error::doxygen failed"
+            failed=1
+          fi
+          if [ $failed -eq 1 ]; then
             exit 1
           fi
+

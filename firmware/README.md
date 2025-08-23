@@ -43,9 +43,9 @@ firmware/
 ├── CMakeLists.txt
 ├── CMakePresets.json
 ├── Leany.ioc
-├── Hardware/
+├── hardware/
 ├── dispatcher/
-├── UI/
+├── ui/
 └── resources/
     ├── .vscode/
     |   ├── extensions.json
@@ -83,7 +83,7 @@ Contains project-specific VSCode configuration and useful tasks. Should someone 
 ### `dispatcher/`
 Contains the implementation of the events and messages queues dispatcher. This is where the business logic is.
 
-### `Hardware/`
+### `hardware/`
 Contains the implementation of the hardware modules (e.g. GPIO buttons, MEMS sensor, ...)
 
 ### `UI/`
