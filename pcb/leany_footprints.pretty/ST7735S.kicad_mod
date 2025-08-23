@@ -1,7 +1,7 @@
 (footprint "ST7735S"
-	(version 20240108)
+	(version 20241229)
 	(generator "pcbnew")
-	(generator_version "8.0")
+	(generator_version "9.0")
 	(layer "F.Cu")
 	(descr "Through hole straight socket strip, 1x08, 2.54mm pitch, single row (from Kicad 4.0.7), script generated")
 	(tags "Through hole socket strip THT 1x08 2.54mm single row")
@@ -23,19 +23,6 @@
 		(effects
 			(font
 				(size 1 1)
-				(thickness 0.15)
-			)
-		)
-	)
-	(property "Footprint" ""
-		(at 0 0 0)
-		(unlocked yes)
-		(layer "F.Fab")
-		(hide yes)
-		(uuid "6063f827-47bb-4562-b616-ca69110b754e")
-		(effects
-			(font
-				(size 1.27 1.27)
 				(thickness 0.15)
 			)
 		)
@@ -134,7 +121,7 @@
 			(width 0.2)
 			(type default)
 		)
-		(fill none)
+		(fill no)
 		(layer "F.SilkS")
 		(uuid "56a3dce3-5db1-4f6e-b537-5fcd0342b70b")
 	)
@@ -145,7 +132,7 @@
 			(width 0.1)
 			(type default)
 		)
-		(fill none)
+		(fill no)
 		(layer "F.SilkS")
 		(uuid "96aa2210-a098-4399-ac9c-db42d67ac558")
 	)
@@ -342,6 +329,7 @@
 		(remove_unused_layers no)
 		(uuid "a80f3c7c-ff3e-4f51-bcdb-474ae20fb888")
 	)
+	(embedded_fonts no)
 	(model "${KICAD8_3DMODEL_DIR}/Connector_PinSocket_2.54mm.3dshapes/PinSocket_1x08_P2.54mm_Vertical.wrl"
 		(offset
 			(xyz 0 0 0)
@@ -353,7 +341,7 @@
 			(xyz 0 0 0)
 		)
 	)
-	(model "${KIPRJMOD}/3d-models/Spacer M2 M F 10mm_mart-berghs.stp"
+	(model "${KIPRJMOD}/3d-models/grabcad/Mart_Berghs/Spacer-M2-M-F-10mm_mart-berghs.stp"
 		(offset
 			(xyz -1 -73.75 10)
 		)
@@ -364,7 +352,7 @@
 			(xyz 0 180 0)
 		)
 	)
-	(model "${KIPRJMOD}/3d-models/Spacer M2 M F 10mm_mart-berghs.stp"
+	(model "${KIPRJMOD}/3d-models/grabcad/Mart_Berghs/Spacer-M2-M-F-10mm_mart-berghs.stp"
 		(offset
 			(xyz -1 -44 10)
 		)
@@ -375,7 +363,7 @@
 			(xyz 0 180 0)
 		)
 	)
-	(model "${KIPRJMOD}/3d-models/Spacer M2 M F 10mm_mart-berghs.stp"
+	(model "${KIPRJMOD}/3d-models/grabcad/Mart_Berghs/Spacer-M2-M-F-10mm_mart-berghs.stp"
 		(offset
 			(xyz -52 -43.75 10)
 		)
@@ -386,7 +374,7 @@
 			(xyz 0 180 0)
 		)
 	)
-	(model "${KIPRJMOD}/3d-models/Spacer M2 M F 10mm_mart-berghs.stp"
+	(model "${KIPRJMOD}/3d-models/grabcad/Mart_Berghs/Spacer-M2-M-F-10mm_mart-berghs.stp"
 		(offset
 			(xyz -52 -73.75 10)
 		)
@@ -397,26 +385,26 @@
 			(xyz 0 -180 0)
 		)
 	)
-	(model "${KIPRJMOD}/3d-models/pin_header_male_2.54mm_0.1in_mohamed-owais.STEP"
+	(model "${KIPRJMOD}/3d-models/grabcad/Mohamed_Owais/pin_header_male_2.54mm_0.1in_mohamed-owais.STEP"
 		(offset
-			(xyz -0.5 -17.75 8.5)
+			(xyz -0.5 -17.75 10.2)
 		)
 		(scale
 			(xyz 1 1 1)
 		)
 		(rotate
-			(xyz 90 0 0)
+			(xyz 90 -0 -0)
 		)
 	)
-	(model "${KIPRJMOD}/3d-models/1.8_inches_128x160_RGB_TFT_LCD_Pablo-Queiroz.stp"
+	(model "${KIPRJMOD}/3d-models/grabcad/Pablo_Queiroz/1.8_inches_128x160_RGB_TFT_LCD_Pablo-Queiroz.stp"
 		(offset
-			(xyz -55 8.5 10)
+			(xyz -54.5 8.5 10)
 		)
 		(scale
 			(xyz 1 1 1)
 		)
 		(rotate
-			(xyz 0 0 -180)
+			(xyz -0 -0 -180)
 		)
 	)
 )
