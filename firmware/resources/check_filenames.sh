@@ -4,14 +4,24 @@
 #
 # SPDX-License-Identifier: MIT
 
-invalid=0
+#
+# Find all *.c, *.h and *.inc user-defined files and check whether their path
+#   follows the following pattern :
+# - all-lowercase path
+# - numbers are allowed
+# - underscores are allwowed
+#
 
+invalid=0
 while read -r file; do
-  baseName="$(basename "$file")"
-  if ! printf "%s\n" "$baseName" | grep -qE '^[a-z0-9_]+\.[ch]$'; then
-    printf 'Invalid filename: %s\n' "$file"
-    invalid=1
-  fi
-done < <(find firmware/Hardware firmware/UI firmware/dispatcher -type f \( -name "*.c" -o -name "*.h" \))
+    #baseName="$(basename "$file")"
+    printf 'Checking %s : ' "$file"
+    if ! printf "%s\n" "$file" | grep -qE '^[a-z0-9_\/]+\.([ch]|(inc))$'; then
+        printf 'Invalid filename\n'
+        invalid=1
+    else
+        printf 'OK\n'
+    fi
+done < <(find firmware/hardware firmware/ui firmware/dispatcher -type f \( -name "*.c" -o -name "*.h" -o -name "*.inc" \))
 
 exit "$invalid"
