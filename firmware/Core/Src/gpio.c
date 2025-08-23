@@ -51,7 +51,7 @@ void MX_GPIO_Init(void)
   LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_GPIOB);
 
   /**/
-  LL_GPIO_SetOutputPin(GPIOA, BMI270_CS_Pin|ST7735S_RST_Pin);
+  LL_GPIO_SetOutputPin(GPIOA, IMU_CS_Pin|ST7735S_RST_Pin);
 
   /**/
   LL_GPIO_SetOutputPin(ST7735S_CS_GPIO_Port, ST7735S_CS_Pin);
@@ -63,12 +63,12 @@ void MX_GPIO_Init(void)
   LL_GPIO_ResetOutputPin(DEBUG_OUT_GPIO_Port, DEBUG_OUT_Pin);
 
   /**/
-  GPIO_InitStruct.Pin = BMI270_CS_Pin;
+  GPIO_InitStruct.Pin = IMU_CS_Pin;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
   GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_HIGH;
   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
   GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
-  LL_GPIO_Init(BMI270_CS_GPIO_Port, &GPIO_InitStruct);
+  LL_GPIO_Init(IMU_CS_GPIO_Port, &GPIO_InitStruct);
 
   /**/
   GPIO_InitStruct.Pin = ZERO_BUTTON_Pin|HOLD_BUTTON_Pin;
@@ -129,22 +129,22 @@ void MX_GPIO_Init(void)
   LL_EXTI_Init(&EXTI_InitStruct);
 
   /**/
-  LL_GPIO_SetPinPull(BMI270_INT1_GPIO_Port, BMI270_INT1_Pin, LL_GPIO_PULL_UP);
+  LL_GPIO_SetPinPull(IMU_INT1_GPIO_Port, IMU_INT1_Pin, LL_GPIO_PULL_UP);
 
   /**/
   LL_GPIO_SetPinPull(CHG_INT_GPIO_Port, CHG_INT_Pin, LL_GPIO_PULL_UP);
 
   /**/
-  LL_GPIO_SetPinPull(BMI270_INT2_GPIO_Port, BMI270_INT2_Pin, LL_GPIO_PULL_UP);
+  LL_GPIO_SetPinPull(IMU_INT2_GPIO_Port, IMU_INT2_Pin, LL_GPIO_PULL_UP);
 
   /**/
-  LL_GPIO_SetPinMode(BMI270_INT1_GPIO_Port, BMI270_INT1_Pin, LL_GPIO_MODE_INPUT);
+  LL_GPIO_SetPinMode(IMU_INT1_GPIO_Port, IMU_INT1_Pin, LL_GPIO_MODE_INPUT);
 
   /**/
   LL_GPIO_SetPinMode(CHG_INT_GPIO_Port, CHG_INT_Pin, LL_GPIO_MODE_INPUT);
 
   /**/
-  LL_GPIO_SetPinMode(BMI270_INT2_GPIO_Port, BMI270_INT2_Pin, LL_GPIO_MODE_INPUT);
+  LL_GPIO_SetPinMode(IMU_INT2_GPIO_Port, IMU_INT2_Pin, LL_GPIO_MODE_INPUT);
 
   /* EXTI interrupt init*/
   NVIC_SetPriority(EXTI0_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),5, 0));
