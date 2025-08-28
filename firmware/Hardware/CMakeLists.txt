@@ -51,7 +51,9 @@ target_link_libraries(bmi270 PRIVATE st7735s)
 target_link_libraries(bmi270 PRIVATE bmi270_api)
 
 #create the buttons library, taking care of the control buttons
-add_library(buttons
-	buttons/buttons.c)
-target_include_directories(buttons PUBLIC buttons)
-target_link_libraries(buttons PRIVATE sysUtils)
+add_library(gpio
+	gpio/gpiotask.c
+	gpio/buttons.c
+	gpio/led.c)
+target_include_directories(gpio PUBLIC gpio)
+target_link_libraries(gpio PRIVATE sysUtils)
