@@ -14,6 +14,6 @@ target_compile_options(dispatcher PRIVATE ${WARNING_FLAGS})
 target_link_libraries(dispatcher PRIVATE
 	st7735s
 	bmi270
-	buttons
+	gpio
 	UI
 )

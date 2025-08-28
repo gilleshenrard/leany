@@ -1,7 +1,3 @@
-# SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
-#
-# SPDX-License-Identifier: MIT
-
 # Doxyfile 1.14.0
 
 # This file describes the settings to be used by the documentation system
@@ -995,8 +991,8 @@ WARN_LOGFILE           =
 # spaces. See also FILE_PATTERNS and EXTENSION_MAPPING
 # Note: If this tag is empty the current directory is searched.
 
-INPUT                  = firmware/Hardware \
-                         firmware/UI \
+INPUT                  = firmware/hardware \
+                         firmware/ui \
                          firmware/dispatcher
 
 # This tag can be used to specify the character encoding of the source files
