@@ -43,7 +43,7 @@ typedef enum {
     kFillBackground = 3,     ///< fillBackground() function
 } FunctionCode;
 
-static void runUItask(void *argument);
+static void runUItask(void* argument);
 static ErrorCode printMeasurements(Axis axis, int16_t angle_degrees_tenths);
 static ErrorCode printCharacter(VerdanaCharacter character, uint8_t x_left, uint8_t y_top);
 static ErrorCode fillBackground(void);
@@ -77,7 +77,7 @@ ErrorCode createUItask(void) {
  *
  * @param argument Unused
  */
-static void runUItask(void *argument) {
+static void runUItask(void* argument) {
     UNUSED(argument);
     ErrorCode result;
 

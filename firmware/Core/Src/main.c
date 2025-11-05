@@ -36,6 +36,7 @@
 #include "hardware_events.h"
 #include "imu.h"
 #include "ui.h"
+#include "serial.h"
 
 /* USER CODE END Includes */
 
@@ -113,6 +114,7 @@ int main(void)
     createIMUtask();
     createGPIOtask();
     createUItask();
+    createSerialtask();
     createMessageDispatchertask();
   /* USER CODE END 2 */
 

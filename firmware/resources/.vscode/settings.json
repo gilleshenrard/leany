@@ -26,6 +26,7 @@
     //
     //
     //Flylint (jbenden.c-cpp-flylint)
+    "c-cpp-flylint.flawfinder.enable": false,
     "c-cpp-flylint.clang.enable": false,
     "c-cpp-flylint.cppcheck.language": "C",
     "c-cpp-flylint.cppcheck.inconclusive": true,

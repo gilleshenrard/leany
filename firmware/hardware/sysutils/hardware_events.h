@@ -11,12 +11,13 @@
 
 // NOLINTBEGIN (readability-enum-initial-value)
 typedef enum {
-    kEventXValue = 0U,      ///< Event : X value update
-    kEventYValue = 1U,      ///< Event : Y value update
-    kEventZero = 2U,        ///< Event : Zero down measurements
-    kEventCancelZero = 3U,  ///< Event : Cancel measurements zeroing
-    kEventHold = 4U,        ///< Event : Enable measurements holding
-    kNbEvents,              ///< Number of events handled
+    kEventXValue = 0U,         ///< Event : X value update
+    kEventYValue = 1U,         ///< Event : Y value update
+    kEventZero = 2U,           ///< Event : Zero down measurements
+    kEventCancelZero = 3U,     ///< Event : Cancel measurements zeroing
+    kEventHold = 4U,           ///< Event : Enable measurements holding
+    kEventSerialCommand = 5U,  ///< Event : Command received over serial connection
+    kNbEvents,                 ///< Number of events handled
 } Event;
 // NOLINTEND (readability-enum-initial-value)
 

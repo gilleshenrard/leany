@@ -20,10 +20,12 @@ enum {
  * @brief Error levels possible
  */
 typedef enum {
-    kErrorInfo = 0,  ///< Simple information
-    kErrorWarning,   ///< Warning
-    kErrorError,     ///< Non-critical error
-    kErrorCritical   ///< Critical error
+    kErrorDebug = 0,  ///< Debug information (not advised, very verbose)
+    kErrorInfo,       ///< Simple information
+    kErrorWarning,    ///< Warning
+    kErrorError,      ///< Non-critical error
+    kErrorCritical,   ///< Critical error
+    kMaxErrorLevel    ///< Maximum error level
 } ErrorLevel;
 
 /**
@@ -73,6 +75,18 @@ inline uint8_t isError(const ErrorCode code) { return (code.layer0); }
 #define EXIT_ON_ERROR(result, functionID, errorCode)         \
     if (isError(result)) {                                   \
         return pushErrorCode(result, functionID, errorCode); \
+    }
+
+/**
+ * Macro used to avoid bloating the code with timeout loops
+ */
+#define EXIT_ON_TIMEOUT(condition, timeout_ms, function_id, error_code) \
+    timeout_value = 0;                                                  \
+    while (!(condition) && !timeout_value) {                            \
+        timeout_value = timeout(start_tick, timeout_ms);                \
+    };                                                                  \
+    if (timeout_value) {                                                \
+        return createErrorCode(function_id, error_code, kErrorError);   \
     }
 
 #endif /* INC_ERRORS_ERRORS_H */

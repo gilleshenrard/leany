@@ -35,7 +35,7 @@ SPDX-License-Identifier = "MIT"
 
 # Doxygen configuration file is licensed on MIT
 [[annotations]]
-path = "firmware/resources/Doxyfile"
+path = "firmware/Doxyfile"
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2025 Gilles Henrard <contact@gilleshenrard.com>"
 SPDX-License-Identifier = "MIT"

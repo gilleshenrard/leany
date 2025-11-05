@@ -18,6 +18,12 @@ int16_t getAngleDegreesTenths(Axis axis);
 uint8_t anglesChanged(void);
 void IMUzeroDown(void);
 void IMUcancelZeroing(void);
+float getIMU_KP(void);
+float getIMU_KI(void);
+uint8_t isIMUalignmentCheckEnabled(void);
+void setIMU_KI(float value);
+void setIMU_KP(float value);
+void setIMUalignmentCheckEnabled(uint8_t value);
 
 /****************************************************************************************************************/
 /****************************************************************************************************************/
@@ -30,6 +36,7 @@ void IMUcancelZeroing(void);
  * @return IMU-specific error code
  */
 extern ErrorCode IMUcheckDeviceID(void);
+
 /**
  * Request an IMU soft reset
  *

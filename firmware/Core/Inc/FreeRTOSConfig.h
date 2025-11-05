@@ -93,11 +93,10 @@ to exclude the API function. */
 #define INCLUDE_uxTaskPriorityGet            0
 #define INCLUDE_vTaskDelete                  0
 #define INCLUDE_vTaskCleanUpResources        0
-#define INCLUDE_vTaskSuspend                 0
+#define INCLUDE_vTaskSuspend                 1
 #define INCLUDE_vTaskDelayUntil              1
 #define INCLUDE_vTaskDelay                   1
 #define INCLUDE_xTaskGetSchedulerState       1
-#define INCLUDE_xTaskResumeFromISR           0
 
 /* Cortex-M specific definitions. */
 #ifdef __NVIC_PRIO_BITS
