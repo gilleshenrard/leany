@@ -14,7 +14,6 @@
 #include "imu.h"
 
 #include <FreeRTOS.h>
-#include <errorstack.h>
 #include <math.h>
 #include <portmacro.h>
 #include <projdefs.h>
@@ -23,12 +22,14 @@
 #include <stdint.h>
 #include <task.h>
 
+#include "errorstack.h"
 #include "hardware_events.h"
 #include "main.h"
 #include "sensorfusion.h"
+#include "serial.h"
 
 enum {
-    kStackSize = 250U,      ///< Amount of words in the task stack
+    kStackSize = 350U,      ///< Amount of words in the task stack
     kTaskLowPriority = 8U,  ///< FreeRTOS number for a low priority task
     kStartupTimeMS = 10U,   ///< Number of milliseconds to wait after a reset
     kTimeoutMS = 1000U,     ///< Max number of milliseconds to wait for a notification
@@ -65,8 +66,8 @@ static FunctionCode imu_state = kStateStartup;    ///< Current IMU state
 static ErrorCode result;                          ///< Variable used to receive the functions' result codes
 static volatile uint8_t task_notifiable = 0;      ///< Flag indicating whether the task is ready to treat notifications
 static float angles_zeroing_rad[kNBaxis - 1] = {0, 0};  ///< Angles used to zero out the measurements
-static MahonyContext filter_context = {.ki = kIntegralGain,
-                                       .kp = kProportionalGain};  ///< Current Mahony filter context
+static MahonyContext filter_context = {
+    .ki = kIntegralGain, .kp = kProportionalGain, .align_check_enabled = 1};  ///< Current Mahony filter context
 
 /****************************************************************************************************************/
 /****************************************************************************************************************/
@@ -102,14 +103,18 @@ void createIMUtask(void) {
     //create the static task
     task_handle = xTaskCreateStatic(taskIMU, "IMU task", kStackSize, NULL, kTaskLowPriority, task_stack, &task_state);
     if (!task_handle) {
+        logSerial(kErrorInfo, "Error while creating IMU task");
         Error_Handler();
     }
 
     //create a semaphore to protect mearurements
     angles_mutex = xSemaphoreCreateMutexStatic(&measure_mutex_state);
     if (!angles_mutex) {
+        logSerial(kErrorInfo, "Error while creating angles mutex");
         Error_Handler();
     }
+
+    logSerial(kErrorInfo, "IMU task and angles mutex created");
 }
 
 /**
@@ -180,6 +185,102 @@ void IMUcancelZeroing(void) {
     xSemaphoreGive(angles_mutex);
 }
 
+/**
+ * Get the Mahony filter's Proportional value
+ *
+ * @return kP value
+ */
+float getIMU_KP(void) {
+    float current_kp = 0.0F;
+
+    if (xSemaphoreTake(angles_mutex, pdMS_TO_TICKS(kMutexMS)) == pdTRUE) {
+        current_kp = filter_context.kp;
+        xSemaphoreGive(angles_mutex);
+    }
+
+    return current_kp;
+}
+
+/**
+ * Get the Mahony filter's Integral value
+ *
+ * @return kI value
+ */
+float getIMU_KI(void) {
+    float current_ki = 0.0F;
+
+    if (xSemaphoreTake(angles_mutex, pdMS_TO_TICKS(kMutexMS)) == pdTRUE) {
+        current_ki = filter_context.ki;
+        xSemaphoreGive(angles_mutex);
+    }
+
+    return current_ki;
+}
+
+/**
+ * Set the Mahony filter's Integral value
+ *
+ * @param value Filter's integral value
+ */
+void setIMU_KI(float value) {
+    if (value < 0.0F) {
+        return;
+    }
+
+    if (xSemaphoreTake(angles_mutex, pdMS_TO_TICKS(kMutexMS)) == pdTRUE) {
+        filter_context.ki = value;
+        resetMahonyFilter(&filter_context);
+        xSemaphoreGive(angles_mutex);
+    }
+}
+
+/**
+ * Set the Mahony filter's Proportional value
+ *
+ * @param value Filter's Proportional value
+ */
+void setIMU_KP(float value) {
+    if (value < 0.0F) {
+        return;
+    }
+
+    if (xSemaphoreTake(angles_mutex, pdMS_TO_TICKS(kMutexMS)) == pdTRUE) {
+        filter_context.kp = value;
+        resetMahonyFilter(&filter_context);
+        xSemaphoreGive(angles_mutex);
+    }
+}
+
+/**
+ * Set whether the estimated and actual vectors alignment is invalid and should reset the filter
+ *
+ * @param value 1 if check enabled, 0 otherwise
+ */
+void setIMUalignmentCheckEnabled(uint8_t value) {
+    if (xSemaphoreTake(angles_mutex, pdMS_TO_TICKS(kMutexMS)) == pdTRUE) {
+        filter_context.align_check_enabled = (value != 0);
+        resetMahonyFilter(&filter_context);
+        xSemaphoreGive(angles_mutex);
+    }
+}
+
+/**
+ * Check whether the estimated and actual vectors alignment validity is checked
+ *
+ * @retval 1 Enabled
+ * @retval 0 Disabled
+ */
+uint8_t isIMUalignmentCheckEnabled(void) {
+    uint8_t enabled = 0;
+
+    if (xSemaphoreTake(angles_mutex, pdMS_TO_TICKS(kMutexMS)) == pdTRUE) {
+        enabled = filter_context.align_check_enabled;
+        xSemaphoreGive(angles_mutex);
+    }
+
+    return enabled;
+}
+
 /****************************************************************************************************************/
 /****************************************************************************************************************/
 
@@ -205,6 +306,10 @@ static void taskIMU(void* argument) {
 
             case kStateMeasuring:
                 result = stateMeasuring();
+                if (anglesChanged()) {
+                    triggerHardwareEvent(kEventXValue);
+                    triggerHardwareEvent(kEventYValue);
+                }
                 break;
 
             case kStateError:
@@ -220,12 +325,8 @@ static void taskIMU(void* argument) {
 
         //if an error occurred, get to the error state
         if (isError(result)) {
+            logSerial(result.level, "IMU Error %x", result.dword);
             imu_state = kStateError;
-        }
-
-        if (anglesChanged()) {
-            triggerHardwareEvent(kEventXValue);
-            triggerHardwareEvent(kEventYValue);
         }
     };
 }
@@ -244,10 +345,12 @@ static ErrorCode stateStartup(void) {
 
     result = IMUcheckDeviceID();
     EXIT_ON_ERROR(result, kStateStartup, 1)
+    logSerial(kErrorInfo, "IMU communication OK");
 
     result = IMUsoftReset();
     EXIT_ON_ERROR(result, kStateStartup, 2)
     vTaskDelay(pdMS_TO_TICKS(kStartupTimeMS));
+    logSerial(kErrorInfo, "IMU soft-reset done");
 
     //attempt self-testing accelerometer and gyroscope
     uint8_t attempts = 5U;  // NOLINT(*-magic-numbers)
@@ -256,6 +359,7 @@ static ErrorCode stateStartup(void) {
         if (isError(result)) {
             continue;
         }
+        logSerial(kErrorInfo, "Accemerometer self-test ok");
 
         result = selfTestGyroscope();
     } while (--attempts && isError(result));
@@ -263,6 +367,7 @@ static ErrorCode stateStartup(void) {
     //if either self-test failed, error
     EXIT_ON_ERROR(result, kStateStartup, 3)
 
+    logSerial(kErrorInfo, "Gyroscope self-test ok");
     return kSuccessCode;
 }
 
@@ -292,7 +397,8 @@ static ErrorCode stateConfiguring(void) {
     resetMahonyFilter(&filter_context);
     IMUsetupTimebase(&filter_context);
 
-    //TODO allow for samples to be dropped in the LSM6DSO, thus using task notifications
+    //TODO allow for samples to be dropped in the LSM6DSO, thus using task notification
+    logSerial(kErrorInfo, "IMU and Mahony filter initialisation OK");
     return kSuccessCode;
 }
 
@@ -315,6 +421,7 @@ static ErrorCode ignoreSamples(void) {
         remaining--;
     }
 
+    logSerial(kErrorInfo, "%u IMU samples ignored for synchronisation", getNbSamplesToIgnore());
     return kSuccessCode;
 }
 
@@ -340,6 +447,7 @@ static ErrorCode stateMeasuring(void) {
     if (xSemaphoreTake(angles_mutex, pdMS_TO_TICKS(kMutexMS)) == pdTRUE) {
         filter_context.dt.current_tick = sample.latest_tick;
         updateMahonyFilter(&filter_context, &sample);
+        logSerial(kErrorDebug, "Mahony filter updated");
         xSemaphoreGive(angles_mutex);
     }
 

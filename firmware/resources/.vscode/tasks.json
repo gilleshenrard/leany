@@ -42,9 +42,6 @@
                     "-quiet",
                     "-p${command:cmake.buildDirectory}",
                     "-extra-arg=--sysroot=C:/msys64/ucrt64/arm-none-eabi",
-                    "-extra-arg=--target=armv7m-none-eabi",
-                    "-extra-arg=-mthumb",
-                    "-header-filter=.*",
                     "(hardware^|ui^|dispatcher)"
                 ],
                 "options": {
@@ -63,9 +60,6 @@
                     "-quiet",
                     "-p${command:cmake.buildDirectory}",
                     "-extra-arg=--sysroot=/opt/arm-none-eabi/arm-none-eabi/",
-                    "-extra-arg=--target=armv7m-none-eabi",
-                    "-extra-arg=-mthumb",
-                    "-header-filter=.*",
                     "\"(hardware|ui|dispatcher)\""
                 ]
             },
@@ -93,7 +87,7 @@
             "label": "Run Doxygen",
             "command": "doxygen",
             "args": [
-                "firmware/resources/Doxyfile"
+                "firmware/Doxyfile"
             ],
             "options": {
                 "cwd": "${workspaceFolder}/.."

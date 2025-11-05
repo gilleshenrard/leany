@@ -49,6 +49,7 @@ typedef struct {
     float error_integrals[kNBaxis];  ///< Array containing the integrated errors
     float kp;                        ///< PI filter proportional gain
     float ki;                        ///< PI filter integral gain
+    uint8_t align_check_enabled;     ///< Check valid alignment between estimates and accelerometer?
     uint8_t bad_acceleration_count;  ///< Number of bad accelerometer norms since reset
     uint8_t bad_quaternion_count;    ///< Number of bad quaternion norms since reset
 } __attribute__((aligned(kContextAlignment))) MahonyContext;

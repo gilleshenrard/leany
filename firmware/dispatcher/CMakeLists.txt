@@ -15,5 +15,6 @@ target_link_libraries(dispatcher PRIVATE
 	st7735s
 	IMU
 	gpio
+	serial
 	UI
 )

@@ -18,7 +18,7 @@ on:
     - cron: "0 3 1 * *" #Automatically run at 03:00 every 1st of the month
 
 env:
-  CLANG-VERSION: 20
+  CLANG-VERSION: 21
 
 jobs:
 
@@ -208,7 +208,7 @@ jobs:
       - name: Run Doxygen
         id: doxygen
         continue-on-error: true
-        run: doxygen firmware/resources/Doxyfile
+        run: doxygen firmware/Doxyfile
 
       - name: Check Clang-format
         id: clang-format
@@ -229,6 +229,20 @@ jobs:
         run : |
           chmod +x firmware/resources/check_filenames.sh
           ./firmware/resources/check_filenames.sh
+
+      - name : Display symbols size
+        id : sizing
+        continue-on-error: true
+        run : >
+          arm-none-eabi-nm
+          --demangle=gnu-v3
+          --print-size
+          --size-sort
+          --reverse-sort
+          --format=sysv
+          --radix=d
+          --line-numbers
+          ${{github.workspace}}/firmware/build/Debug/Leany.elf
 
       - name: Final result
         run: |
@@ -260,6 +274,10 @@ jobs:
           fi
           if [ "${{ steps.doxygen.outcome }}" != "success" ]; then
             echo "::error::doxygen failed"
+            failed=1
+          fi
+          if [ "${{ steps.sizing.outcome }}" != "success" ]; then
+            echo "::error::Displaying symbols size failed"
             failed=1
           fi
           if [ $failed -eq 1 ]; then
