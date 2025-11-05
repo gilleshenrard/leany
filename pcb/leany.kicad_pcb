@@ -9,8 +9,9 @@
 	(paper "A4")
 	(title_block
 		(title "Leany")
-		(date "2025-08-18")
-		(comment 1 "MIT License")
+		(date "2025-10-15")
+		(rev "0.3")
+		(comment 1 "CERN Open Hardware Licence Version 2 - Permissive")
 		(comment 2 "Copyright (c) 2023 Gilles Henrard")
 	)
 	(layers

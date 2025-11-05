@@ -2,6 +2,8 @@
 #
 # SPDX-License-Identifier: MIT
 
+add_subdirectory(imu)
+
 #make sure STM32CubeMX library knows about sysutils/ (to use it in interrupts, ...)
 target_include_directories(stm32cubemx INTERFACE sysutils/)
 
@@ -33,6 +35,16 @@ target_include_directories(hal PUBLIC hal)
 target_link_libraries(hal PRIVATE sysUtils)
 
 #
+# Declare the UART serial library
+#
+add_library(serial
+	serial/serial.c
+	serial/scpi_parser.c
+	serial/scpi_commands.c)
+target_include_directories(serial PUBLIC serial)
+target_link_libraries(serial PRIVATE sysUtils)
+
+#
 # declare the ST7735 library, taking care of the display
 #
 add_library(st7735s
@@ -51,30 +63,3 @@ add_library(gpio
 	gpio/led.c)
 target_include_directories(gpio PUBLIC gpio)
 target_link_libraries(gpio PRIVATE sysUtils)
-
-#
-#declare the IMU library
-#
-if(NOT IMU_MODEL)
-	set(IMU_MODEL "LSM6")
-endif()
-
-#depending on the IMU model chosen, set source files and external libraries to use
-if(IMU_MODEL STREQUAL "BMI270")
-	include(${CMAKE_SOURCE_DIR}/cmake/bosch-sensortec/CMakeLists.txt)
-	set(IMUSRC imu/bmi270/mems_bmi270.c)
-	set(IMULIB bmi270_api)
-elseif(IMU_MODEL STREQUAL "LSM6")
-	set(IMUSRC imu/lsm6/lsm6.c)
-endif()
-
-#declare the library
-add_library(IMU
-	imu/imu.c
-	${IMUSRC}
-	imu/sensorfusion.c)
-target_include_directories(IMU PUBLIC imu/)
-target_link_libraries(IMU PRIVATE sysUtils)
-target_link_libraries(IMU PRIVATE hal)
-target_link_libraries(IMU PRIVATE st7735s)
-target_link_libraries(IMU PUBLIC ${IMULIB})

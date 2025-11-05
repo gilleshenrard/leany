@@ -5,8 +5,8 @@
 	(uuid "e47b2519-93ca-4a48-9414-ecc253dd35f5")
 	(paper "A4")
 	(title_block
-		(title "Leany")
-		(date "2025-08-21")
+		(title "Leany - Control circuit")
+		(date "2025-10-15")
 		(rev "0.3")
 		(comment 1 "CERN Open Hardware Licence Version 2 - Permissive")
 		(comment 2 "Copyright (c) 2025 Gilles Henrard")

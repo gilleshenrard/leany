@@ -33,6 +33,32 @@ cmake --build --preset Release
 2. Connect the programmer to a computer via USB
 3. Flash and debug the firmware with an IDE of your choosing
 
+## USB Command-Line Communication
+
+The device supports bidirectional command-line communication over **USB Type-C**, appearing as a **virtual COM port**.  
+When connected, look for a port name containing **`CH340`**, which indicates the onboard USB–serial bridge.
+
+### Features
+
+- **Command Protocol:**  
+  A custom protocol inspired by **SCPI** is implemented to allow both **read** and **write** operations.  
+  Note: The current implementation does *not yet* fully comply with the SCPI standard.
+
+- **Logging System:**  
+  The firmware outputs log messages prefixed with an exclamation mark (`!`).  
+  Multiple **logging levels** are available to adjust verbosity as needed.
+
+### Example Session
+
+```text
+:imu:ki?
+0.5
+:imu:ki 1.2
+!Mahony kI updated
+:imu:ki?
+1.2
+```
+
 ## CI/CD workflows
 The firmware is instected by a [Github Action](https://github.com/gilleshenrard/leany/actions/workflows/firmware_build_lint.yml) upon push and pull request to ensure the software compiles and the linters are all ran.
 

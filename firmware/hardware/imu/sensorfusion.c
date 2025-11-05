@@ -142,8 +142,8 @@ void updateMahonyFilter(MahonyContext* context, const IMUsample* sample) {
     float body_estimates[kNBaxis];
     computeEstimates(context, body_estimates);
 
-    //Abort update if strong linear motion is detected
-    if (!alignmentValid(normalised_accelerometer, body_estimates)) {
+    //Abort update if validation is enabled and a strong linear motion is detected
+    if (context->align_check_enabled && !alignmentValid(normalised_accelerometer, body_estimates)) {
         return;
     }
 
