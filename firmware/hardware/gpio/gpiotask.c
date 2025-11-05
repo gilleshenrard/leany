@@ -24,7 +24,7 @@
 #include "led.h"
 
 enum {
-    kStackSize = 60U,       ///< Amount of words in the task stack
+    kStackSize = 150U,      ///< Amount of words in the task stack
     kTaskLowPriority = 8U,  ///< FreeRTOS number for a low priority task
 };
 

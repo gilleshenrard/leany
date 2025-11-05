@@ -34,6 +34,6 @@ typedef struct {
 } __attribute__((aligned(kMessageStructAlignment))) Message;
 
 ErrorCode createMessageDispatchertask(void);
-uint8_t getUImessage(Message *message_to_get);
+uint8_t getUImessage(Message* message_to_get);
 
 #endif
