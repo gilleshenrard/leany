@@ -1,0 +1,42 @@
+#!/usr/bin/env sh
+# Cross-platform Git commit message hook enforcing Conventional Commits
+# with mandatory issue reference (#<issue number>)
+# Compatible with POSIX sh, Git Bash (Windows), Linux, macOS
+
+commit_msg_file="$1"
+commit_msg="$(head -n1 "$commit_msg_file")"
+
+# Regex for Conventional Commits with required issue number
+# Format:
+#   <type>(optional scope): <description> (#<issue number>)
+# Examples:
+#   feat: add new login feature (#42)
+#   fix(core): handle error (#7)
+pattern='^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\([A-Za-z0-9_.-]+\))?!?: .+ \(\#[1-9][0-9]*\)$'
+
+case "$commit_msg" in
+    '' )
+        echo "ERROR : Empty commit message. Aborting commit."
+        exit 1
+        ;;
+    * )
+        if printf '%s\n' "$commit_msg" | grep -E -q "$pattern"; then
+            echo "SUCCESS Conventional Commit format with issue number detected."
+            exit 0
+        else
+            echo "ERROR : Invalid commit message format."
+            echo ""
+            echo "Your first line must follow this format:"
+            echo "  <type>(optional scope): <description> (#<issue number>)"
+            echo ""
+            echo "Examples:"
+            echo "  feat: add new configuration system (#12)"
+            echo "  fix(core): prevent null pointer dereference (#345)"
+            echo "  docs(readme): correct typo in usage example (#7)"
+            echo ""
+            echo "Allowed types: build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test"
+            echo "Remember: The issue number is mandatory, e.g. '(#42)'."
+            exit 1
+        fi
+        ;;
+esac
