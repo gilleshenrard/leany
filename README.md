@@ -28,6 +28,11 @@ Leany is designed for engineers, makers, and professionals who need a reliable, 
 
 ## Getting Started
 
+Before contributing, please run the following :
+```
+git config --local include.path ../.gitconfig
+```
+
 To learn more about each part of the project, check the respective directories:
 
 - **[Firmware (`firmware/`)](firmware/)** – Contains the firmware source code and instructions on how to build and flash it.
