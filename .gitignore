@@ -107,3 +107,6 @@ pcb/fp-info-cache
 pcb/*auto*save*
 pcb/production_files/
 pcb/gerber/
+
+#FreeCAD
+*.FCBak
