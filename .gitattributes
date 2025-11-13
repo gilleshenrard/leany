@@ -9,6 +9,8 @@
 *.kicad_pcb filter=lfs diff=lfs merge=lfs -text
 #Image files
 *.png filter=lfs diff=lfs merge=lfs -text
+#FreeCAD files
+*.FCStd filter=lfs diff=lfs merge=lfs -text lockable
 *.kicad_pcb !text !filter !merge !diff
 
 # C source files
