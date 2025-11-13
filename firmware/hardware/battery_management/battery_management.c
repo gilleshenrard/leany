@@ -264,16 +264,16 @@ static ErrorCode initiateTransaction(I2C_TypeDef* descriptor, BQ25619register fi
 
     //send a start signal
     LL_I2C_GenerateStartCondition(descriptor);
-    EXIT_ON_TIMEOUT(LL_I2C_IsActiveFlag_SB(descriptor), kInitiateReception, 1)
+    EXIT_ON_TIMEOUT(LL_I2C_IsActiveFlag_SB(descriptor), kI2Ctimeout_ms, kInitiateReception, 1)
 
     //send the slave address
     LL_I2C_TransmitData8(descriptor, (uint8_t)((uint8_t)kDEFAULT_SLAVEADDR << 1U) | (uint8_t)kCHG_WRITE);
-    EXIT_ON_TIMEOUT(LL_I2C_IsActiveFlag_ADDR(descriptor), kInitiateReception, 2)
+    EXIT_ON_TIMEOUT(LL_I2C_IsActiveFlag_ADDR(descriptor), kI2Ctimeout_ms, kInitiateReception, 2)
     LL_I2C_AcknowledgeNextData(descriptor, LL_I2C_NACK);
     LL_I2C_ClearFlag_ADDR(descriptor);
 
     //send the register address
-    EXIT_ON_TIMEOUT(LL_I2C_IsActiveFlag_TXE(descriptor), kInitiateReception, 3)
+    EXIT_ON_TIMEOUT(LL_I2C_IsActiveFlag_TXE(descriptor), kI2Ctimeout_ms, kInitiateReception, 3)
     LL_I2C_TransmitData8(descriptor, (uint8_t)first_register);
 
     return kSuccessCode;
@@ -315,16 +315,16 @@ static ErrorCode readRegisters(I2C_TypeDef* descriptor, BQ25619register first_re
 
     //resend the slave address in read mode
     LL_I2C_GenerateStartCondition(descriptor);
-    EXIT_ON_TIMEOUT(LL_I2C_IsActiveFlag_SB(descriptor), kInitiateReception, 3)
+    EXIT_ON_TIMEOUT(LL_I2C_IsActiveFlag_SB(descriptor), kI2Ctimeout_ms, kInitiateReception, 3)
     LL_I2C_TransmitData8(descriptor, (uint8_t)((uint8_t)kDEFAULT_SLAVEADDR << 1U) | (uint8_t)kCHG_READ);
-    EXIT_ON_TIMEOUT(LL_I2C_IsActiveFlag_ADDR(descriptor), kInitiateReception, 4)
+    EXIT_ON_TIMEOUT(LL_I2C_IsActiveFlag_ADDR(descriptor), kI2Ctimeout_ms, kInitiateReception, 4)
     LL_I2C_ClearFlag_ADDR(descriptor);
 
     //read all bytes except for the last one
     uint8_t current_byte = 0;
     LL_I2C_AcknowledgeNextData(descriptor, LL_I2C_ACK);
     while (nb_bytes - 1U) {
-        EXIT_ON_TIMEOUT(LL_I2C_IsActiveFlag_RXNE(descriptor), kReadRegisters, 5)
+        EXIT_ON_TIMEOUT(LL_I2C_IsActiveFlag_RXNE(descriptor), kI2Ctimeout_ms, kReadRegisters, 5)
         data[current_byte] = LL_I2C_ReceiveData8(descriptor);
         current_byte++;
         nb_bytes--;
@@ -333,7 +333,7 @@ static ErrorCode readRegisters(I2C_TypeDef* descriptor, BQ25619register first_re
     //read the last byte, with a NACK and a STOP signal
     LL_I2C_AcknowledgeNextData(descriptor, LL_I2C_NACK);
     LL_I2C_GenerateStopCondition(descriptor);
-    EXIT_ON_TIMEOUT(LL_I2C_IsActiveFlag_RXNE(descriptor), kReadRegisters, 6)
+    EXIT_ON_TIMEOUT(LL_I2C_IsActiveFlag_RXNE(descriptor), kI2Ctimeout_ms, kReadRegisters, 6)
     data[current_byte] = LL_I2C_ReceiveData8(descriptor);
     return kSuccessCode;
 }
@@ -372,16 +372,16 @@ static ErrorCode writeRegisters(I2C_TypeDef* descriptor, BQ25619register first_r
     //send the data bytes all until the one before last
     uint8_t current_byte = 0;
     while (nb_bytes - 1U) {
-        EXIT_ON_TIMEOUT(LL_I2C_IsActiveFlag_TXE(descriptor), kWriteRegisters, 3)
+        EXIT_ON_TIMEOUT(LL_I2C_IsActiveFlag_TXE(descriptor), kI2Ctimeout_ms, kWriteRegisters, 3)
         LL_I2C_TransmitData8(descriptor, data[current_byte]);
         current_byte++;
         nb_bytes--;
     }
 
     //send the last byte and stop the transmission
-    EXIT_ON_TIMEOUT(LL_I2C_IsActiveFlag_TXE(descriptor), kWriteRegisters, 4)
+    EXIT_ON_TIMEOUT(LL_I2C_IsActiveFlag_TXE(descriptor), kI2Ctimeout_ms, kWriteRegisters, 4)
     LL_I2C_TransmitData8(descriptor, data[current_byte]);
-    EXIT_ON_TIMEOUT(LL_I2C_IsActiveFlag_BTF(descriptor), kWriteRegisters, 5)
+    EXIT_ON_TIMEOUT(LL_I2C_IsActiveFlag_BTF(descriptor), kI2Ctimeout_ms, kWriteRegisters, 5)
     LL_I2C_GenerateStopCondition(descriptor);
 
     return kSuccessCode;
