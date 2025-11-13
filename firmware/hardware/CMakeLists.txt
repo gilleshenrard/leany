@@ -63,3 +63,9 @@ add_library(gpio
 	gpio/led.c)
 target_include_directories(gpio PUBLIC gpio)
 target_link_libraries(gpio PRIVATE sysUtils)
+
+#create the battery library, taking care of the charger and battery management
+add_library(battery
+	battery_management/battery_management.c)
+target_include_directories(battery PUBLIC battery_management)
+target_link_libraries(battery PRIVATE sysUtils)

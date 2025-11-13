@@ -45,5 +45,6 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
     UI
     serial
     hal
+    battery
     dispatcher
 )

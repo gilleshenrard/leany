@@ -17,4 +17,5 @@ target_link_libraries(dispatcher PRIVATE
 	gpio
 	serial
 	UI
+	battery
 )

@@ -37,6 +37,7 @@
 #include "imu.h"
 #include "ui.h"
 #include "serial.h"
+#include "battery_management.h"
 
 /* USER CODE END Includes */
 
@@ -115,6 +116,7 @@ int main(void)
     createGPIOtask();
     createUItask();
     createSerialtask();
+    createBatteryTask();
     createMessageDispatchertask();
   /* USER CODE END 2 */
 

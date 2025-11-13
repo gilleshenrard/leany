@@ -4,6 +4,8 @@
 
 Welcome to the Leany project's PCB documentation. This repository contains all the necessary files and information related to the PCB schematics and layouts for the Leany project.
 
+[3D view](resources/board.stl)
+
 ![pcb_overall](resources/images/pcb_angled.png?raw=true "PCB Overall")
 
 ## Table of Contents

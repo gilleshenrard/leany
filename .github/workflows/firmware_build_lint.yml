@@ -133,8 +133,8 @@ jobs:
               chmod +x llvm.sh
               sudo ./llvm.sh ${{env.CLANG-VERSION}}
               sudo apt-get install -y clang-tidy-${{env.CLANG-VERSION}} clang-format-${{env.CLANG-VERSION}}
-              sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-${{env.CLANG-VERSION}} ${{env.CLANG-VERSION}}
-              sudo update-alternatives --set clang /usr/bin/clang-${{env.CLANG-VERSION}}
+              #sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-${{env.CLANG-VERSION}} ${{env.CLANG-VERSION}}
+              #sudo update-alternatives --set clang /usr/bin/clang-${{env.CLANG-VERSION}}
               sudo update-alternatives --install /usr/bin/clang-tidy clang-tidy /usr/bin/clang-tidy-${{env.CLANG-VERSION}} ${{env.CLANG-VERSION}}
               sudo update-alternatives --set clang-tidy /usr/bin/clang-tidy-${{env.CLANG-VERSION}}
               sudo update-alternatives --install /usr/bin/run-clang-tidy run-clang-tidy /usr/bin/run-clang-tidy-${{env.CLANG-VERSION}} ${{env.CLANG-VERSION}}
