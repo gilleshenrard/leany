@@ -17,10 +17,10 @@
  *   - DT0058 (Design tip) : https://www.st.com/resource/en/design_tip/dt0058-computing-tilt-measurement-and-tiltcompensated-ecompass-stmicroelectronics.pdf
  */
 #include <main.h>
+#include <portmacro.h>
 #include <projdefs.h>
 #include <stdint.h>
 #include <stm32f103xb.h>
-#include <stm32f1xx_hal.h>
 #include <stm32f1xx_ll_spi.h>
 #include <task.h>
 
@@ -172,7 +172,7 @@ ErrorCode IMUcheckDeviceID(void) {
     LL_SPI_Enable(spi_descriptor.handle);
 
     //attempt to read a correct device ID for max. 1 second
-    uint32_t first_tick = HAL_GetTick();
+    TickType_t first_tick = xTaskGetTickCount();
     do {
         //store the bitwise-NOT value of the chip ID to make sure every bit is changed by the read command
         device_id = (uint8_t)~((uint8_t)LSM6_WHOAMI);
@@ -515,7 +515,7 @@ static ErrorCode waitAndRead(SPIregister first_register, SPIregister available_m
     //wait until DATA_AXL_AVAIL bit is up
     SPIregister status = 0;
     SPIregister available = 0;
-    const uint32_t current_tick = HAL_GetTick();
+    const TickType_t current_tick = xTaskGetTickCount();
     do {
         result = readRegisters(&spi_descriptor, kSTATUS_REG, &status, 1);
         EXIT_ON_ERROR(result, kWaitAndRead, 1)

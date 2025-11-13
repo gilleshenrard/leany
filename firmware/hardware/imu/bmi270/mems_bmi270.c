@@ -21,9 +21,9 @@
 #include <projdefs.h>
 #include <stdint.h>
 #include <stm32f103xb.h>
-#include <stm32f1xx_hal.h>
 #include <stm32f1xx_ll_gpio.h>
 #include <stm32f1xx_ll_spi.h>
+#include <task.h>
 
 #include "errorstack.h"
 #include "halspi.h"
@@ -162,7 +162,7 @@ ErrorCode IMUcheckDeviceID(void) {
     LL_SPI_Enable(spi_descriptor.handle);
 
     //attempt to read a correct device ID for max. 1 second
-    uint32_t first_tick = HAL_GetTick();
+    TickType_t first_tick = xTaskGetTickCount();
     do {
         //store the bitwise-NOT value of the chip ID to make sure every bit is changed by the read command
         device_id = (BMI270register) ~((BMI270register)BMI270_CHIP_ID);
@@ -295,7 +295,7 @@ ErrorCode selfTestGyroscope(void) {
     EXIT_ON_ERROR(result, kBMI270stateSelfTestGyro, 1)
 
     //wait for the self-test done flag
-    uint32_t start_tick = HAL_GetTick();
+    TickType_t start_tick = xTaskGetTickCount();
     do {
         result = readRegisters(&spi_descriptor, BMI2_GYR_SELF_TEST_AXES_ADDR, &value, 1);
     } while (!isError(result) && !timeout(start_tick, kTimeoutMS) &&
@@ -357,7 +357,7 @@ ErrorCode IMUinitialise(void) {
     vTaskDelay(pdMS_TO_TICKS(kConfigTimeoutMS));
 
     //Wait for the initialisation status register to show a success or an error
-    uint32_t config_start_tick = HAL_GetTick();
+    TickType_t config_start_tick = xTaskGetTickCount();
     do {
         result = readRegisters(&spi_descriptor, BMI2_INTERNAL_STATUS_ADDR, &value, 1);
         EXIT_ON_ERROR(result, kBMI270stateInitialising, 4)
@@ -442,7 +442,7 @@ ErrorCode IMUgetSample(IMUsample* sample) {
     //read the BMI270 temperature every 10ms
     static TickType_t latest_temperature_tick = 0;
     if (timeout(latest_temperature_tick, kTemperatureRefreshMS)) {
-        latest_temperature_tick = HAL_GetTick();
+        latest_temperature_tick = xTaskGetTickCount();
 
         result = readTemperature(&temperature_celsius);
         EXIT_ON_ERROR(result, kBMI270stateMeasuring, 2)
@@ -501,7 +501,7 @@ static ErrorCode checkConfigurationFile(void) {
     const uint8_t spi_rx_filler = 0xFFU;  ///< Value to send as a filler while receiving multiple bytes
 
     //set timeout timer and enable CS
-    uint32_t spi_start_tick = HAL_GetTick();
+    TickType_t spi_start_tick = xTaskGetTickCount();
     LL_GPIO_ResetOutputPin(IMU_CS_GPIO_Port, IMU_CS_Pin);
 
     //send the config data read request and receive a dummy byte

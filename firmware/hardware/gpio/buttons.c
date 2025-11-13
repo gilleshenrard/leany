@@ -13,10 +13,11 @@
 
 #include <hardware_events.h>
 #include <main.h>
+#include <portmacro.h>
 #include <stdint.h>
 #include <stm32f103xb.h>
-#include <stm32f1xx_hal.h>
 #include <stm32f1xx_ll_gpio.h>
+#include <task.h>
 
 #include "errorstack.h"
 
@@ -52,10 +53,10 @@ typedef struct {
  * @brief Structure holding all the timers used by the buttons
  */
 typedef struct {
-    uint32_t debouncing_ms;    ///< Timer used for debouncing (in ms)
-    uint32_t holding_ms;       ///< Timer used to detect if a button is held down (in ms)
-    uint32_t rising_edge_ms;   ///< Timer used to detect a rising edge (in ms)
-    uint32_t falling_edge_ms;  ///< Timer used to detect a falling edge (in ms)
+    TickType_t debouncing_ms;    ///< Timer used for debouncing (in ms)
+    TickType_t holding_ms;       ///< Timer used to detect if a button is held down (in ms)
+    TickType_t rising_edge_ms;   ///< Timer used to detect a rising edge (in ms)
+    TickType_t falling_edge_ms;  ///< Timer used to detect a falling edge (in ms)
 } __attribute__((aligned(kTimerStructAlignment))) GPIOtimer;
 
 //machine state
@@ -116,7 +117,7 @@ ErrorCode runButtonsStateMachine(void) {
  * @param button Button for which run the state
  */
 static void stateReleased(ButtonType button) {
-    const uint32_t current_tick = HAL_GetTick();
+    const TickType_t current_tick = xTaskGetTickCount();
 
     //if button released, restart debouncing timer
     if (LL_GPIO_IsInputPinSet(buttons[button].port, buttons[button].pin)) {
@@ -149,7 +150,7 @@ static void stateReleased(ButtonType button) {
 static void statePressed(ButtonType button) {
     //if button still pressed, restart debouncing timer
     if (!LL_GPIO_IsInputPinSet(buttons[button].port, buttons[button].pin)) {
-        buttons_timers[button].debouncing_ms = HAL_GetTick();
+        buttons_timers[button].debouncing_ms = xTaskGetTickCount();
 
         //if button maintained for long enough, get to held down state
         if (timeout(buttons_timers[button].holding_ms, kHoldingTimeMS)) {
@@ -168,7 +169,7 @@ static void statePressed(ButtonType button) {
     }
 
     //set the timer during which falling edge can be read, and get to pressed state
-    buttons_timers[button].falling_edge_ms = HAL_GetTick();
+    buttons_timers[button].falling_edge_ms = xTaskGetTickCount();
     buttons[button].state = kButtonReleased;
 }
 
@@ -180,7 +181,7 @@ static void statePressed(ButtonType button) {
 static void stateHeld(ButtonType button) {
     //if button still pressed, restart debouncing timer
     if (!LL_GPIO_IsInputPinSet(buttons[button].port, buttons[button].pin)) {
-        buttons_timers[button].debouncing_ms = HAL_GetTick();
+        buttons_timers[button].debouncing_ms = xTaskGetTickCount();
     }
 
     //if button not released for long enough, exit
@@ -189,6 +190,6 @@ static void stateHeld(ButtonType button) {
     }
 
     //set the timer during which falling edge can be read, and get to pressed state
-    buttons_timers[button].falling_edge_ms = HAL_GetTick();
+    buttons_timers[button].falling_edge_ms = xTaskGetTickCount();
     buttons[button].state = kButtonReleased;
 }

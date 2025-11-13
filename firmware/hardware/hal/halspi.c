@@ -12,15 +12,16 @@
  */
 #include "halspi.h"
 
+#include <FreeRTOS.h>
 #include <main.h>
 #include <portmacro.h>
 #include <projdefs.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stm32f1xx_hal.h>
 #include <stm32f1xx_ll_dma.h>
 #include <stm32f1xx_ll_gpio.h>
 #include <stm32f1xx_ll_spi.h>
+#include <task.h>
 
 #include "errorstack.h"
 
@@ -141,7 +142,7 @@ ErrorCode readRegisters(SPI* descriptor, SPIregister first_register, SPIregister
     }
 
     //set timeout timer and enable CS
-    uint32_t spi_start_tick = HAL_GetTick();
+    TickType_t spi_start_tick = xTaskGetTickCount();
     LL_GPIO_ResetOutputPin(descriptor->cs_port, descriptor->pin);
 
     //send the read request and a dummy byte to synchronize the SPI clock
@@ -193,7 +194,7 @@ ErrorCode writeRegistersAndContinue(SPI* descriptor, SPIregister register_number
     }
 
     //set timeout timer and enable CS
-    uint32_t spi_start_tick = HAL_GetTick();
+    TickType_t spi_start_tick = xTaskGetTickCount();
     setDataCommandGPIO(descriptor, kCommand);
     LL_GPIO_ResetOutputPin(descriptor->cs_port, descriptor->pin);
 

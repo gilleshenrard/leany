@@ -7,10 +7,11 @@
 #include "led.h"
 
 #include <main.h>
+#include <portmacro.h>
 #include <stdint.h>
 #include <stm32f103xb.h>
-#include <stm32f1xx_hal.h>
 #include <stm32f1xx_ll_tim.h>
+#include <task.h>
 
 /**
  * Enumeration of the LED effects
@@ -26,7 +27,7 @@ static void applyLEDpwm(Colour colour);
 
 static Colour blink_colour = {0};         ///< Colour to apply to the blink effect
 static uint16_t blink_halfperiod_ms = 0;  ///< Half the milliseconds to operate an on/off blink cycle
-static uint32_t current_tick = 0;         ///< Last system tick value saved
+static TickType_t current_tick = 0;       ///< Last system tick value saved
 static uint8_t led_is_on = 0;             ///< Flag indicating whether the LED is on or off
 static EffectState effect = kOFF;         ///< Current LED effect state
 
@@ -57,7 +58,7 @@ void runLEDstateMachine(void) {
     if (!timeout(current_tick, blink_halfperiod_ms)) {
         return;
     }
-    current_tick = HAL_GetTick();
+    current_tick = xTaskGetTickCount();
 
     //invert the LED status and power
     applyLEDpwm(led_is_on ? kBlack : blink_colour);
@@ -91,7 +92,7 @@ void LEDoff(void) {
  * @param period_ms Number of milliseconds for the LED to operate an on/off cycle
  */
 void LEDblink(const Colour* colour, uint16_t period_ms) {
-    current_tick = HAL_GetTick();
+    current_tick = xTaskGetTickCount();
     blink_colour = *colour;
     blink_halfperiod_ms = (period_ms / 2U);
     effect = kBLINKING;

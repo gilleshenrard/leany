@@ -47,8 +47,9 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "FreeRTOS.h"
-#include "projdefs.h"
+#include <FreeRTOS.h>
+#include <projdefs.h>
+#include <task.h>
 
 /* USER CODE END Includes */
 
@@ -74,13 +75,16 @@ void Error_Handler(void);
 /**
  * Check if a timeout in [ms] has occurred
  *
- * @param startTick The tick to compare to now to check for a timeout
+ * @internal The function is wraparound-safe, but only if timeout_ms
+ * is maximum 2^31 ms, hence the uint16_t input.
+ *
+ * @param startTick The FreeRTOS tick to compare to now to check for a timeout
  * @param timeout The timeout span in milliseconds
  * @retval 1 Timeout has occurred
  * @retval 0 Timeout has not occurred
  */
-static inline uint8_t timeout(uint32_t startTick, uint16_t timeout_ms) {
-  return ((HAL_GetTick() - startTick) >= pdMS_TO_TICKS(timeout_ms));
+static inline uint8_t timeout(TickType_t startTick, uint16_t timeout_ms) {
+  return ((xTaskGetTickCount() - startTick) >= pdMS_TO_TICKS(timeout_ms));
 }
 /* USER CODE END EFP */
 
@@ -152,3 +156,5 @@ static inline uint8_t timeout(uint32_t startTick, uint16_t timeout_ms) {
 #endif
 
 #endif /* __MAIN_H */
+
+
