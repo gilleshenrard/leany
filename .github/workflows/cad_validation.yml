@@ -1,0 +1,53 @@
+# SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
+#
+# SPDX-License-Identifier: MIT
+
+name: CAD files validation
+
+on: 
+  push:
+    paths:
+      - 'CAD/**'
+      - '.github/workflows/cad_validation.yml'
+      - '.github/scripts/validate_freecad.py'
+  pull_request:
+    paths:
+      - 'CAD/**'
+      - '.github/workflows/cad_validation.yml'
+      - '.github/scripts/validate_freecad.py'
+  schedule:
+    - cron: "0 3 1 * *" # Automatically run at 03:00 every 1st of the month
+
+jobs:
+  freecad_checks:
+    name: Run FreeCAD CLI checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Run FreeCAD validation
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}:/workspace \
+            -w /workspace \
+            amrit3701/freecad-cli:latest \
+            bash -c '
+              status=0
+              while IFS= read -r f; do
+                echo "=================================================="
+                echo " Validating file: $f"
+                echo "=================================================="
+                if FreeCADCmd -c .github/scripts/validate_freecad.py "$f"; then
+                  echo "✅ $f passed validation"
+                else
+                  echo "❌ $f failed validation"
+                  status=1
+                fi
+                echo ""
+              done < <(find CAD -type f -name "*.FCStd")
+              exit $status
+            '
