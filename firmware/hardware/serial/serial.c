@@ -155,6 +155,7 @@ void logSerial(ErrorLevel level, const char format[], ...) {
         packed_message.message[0] = '!';
     }
 
+    //NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling, clang-diagnostic-format-nonliteral)
     (void)vsnprintf(&packed_message.message[is_a_log], (kOutboundSize - 1U - is_a_log), format, args);
     const size_t length = strnlen(packed_message.message, kOutboundSize - 1);
     packed_message.message[length] = '\n';
@@ -193,6 +194,7 @@ void floatToString(float value, char out_buffer[], uint8_t buffer_size, uint8_t 
     float fpart = value - (float)ipart;
 
     // convert integer part to string
+    //NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
     const uint8_t written = (uint8_t)snprintf(out_buffer, (buffer_size - 2U), "%u", ipart);
     out_buffer[written] = '.';
 
@@ -205,6 +207,7 @@ void floatToString(float value, char out_buffer[], uint8_t buffer_size, uint8_t 
     while (precision--) {
         fpart *= 10.0F;  // NOLINT (cppcoreguidelines-avoid-magic-numbers)
     }
+    //NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
     (void)snprintf(&out_buffer[written + 1], (buffer_size - written - 1U), "%u", (uint16_t)fpart);
 }
 

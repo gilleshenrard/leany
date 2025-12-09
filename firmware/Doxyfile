@@ -548,7 +548,7 @@ TIMESTAMP              = NO
 # normally produced when WARNINGS is set to YES.
 # The default value is: NO.
 
-EXTRACT_ALL            = NO
+EXTRACT_ALL            = YES
 
 # If the EXTRACT_PRIVATE tag is set to YES, all private members of a class will
 # be included in the documentation.
@@ -674,7 +674,7 @@ CASE_SENSE_NAMES       = SYSTEM
 # scope will be hidden.
 # The default value is: NO.
 
-HIDE_SCOPE_NAMES       = YES
+HIDE_SCOPE_NAMES       = NO
 
 # If the HIDE_COMPOUND_REFERENCE tag is set to NO (default) then Doxygen will
 # append additional text to a page's title, such as Class Reference. If set to
@@ -963,7 +963,7 @@ WARN_LAYOUT_FILE       = YES
 # Possible values are: NO, YES, FAIL_ON_WARNINGS and FAIL_ON_WARNINGS_PRINT.
 # The default value is: NO.
 
-WARN_AS_ERROR          = FAIL_ON_WARNINGS
+WARN_AS_ERROR          = FAIL_ON_WARNINGS_PRINT
 
 # The WARN_FORMAT tag determines the format of the warning messages that Doxygen
 # can produce. The string should contain the $file, $line, and $text tags, which
@@ -1005,9 +1005,7 @@ WARN_LOGFILE           =
 # spaces. See also FILE_PATTERNS and EXTENSION_MAPPING
 # Note: If this tag is empty the current directory is searched.
 
-INPUT                  = firmware/hardware \
-                         firmware/ui \
-                         firmware/dispatcher
+INPUT                  =
 
 # This tag can be used to specify the character encoding of the source files
 # that Doxygen parses. Internally Doxygen uses the UTF-8 encoding. Doxygen uses
@@ -1112,7 +1110,14 @@ RECURSIVE              = YES
 # Note that relative paths are relative to the directory from which Doxygen is
 # run.
 
-EXCLUDE                =
+EXCLUDE                = firmware/build \
+                         firmware/cmake \
+                         firmware/config-cppcheck* \
+                         firmware/Core \
+                         firmware/Drivers \
+                         firmware/Middlewares \
+                         pcb/ \
+                         firmware/README.md
 
 # The EXCLUDE_SYMLINKS tag can be used to select whether or not files or
 # directories that are symbolic links (a Unix file system feature) are excluded
@@ -1823,7 +1828,7 @@ DISABLE_INDEX          = NO
 # The default value is: YES.
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
-GENERATE_TREEVIEW      = NO
+GENERATE_TREEVIEW      = YES
 
 # When GENERATE_TREEVIEW is set to YES, the PAGE_OUTLINE_PANEL option determines
 # if an additional navigation panel is shown at the right hand side of the
@@ -2563,7 +2568,9 @@ INCLUDE_FILE_PATTERNS  =
 # recursively expanded use the := operator instead of the = operator.
 # This tag requires that the tag ENABLE_PREPROCESSING is set to YES.
 
-PREDEFINED             =
+PREDEFINED             = 	IMU_LSM6=1 \
+	                        IMU_BMI270=2 \
+                          IMU_MODEL=IMU_LSM6
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then this
 # tag can be used to specify a list of macro names that should be expanded. The

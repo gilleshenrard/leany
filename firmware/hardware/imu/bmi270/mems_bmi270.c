@@ -14,6 +14,8 @@
  * @details Datasheet : https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bmi270-ds000.pdf 
  */
 
+#if IMU_MODEL == IMU_BMI270
+
 #include <FreeRTOS.h>  //NOLINT(*-include-cleaner)
 #include <bmi270.h>
 #include <bmi2_defs.h>
@@ -620,3 +622,4 @@ static void applyTemperatureDrift(const float temperature_celcius, float acceler
         gyroscope_radps[axis] += (gyro_drift_percent * gyroscope_radps[axis]);
     }
 }
+#endif

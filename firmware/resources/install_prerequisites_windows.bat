@@ -5,46 +5,72 @@ REM SPDX-License-Identifier: MIT
 @echo off
 setlocal enabledelayedexpansion
 
-:: Check if ARM GCC is installed
-arm-none-eabi-gcc --version >nul 2>&1
-set ARM_GCC_EXISTS=%ERRORLEVEL%
+:: -------------------------------
+:: Configuration
+:: -------------------------------
+set "MSYS2_PATH=C:\msys64"
+set "UCRT64_BIN=C:\msys64\ucrt64\bin"
 
-:: Check if CMake is installed
-cmake --version >nul 2>&1
-set CMAKE_EXISTS=%ERRORLEVEL%
-
-:: If both are installed, nothing to do
-if !ARM_GCC_EXISTS! equ 0 if !CMAKE_EXISTS! equ 0 (
-    echo Prerequisites are already present. Nothing to do.
-    exit /b 0
+:: -------------------------------
+:: Check winget
+:: -------------------------------
+where winget >nul 2>&1
+if errorlevel 1 (
+    echo ERROR: winget is not available on this system.
+    exit /b 1
 )
 
-:: Install the missing tools
-echo Installing missing tools...
+:: -------------------------------
+:: Install MSYS2 if needed
+:: -------------------------------
+if not exist "%MSYS2_PATH%\usr\bin\bash.exe" (
+    echo Installing MSYS2 via winget...
+    winget install MSYS2.MSYS2
+)
 
-:: Define MSYS2 installation path
-set MSYS2_PATH=C:\msys64
-
-:: Install and update UCRT64
-echo Install and update UCRT64
-winget install MSYS2.MSYS2
+:: -------------------------------
+:: Update MSYS2 and install packages
+:: -------------------------------
+echo Updating MSYS2 and installing toolchain...
 "%MSYS2_PATH%\usr\bin\bash.exe" -lc "pacman -Syu --noconfirm"
+"%MSYS2_PATH%\usr\bin\bash.exe" -lc ^
+  "pacman -S --noconfirm mingw-w64-ucrt-x86_64-arm-none-eabi-gcc mingw-w64-ucrt-x86_64-cmake"
 
-:: Install ARM GCC if missing
-if !ARM_GCC_EXISTS! neq 0 (
-    echo Installing ARM GNU Toolchain...
-    "%MSYS2_PATH%\usr\bin\bash.exe" -lc "pacman -S --noconfirm mingw-w64-ucrt-x86_64-arm-none-eabi-gcc"
+:: -------------------------------
+:: Read user PATH from registry
+:: -------------------------------
+set "USER_PATH="
+
+for /f "tokens=2,*" %%A in (
+  'reg query HKCU\Environment /v Path 2^>nul ^| find "Path"'
+) do set "USER_PATH=%%B"
+
+:: -------------------------------
+:: Create PATH if missing
+:: -------------------------------
+if not defined USER_PATH (
+    echo Creating user PATH...
+    reg add HKCU\Environment /v Path /t REG_EXPAND_SZ /d "%UCRT64_BIN%" /f
+    goto notify
 )
 
-:: Install CMake if missing
-if !CMAKE_EXISTS! neq 0 (
-    echo Installing CMake...
-    "%MSYS2_PATH%\usr\bin\bash.exe" -lc "pacman -S --noconfirm mingw-w64-ucrt-x86_64-cmake"
+:: -------------------------------
+:: Append if missing
+:: -------------------------------
+echo %USER_PATH% | find /I "%UCRT64_BIN%" >nul
+if errorlevel 1 (
+    echo Adding MSYS2 UCRT64 to user PATH...
+    reg add HKCU\Environment /v Path /t REG_EXPAND_SZ /d "%USER_PATH%;%UCRT64_BIN%" /f
+) else (
+    echo MSYS2 UCRT64 already present in PATH.
 )
 
-:: Update the PATH
-echo Updating the user's PATH...
-setx path "%path%;%MSYS2_PATH%\ucrt64\bin\;"
+:notify
+:: -------------------------------
+:: Notify Windows (new shells only)
+:: -------------------------------
+powershell -NoProfile -Command ^
+  "[Environment]::SetEnvironmentVariable('Path', (Get-ItemProperty 'HKCU:\Environment').Path, 'User')"
 
-echo Done with success
+echo Installation complete.
 exit /b 0

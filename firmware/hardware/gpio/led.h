@@ -26,14 +26,14 @@ typedef union {
     uint32_t hex_value;  ///< Whole colour HEX value
 } Colour;
 
-static const Colour kWhite = {.hex_value = 0xFFFFFFUL};        ///< #FFFFFF : white LED hex colour value
-static const Colour kWhiteDimmed = {.hex_value = 0x333333UL};  ///< #333333 : dimmed white LED hex colour value
-static const Colour kRed = {.hex_value = 0xFF0000UL};          ///< #FF0000 : red LED hex colour value
-static const Colour kGreen = {.hex_value = 0x00FF00UL};        ///< #00FF00 : green LED hex colour value
-static const Colour kBlue = {.hex_value = 0x0000FFUL};         ///< #0000FF : blue LED hex colour value
-static const Colour kOrange = {.hex_value = 0xFFA500UL};       ///< #FFA500 : orange LED hex colour value
-static const Colour kYellow = {.hex_value = 0xFFFF00UL};       ///< #FFFF00 : yellow LED hex colour value
-static const Colour kBlack = {.hex_value = 0x000000UL};        ///< #000000 : LED off
+static const Colour kWhite = {.hex_value = 0xFFFFFFUL};        ///< 0xFFFFFF : white LED hex colour value
+static const Colour kWhiteDimmed = {.hex_value = 0x333333UL};  ///< 0x333333 : dimmed white LED hex colour value
+static const Colour kRed = {.hex_value = 0xFF0000UL};          ///< 0xFF0000 : red LED hex colour value
+static const Colour kGreen = {.hex_value = 0x00FF00UL};        ///< 0x00FF00 : green LED hex colour value
+static const Colour kBlue = {.hex_value = 0x0000FFUL};         ///< 0x0000FF : blue LED hex colour value
+static const Colour kOrange = {.hex_value = 0xFFA500UL};       ///< 0xFFA500 : orange LED hex colour value
+static const Colour kYellow = {.hex_value = 0xFFFF00UL};       ///< 0xFFFF00 : yellow LED hex colour value
+static const Colour kBlack = {.hex_value = 0x000000UL};        ///< 0x000000 : LED off
 
 static const uint16_t kSlowblinkPeriod_ms = 2000U;
 
