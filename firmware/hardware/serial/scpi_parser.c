@@ -162,6 +162,7 @@ static uint8_t stateBufferingCharacters(char new_char, GenericCommand* command_r
     }
 
     if (new_char == kParameter) {
+        //NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
         memset(parameter, '\0', kParameterSize);
         state = kState_parameter;
         return 0;

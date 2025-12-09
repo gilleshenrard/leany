@@ -8,7 +8,7 @@
  * @file lsm6.c
  * @brief Implement the LSM6 MEMS sensor communication
  * @author Gilles Henrard
- * @date 09/09/2025
+ * @date 18/12/2025
  *
  * @note Additional information can be found in :
  *   - Datasheet : https://www.st.com/resource/en/datasheet/lsm6dsr.pdf
@@ -16,6 +16,10 @@
  *   - AN5226 (Finite State Machine) : https://www.st.com/resource/en/application_note/an5226-lsm6dso-finite-state-machine-stmicroelectronics.pdf
  *   - DT0058 (Design tip) : https://www.st.com/resource/en/design_tip/dt0058-computing-tilt-measurement-and-tiltcompensated-ecompass-stmicroelectronics.pdf
  */
+
+//used in Doxygen
+#if IMU_MODEL == IMU_LSM6
+
 #include <main.h>
 #include <projdefs.h>
 #include <stdint.h>
@@ -390,15 +394,10 @@ void IMUsetupTimebase(MahonyContext* filter_context) {
 }
 
 /**
- * Get the latest LSM6 sample
- *
- * @param[out] sample Sample to gather
- * @retval 0 Success
- * @retval 1 Error while reading the sample on the IMU
- * @retval 2 Error while reading the IMU time tick value
+ * @note LSM6 implementation uses SPI burst read and a latched timestamp.
  */
 ErrorCode IMUgetSample(IMUsample* sample) {
-    RawValues lsb_values = {0};  ///< Buffer in which read values will be stored
+    RawValues lsb_values = {0};
 
     //read all temp/accelerometer/gyroscope values
     result = readRegisters(&spi_descriptor, kOUT_TEMP_L, lsb_values.registers8bits, kNbRegistersToRead);
@@ -584,3 +583,4 @@ static uint8_t isGyroSelfTestValid(const int16_t self_test_off[kNBaxis], const i
             (self_test_range_dps[kZaxis] >= min_selftest_value_dps) &&
             (self_test_range_dps[kZaxis] <= max_selftest_value_dps));
 }
+#endif
