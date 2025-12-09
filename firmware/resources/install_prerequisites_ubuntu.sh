@@ -22,7 +22,8 @@ rm gcc-arm-none-eabi.tar.xz
 echo " "
 echo "Add the ARM toolchain to the PATH"
 echo 'export PATH=$PATH:/opt/arm-none-eabi/bin' | sudo tee -a /etc/profile.d/arm-none-eabi.sh
-source /etc/profile
+ls -la /etc/profile.d/ | grep 'arm-none-eabi'
+. /etc/profile
 
 
 # Installation end
@@ -33,5 +34,5 @@ echo "Please restart your terminal to apply the changes"
 # Troubleshooting
 echo " "
 echo "If you encounter any issues,"
-echo "re-run 'source /etc/profile' to update the PATH"
+echo "re-run '. /etc/profile' to update the PATH"
 echo "then restart your terminal"

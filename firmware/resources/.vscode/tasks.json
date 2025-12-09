@@ -20,11 +20,13 @@
             "label": "Display symbols size",
             "command": "arm-none-eabi-nm",
             "args": [
+                "--demangle=gnu-v3",
                 "--print-size",
                 "--size-sort",
                 "--reverse-sort",
                 "--format=sysv",
                 "--radix=d",
+                "--line-numbers",
                 "Leany.elf"
             ],
             "options": {
@@ -153,6 +155,20 @@
             "args": [
                 "--include-submodules",
                 "lint"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
+            "type": "shell",
+            "label": "Check enums and strucs documentation",
+            "command": "python",
+            "args": [
+                "resources/check_enum_struct_members_doc.py",
+                ".",
+                "-r Core,Drivers,Middlewares",
             ],
             "options": {
                 "cwd": "${workspaceFolder}"

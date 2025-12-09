@@ -32,40 +32,38 @@ void setIMUalignmentCheckEnabled(uint8_t value);
 /**
  * Check whether SPI works and the correct device ID can be retrieved
  *
- * @retval 0 Success
- * @return IMU-specific error code
+ * @return IMU-specific error code, 0 on success
  */
 extern ErrorCode IMUcheckDeviceID(void);
 
 /**
  * Request an IMU soft reset
  *
- * @retval 0 Success
- * @return IMU-specific error code
+ * @return IMU-specific error code, 0 on success
  */
 extern ErrorCode IMUsoftReset(void);
 
 /**
  * Process IMU-specific initialisation steps before configuration
  *
- * @retval 0 Success
- * @return IMU-specific error code
+ * @return IMU-specific error code, 0 on success
  */
 extern ErrorCode IMUinitialise(void);
 
 /**
  * Write the configuration registers of the IMU
  *
- * @retval 0 Success
- * @return IMU-specific error code
+ * @return IMU-specific error code, 0 on success
  */
 extern ErrorCode IMUconfigure(void);
 
 /**
- * Get the latest IMU accelerations/angle rates/temperature/sensor tick sample
+ * @fn ErrorCode IMUgetSample(IMUsample* sample)
+ *
+ * Get the latest IMU accelerations, angular rates, temperature,
+ * and sensor tick sample.
  *
  * @param[out] sample Latest sample to retrieve
- * @retval 0 Success
  * @return IMU-specific error code
  */
 extern ErrorCode IMUgetSample(IMUsample* sample);
@@ -80,16 +78,14 @@ extern void IMUsetupTimebase(MahonyContext* filter_context);
 /**
  * Run the accelerometer self-test procedure
  *
- * @retval 0 Success
- * @return Self-test error code
+ * @return Self-test error code, 0 on success
  */
 extern ErrorCode selfTestAccelerometer(void);
 
 /**
  * Run the gyroscope self-test procedure
  *
- * @retval 0 Success
- * @return Self-test error code
+ * @return Self-test error code, 0 on success
  */
 extern ErrorCode selfTestGyroscope(void);
 

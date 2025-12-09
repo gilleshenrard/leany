@@ -33,6 +33,20 @@ precedence = "aggregate"
 SPDX-FileCopyrightText = "2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved."
 SPDX-License-Identifier = "MIT"
 
+# Git hooks are MIT-licenced
+[[annotations]]
+path = "scripts/git-hooks/*"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2025 Gilles Henrard <contact@gilleshenrard.com>"
+SPDX-License-Identifier = "MIT"
+
+# gitconfig is MIT-licenced
+[[annotations]]
+path = ".gitconfig"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2025 Gilles Henrard <contact@gilleshenrard.com>"
+SPDX-License-Identifier = "MIT"
+
 # Doxygen configuration file is licensed on MIT
 [[annotations]]
 path = "firmware/Doxyfile"
