@@ -21,6 +21,7 @@ ExtraArgs:
   # google-readability-todo                             : Just plain annoying
   # llvm-header-guard                                   : LLVM-style header guards are too restrictive
   # clang-analyzer-core.FixedAddressDereference         : Generates too many issues with FreeRTOS macros
+  # altera-struct-pack-align                            : Aligning memory is too ressource-heavy
 Checks: "*,\
   -cppcoreguidelines-avoid-non-const-global-variables,\
   -altera-unroll-loops,\
@@ -30,7 +31,8 @@ Checks: "*,\
   -performance-no-int-to-ptr,\
   -google-readability-todo,\
   -llvm-header-guard,\
-  -clang-analyzer-core.FixedAddressDereference"
+  -clang-analyzer-core.FixedAddressDereference,\
+  -altera-struct-pack-align"
 
 #Promote all enabled warnings as errors
 WarningsAsErrors:
@@ -52,7 +54,11 @@ UseColor:
 CheckOptions:
   #Warnings options
   - key: 'bugprone-easily-swappable-parameters.ModelImplicitConversions'  #Do not consider mixing if different type definitions
-    value: 'false'
+    value: 'false'                                                        #
+  - key: readability-function-cognitive-complexity.IgnoreMacros           #Limit the cognitive complexity threshold to 10
+    value: 'true'                                                         #
+  - key: readability-function-cognitive-complexity.Threshold              #
+    value: '15'                                                           #
 
   #Formatting options
   # Google style guide : https://google.github.io/styleguide/cppguide.html

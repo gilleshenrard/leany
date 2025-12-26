@@ -12,19 +12,10 @@
 #include <stm32f1xx_hal.h>
 #include <stm32f1xx_ll_tim.h>
 
-/**
- * Enumeration of the LED effects
- */
-typedef enum {
-    kOFF = 0,   ///< OFF
-    kSOLID,     ///< Solidly ON
-    kBLINKING,  ///< Blinking
-} EffectState;
-
 static inline uint32_t hexToCompareValue(uint8_t hexvalue);
 static void applyLEDpwm(Colour colour);
 
-static Colour blink_colour = {0};         ///< Colour to apply to the blink effect
+static Colour current_colour = kBlack;    ///< Colour to apply to the blink effect
 static uint16_t blink_halfperiod_ms = 0;  ///< Half the milliseconds to operate an on/off blink cycle
 static uint32_t current_tick = 0;         ///< Last system tick value saved
 static uint8_t led_is_on = 0;             ///< Flag indicating whether the LED is on or off
@@ -60,41 +51,63 @@ void runLEDstateMachine(void) {
     current_tick = HAL_GetTick();
 
     //invert the LED status and power
-    applyLEDpwm(led_is_on ? kBlack : blink_colour);
+    applyLEDpwm(led_is_on ? kBlack : current_colour);
     led_is_on = !led_is_on;
 }
 
 /**
- * Turn the LED on
+ * Set the new LED effect
  *
- * @param colour Colour to set the LED to
+ * @param new_effect New effect to apply
+ * @param period_ms Effect period in [ms] (if applicable)
  */
-void LEDsolid(const Colour* colour) {
-    led_is_on = 1;
-    applyLEDpwm(*colour);
-    effect = kSOLID;
-}
+void LEDsetEffect(EffectState new_effect, uint16_t period_ms) {
+    //solid black led means it's off
+    if ((new_effect == kSOLID) && !led_is_on) {
+        new_effect = kOFF;
+    }
 
-/**
- * Turn the LED off
- */
-void LEDoff(void) {
-    led_is_on = 0;
-    applyLEDpwm(kBlack);
-    effect = kOFF;
-}
+    //apply the new colour
+    Colour colour = kBlack;
+    if (new_effect != kOFF) {
+        colour = current_colour;
+    }
+    applyLEDpwm(colour);
 
-/**
- * Make the LED blink
- *
- * @param colour Colour to set the LED to 
- * @param period_ms Number of milliseconds for the LED to operate an on/off cycle
- */
-void LEDblink(const Colour* colour, uint16_t period_ms) {
+    //save the effect and period
+    effect = new_effect;
     current_tick = HAL_GetTick();
-    blink_colour = *colour;
     blink_halfperiod_ms = (period_ms / 2U);
-    effect = kBLINKING;
+}
+
+/**
+ * Set the new LED colour with a HEX value
+ *
+ * @param hexa_code New HEX colour value (right justified)
+ */
+void LEDsetColourHex(const uint32_t hexa_code) {
+    const Colour colour = {.hex_value = hexa_code};
+    LEDsetColour(&colour);
+}
+
+/**
+ * Set the new LED colour with a Colour value
+ *
+ * @param colour New colour
+ */
+void LEDsetColour(const Colour* colour) {
+    if (!colour) {
+        return;
+    }
+
+    applyLEDpwm(*colour);
+
+    if (colour->hex_value == kBlack.hex_value) {
+        led_is_on = 0;
+    } else {
+        led_is_on = 1;
+        current_colour = *colour;
+    }
 }
 
 /********************************************************************************************************************************************/

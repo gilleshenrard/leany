@@ -3,27 +3,10 @@
  *
  * SPDX-License-Identifier: MIT
  */
-
 #ifndef HARDWARE_IMU_IMU_H
 #define HARDWARE_IMU_IMU_H
-#include <stdint.h>
-
 #include "errorstack.h"
 #include "sensorfusion.h"
-
-// IMU functions
-void createIMUtask(void);
-void IMUinterruptTriggered(uint8_t interrupt_pin);
-int16_t getAngleDegreesTenths(Axis axis);
-uint8_t anglesChanged(void);
-void IMUzeroDown(void);
-void IMUcancelZeroing(void);
-float getIMU_KP(void);
-float getIMU_KI(void);
-uint8_t isIMUalignmentCheckEnabled(void);
-void setIMU_KI(float value);
-void setIMU_KP(float value);
-void setIMUalignmentCheckEnabled(uint8_t value);
 
 /****************************************************************************************************************/
 /****************************************************************************************************************/

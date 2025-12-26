@@ -7,7 +7,6 @@
 /**
  * @brief Implement the GPIO buttons state and debouncing
  * @author Gilles Henrard
- * @date 09/09/2025
  */
 #include "buttons.h"
 
@@ -23,11 +22,9 @@
 _Static_assert((uint8_t)(kNBbuttons <= UINT8_MAX), "The application supports maximum 255 buttons");
 
 enum {
-    kDebounceTimeMS = 50U,         ///< Number of milliseconds to wait for debouncing
-    kHoldingTimeMS = 1000U,        ///< Number of milliseconds to wait before considering a button is held down
-    kEdgeDetectionTimeMS = 40U,    ///< Number of milliseconds during which a falling/rising edge can be detected
-    kButtonStructAlignment = 16U,  ///< Alignment size used for buttons structure to make its accesses more efficient
-    kTimerStructAlignment = 16U,   ///< Alignment size used for timers structure to make its accesses more efficient
+    kDebounceTimeMS = 50U,       ///< Number of milliseconds to wait for debouncing
+    kHoldingTimeMS = 1000U,      ///< Number of milliseconds to wait before considering a button is held down
+    kEdgeDetectionTimeMS = 40U,  ///< Number of milliseconds during which a falling/rising edge can be detected
 };
 
 /**
@@ -46,7 +43,7 @@ typedef struct {
     GPIO_TypeDef* port;  ///< GPIO port used
     uint32_t pin;        ///< GPIO pin used
     ButtonState state;   ///< Current state of the GPIO button
-} __attribute__((aligned(kButtonStructAlignment))) Button;
+} Button;
 
 /**
  * @brief Structure holding all the timers used by the buttons
@@ -56,7 +53,7 @@ typedef struct {
     uint32_t holding_ms;       ///< Timer used to detect if a button is held down (in ms)
     uint32_t rising_edge_ms;   ///< Timer used to detect a rising edge (in ms)
     uint32_t falling_edge_ms;  ///< Timer used to detect a falling edge (in ms)
-} __attribute__((aligned(kTimerStructAlignment))) GPIOtimer;
+} GPIOtimer;
 
 //machine state
 static void stateReleased(ButtonType button);
@@ -132,13 +129,6 @@ static void stateReleased(ButtonType button) {
     buttons_timers[button].rising_edge_ms = current_tick;
     buttons_timers[button].holding_ms = current_tick;
     buttons[button].state = kButtonPressed;
-
-    //react to specific buttons
-    if (button == kButtonZero) {
-        triggerHardwareEvent(kEventZero);
-    } else if (button == kButtonHold) {
-        triggerHardwareEvent(kEventHold);
-    }
 }
 
 /**
@@ -158,6 +148,9 @@ static void statePressed(ButtonType button) {
             if (button == kButtonZero) {
                 triggerHardwareEvent(kEventCancelZero);
             }
+            if (button == kButtonHold) {
+                triggerHardwareEvent(kEventToggleScreen);
+            }
             return;
         }
     }
@@ -170,6 +163,13 @@ static void statePressed(ButtonType button) {
     //set the timer during which falling edge can be read, and get to pressed state
     buttons_timers[button].falling_edge_ms = HAL_GetTick();
     buttons[button].state = kButtonReleased;
+
+    //react to specific buttons
+    if (button == kButtonZero) {
+        triggerHardwareEvent(kEventZero);
+    } else if (button == kButtonHold) {
+        triggerHardwareEvent(kEventHold);
+    }
 }
 
 /**

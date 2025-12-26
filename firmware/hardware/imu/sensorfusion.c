@@ -47,7 +47,6 @@
  *   DOI: [10.1109/TAC.2008.923738](https://doi.org/10.1109/TAC.2008.923738)
  *
  * @author Gilles Henrard
- * @date 08/09/2025
  */
 #include "sensorfusion.h"
 

@@ -2,9 +2,6 @@
 #
 # SPDX-License-Identifier: MIT
 
-#make sure STM32CubeMX library knows about sysutils/ (to use it in interrupts, ...)
-target_include_directories(stm32cubemx INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
-
 #declare CMake variables and preprocessor definitions for each IMU model
 set(IMU_LSM6 1)
 set(IMU_BMI270 2)
@@ -18,7 +15,7 @@ if((NOT DEFINED IMU_MODEL) OR (IMU_MODEL STREQUAL "LSM6"))
     set(IMU_MODEL ${IMU_LSM6})
     add_compile_definitions(IMU_MODEL=IMU_LSM6)
 else()
-    set(IMU_MODEL ${IMU_BM270})
+    set(IMU_MODEL ${IMU_BMI270})
     add_compile_definitions(IMU_MODEL=IMU_BMI270)
 endif()
 
@@ -33,12 +30,11 @@ endif()
 
 #declare the library
 add_library(IMU
-	imu.c
 	${IMUSRC}
 	sensorfusion.c)
 target_include_directories(IMU PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(IMU PRIVATE sysUtils)
-target_link_libraries(IMU PRIVATE hal)
-target_link_libraries(IMU PRIVATE st7735s)
-target_link_libraries(IMU PRIVATE serial)
-target_link_libraries(IMU PUBLIC ${IMULIB})
+target_link_libraries(IMU PRIVATE
+	utils
+	hal
+	${IMULIB}
+)

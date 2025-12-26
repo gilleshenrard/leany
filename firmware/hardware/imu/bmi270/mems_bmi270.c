@@ -9,7 +9,6 @@
  * @brief Implement the behavior of the BMI270 MEMS
  *
  * @author Gilles Henrard
- * @date 24/08/2025
  *
  * @details Datasheet : https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bmi270-ds000.pdf 
  */
@@ -28,7 +27,7 @@
 #include <stm32f1xx_ll_spi.h>
 
 #include "errorstack.h"
-#include "halspi.h"
+#include "hal_spi.h"
 #include "imu.h"
 #include "main.h"
 #include "sensorfusion.h"

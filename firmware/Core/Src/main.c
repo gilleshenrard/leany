@@ -31,12 +31,12 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "dispatcher.h"
-#include "gpiotask.h"
+#include "task_dispatcher.h"
+#include "task_gpio.h"
 #include "hardware_events.h"
-#include "imu.h"
-#include "ui.h"
-#include "serial.h"
+#include "task_imu.h"
+#include "task_ui.h"
+#include "task_serial.h"
 
 /* USER CODE END Includes */
 

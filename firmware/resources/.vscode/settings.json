@@ -26,8 +26,22 @@
     //
     //
     //Flylint (jbenden.c-cpp-flylint)
+    "c-cpp-flylint.debug": true,
     "c-cpp-flylint.flawfinder.enable": false,
     "c-cpp-flylint.clang.enable": false,
+    "c-cpp-flylint.lizard.enable": true,
+    "c-cpp-flylint.lizard.extraArgs": [
+        "-Tlength=60",
+        "-Tnloc=60",
+        "-Tparameter_count=5",
+        "-Tcyclomatic_complexity=10",
+        "-Eduplicate",
+        "-m",
+        "firmware/hardware/",
+        "firmware/ui/",
+        "firmware/utilities/",
+        "firmware/tasks/"
+    ],
     "c-cpp-flylint.cppcheck.language": "C",
     "c-cpp-flylint.cppcheck.inconclusive": true,
     "c-cpp-flylint.cppcheck.verbose": false,
@@ -35,10 +49,13 @@
         "--check-level=exhaustive"
     ],
     "c-cpp-flylint.cppcheck.suppressions": [
-        "unusedFunction"
+        "unusedFunction",
+        "unusedStructMember"
     ],
     "c-cpp-flylint.excludeFromWorkspacePaths": [
-        "Middlewares/"
+        "Middlewares/",
+        "Core/",
+        "Drivers/"
     ],
     //
     //
@@ -69,4 +86,5 @@
             "statusBarVisibility": "hidden"
         }
     },
+    "cortex-debug.variableUseNaturalFormat": true,
 }
