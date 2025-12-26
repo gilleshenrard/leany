@@ -3,18 +3,30 @@
     "tasks": [
         {
             "type": "shell",
-            "label": "Flash with OpenOCD (Linux)",
+            "label": "Flash with OpenOCD",
             "command": "openocd",
-            "args": [
-                "-f", "interface/stlink.cfg",
-                "-f", "target/stm32f1x.cfg",
-                "-c", "program build/${command:cmake.buildType}/Leany.elf verify reset exit"
-            ],
+            "windows": {
+                "args": [
+                    "-f", "interface/stlink.cfg",
+                    "-f", "target/stm32f1x.cfg",
+                    "-c", "program {${command:cmake.getLaunchTargetPath}} verify reset exit"
+                ]
+            },
+            "linux": {
+                "args": [
+                    "-f", "interface/stlink.cfg",
+                    "-f", "target/stm32f1x.cfg",
+                    "-c", "program ${command:cmake.getLaunchTargetPath} verify reset exit"
+                ]
+            },
+            "dependsOn": ["CMake: build"],
             "options": {
                 "cwd": "${workspaceFolder}"
             },
             "problemMatcher": []
         },
+
+
         {
             "type": "shell",
             "label": "Display symbols size",
@@ -34,35 +46,23 @@
             },
             "problemMatcher": []
         },
+
+
         {
             "type": "shell",
-            "label": "Run clang-tidy",
+            "label": "Backup compile_commands.json",
+            "hide": true,
+            "command": "cp",
             "windows": {
-                "command": "python.exe",
                 "args": [
-                    "C:/msys64/ucrt64/bin/run-clang-tidy",
-                    "-quiet",
-                    "-p${command:cmake.buildDirectory}",
-                    "-extra-arg=--sysroot=C:/msys64/ucrt64/arm-none-eabi",
-                    "(hardware^|ui^|dispatcher)"
-                ],
-                "options": {
-                    "shell": {
-                        "executable": "cmd.exe",
-                        "args": [
-                            "/d",
-                            "/c"
-                        ]
-                    }
-                }
+                    "${command:cmake.buildDirectory}\\compile_commands.json",
+                    "${command:cmake.buildDirectory}\\compile_commands.json.backup"
+                ]
             },
             "linux": {
-                "command": "run-clang-tidy",
                 "args": [
-                    "-quiet",
-                    "-p${command:cmake.buildDirectory}",
-                    "-extra-arg=--sysroot=/opt/arm-none-eabi/arm-none-eabi/",
-                    "\"(hardware|ui|dispatcher)\""
+                    "${command:cmake.buildDirectory}/compile_commands.json",
+                    "${command:cmake.buildDirectory}/compile_commands.json.backup"
                 ]
             },
             "options": {
@@ -72,18 +72,121 @@
         },
         {
             "type": "shell",
-            "label": "Run clang-format validation",
+            "label": "Remove -fanalyzer from compile_commands.json",
+            "hide": true,
             "windows": {
-                "command": "Get-ChildItem -Path hardware,ui,dispatcher -Recurse -Include *.c,*.h -File | ForEach-Object {clang-format --style=file --dry-run --Werror --verbose $_.FullName }"
+                "command": "powershell.exe",
+                "args": [
+                    "-Command",
+                    "(Get-Content '${command:cmake.buildDirectory}\\compile_commands.json') -replace ''-fanalyzer'','''' | Set-Content '${command:cmake.buildDirectory}\\compile_commands.json'"
+                ]
             },
             "linux": {
-                "command": "find hardware ui dispatcher -name '*.c' -o -name '*.h' | xargs clang-format --style=file --dry-run --Werror --verbose"
+                "command": "sed",
+                "args": [
+                    "-i",
+                    "s/-fanalyzer//g",
+                    "${command:cmake.buildDirectory}/compile_commands.json"
+                ]
             },
             "options": {
                 "cwd": "${workspaceFolder}"
             },
             "problemMatcher": []
         },
+        {
+            "type": "shell",
+            "label": "Run clang-tidy with custom compile_commands.json",
+            "hide": true,
+            "windows": {
+                "command": "python.exe",
+                "args": [
+                    "C:/msys64/ucrt64/bin/run-clang-tidy",
+                    "-quiet",
+                    "-p${command:cmake.buildDirectory}",
+                    "-extra-arg=--sysroot=C:/msys64/ucrt64/arm-none-eabi",
+                    ".*(hardware^|ui^|tasks^|utilities)\\\\.*\\.(c^|h^|inc)$"
+                ],
+                "options": {
+                    "shell": {
+                        "executable": "cmd.exe",
+                        "args": ["/d", "/c"]
+                    }
+                }
+            },
+            "linux": {
+                "command": "run-clang-tidy",
+                "args": [
+                    "-quiet",
+                    "-p${command:cmake.buildDirectory}",
+                    "-extra-arg=--sysroot=/opt/arm-none-eabi/arm-none-eabi/",
+                    "\".*(hardware|ui|tasks|utilities)/.*\\.(c|h|inc)$\""
+                ]
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
+            "type": "shell",
+            "label": "Restore compile_commands.json",
+            "hide": true,
+            "windows": {
+                "command": "move",
+                "args": [
+                    "/Y",
+                    "${command:cmake.buildDirectory}\\compile_commands.json.backup",
+                    "${command:cmake.buildDirectory}\\compile_commands.json"
+                ],
+                "options": {
+                    "shell": {
+                        "executable": "cmd.exe",
+                        "args": ["/d", "/c"]
+                    }
+                }
+            },
+            "linux": {
+                "command": "mv",
+                "args": [
+                    "${command:cmake.buildDirectory}/compile_commands.json.backup",
+                    "${command:cmake.buildDirectory}/compile_commands.json"
+                ]
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Run clang-tidy",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Backup compile_commands.json",
+                "Remove -fanalyzer from compile_commands.json",
+                "Run clang-tidy with custom compile_commands.json",
+                "Restore compile_commands.json"
+            ],
+            "problemMatcher": []
+        },
+
+
+        {
+            "type": "shell",
+            "label": "Run clang-format validation",
+            "windows": {
+                "command": "Get-ChildItem -Path hardware,ui,tasks,utilities -Recurse -Include *.c,*.h,*.inc -File | ForEach-Object {clang-format --style=file --dry-run --Werror --verbose $_.FullName }"
+            },
+            "linux": {
+                "command": "find hardware ui tasks utilities -name '*.c' -o -name '*.h'-o -name '*.inc' | xargs clang-format --style=file --dry-run --Werror --verbose"
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+
+
         {
             "type": "shell",
             "label": "Run Doxygen",
@@ -96,6 +199,8 @@
             },
             "problemMatcher": []
         },
+
+
         {
             "type": "shell",
             "label": "Create the CppCheck output directory",
@@ -148,6 +253,8 @@
             },
             "problemMatcher": []
         },
+
+
         {
             "type": "shell",
             "label": "Validate copyright and licensing",
@@ -161,6 +268,8 @@
             },
             "problemMatcher": []
         },
+
+
         {
             "type": "shell",
             "label": "Check enums and strucs documentation",
@@ -175,6 +284,8 @@
             },
             "problemMatcher": []
         },
+
+
         {
             "type": "shell",
             "label": "Run Lizard",
@@ -188,7 +299,8 @@
                 "-m",
                 "hardware/",
                 "ui/",
-                "dispatcher/"
+                "tasks/",
+                "utilities/"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"

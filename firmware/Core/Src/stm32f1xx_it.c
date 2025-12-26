@@ -26,9 +26,10 @@
 #include <stm32f1xx_ll_dma.h>
 #include <stm32f1xx_ll_usart.h>
 
-#include "halspi.h"
-#include "imu.h"
-#include "serial.h"
+#include "hal_spi.h"
+#include "task_imu.h"
+#include "task_serial.h"
+#include "hal_adc.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -238,6 +239,19 @@ void DMA1_Channel5_IRQHandler(void)
   /* USER CODE BEGIN DMA1_Channel5_IRQn 1 */
 
   /* USER CODE END DMA1_Channel5_IRQn 1 */
+}
+
+/**
+  * @brief This function handles ADC1 and ADC2 global interrupts.
+  */
+void ADC1_2_IRQHandler(void)
+{
+  /* USER CODE BEGIN ADC1_2_IRQn 0 */
+  ADCinterruptTriggered();
+  /* USER CODE END ADC1_2_IRQn 0 */
+  /* USER CODE BEGIN ADC1_2_IRQn 1 */
+
+  /* USER CODE END ADC1_2_IRQn 1 */
 }
 
 /**

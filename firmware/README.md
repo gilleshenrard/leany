@@ -4,11 +4,13 @@ SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
 SPDX-License-Identifier: MIT
 -->
 
+![Version](https://img.shields.io/badge/version-0.1.0-blue)
+![Platform](https://img.shields.io/badge/platform-STM32F103-green)
+![License](https://img.shields.io/badge/license-MIT-lightgrey)
+
 # Leany Firmware
 
 Firmware for **Leany**, an inclinometer project based on the **STM32F103 (ARM Cortex-M3)** microcontroller.
-
-**Version:** 0.1
 
 ## Building the Firmware
 
@@ -66,35 +68,44 @@ The firmware is instected by a [Github Action](https://github.com/gilleshenrard/
 
 ```
 firmware/
-├── CMakeLists.txt
-├── CMakePresets.json
-├── Leany.ioc
-├── hardware/
-├── dispatcher/
-├── ui/
-└── resources/
-    ├── .vscode/
-    |   ├── extensions.json
-    |   ├── launch.json
-    |   ├── settings.json
-    |   └── tasks.json
-    ├── Doxyfile
-    ├── install_prerequisites_ubuntu.sh
-    ├── install_prerequisites_windows.bat
-    └── check_filenames.sh
+├───cmake/
+│   ├───templates/
+│   ├───gcc-arm-none-eabi.cmake
+│   └───starm-clang.cmake
+├───hardware/
+├───resources/
+│   ├───.vscode/
+│   ├───check_filenames.sh
+│   ├───install_prerequisites_ubuntu.sh
+│   └───install_prerequisites_windows.bat
+├───tasks/
+├───ui/
+├───utilities/
+├───CMakeLists.json
+├───CMakeLists.json
+└───Doxyfile
 ```
 
 ### `CMakeLists.json` and `CMakePresets.json`
 This project is built with CMake to ensure maximum portability across different environments and OSes.
 
-A toolchain file and CMake preset configurations are provided to make building the firmware as easy as possible.
+GCC and Clang toolchain files, as well as CMake preset configurations are provided to make building the firmware as easy as possible.
+
+The toolchain files can be found under `cmake/`
+
+### `cmake/templates`
+Contains templates of files of which some fields need to be updated by CMake.
+
+e.g. README.md shows the current firmware version, which is provided by CMake
+
+### `Doxyfile`
+Configuration for Doxygen documentation generation.
 
 ### `Leany.ioc`
 The **STM32CubeMX** project file used to configure the STM32F103 microcontroller. It generates all third-party libraries, including LL (Low Level) and CMSIS.
 
 ### `resources/`
 Contains additional resources:
-- **`Doxyfile`**: Configuration for Doxygen documentation generation.
 - **`install_prerequisites_ubuntu.sh`**: Script to install everything needed to build the firmware on Ubuntu.
 - **`install_prerequisites_windows.bat`**: Script to install everything needed to build the firmware on Windows.
 - **`check_filenames.sh`**: Script to make sure the filenames formatting is respected.
@@ -106,14 +117,17 @@ Contains project-specific VSCode configuration and useful tasks. Should someone 
 - **`settings.json`**: Project-specific settings. They will override the user's pre-existing settings, and will ensure everyone uses the same configuration.
 - **`tasks.json`**: Some useful custom tasks for VSCode on Windows and Ubuntu.
 
-### `dispatcher/`
-Contains the implementation of the events and messages queues dispatcher. This is where the business logic is.
+### `tasks/`
+Contains the implementation of all the FreeRTOS tasks running in parallel.
 
 ### `hardware/`
-Contains the implementation of the hardware modules (e.g. GPIO buttons, MEMS sensor, ...)
+Contains the implementation of the hardware modules (e.g. GPIO buttons, IMU sensor, ...)
 
-### `UI/`
+### `ui/`
 Contains the implementation of the user interface
+
+### `utilities/`
+Contains utility modules used across the whole applicaton (error stack, hardware events, ...)
 
 ## Formatting, Code Quality, Linting, Documentation and licensing
 
@@ -122,6 +136,7 @@ Contains the implementation of the user interface
 - Linters configured: **clang-tidy**, **cppcheck**, **flawfinder**, and **lizard**.
 - **Doxygen** is used for documentation, with strict control to ensure comprehensive code documentation.
 - Licensing and copyrighting compliance is checked with **REUSE tool**
+- Additional python scripts are used to perform checks such as enum and struct members documentation
 
 ## Contributing
 

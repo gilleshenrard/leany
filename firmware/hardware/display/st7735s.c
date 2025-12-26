@@ -8,7 +8,6 @@
  * @file st7735s.c
  * @brief Implement the functioning of the ST7735S TFT screen via SPI and DMA
  * @author Gilles Henrard
- * @date 25/07/2025
  *
  * @note Datasheet : https://cdn-shop.adafruit.com/datasheets/ST7735R_V0.2.pdf
  */
@@ -24,7 +23,8 @@
 #include <stm32f1xx_ll_spi.h>
 
 #include "errorstack.h"
-#include "halspi.h"
+#include "hal_spi.h"
+#include "orientation.inc"
 #include "st7735_initialisation.h"
 #include "st7735_registers.inc"
 
@@ -48,16 +48,16 @@ typedef enum {
 typedef struct {
     uint8_t x_offset_px;  ///< X backporch offset in [pixels]
     uint8_t y_offset_px;  ///< Y backporch offset in [pixels]
-} __attribute((aligned(2))) Backporch;
+} Backporch;
 
 //state machine
 static ErrorCode restartScreen(void);
 static ErrorCode writeConfiguration(void);
 
 //State variables
-static ErrorCode result;                                   ///< Buffer used to store function return codes
-static Orientation current_orientation = kNBorientations;  ///< Current display orientation
-static const Backporch kOffsets[] =                        ///< default backporch offsets
+static ErrorCode result;                    ///< Buffer used to store function return codes
+uint16_t display_buffer[kFrameBufferSize];  ///< Buffer used to send data to the display
+static const Backporch kOffsets[] =         ///< default backporch offsets
     {
         {1, 2},
 };
@@ -111,11 +111,6 @@ ErrorCode setWindow(uint8_t x_start, uint8_t y_start, uint8_t width, uint8_t hei
  * @retval 2 Error while sending the command to the screen
  */
 ErrorCode st7735sSetOrientation(Orientation orientation) {
-    //if orientation does not change, exit
-    if (current_orientation == orientation) {
-        return (kSuccessCode);
-    }
-
     //if incorrect orientation, error
     if (orientation >= kNBorientations) {
         return createErrorCode(kOrient, 1, kErrorCritical);
@@ -126,8 +121,6 @@ ErrorCode st7735sSetOrientation(Orientation orientation) {
     result = writeRegisters(&dma_descriptor.spi, kMADCTL, &kOrientations[orientation], 1);
     EXIT_ON_ERROR(result, kOrient, 1)
 
-    //update the current orientation
-    current_orientation = orientation;
     return (kSuccessCode);
 }
 

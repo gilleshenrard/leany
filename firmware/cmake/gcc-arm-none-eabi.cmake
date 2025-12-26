@@ -11,13 +11,18 @@ set(CMAKE_CXX_COMPILER_ID GNU)
 
 # Some default GCC settings
 # arm-none-eabi- must be part of path environment
-set(TOOLCHAIN_PREFIX                arm-none-eabi-)
-set(CMAKE_C_COMPILER                ${TOOLCHAIN_PREFIX}gcc)
-set(CMAKE_ASM_COMPILER              ${CMAKE_C_COMPILER})
-set(CMAKE_CXX_COMPILER              ${TOOLCHAIN_PREFIX}g++)
-set(CMAKE_LINKER                    ${TOOLCHAIN_PREFIX}ld)
-set(CMAKE_OBJCOPY                   ${TOOLCHAIN_PREFIX}objcopy)
-set(CMAKE_SIZE                      ${TOOLCHAIN_PREFIX}size)
+set(TOOLCHAIN_PREFIX arm-none-eabi-)
+
+set(CMAKE_C_COMPILER   ${TOOLCHAIN_PREFIX}gcc   CACHE FILEPATH "")
+set(CMAKE_CXX_COMPILER ${TOOLCHAIN_PREFIX}g++   CACHE FILEPATH "")
+set(CMAKE_ASM_COMPILER ${TOOLCHAIN_PREFIX}gcc   CACHE FILEPATH "")
+
+# --- LTO-safe archive tools ---
+set(CMAKE_AR     ${TOOLCHAIN_PREFIX}gcc-ar     CACHE FILEPATH "")
+set(CMAKE_RANLIB ${TOOLCHAIN_PREFIX}gcc-ranlib CACHE FILEPATH "")
+
+set(CMAKE_OBJCOPY ${TOOLCHAIN_PREFIX}objcopy CACHE FILEPATH "")
+set(CMAKE_SIZE    ${TOOLCHAIN_PREFIX}size    CACHE FILEPATH "")
 
 set(CMAKE_EXECUTABLE_SUFFIX_ASM     ".elf")
 set(CMAKE_EXECUTABLE_SUFFIX_C       ".elf")

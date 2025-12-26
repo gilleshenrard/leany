@@ -8,15 +8,15 @@
 #define HARDWARE_GPIO_LED_H
 #include <stdint.h>
 
-enum {
-    kColourAlignment = 4U,  ///< Memory alignment of the colour internal structure
-};
-
+/**
+ * Hex value of each colour channel
+ */
 typedef struct {
-    uint8_t blue;                                       ///< Blue HEX value
-    uint8_t green;                                      ///< Red HEX value
-    uint8_t red;                                        ///< Green HEX value
-} __attribute__((aligned(kColourAlignment))) Channels;  ///< Hex value of each colour channel
+    uint8_t blue;    ///< Blue HEX value
+    uint8_t green;   ///< Red HEX value
+    uint8_t red;     ///< Green HEX value
+    uint8_t unused;  ///< Unused leading byte
+} Channels;
 
 /**
  * Structure representing a HEX RGB colour value
@@ -25,6 +25,15 @@ typedef union {
     Channels channels;   ///< Independant colour channels
     uint32_t hex_value;  ///< Whole colour HEX value
 } Colour;
+
+/**
+ * Enumeration of the LED effects
+ */
+typedef enum {
+    kOFF = 0,   ///< OFF
+    kSOLID,     ///< Solidly ON
+    kBLINKING,  ///< Blinking
+} EffectState;
 
 static const Colour kWhite = {.hex_value = 0xFFFFFFUL};        ///< 0xFFFFFF : white LED hex colour value
 static const Colour kWhiteDimmed = {.hex_value = 0x333333UL};  ///< 0x333333 : dimmed white LED hex colour value
@@ -39,8 +48,8 @@ static const uint16_t kSlowblinkPeriod_ms = 2000U;
 
 void initialiseLED(void);
 void runLEDstateMachine(void);
-void LEDsolid(const Colour* colour);
-void LEDoff(void);
-void LEDblink(const Colour* colour, uint16_t period_ms);
+void LEDsetEffect(EffectState new_effect, uint16_t period_ms);
+void LEDsetColour(const Colour* colour);
+void LEDsetColourHex(uint32_t hexa_code);
 
 #endif

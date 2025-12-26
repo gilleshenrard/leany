@@ -22,6 +22,6 @@ while read -r file; do
     else
         printf 'OK\n'
     fi
-done < <(find firmware/hardware firmware/ui firmware/dispatcher -type f \( -name "*.c" -o -name "*.h" -o -name "*.inc" \))
+done < <(find firmware/hardware firmware/ui firmware/dispatcher firmware/utilities -type f \( -name "*.c" -o -name "*.h" -o -name "*.inc" \))
 
 exit "$invalid"

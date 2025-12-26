@@ -11,22 +11,24 @@
 #include <task.h>
 
 #include "errorstack.h"
-#include "st7735_initialisation.h"
+#include "orientation.inc"
 
 enum {
-    kDisplayWidth = 160U,   ///< Number of pixels in width
-    kDisplayHeight = 128U,  ///< Number of pixels in height
+    kDisplayWidth = 160U,      ///< Number of pixels in width
+    kDisplayHeight = 128U,     ///< Number of pixels in height
+    kScreenSizeDivider = 12U,  ///< Number of times the buffer fits in the display
+    kFrameBufferSize = (kDisplayWidth * kDisplayHeight) / kScreenSizeDivider,  ///< Size of the frame buffer in bytes
 };
 
 /**
  * Structure defining the coordinates of a window on the display
  */
-typedef struct {
+typedef struct TypeArea {
     uint8_t x0;  ///< X value of the top-left corner of the window in [pixels]
     uint8_t y0;  ///< Y value of the top-left corner of the window in [pixels]
     uint8_t x1;  ///< X value of the bottom-right corner of the window in [pixels]
     uint8_t y1;  ///< Y value of the bottom-right corner of the window in [pixels]
-} __attribute((aligned(4))) Area;
+} Area;
 
 ErrorCode st7735sSetOrientation(Orientation orientation);
 void attachUItask(TaskHandle_t handle);
@@ -34,6 +36,8 @@ ErrorCode configureST7735S(void);
 ErrorCode setWindow(uint8_t x_start, uint8_t y_start, uint8_t width, uint8_t height);
 void turnBacklightON(void);
 ErrorCode sendScreenData(const uint16_t data[], size_t nb_bytes, size_t max_bytes, const Area* screen_area);
+
+extern uint16_t display_buffer[kFrameBufferSize];
 
 /**
  * Get the width of a display window in [pixels]

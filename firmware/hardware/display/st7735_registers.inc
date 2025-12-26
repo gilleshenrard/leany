@@ -59,10 +59,10 @@ enum {
     kRefreshRightToLeft = 0x04U,  ///< refresh right to left
     kColourOrderRGB = 0x00U,      ///< RGB instead of BGR
     kColourOrderBGR = 0x08U,      ///< BGR instead of RGB
-    kOrientPortrait = 0x00U,      ///< MV, MX and MY values for portrait orientation
-    kOrientPortrait180 = 0xC0U,   ///< MV, MX and MY values for portrait orientation (rotated 180°)
-    kOrientLandscape = 0x60U,     ///< MV, MX and MY values for landscape orientation
-    kOrientLandscape180 = 0xA0U,  ///< MV, MX and MY values for landscape orientation (rotated 180°)
+    kOrderPortrait = 0x00U,       ///< MV, MX and MY values for portrait orientation
+    kOrderPortrait180 = 0xC0U,    ///< MV, MX and MY values for portrait orientation (rotated 180°)
+    kOrderLandscape = 0x60U,      ///< MV, MX and MY values for landscape orientation
+    kOrderLandscape180 = 0xA0U,   ///< MV, MX and MY values for landscape orientation (rotated 180°)
 };
 
 //  Colour mode (register 0x3A) values

@@ -8,7 +8,6 @@
  * @file lsm6.c
  * @brief Implement the LSM6 MEMS sensor communication
  * @author Gilles Henrard
- * @date 18/12/2025
  *
  * @note Additional information can be found in :
  *   - Datasheet : https://www.st.com/resource/en/datasheet/lsm6dsr.pdf
@@ -29,7 +28,7 @@
 #include <task.h>
 
 #include "errorstack.h"
-#include "halspi.h"
+#include "hal_spi.h"
 #include "imu.h"
 #include "lsm6_registers.inc"
 #include "lsm6dsr_registers.inc"
@@ -179,7 +178,9 @@ ErrorCode IMUcheckDeviceID(void) {
     uint32_t first_tick = HAL_GetTick();
     do {
         //store the bitwise-NOT value of the chip ID to make sure every bit is changed by the read command
+        // clang-format off
         device_id = (uint8_t)~((uint8_t)LSM6_WHOAMI);
+        // clang-format on
 
         //read the register
         result = readRegisters(&spi_descriptor, kWHO_AM_I, &device_id, 1);
@@ -396,6 +397,7 @@ void IMUsetupTimebase(MahonyContext* filter_context) {
 /**
  * @note LSM6 implementation uses SPI burst read and a latched timestamp.
  */
+/** \cond */
 ErrorCode IMUgetSample(IMUsample* sample) {
     RawValues lsb_values = {0};
 
@@ -422,6 +424,7 @@ ErrorCode IMUgetSample(IMUsample* sample) {
 
     return (kSuccessCode);
 }
+/** \endcond */
 
 /**
  * Get the number of samples to ignore after configuration

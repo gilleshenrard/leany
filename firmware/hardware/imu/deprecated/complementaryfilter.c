@@ -57,7 +57,7 @@ void complementaryFilter(const IMUsample* sample, float filtered_angles_rad[]) {
         (kAlpha * accely_astimated_rad);
 
     //release the mutex
-    // xSemaphoreGive(anglesMutex);
+    // (void)xSemaphoreGive(anglesMutex);
 }
 
 /**

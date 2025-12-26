@@ -8,6 +8,7 @@
 
 #include <stddef.h>
 
+#include "orientation.inc"
 #include "st7735_registers.inc"
 
 /**
@@ -77,13 +78,13 @@ static const Register kVmCtr1arg = kVCOM_NEG_0_775V;
 const Register kOrientations[kNBorientations] = {
     // NOLINTBEGIN(misc-redundant-expression, hicpp-signed-bitwise)
     [kPortrait] =
-        kRefreshTopToBottom | kRefreshLeftToRight | kOrientPortrait | kColourOrderRGB,  // NOLINT (hicpp-signed-bitwise)
-    [kPortrait180] = kRefreshTopToBottom | kRefreshLeftToRight | kOrientPortrait180     // NOLINT (hicpp-signed-bitwise)
-                     | kColourOrderRGB,                                                 // NOLINT (hicpp-signed-bitwise)
-    [kLandscape] = kRefreshTopToBottom | kRefreshLeftToRight | kOrientLandscape |
-                   kColourOrderRGB,                                                    // NOLINT (hicpp-signed-bitwise)
-    [kLandscape180] = kRefreshTopToBottom | kRefreshLeftToRight | kOrientLandscape180  // NOLINT (hicpp-signed-bitwise)
-                      | kColourOrderRGB,                                               // NOLINT (hicpp-signed-bitwise)
+        kRefreshTopToBottom | kRefreshLeftToRight | kOrderPortrait | kColourOrderRGB,  // NOLINT (hicpp-signed-bitwise)
+    [kPortrait180] = kRefreshTopToBottom | kRefreshLeftToRight | kOrderPortrait180     // NOLINT (hicpp-signed-bitwise)
+                     | kColourOrderRGB,                                                // NOLINT (hicpp-signed-bitwise)
+    [kLandscape] =
+        kRefreshTopToBottom | kRefreshLeftToRight | kOrderLandscape | kColourOrderRGB,  // NOLINT (hicpp-signed-bitwise)
+    [kLandscape180] = kRefreshTopToBottom | kRefreshLeftToRight | kOrderLandscape180    // NOLINT (hicpp-signed-bitwise)
+                      | kColourOrderRGB,                                                // NOLINT (hicpp-signed-bitwise)
     // NOLINTEND(misc-redundant-expression, hicpp-signed-bitwise)
 };
 

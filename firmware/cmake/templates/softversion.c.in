@@ -1,0 +1,16 @@
+/*
+ * SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
+/**
+ * @file softversion.c
+ * @author Gilles Henrard
+ * @brief File used as template to softversion.c for CMake to populate with the git commit hash
+ * 
+ */
+#include "softversion.h"
+
+const char kGitCommitHash[kCommitHashSize + 1U] = "@COMMIT_HASH@";       ///< Short hash code of the latest git commit
+const char kFirmwareVersion[kFirmwareVersionSize + 1U] = "@PROJECT_VERSION@";  ///< Firmware version from CMakeLists.txt
