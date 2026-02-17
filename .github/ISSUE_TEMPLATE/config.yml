@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+
+contact_links:
+  - name: Ask a Question
+    url: https://github.com/gilleshenrard/leany/discussions
+    about: >
+      For general questions about the project, use GitHub Discussions
+      rather than opening an issue.

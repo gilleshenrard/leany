@@ -1,0 +1,75 @@
+name: Documentation Inquiry
+description: Report missing, incorrect, or unclear documentation.
+title: "[DOCS] <short description>"
+labels: ["documentation", "triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Good documentation is part of the project. If something is wrong,
+        missing, or confusing, please tell us exactly where and why.
+
+  - type: dropdown
+    id: doc_type
+    attributes:
+      label: Documentation Type
+      description: Which kind of documentation is this about?
+      options:
+        - README
+        - Doxygen / API reference
+        - Schematic / PCB documentation
+        - Assembly / enclosure guide
+        - Build system / toolchain setup
+        - Contributing guide
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: issue_type
+    attributes:
+      label: Issue Type
+      description: What kind of documentation problem is this?
+      options:
+        - Missing documentation
+        - Incorrect / outdated information
+        - Unclear or ambiguous explanation
+        - Typo / formatting issue
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: location
+    attributes:
+      label: Location
+      description: File path, URL, or section name where the problem is.
+      placeholder: "e.g. docs/setup.md, line 42 — or Doxygen page for `inclinometer_read()`"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What is wrong, missing, or confusing? Quote the problematic text if relevant.
+    validations:
+      required: true
+
+  - type: textarea
+    id: suggested_fix
+    attributes:
+      label: Suggested Fix or Addition
+      description: If you already know what the correct content should be, provide it here.
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission Checklist
+      options:
+        - label: I checked that this is not already covered elsewhere in the documentation.
+          required: true
+        - label: I am referencing the latest version of the documentation (main branch).
+          required: true

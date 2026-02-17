@@ -1,0 +1,119 @@
+name: Bug Report
+description: Report a bug in firmware, hardware (PCB), or enclosure.
+title: "[BUG] <short description>"
+labels: ["bug", "triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report.
+        Please be as specific as possible — vague reports are hard to act on.
+
+  - type: dropdown
+    id: bug_area
+    attributes:
+      label: Affected Area
+      description: Which part of the project does this bug affect?
+      options:
+        - Firmware
+        - PCB / Hardware
+        - Enclosure / Mechanical
+        - Software tooling (build system, scripts)
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: hardware_revision
+    attributes:
+      label: Hardware Revision
+      description: PCB revision number or "N/A" if firmware-only.
+      placeholder: "e.g. v1.2"
+    validations:
+      required: true
+
+  - type: input
+    id: firmware_version
+    attributes:
+      label: Firmware Version / Commit Hash
+      description: Tag, branch, or full commit SHA.
+      placeholder: "e.g. v0.4.1 or a3f92c1"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is.
+      placeholder: "When I do X, Y happens instead of Z."
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps_to_reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: Numbered steps that reliably reproduce the issue.
+      placeholder: |
+        1. Power on the device with ...
+        2. Set the angle to ...
+        3. Observe ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected_behavior
+    attributes:
+      label: Expected Behavior
+      description: What should have happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual_behavior
+    attributes:
+      label: Actual Behavior
+      description: What actually happened? Include error codes, serial output, or photos if relevant.
+    validations:
+      required: true
+
+  - type: textarea
+    id: pcb_enclosure_details
+    attributes:
+      label: PCB / Enclosure Specifics (if applicable)
+      description: |
+        For PCB bugs: affected net, component reference (e.g. U3, R12), measurement values.
+        For enclosure bugs: affected part, print settings, material used.
+      placeholder: "e.g. R12 footprint pad spacing does not match the physical component."
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Host OS, toolchain version, programmer/debugger used.
+      placeholder: |
+        - OS: Ubuntu 22.04
+        - Toolchain: arm-none-eabi-gcc 12.3
+        - Debugger: ST-Link V2
+        - IDE / build system: CMake 3.27 + Ninja
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional Context
+      description: Logs, oscilloscope captures, photos, or links to related issues.
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission Checklist
+      options:
+        - label: I searched existing issues and this is not a duplicate.
+          required: true
+        - label: I am using a supported hardware revision and firmware version.
+          required: true
+        - label: I have included enough information to reproduce the issue.
+          required: true
