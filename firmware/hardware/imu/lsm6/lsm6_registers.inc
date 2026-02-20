@@ -127,24 +127,24 @@ typedef enum {
     kFUNC_CFG_ACCESS = 0x01U,           ///< RW - Enable embedded functions register
     kPIN_CTRL = 0x02U,                  ///< RW - SDO, OCS_AUX, SDO_AUX pins pull-up enable/disable register
     kFIFO_CTRL1 = 0x07U,                ///< RW - FIFO control register 1
-    kFIFO_CTRL2 = 0x08U,                ///< RW - FIFO control register 2
+    kFIFO_CTRL2 = 0x08U,                ///< RW - FIFO control register 2 @important bits 3 and 5 must be 0
     kFIFO_CTRL3 = 0x09U,                ///< RW - FIFO control register 3
-    kFIFO_CTRL4 = 0x0AU,                ///< RW - FIFO control register 4
-    kCOUNTER_BDR_REG1 = 0x0BU,          ///< RW - Counter batch data rate register 1
+    kFIFO_CTRL4 = 0x0AU,                ///< RW - FIFO control register 4 @important bit 3 must be 0
+    kCOUNTER_BDR_REG1 = 0x0BU,          ///< RW - Counter batch data rate register 1 @important bits 3 and 4 must be 0
     kCOUNTER_BDR_REG2 = 0x0CU,          ///< RW - Counter batch data rate register 2
     kINT1_CTRL = 0x0DU,                 ///< RW - INT1 pin control register
-    kINT2_CTRL = 0x0EU,                 ///< RW - INT2 pin control register
+    kINT2_CTRL = 0x0EU,                 ///< RW - INT2 pin control register @important bit 7 must be 0
     kWHO_AM_I = 0x0FU,                  ///< RO - WHO_AM_I register
-    kCTRL1_XL = 0x10U,                  ///< RW - Accelerometer control register 1
+    kCTRL1_XL = 0x10U,                  ///< RW - Accelerometer control register 1 @important bit 0 must be 0
     kCTRL2_G = 0x11U,                   ///< RW - Gyroscope control register 2
-    kCTRL3_C = 0x12U,                   ///< RW - Control register 3
-    kCTRL4_C = 0x13U,                   ///< RW - Control register 4
-    kCTRL5_C = 0x14U,                   ///< RW - Control register 5
+    kCTRL3_C = 0x12U,                   ///< RW - Control register 3 @important bit 1 must be 0
+    kCTRL4_C = 0x13U,                   ///< RW - Control register 4 @important bits 0, 4 and 7 must be 0
+    kCTRL5_C = 0x14U,                   ///< RW - Control register 5 @important bits 4 and 7 must be 0
     kCTRL6_C = 0x15U,                   ///< RW - Control register 6
-    kCTRL7_G = 0x16U,                   ///< RW - Control register 7
-    kCTRL8_XL = 0x17U,                  ///< RW - Control register 8
-    kCTRL9_XL = 0x18U,                  ///< RW - Control register 9
-    kCTRL10_C = 0x19U,                  ///< RW - Control register 10
+    kCTRL7_G = 0x16U,                   ///< RW - Control register 7 @important bit 3 must be 0
+    kCTRL8_XL = 0x17U,                  ///< RW - Control register 8 @important bit 1 must be 0
+    kCTRL9_XL = 0x18U,                  ///< RW - Control register 9 @important bit 0 must be 0
+    kCTRL10_C = 0x19U,                  ///< RW - Control register 10 @important all bits except 5 must be 0
     kALL_INT_SRC = 0x1AU,               ///< RO - Source register for all interrupts
     kWAKE_UP_SRC = 0x1BU,               ///< RO - Wake-up interrupt source register
     kTAP_SRC = 0x1CU,                   ///< RO - Tap source register
@@ -184,11 +184,11 @@ typedef enum {
     kFREE_FALL = 0x5DU,                 ///< RW - Free-fall function duration setting register
     kMD1_CFG = 0x5EU,                   ///< RW - Functions routing on INT1 register
     kMD2_CFG = 0x5FU,                   ///< RW - Functions routing on INT2 register
-    kI3C_BUS_AVB = 0x62U,               ///< RW - I3C_BUS_AVB register
+    kI3C_BUS_AVB = 0x62U,               ///< RW - I3C_BUS_AVB register @important all bits except 0, 3 and 4 must be 0
     kINTERNAL_FREQ_FINE = 0x63U,        ///< RO - Internal frequency register
     kINT_OIS = 0x6FU,                   ///< RO - OIS interrupt config. register and accel. self-test enable setting
-    kCTRL1_OIS = 0x70U,                 ///< RO - OIS configuration register
-    kCTRL2_OIS = 0x71U,                 ///< RO - OIS configuration register
+    kCTRL1_OIS = 0x70U,                 ///< RO - OIS configuration register @important bit 7 must be 0
+    kCTRL2_OIS = 0x71U,                 ///< RO - OIS configuration register @important bit 3 must be 0
     kCTRL3_OIS = 0x72U,                 ///< RO - OIS configuration register
     kX_OFS_USR = 0x73U,                 ///< RW - Accelerometer X-axis user offset correction
     kY_OFS_USR = 0x74U,                 ///< RW - Accelerometer Y-axis user offset correction
@@ -207,27 +207,27 @@ typedef enum {
  * @brief Enumeration of all the embedded functions
  */
 typedef enum {
-    kPAGE_SEL = 0x02U,                ///< RW - Enable advanced features dedicated page
-    kEMB_FUNC_EN_A = 0x04U,           ///< RW - Embedded functions enable register
-    kEMB_FUNC_EN_B = 0x05U,           ///< RW - Embedded functions enable register
+    kPAGE_SEL = 0x02U,                ///< RW - Enable advanced features dedicated page @important bits 0 to 3 untouched
+    kEMB_FUNC_EN_A = 0x04U,           ///< RW - Embedded functions enable register @important all bits but 3-5 must be 0
+    kEMB_FUNC_EN_B = 0x05U,           ///< RW - Embedded functions enable register @important all but 0, 3-4 must = 0
     kPAGE_ADDRESS = 0x08U,            ///< RW - Page address register
     kPAGE_VALUE = 0x09U,              ///< RW - Page value register
-    kEMB_FUNC_INT1 = 0x0AU,           ///< RW - INT1 pin control register
+    kEMB_FUNC_INT1 = 0x0AU,           ///< RW - INT1 pin control register @important all bits but 3-5, 7 must be 0
     kFSM_INT1_A = 0x0BU,              ///< RW - INT1 pin control register, FSM 1 to 8
     kFSM_INT1_B = 0x0CU,              ///< RW - INT1 pin control register, FSM 9 to 16
-    kEMB_FUNC_INT2 = 0x0EU,           ///< RW - INT2 pin control register
+    kEMB_FUNC_INT2 = 0x0EU,           ///< RW - INT2 pin control register @important all bits but 3-5, 7 must be 0
     kFSM_INT2_A = 0x0FU,              ///< RW - INT2 pin control register, FSM 1 to 8
     kFSM_INT2_B = 0x10U,              ///< RW - INT2 pin control register, FSM 9 to 16
     kEMB_FUNC_STATUS = 0x12U,         ///< RO - Embedded function status register
     kFSM_STATUS_A = 0x13U,            ///< RO - Finite State Machine status register, FSM 1 to 8
     kFSM_STATUS_B = 0x14U,            ///< RO - Finite State Machine status register, FSM 9 to 16
-    kPAGE_RW = 0x17U,                 ///< RW - Enable read and write mode of advanced features dedicated page
-    kEMB_FUNC_FIFO_CFG = 0x44U,       ///< RW - Embedded functions batching configuration register
+    kPAGE_RW = 0x17U,                 ///< RW - Enable read and write mode of advanced features dedicated page @warning
+    kEMB_FUNC_FIFO_CFG = 0x44U,       ///< RW - Embedded functions batching configuration register @important
     kFSM_ENABLE_A = 0x46U,            ///< RW - FSM enable register, FSM 1 to 8
     kFSM_ENABLE_B = 0x47U,            ///< RW - FSM enable register, FSM 9 to 16
     kFSM_LONG_COUNTER_L = 0x48U,      ///< RW - FSM long counter status register LSB
     kFSM_LONG_COUNTER_H = 0x49U,      ///< RW - FSM long counter status register MSB
-    kFSM_LONG_COUNTER_CLEAR = 0x4AU,  ///< RW - FSM long counter reset register
+    kFSM_LONG_COUNTER_CLEAR = 0x4AU,  ///< RW - FSM long counter reset register @important all bits but 0-1 must be 0
     kFSM_OUTS1 = 0x4CU,               ///< RO - FSM1 output register
     kFSM_OUTS2 = 0x4DU,               ///< RO - FSM2 output register
     kFSM_OUTS3 = 0x4EU,               ///< RO - FSM3 output register
@@ -244,12 +244,12 @@ typedef enum {
     kFSM_OUTS14 = 0x59U,              ///< RO - FSM14 output register
     kFSM_OUTS15 = 0x5AU,              ///< RO - FSM15 output register
     kFSM_OUTS16 = 0x5BU,              ///< RO - FSM16 output register
-    kEMB_FUNC_ODR_CFG_B = 0x5FU,      ///< RW - Finite State Machine output data rate configuration register
+    kEMB_FUNC_ODR_CFG_B = 0x5FU,      ///< RW - Finite State Machine output data rate configuration register @warning
     kSTEP_COUNTER_L = 0x62U,          ///< RO - Step counter output register LSB
     kSTEP_COUNTER_H = 0x63U,          ///< RO - Step counter output register MSB
-    kEMB_FUNC_SRC = 0x64U,            ///< RW - Embedded function source register
-    kEMB_FUNC_INIT_A = 0x66U,         ///< RW - Embedded functions initialization register
-    kEMB_FUNC_INIT_B = 0x67U,         ///< RW - Embedded functions initialization register
+    kEMB_FUNC_SRC = 0x64U,            ///< RW - Embedded function source register @important bits but 0, 1, 6 must be 0
+    kEMB_FUNC_INIT_A = 0x66U,         ///< RW - Embedded functions initialization register @important 3-5 must be 0
+    kEMB_FUNC_INIT_B = 0x67U,         ///< RW - Embedded functions initialization register @important all but 0,3 = 0
     kMAX_FUNCTION = 0x68U             ///< Maximum number of LSM6DSR Embedded function registers
 } LSM6embeddedFunction;
 
