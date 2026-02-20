@@ -1,7 +1,9 @@
-/*
+/**
  * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
- *
  * SPDX-License-Identifier: MIT
+ * 
+ * @file hal_adc.h
+ * @author Gilles Henrard
  */
 #ifndef HARDWARE_GPIO_USER_ADC_H
 #define HARDWARE_GPIO_USER_ADC_H

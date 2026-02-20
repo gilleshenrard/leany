@@ -1,7 +1,10 @@
-/*
+/**
  * SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
- *
  * SPDX-License-Identifier: MIT
+ * 
+ * @file st7735_initialisation.c
+ * @details Implement ST7735S initialisation script
+ * @author Gilles Henrard
  */
 
 #include "st7735_initialisation.h"
@@ -75,6 +78,9 @@ static const Register kPowerControl5args[2] = {
  */
 static const Register kVmCtr1arg = kVCOM_NEG_0_775V;
 
+/**
+ * Register values corresponding to each display orientation
+ */
 const Register kOrientations[kNBorientations] = {
     // NOLINTBEGIN(misc-redundant-expression, hicpp-signed-bitwise)
     [kPortrait] =

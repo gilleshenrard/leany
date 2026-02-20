@@ -1,9 +1,10 @@
-/*
- * SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
- *
+/**
+ * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
  * SPDX-License-Identifier: MIT
+ * 
+ * @file sensorfusion.h
+ * @author Gilles Henrard
  */
-
 #ifndef HARDWARE_SENSOR_SENSORFUSION_H
 #define HARDWARE_SENSOR_SENSORFUSION_H
 #include <stdint.h>
@@ -18,7 +19,12 @@ enum {
 /**
  * Enumeration of the axis of which to get measurements
  */
-typedef enum { kXaxis = 0, kYaxis, kZaxis, kNBaxis } Axis;
+typedef enum {
+    kXaxis = 0,  ///< X axis
+    kYaxis,      ///< Y axis
+    kZaxis,      ///< Z axis
+    kNBaxis      ///< Number of axis
+} Axis;
 
 /**
  * Structure defining time delta

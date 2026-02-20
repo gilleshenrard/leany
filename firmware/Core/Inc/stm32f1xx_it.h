@@ -53,7 +53,6 @@ void BusFault_Handler(void);
 void UsageFault_Handler(void);
 void DebugMon_Handler(void);
 void EXTI0_IRQHandler(void);
-void EXTI1_IRQHandler(void);
 void EXTI2_IRQHandler(void);
 void DMA1_Channel5_IRQHandler(void);
 void ADC1_2_IRQHandler(void);

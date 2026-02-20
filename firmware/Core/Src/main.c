@@ -37,6 +37,7 @@
 #include "task_imu.h"
 #include "task_ui.h"
 #include "task_serial.h"
+#include "task_battery.h"
 
 /* USER CODE END Includes */
 
@@ -113,9 +114,10 @@ int main(void)
     createHardwareEventsGroup();
     createIMUtask();
     createGPIOtask();
-    createUItask();
+    (void)createUItask();
     createSerialtask();
-    createMessageDispatchertask();
+    (void)createBatteryTask();
+    (void)createMessageDispatchertask();
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in cmsis_os2.c) */

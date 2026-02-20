@@ -1,9 +1,10 @@
-/*
- * SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
- *
+/**
+ * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
  * SPDX-License-Identifier: MIT
+ * 
+ * @file st7735s.h
+ * @author Gilles Henrard
  */
-
 #ifndef INC_HARDWARE_SCREEN_ST7735S_H
 #define INC_HARDWARE_SCREEN_ST7735S_H
 #include <FreeRTOS.h>

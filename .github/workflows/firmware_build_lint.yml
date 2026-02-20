@@ -231,6 +231,18 @@ jobs:
           find firmware/hardware firmware/ui firmware/tasks firmware/utils -name '*.c' -o -name '*.h' -o -name '*.inc'
           | xargs clang-format-${{env.CLANG-VERSION}} --style=file --dry-run --Werror --verbose
 
+      - name: Check Doxygen @file tags
+        id: doxygen-tags
+        working-directory: ${{github.workspace}}/firmware
+        continue-on-error: true
+        run: >
+            python resources/check_doxygen_tags.py
+            .
+            --exclude build
+            --exclude Drivers
+            --exclude Middlewares
+            --exclude Core
+
       - name: Open source Copyright and Lincensing
         id: reuse
         continue-on-error: true
@@ -296,6 +308,10 @@ jobs:
           fi
           if [ "${{ steps.enum_struct_check.outcome }}" != "success" ]; then
             echo "::error::Enums and struct documentation failed"
+            failed=1
+          fi
+          if [ "${{ steps.doxygen-tags.outcome }}" != "success" ]; then
+            echo "::error::Doxygen @file tags failed"
             failed=1
           fi
           if [ $failed -eq 1 ]; then

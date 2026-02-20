@@ -1,9 +1,10 @@
-/*
- * SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
- *
+/**
+ * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
  * SPDX-License-Identifier: MIT
+ * 
+ * @file task_dispatcher.h
+ * @author Gilles Henrard
  */
-
 #ifndef CONTROLLER_DISPATCHER_H
 #define CONTROLLER_DISPATCHER_H
 #include "errorstack.h"

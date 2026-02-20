@@ -19,11 +19,11 @@
 //used in Doxygen
 #if IMU_MODEL == IMU_LSM6
 
+#include <FreeRTOS.h>  // NOLINT(misc-include-cleaner,-warnings-as-errors)
 #include <main.h>
 #include <projdefs.h>
 #include <stdint.h>
 #include <stm32f103xb.h>
-#include <stm32f1xx_hal.h>
 #include <stm32f1xx_ll_spi.h>
 #include <task.h>
 
@@ -33,6 +33,7 @@
 #include "lsm6_registers.inc"
 #include "lsm6dsr_registers.inc"
 #include "sensorfusion.h"
+#include "systick.h"
 
 enum {
     kBootTimeMS = 100U,          ///< Number of milliseconds to wait for the MEMS to boot
@@ -175,7 +176,7 @@ ErrorCode IMUcheckDeviceID(void) {
     LL_SPI_Enable(spi_descriptor.handle);
 
     //attempt to read a correct device ID for max. 1 second
-    uint32_t first_tick = HAL_GetTick();
+    uint32_t first_tick = getCurrentTick();
     do {
         //store the bitwise-NOT value of the chip ID to make sure every bit is changed by the read command
         // clang-format off
@@ -185,7 +186,7 @@ ErrorCode IMUcheckDeviceID(void) {
         //read the register
         result = readRegisters(&spi_descriptor, kWHO_AM_I, &device_id, 1);
         EXIT_ON_ERROR(result, kCheckDeviceID, 1)
-    } while ((device_id != LSM6_WHOAMI) && !timeout(first_tick, kTimeoutMS));
+    } while ((device_id != LSM6_WHOAMI) && !systickTimeout(first_tick, kTimeoutMS));
 
     //check the device ID
     if (device_id != LSM6_WHOAMI) {
@@ -517,13 +518,13 @@ static ErrorCode waitAndRead(SPIregister first_register, SPIregister available_m
     //wait until DATA_AXL_AVAIL bit is up
     SPIregister status = 0;
     SPIregister available = 0;
-    const uint32_t current_tick = HAL_GetTick();
+    const uint32_t current_tick = getCurrentTick();
     do {
         result = readRegisters(&spi_descriptor, kSTATUS_REG, &status, 1);
         EXIT_ON_ERROR(result, kWaitAndRead, 1)
 
         available = ((status & available_mask) != 0U);
-    } while (!available && !timeout(current_tick, kBootTimeMS));
+    } while (!available && !systickTimeout(current_tick, kBootTimeMS));
 
     if (!available) {
         return createErrorCode(kWaitAndRead, 2, kErrorError);

@@ -1,7 +1,10 @@
-/*
+/**
  * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
- *
  * SPDX-License-Identifier: MIT
+ * 
+ * @file screen_main.c
+ * @brief Implement the main measurements screen
+ * @author Gilles Henrard
  */
 #include "screen_main.h"
 
@@ -10,7 +13,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "battery.h"
 #include "bitmap.h"
 #include "display.h"
 #include "fonts.h"
@@ -21,6 +23,7 @@
 #include "orientation.inc"
 #include "sensorfusion.h"
 #include "st7735s.h"
+#include "task_battery.h"
 #include "task_imu.h"
 
 enum {
@@ -162,7 +165,6 @@ ErrorCode setupMainScreen(void) {
  * Treat the messages pulled from the queue
  *
  * @param message_flags Array of flags indicating which new messages are to be treated
- * @param message_values Array of new values to treat
  * @return Any print function return code, or success if no failure
  */
 ErrorCode treatMainScreenMessages(uint8_t message_flags[kNbEvents]) {

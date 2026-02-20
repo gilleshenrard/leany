@@ -28,27 +28,24 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f1xx_hal.h"
-
 #include "stm32f1xx_ll_adc.h"
+#include "stm32f1xx_ll_bus.h"
+#include "stm32f1xx_ll_cortex.h"
 #include "stm32f1xx_ll_dma.h"
+#include "stm32f1xx_ll_exti.h"
+#include "stm32f1xx_ll_gpio.h"
 #include "stm32f1xx_ll_i2c.h"
 #include "stm32f1xx_ll_iwdg.h"
-#include "stm32f1xx_ll_rcc.h"
-#include "stm32f1xx_ll_bus.h"
-#include "stm32f1xx_ll_system.h"
-#include "stm32f1xx_ll_exti.h"
-#include "stm32f1xx_ll_cortex.h"
-#include "stm32f1xx_ll_utils.h"
 #include "stm32f1xx_ll_pwr.h"
+#include "stm32f1xx_ll_rcc.h"
 #include "stm32f1xx_ll_spi.h"
+#include "stm32f1xx_ll_system.h"
 #include "stm32f1xx_ll_tim.h"
 #include "stm32f1xx_ll_usart.h"
-#include "stm32f1xx_ll_gpio.h"
+#include "stm32f1xx_ll_utils.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "FreeRTOS.h"
-#include "projdefs.h"
 
 /* USER CODE END Includes */
 
@@ -71,17 +68,7 @@ extern "C" {
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
-/**
- * Check if a timeout in [ms] has occurred
- *
- * @param startTick The tick to compare to now to check for a timeout
- * @param timeout The timeout span in milliseconds
- * @retval 1 Timeout has occurred
- * @retval 0 Timeout has not occurred
- */
-static inline uint8_t timeout(uint32_t startTick, uint16_t timeout_ms) {
-  return ((HAL_GetTick() - startTick) >= pdMS_TO_TICKS(timeout_ms));
-}
+
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
@@ -106,7 +93,6 @@ static inline uint8_t timeout(uint32_t startTick, uint16_t timeout_ms) {
 #define IMU_INT1_EXTI_IRQn EXTI0_IRQn
 #define CHG_INT_Pin LL_GPIO_PIN_1
 #define CHG_INT_GPIO_Port GPIOB
-#define CHG_INT_EXTI_IRQn EXTI1_IRQn
 #define IMU_INT2_Pin LL_GPIO_PIN_2
 #define IMU_INT2_GPIO_Port GPIOB
 #define IMU_INT2_EXTI_IRQn EXTI2_IRQn

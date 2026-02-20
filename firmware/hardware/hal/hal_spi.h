@@ -1,9 +1,10 @@
-/*
- * SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
- *
+/**
+ * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
  * SPDX-License-Identifier: MIT
+ * 
+ * @file hal_spi.h
+ * @author Gilles Henrard
  */
-
 #ifndef HAL_SPI_H
 #define HAL_SPI_H
 #include <FreeRTOS.h>

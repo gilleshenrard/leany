@@ -1,14 +1,16 @@
-/*
- * SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
- *
+/**
+ * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
  * SPDX-License-Identifier: MIT
+ * 
+ * @file display.c
+ * @brief Implement the display control functions
+ * @author Gilles Henrard
  */
 #include "display.h"
 
 #include <stddef.h>
 #include <stdint.h>
 
-#include "battery.h"
 #include "bitmap.h"
 #include "errorstack.h"
 #include "fonts.h"
@@ -17,6 +19,7 @@
 #include "leany_std.h"
 #include "orientation.inc"
 #include "st7735s.h"
+#include "task_battery.h"
 
 enum {
     kPercentLength = 4U,         ///< Maximum number in a string representing a percentage
@@ -36,7 +39,7 @@ typedef enum {
     kSetupStatus = 5,      ///< setupStatusBar() function
 } FunctionCode;
 
-static BatteryIndicator battery_indicator;
+static BatteryIndicator battery_indicator;  ///< Battery indicator widget
 
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
