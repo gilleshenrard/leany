@@ -342,7 +342,7 @@
 		(uuid "e783dde5-f762-4528-9b55-9220820b0b1c")
 	)
 	(embedded_fonts no)
-	(model "${KIPRJMOD}/3d-models/grabcad/Ni_Ni/USB_type_C_smd_12p_ni-ni.stp"
+	(model "${KIPRJMOD}/resources/3d-models/grabcad/Ni_Ni/USB_type_C_smd_12p_ni-ni.stp"
 		(offset
 			(xyz 0 2.6 0)
 		)

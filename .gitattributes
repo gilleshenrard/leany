@@ -2,14 +2,18 @@
 #
 # SPDX-License-Identifier: MIT
 
-#STEP files
-*.step filter=lfs diff=lfs merge=lfs -text
-*.stp filter=lfs diff=lfs merge=lfs -text
-#KiCAD files
-*.kicad_pcb filter=lfs diff=lfs merge=lfs -text
-#Image files
-*.png filter=lfs diff=lfs merge=lfs -text
-*.kicad_pcb !text !filter !merge !diff
+# STEP files
+*.step  filter=lfs diff=lfs merge=lfs -text
+*.stp   filter=lfs diff=lfs merge=lfs -text
+
+# KiCAD files
+*.kicad_pcb  text eol=lf
+*.kicad_sch  text eol=lf
+*.kicad_mod  text eol=lf
+*.kicad_pro  text eol=lf
+
+# Image files
+*.png  filter=lfs diff=lfs merge=lfs -text
 
 # C source files
 *.c    text eol=lf
