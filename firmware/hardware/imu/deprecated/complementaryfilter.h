@@ -1,7 +1,9 @@
-/*
- * SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
- *
+/**
+ * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
  * SPDX-License-Identifier: MIT
+ * 
+ * @file complementaryfilter.h
+ * @author Gilles Henrard
  */
 #ifndef HARDWARE_IMU_COMPLEMENTARY_FILTER_H
 #define HARDWARE_IMU_COMPLEMENTARY_FILTER_H

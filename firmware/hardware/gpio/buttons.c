@@ -1,10 +1,8 @@
-/*
- * SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
- *
- * SPDX-License-Identifier: MIT
- */
-
 /**
+ * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
+ * SPDX-License-Identifier: MIT
+ * 
+ * @file buttons.c
  * @brief Implement the GPIO buttons state and debouncing
  * @author Gilles Henrard
  */
@@ -14,10 +12,10 @@
 #include <main.h>
 #include <stdint.h>
 #include <stm32f103xb.h>
-#include <stm32f1xx_hal.h>
 #include <stm32f1xx_ll_gpio.h>
 
 #include "errorstack.h"
+#include "systick.h"
 
 enum {
     kDebounceTimeMS = 50U,       ///< Number of milliseconds to wait for debouncing
@@ -28,7 +26,11 @@ enum {
 /**
  * @brief Enumeration of all the managed buttons
  */
-typedef enum { kButtonZero = 0, kButtonHold, kNBbuttons } ButtonType;
+typedef enum {
+    kButtonZero = 0,  ///< Zero button
+    kButtonHold,      ///< Hold button
+    kNBbuttons        ///< Number of buttons defined
+} ButtonType;
 _Static_assert((kNBbuttons <= UINT8_MAX), "The application supports maximum 255 buttons");
 
 /**
@@ -132,7 +134,7 @@ static void reactToButtons(void) {
  * @param button Button for which run the state
  */
 static void stateReleased(ButtonType button) {
-    const uint32_t current_tick = HAL_GetTick();
+    const uint32_t current_tick = getCurrentTick();
 
     //if button released, restart debouncing timer
     if (LL_GPIO_IsInputPinSet(buttons[button].port, buttons[button].pin)) {
@@ -140,7 +142,7 @@ static void stateReleased(ButtonType button) {
     }
 
     //if button not pressed for long enough, exit
-    if (!timeout(buttons[button].start_debounce_tick, kDebounceTimeMS)) {
+    if (!systickTimeout(buttons[button].start_debounce_tick, kDebounceTimeMS)) {
         return;
     }
 
@@ -155,14 +157,14 @@ static void stateReleased(ButtonType button) {
  * @param button Button for which run the state
  */
 static void statePressed(ButtonType button) {
-    const uint32_t current_tick = HAL_GetTick();
+    const uint32_t current_tick = getCurrentTick();
 
     //if button still pressed, restart debouncing timer
     if (!LL_GPIO_IsInputPinSet(buttons[button].port, buttons[button].pin)) {
         buttons[button].start_debounce_tick = current_tick;
 
         //if button maintained for long enough, get to held down state
-        if (timeout(buttons[button].start_hold_tick, kHoldingTimeMS)) {
+        if (systickTimeout(buttons[button].start_hold_tick, kHoldingTimeMS)) {
             buttons[button].state = kButtonHeld;
             buttons[button].detect_hold_tick = current_tick;
             return;
@@ -170,7 +172,7 @@ static void statePressed(ButtonType button) {
     }
 
     //if button not released for long enough, exit
-    if (!timeout(buttons[button].start_debounce_tick, kDebounceTimeMS)) {
+    if (!systickTimeout(buttons[button].start_debounce_tick, kDebounceTimeMS)) {
         return;
     }
 
@@ -185,7 +187,7 @@ static void statePressed(ButtonType button) {
  * @param button Button for which run the state
  */
 static void stateHeld(ButtonType button) {
-    const uint32_t current_tick = HAL_GetTick();
+    const uint32_t current_tick = getCurrentTick();
 
     //if button still pressed, restart debouncing timer
     if (!LL_GPIO_IsInputPinSet(buttons[button].port, buttons[button].pin)) {
@@ -193,7 +195,7 @@ static void stateHeld(ButtonType button) {
     }
 
     //if button not released for long enough, exit
-    if (!timeout(buttons[button].start_debounce_tick, kDebounceTimeMS)) {
+    if (!systickTimeout(buttons[button].start_debounce_tick, kDebounceTimeMS)) {
         return;
     }
 
@@ -211,12 +213,12 @@ static void stateHeld(ButtonType button) {
  */
 static uint8_t consumeClickEvent(ButtonType button) {
     //avoid a false detection at boot
-    if (HAL_GetTick() <= kEdgeDetectionTimeMS) {
+    if (getCurrentTick() <= kEdgeDetectionTimeMS) {
         return 0;
     }
 
     const uint8_t clicked = ((buttons[button].state == kButtonReleased) &&
-                             !timeout(buttons[button].detect_click_tick, kEdgeDetectionTimeMS));
+                             !systickTimeout(buttons[button].detect_click_tick, kEdgeDetectionTimeMS));
 
     //reset the timer so the same event cannot trigger a positive more than once
     buttons[button].detect_click_tick = 0;
@@ -233,12 +235,12 @@ static uint8_t consumeClickEvent(ButtonType button) {
  */
 static uint8_t consumeHoldEvent(ButtonType button) {
     //avoid a false detection at boot
-    if (HAL_GetTick() <= kEdgeDetectionTimeMS) {
+    if (getCurrentTick() <= kEdgeDetectionTimeMS) {
         return 0;
     }
 
-    const uint8_t held =
-        ((buttons[button].state == kButtonHeld) && !timeout(buttons[button].detect_hold_tick, kEdgeDetectionTimeMS));
+    const uint8_t held = ((buttons[button].state == kButtonHeld) &&
+                          !systickTimeout(buttons[button].detect_hold_tick, kEdgeDetectionTimeMS));
 
     //reset the timer so the same event cannot trigger a positive more than once
     buttons[button].detect_hold_tick = 0;

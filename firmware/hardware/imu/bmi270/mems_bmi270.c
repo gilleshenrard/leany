@@ -31,6 +31,7 @@
 #include "imu.h"
 #include "main.h"
 #include "sensorfusion.h"
+#include "systick.h"
 
 enum {
     kTimeoutMS = 1000U,            ///< Max number of milliseconds to wait for the device ID
@@ -163,7 +164,7 @@ ErrorCode IMUcheckDeviceID(void) {
     LL_SPI_Enable(spi_descriptor.handle);
 
     //attempt to read a correct device ID for max. 1 second
-    uint32_t first_tick = HAL_GetTick();
+    uint32_t first_tick = getCurrentTick();
     do {
         //store the bitwise-NOT value of the chip ID to make sure every bit is changed by the read command
         device_id = (BMI270register) ~((BMI270register)BMI270_CHIP_ID);
@@ -171,7 +172,7 @@ ErrorCode IMUcheckDeviceID(void) {
         //read the register
         result = readRegisters(&spi_descriptor, BMI2_CHIP_ID_ADDR, &device_id, 1);
         EXIT_ON_ERROR(result, kBMI270checkCommunication, 1)
-    } while ((device_id != BMI270_CHIP_ID) && !timeout(first_tick, kTimeoutMS));
+    } while ((device_id != BMI270_CHIP_ID) && !systickTimeout(first_tick, kTimeoutMS));
 
     //check the device ID
     if (device_id != BMI270_CHIP_ID) {
@@ -296,10 +297,10 @@ ErrorCode selfTestGyroscope(void) {
     EXIT_ON_ERROR(result, kBMI270stateSelfTestGyro, 1)
 
     //wait for the self-test done flag
-    uint32_t start_tick = HAL_GetTick();
+    uint32_t start_tick = getCurrentTick();
     do {
         result = readRegisters(&spi_descriptor, BMI2_GYR_SELF_TEST_AXES_ADDR, &value, 1);
-    } while (!isError(result) && !timeout(start_tick, kTimeoutMS) &&
+    } while (!isError(result) && !systickTimeout(start_tick, kTimeoutMS) &&
              ((value & (uint8_t)BMI2_ACC_SELF_TEST_DONE_MASK) != BMI2_ACC_SELF_TEST_DONE_MASK));
 
     EXIT_ON_ERROR(result, kBMI270stateSelfTestGyro, 2)
@@ -358,11 +359,11 @@ ErrorCode IMUinitialise(void) {
     vTaskDelay(pdMS_TO_TICKS(kConfigTimeoutMS));
 
     //Wait for the initialisation status register to show a success or an error
-    uint32_t config_start_tick = HAL_GetTick();
+    uint32_t config_start_tick = getCurrentTick();
     do {
         result = readRegisters(&spi_descriptor, BMI2_INTERNAL_STATUS_ADDR, &value, 1);
         EXIT_ON_ERROR(result, kBMI270stateInitialising, 4)
-    } while ((value == BMI2_NOT_INIT) && !timeout(config_start_tick, kConfigTimeoutMS));
+    } while ((value == BMI2_NOT_INIT) && !systickTimeout(config_start_tick, kConfigTimeoutMS));
 
     //check if an initialisation error occurred
     if (value != BMI2_INIT_OK) {
@@ -442,8 +443,8 @@ ErrorCode IMUgetSample(IMUsample* sample) {
 
     //read the BMI270 temperature every 10ms
     static TickType_t latest_temperature_tick = 0;
-    if (timeout(latest_temperature_tick, kTemperatureRefreshMS)) {
-        latest_temperature_tick = HAL_GetTick();
+    if (systickTimeout(latest_temperature_tick, kTemperatureRefreshMS)) {
+        latest_temperature_tick = getCurrentTick();
 
         result = readTemperature(&temperature_celsius);
         EXIT_ON_ERROR(result, kBMI270stateMeasuring, 2)
@@ -502,7 +503,7 @@ static ErrorCode checkConfigurationFile(void) {
     const uint8_t spi_rx_filler = 0xFFU;  ///< Value to send as a filler while receiving multiple bytes
 
     //set timeout timer and enable CS
-    uint32_t spi_start_tick = HAL_GetTick();
+    uint32_t spi_start_tick = getCurrentTick();
     LL_GPIO_ResetOutputPin(IMU_CS_GPIO_Port, IMU_CS_Pin);
 
     //send the config data read request and receive a dummy byte
@@ -516,10 +517,10 @@ static ErrorCode checkConfigurationFile(void) {
         BMI270register value = receiveSPIbyte(&spi_descriptor, spi_rx_filler, spi_start_tick);
         failure = (value != bmi270_config_file[byte_index]);
         byte_index++;
-    } while (!failure && (byte_index < kConfigFileSize) && !timeout(spi_start_tick, kSPItimeoutMS));
+    } while (!failure && (byte_index < kConfigFileSize) && !systickTimeout(spi_start_tick, kSPItimeoutMS));
 
     //wait for transaction to be finished and clear Overrun flag
-    while (LL_SPI_IsActiveFlag_BSY(spi_descriptor.handle) && !timeout(spi_start_tick, kSPItimeoutMS)) {
+    while (LL_SPI_IsActiveFlag_BSY(spi_descriptor.handle) && !systickTimeout(spi_start_tick, kSPItimeoutMS)) {
     };
     LL_SPI_ClearFlag_OVR(spi_descriptor.handle);
 
@@ -527,7 +528,7 @@ static ErrorCode checkConfigurationFile(void) {
     LL_GPIO_SetOutputPin(IMU_CS_GPIO_Port, IMU_CS_Pin);
 
     //if timeout, error
-    if (timeout(spi_start_tick, kSPItimeoutMS)) {
+    if (systickTimeout(spi_start_tick, kSPItimeoutMS)) {
         return (createErrorCode(kBMI270checkConfiguration, 1, kErrorWarning));
     }
 

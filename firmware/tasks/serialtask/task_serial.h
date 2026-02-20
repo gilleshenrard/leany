@@ -1,7 +1,9 @@
-/*
- * SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
- *
+/**
+ * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
  * SPDX-License-Identifier: MIT
+ * 
+ * @file task_serial.h
+ * @author Gilles Henrard
  */
 #ifndef HARDWARE_SERIAL_SERIAL_H
 #define HARDWARE_SERIAL_SERIAL_H

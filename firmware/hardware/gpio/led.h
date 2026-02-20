@@ -1,9 +1,10 @@
-/*
- * SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
- *
+/**
+ * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
  * SPDX-License-Identifier: MIT
+ * 
+ * @file led.h
+ * @author Gilles Henrard
  */
-
 #ifndef HARDWARE_GPIO_LED_H
 #define HARDWARE_GPIO_LED_H
 #include <stdint.h>
@@ -44,7 +45,7 @@ static const Colour kOrange = {.hex_value = 0xFFA500UL};       ///< 0xFFA500 : o
 static const Colour kYellow = {.hex_value = 0xFFFF00UL};       ///< 0xFFFF00 : yellow LED hex colour value
 static const Colour kBlack = {.hex_value = 0x000000UL};        ///< 0x000000 : LED off
 
-static const uint16_t kSlowblinkPeriod_ms = 2000U;
+static const uint16_t kSlowblinkPeriod_ms = 2000U;  ///< Number of milliseconds a slow blink period lasts
 
 void initialiseLED(void);
 void runLEDstateMachine(void);

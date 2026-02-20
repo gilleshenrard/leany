@@ -1,17 +1,15 @@
-/*
- * SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
- *
- * SPDX-License-Identifier: MIT
- */
 /**
- * @brief Implement the FreeRTOS task taking care of UART serial communication
+ * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
+ * SPDX-License-Identifier: MIT
+ * 
+ * @file task_serial.c
+ * @brief Implement the FreeRTOS task taking care of the serial communication
  * @author Gilles Henrard
  */
 #include "task_serial.h"
 
 #include <FreeRTOS.h>
 #include <FreeRTOSConfig.h>
-#include <main.h>
 #include <portmacro.h>
 #include <projdefs.h>
 #include <queue.h>
@@ -31,6 +29,7 @@
 #include "leany_std.h"
 #include "scpi_commands.h"
 #include "scpi_parser.h"
+#include "systick.h"
 
 enum {
     kOutboundSize = 64U,       ///< Maximum length of a message sent via serial
@@ -85,7 +84,7 @@ static QueueHandle_t queue_outbound = NULL;                  ///< handle of the 
 static QueueHandle_t queue_commands = NULL;                  ///< handle of the parsed commands queue
 static volatile StreamBufferHandle_t stream_inbound = NULL;  ///< First stream of the dual-buffer reception
 static ErrorCode result;                                     ///< Variable used to store error codes
-static uint8_t timeout_value = 0;                            ///< Variable used to test for timeouts
+static uint8_t is_timed_out = 0;                             ///< Variable used to test for timeouts
 static ErrorLevel log_level = kErrorError;                   ///< Current minimum error level logging will process
 
 /********************************************************************************************************************************************/
@@ -187,6 +186,11 @@ uint8_t popSerialCommand(GenericCommand* command_received) {
     return (xQueueReceive(queue_commands, command_received, 0) == pdTRUE);
 }
 
+/**
+ * Set the minimum level a log must have to be sent
+ *
+ * @param level New level
+ */
 void setLogLevel(ErrorLevel level) {
     if (level > kMaxErrorLevel) {
         return;
@@ -195,6 +199,11 @@ void setLogLevel(ErrorLevel level) {
     log_level = level;
 }
 
+/**
+ * Get the minimum level a log must have to be sent
+ *
+ * @return Log level
+ */
 ErrorLevel getLogLevel(void) { return log_level; }
 
 /********************************************************************************************************************************************/
@@ -248,7 +257,7 @@ static void taskSerial(void* argument) {
  * @retval 1 Timeout while waiting for byte to be sent
  */
 static ErrorCode serialSend(const char msg[], size_t length) {
-    TickType_t start_tick = xTaskGetTickCount();
+    TickType_t start_tick = getCurrentTick();
 
     if (!length) {
         return kSuccessCode;
@@ -258,11 +267,19 @@ static ErrorCode serialSend(const char msg[], size_t length) {
         return createErrorCode(kSerialSend, 1, kErrorError);
     }
 
+    is_timed_out = 0;
     const char* iterator = msg;
     do {
         LL_USART_TransmitData8(USART1, *(iterator++));
-        EXIT_ON_TIMEOUT(LL_USART_IsActiveFlag_TC(USART1), kSerialTimeoutMS, kSerialSend, 2)
-    } while (--length && !timeout(start_tick, kSerialTimeoutMS));
+
+        while (!LL_USART_IsActiveFlag_TC(USART1) && !is_timed_out) {
+            is_timed_out = systickTimeout(start_tick, kSerialTimeoutMS);
+        };
+    } while (--length && !is_timed_out);
+
+    if (is_timed_out) {
+        return createErrorCode(kSerialSend, 2, kErrorError);
+    }
 
     return kSuccessCode;
 }

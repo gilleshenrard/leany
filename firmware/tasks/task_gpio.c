@@ -1,11 +1,9 @@
-/*
- * SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
- *
- * SPDX-License-Identifier: MIT
- */
-
 /**
- * @brief Implement the FreeRTOS task taking care of simple GPIO modules
+ * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
+ * SPDX-License-Identifier: MIT
+ * 
+ * @file task_gpio.c
+ * @brief Implement the FreeRTOS task taking care of the GPIOs
  * @author Gilles Henrard
  */
 #include "task_gpio.h"
@@ -34,7 +32,7 @@ static void taskGPIO(void* argument);
 
 //state variables
 static volatile TaskHandle_t task_handle = NULL;  ///< handle of the FreeRTOS task
-static ErrorCode result;
+static ErrorCode result;                          ///< Current functions errorstack result
 
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
@@ -53,6 +51,8 @@ void createGPIOtask(void) {
 
 /**
  * @brief Run the GPIO state machine
+ *
+ * @param argument Unused
  */
 static void taskGPIO(void* argument) {
     UNUSED(argument);

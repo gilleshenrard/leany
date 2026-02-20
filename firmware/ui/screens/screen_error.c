@@ -1,15 +1,17 @@
-/*
+/**
  * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
- *
  * SPDX-License-Identifier: MIT
+ * 
+ * @file screen_error.c
+ * @brief Implement the error screen
+ * @author Gilles Henrard
  */
 #include "screen_error.h"
 
+#include <FreeRTOS.h>  // NOLINT(misc-include-cleaner,-warnings-as-errors)
 #include <leany_std.h>
-#include <main.h>
 #include <portmacro.h>
 #include <stdint.h>
-#include <stm32f1xx_hal.h>
 
 #include "bitmap.h"
 #include "display.h"
@@ -19,6 +21,7 @@
 #include "label.h"
 #include "orientation.inc"
 #include "st7735s.h"
+#include "systick.h"
 #include "task_imu.h"
 
 enum {
@@ -34,6 +37,9 @@ enum {
     kAnimationRefreshPeriod_ms = 200U,  ///< Number of milliseconds between animation refresh
 };
 
+/**
+ * Function IDs
+ */
 typedef enum {
     kSetup = 1,                ///< setupErrorScreen() function
     kPrintErrorLabel = 2,      ///< printErrorCodeLabel() function
@@ -58,11 +64,10 @@ static Label errorstack_label;             ///< Label displaying the error stack
 static int8_t animation_direction = -1;    ///< Increment of the animation index (1 or -1)
 static int8_t current_bar_lit = 2;         ///< Index of the current fully lit bar
 static TickType_t latest_update_tick = 0;  ///< Latest tick at which the animation has been updated
-static ColourBigEndian colour_matchings[kNbColourMatchings] = {  ///< Colours assigned to each opacity level
-    [0] = kColourDisabled,
-    [1] = kColourCriticalOpacity28,
-    [2] = kColourCriticalOpacity50,
-    [3] = kColourCritical};
+
+static ColourBigEndian colour_matchings[kNbColourMatchings] =  ///< Colours assigned to each opacity level
+    {[0] = kColourDisabled, [1] = kColourCriticalOpacity28, [2] = kColourCriticalOpacity50, [3] = kColourCritical};
+
 static AnimatedBar bars[kNbAnimatedBars] =  ///< Bars of the animation
     {
 
@@ -111,7 +116,7 @@ ErrorCode setupErrorScreen(const ErrorCode* error) {
         EXIT_ON_ERROR(result, kSetup, 5)
     }
 
-    latest_update_tick = HAL_GetTick();
+    latest_update_tick = getCurrentTick();
 
     return kSuccessCode;
 }
@@ -124,10 +129,10 @@ ErrorCode setupErrorScreen(const ErrorCode* error) {
  */
 ErrorCode updateErrorAnimation(void) {
     //if refresh period not elapsed yet, exit
-    if (!timeout(latest_update_tick, kAnimationRefreshPeriod_ms)) {
+    if (!systickTimeout(latest_update_tick, kAnimationRefreshPeriod_ms)) {
         return kSuccessCode;
     }
-    latest_update_tick = HAL_GetTick();
+    latest_update_tick = getCurrentTick();
 
     //update animation direction when the fully lit bar hit a border
     if (current_bar_lit == (kNbAnimatedBars - 1U)) {

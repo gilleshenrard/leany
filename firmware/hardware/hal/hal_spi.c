@@ -11,17 +11,16 @@
  */
 #include "hal_spi.h"
 
-#include <main.h>
 #include <portmacro.h>
 #include <projdefs.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stm32f1xx_hal.h>
 #include <stm32f1xx_ll_dma.h>
 #include <stm32f1xx_ll_gpio.h>
 #include <stm32f1xx_ll_spi.h>
 
 #include "errorstack.h"
+#include "systick.h"
 
 /**
  * @brief SPI Data/command pin status enumeration
@@ -95,7 +94,7 @@ void closeTransmission(const SPI* descriptor) { LL_GPIO_SetOutputPin(descriptor-
 uint8_t receiveSPIbyte(SPI* descriptor, uint8_t byte_to_transmit, uint32_t tx_start_tick) {
     //send the byte to transmit and wait for the reception to be complete
     LL_SPI_TransmitData8(descriptor->handle, descriptor->read_mask | byte_to_transmit);
-    while ((!LL_SPI_IsActiveFlag_RXNE(descriptor->handle)) && !timeout(tx_start_tick, kSPItimeoutMS)) {
+    while ((!LL_SPI_IsActiveFlag_RXNE(descriptor->handle)) && !systickTimeout(tx_start_tick, kSPItimeoutMS)) {
     };
 
     //read the received byte (clears the rx buffer) and return it
@@ -111,7 +110,7 @@ uint8_t receiveSPIbyte(SPI* descriptor, uint8_t byte_to_transmit, uint32_t tx_st
  */
 static void sendSPIbyte(SPI* descriptor, uint8_t byte_to_transmit, uint32_t tx_start_tick) {
     LL_SPI_TransmitData8(descriptor->handle, byte_to_transmit);
-    while (!LL_SPI_IsActiveFlag_TXE(descriptor->handle) && !timeout(tx_start_tick, kSPItimeoutMS)) {
+    while (!LL_SPI_IsActiveFlag_TXE(descriptor->handle) && !systickTimeout(tx_start_tick, kSPItimeoutMS)) {
     };
 }
 
@@ -140,7 +139,7 @@ ErrorCode readRegisters(SPI* descriptor, SPIregister first_register, SPIregister
     }
 
     //set timeout timer and enable CS
-    uint32_t spi_start_tick = HAL_GetTick();
+    uint32_t spi_start_tick = getCurrentTick();
     LL_GPIO_ResetOutputPin(descriptor->cs_port, descriptor->pin);
 
     //send the read request and a dummy byte to synchronize the SPI clock
@@ -154,10 +153,10 @@ ErrorCode readRegisters(SPI* descriptor, SPIregister first_register, SPIregister
         *value = receiveSPIbyte(descriptor, spi_rx_filler, spi_start_tick);
         value++;
         size--;
-    } while (size && !timeout(spi_start_tick, kSPItimeoutMS));
+    } while (size && !systickTimeout(spi_start_tick, kSPItimeoutMS));
 
     //wait for transaction to be finished and clear Overrun flag
-    while (LL_SPI_IsActiveFlag_BSY(descriptor->handle) && !timeout(spi_start_tick, kSPItimeoutMS)) {
+    while (LL_SPI_IsActiveFlag_BSY(descriptor->handle) && !systickTimeout(spi_start_tick, kSPItimeoutMS)) {
     };
     LL_SPI_ClearFlag_OVR(descriptor->handle);
 
@@ -165,7 +164,7 @@ ErrorCode readRegisters(SPI* descriptor, SPIregister first_register, SPIregister
     LL_GPIO_SetOutputPin(descriptor->cs_port, descriptor->pin);
 
     //if timeout, error
-    if (timeout(spi_start_tick, kSPItimeoutMS)) {
+    if (systickTimeout(spi_start_tick, kSPItimeoutMS)) {
         return (createErrorCode(kSPIreadRegisters, 2, kErrorWarning));
     }
 
@@ -192,7 +191,7 @@ ErrorCode writeRegistersAndContinue(SPI* descriptor, SPIregister register_number
     }
 
     //set timeout timer and enable CS
-    uint32_t spi_start_tick = HAL_GetTick();
+    uint32_t spi_start_tick = getCurrentTick();
     setDataCommandGPIO(descriptor, kCommand);
     LL_GPIO_ResetOutputPin(descriptor->cs_port, descriptor->pin);
 
@@ -201,19 +200,19 @@ ErrorCode writeRegistersAndContinue(SPI* descriptor, SPIregister register_number
 
     //write the value data
     setDataCommandGPIO(descriptor, kData);
-    while (size && !timeout(spi_start_tick, kSPItimeoutMS)) {
+    while (size && !systickTimeout(spi_start_tick, kSPItimeoutMS)) {
         sendSPIbyte(descriptor, *parameters, spi_start_tick);
         parameters++;
         size--;
     }
 
     //wait for transaction to be finished and clear Overrun flag
-    while (LL_SPI_IsActiveFlag_BSY(descriptor->handle) && !timeout(spi_start_tick, kSPItimeoutMS)) {
+    while (LL_SPI_IsActiveFlag_BSY(descriptor->handle) && !systickTimeout(spi_start_tick, kSPItimeoutMS)) {
     };
     LL_SPI_ClearFlag_OVR(descriptor->handle);
 
     //if timeout, error
-    if (timeout(spi_start_tick, kSPItimeoutMS)) {
+    if (systickTimeout(spi_start_tick, kSPItimeoutMS)) {
         return (createErrorCode(kSPIwriteRegistersContinue, 2, kErrorWarning));
     }
 

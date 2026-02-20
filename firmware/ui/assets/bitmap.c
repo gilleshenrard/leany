@@ -1,7 +1,10 @@
-/*
- * SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
- *
+/**
+ * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
  * SPDX-License-Identifier: MIT
+ * 
+ * @file bitmap.c
+ * @brief Implement the generic display bitmaps behaviour
+ * @author Gilles Henrard
  */
 #include "bitmap.h"
 
