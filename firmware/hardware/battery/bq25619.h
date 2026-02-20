@@ -1,3 +1,8 @@
+/*
+ * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
+ *
+ * SPDX-License-Identifier: MIT
+ */
 #ifndef HARDWARE_BATTERY_BQ25619_H
 #define HARDWARE_BATTERY_BQ25619_H
 

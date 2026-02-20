@@ -1,13 +1,13 @@
 /*
- * SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
+ * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
  *
  * SPDX-License-Identifier: MIT
  */
+
 /**
- * @file battery_management.c
+ * @file task_battery.c
  * @brief Implement the battery voltage and BQ25619 charger status monitoring
  * @author Gilles Henrard
- * @date 21/09/2025
  *
  * @details
  * BQ25619 Datasheet : https://www.ti.com/lit/ds/symlink/bq25618.pdf?ts=1729197098952&ref_url=https%253A%252F%252Fwww.ti.com%252Fsitesearch%252Fen-us%252Fdocs%252Funiversalsearch.tsp%253FlangPref%253Den-US%2526nr%253D186%2526searchTerm%253Dbq25618

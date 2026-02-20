@@ -1,7 +1,19 @@
+/*
+ * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
 #include "bq25619.h"
 
-#include <FreeRTOS.h>
+#include <portmacro.h>
+#include <stdint.h>
+#include <stm32f103xb.h>
+#include <stm32f1xx_ll_i2c.h>
 #include <task.h>
+
+#include "bq25619_registers.inc"
+#include "errorstack.h"
 
 enum {
     kI2Ctimeout_ms = 10U,  ///< Maximum number of milliseconds an I²C transfer can last
