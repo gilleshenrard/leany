@@ -42,7 +42,7 @@ execute_process(
 add_subdirectory(cmake/stm32cubemx SYSTEM)
 add_subdirectory(hardware)
 add_subdirectory(ui)
-add_subdirectory(utilities)
+add_subdirectory(utils)
 add_subdirectory(tasks)
 
 # Add linked libraries

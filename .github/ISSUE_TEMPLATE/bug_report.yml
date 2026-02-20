@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
+#
+# SPDX-License-Identifier: MIT
+
 name: Bug Report
 description: Report a bug in firmware, hardware (PCB), or enclosure.
 title: "[BUG] <short description>"

@@ -30,17 +30,16 @@
                 "samplesPerSecond": 4
             },
             "configFiles": [
-                "interface/stlink-dap.cfg",
+                "interface/stlink.cfg",
                 "target/stm32f1x.cfg"
             ],
             "preLaunchCommands": [
                 "set mem inaccessible-by-default off",
-                "monitor reset"
+                "monitor adapter speed 4000"
             ],
             "postLaunchCommands": [
-                "monitor reset init",
-                "monitor sleep 200"
+                "monitor reset init"
             ],
-        },
+        }
     ]
 }

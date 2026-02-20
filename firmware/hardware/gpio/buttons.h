@@ -8,11 +8,6 @@
 #define INC_BUTTONS_H
 #include "errorstack.h"
 
-/**
- * @brief Enumeration of all the managed buttons
- */
-typedef enum { kButtonZero = 0, kButtonHold, kNBbuttons } ButtonType;
-
 ErrorCode runButtonsStateMachine(void);
 
 #endif

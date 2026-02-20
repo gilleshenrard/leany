@@ -14,7 +14,7 @@ execute_process(
 message("Populating softversion.c with CMake values")
 configure_file(
     softversion.c.in
-    ${PROJECT_SOURCE_DIR}/utilities/softversion.c
+    ${PROJECT_SOURCE_DIR}/utils/softversion.c
     @ONLY
 )
 

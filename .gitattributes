@@ -10,3 +10,25 @@
 #Image files
 *.png filter=lfs diff=lfs merge=lfs -text
 *.kicad_pcb !text !filter !merge !diff
+
+# C source files
+*.c    text eol=lf
+*.h    text eol=lf
+*.inc  text eol=lf
+
+# CMake / build system
+*.cmake     text eol=lf
+CMakeLists.txt  text eol=lf
+
+# Linker scripts
+*.ld    text eol=lf
+
+# Assembly
+*.s     text eol=lf
+*.S     text eol=lf
+
+# CI/CD and scripts
+*.yml   text eol=lf
+*.yaml  text eol=lf
+*.sh    text eol=lf
+*.bat    text eol=lf

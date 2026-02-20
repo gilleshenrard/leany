@@ -362,8 +362,8 @@ static void handleSerialReadCommandEvent(const GenericCommand* command) {
  */
 static void handleSerialWriteCommandEvent(const GenericCommand* command) {
     // A large switch is the most straightforward way to handle serial write commands.
-    // Therefore, Lizard linter can be ignored here, despite function length
-    // #lizard forgives
+    // Therefore, Lizard linter can ignore this function's length
+    // #lizard forgives(length)
     ErrorCode error;
 
     switch (command->code) {
