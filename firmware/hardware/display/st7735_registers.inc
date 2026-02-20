@@ -1,7 +1,8 @@
-/*
+/**
  * SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
- *
  * SPDX-License-Identifier: MIT
+ * 
+ * @file st7735_registers.inc
  */
 
 #ifndef INC_HARDWARE_SCREEN_ST7735S_REGISTERS_H

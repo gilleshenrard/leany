@@ -1,9 +1,11 @@
-/*
- * SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
- *
+/**
+ * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
  * SPDX-License-Identifier: MIT
+ * 
+ * @file label.c
+ * @brief Implement the labels to display on screen
+ * @author Gilles Henrard
  */
-
 #include "label.h"
 
 #include <stddef.h>
@@ -96,7 +98,7 @@ ErrorCode uncompressLabel(const Label* label, Pixel* buffer, const char string[]
  * @param string_length Number of the characters in the string
  * @param font Font to use
  * @param foreground_colour Foreground to apply to the string
- * @param bitmap_metadata 
+ * @param label_metadata Metadata representing each bitmap in a string
  * @retval 0 Success
  * @retval 1 NULL pointer provided
  * @retval 2 Character decompression returned 0 px width

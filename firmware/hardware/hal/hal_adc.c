@@ -19,10 +19,10 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stm32f103xb.h>
-#include <stm32f1xx_hal.h>
 #include <stm32f1xx_ll_adc.h>
 
 #include "hardware_events.h"
+#include "systick.h"
 
 enum {
     kMutexMS = 5U,                  ///< Max number of milliseconds to wait for a mutex
@@ -86,17 +86,15 @@ void initialiseUserADC(void) {
     LL_ADC_Enable(ADC1);        // enable ADC
 
     //request a first conversion
-    current_tick = HAL_GetTick();
+    current_tick = getCurrentTick();
     LL_ADC_REG_StartConversionSWStart(ADC1);
-    while (xSemaphoreTake(updated_mutex, 0) == pdFALSE) {
-        if (timeout(current_tick, kInitTimeoutMs)) {
-            Error_Handler();
-        }
+    if (xSemaphoreTake(updated_mutex, pdMS_TO_TICKS(kInitTimeoutMs)) == pdFALSE) {
+        Error_Handler();
     }
 
     //read the temperature value
     readTemperatureData();
-    current_tick = HAL_GetTick();
+    current_tick = getCurrentTick();
 }
 
 /**
@@ -104,8 +102,8 @@ void initialiseUserADC(void) {
  */
 void runUserADCstateMachine(void) {
     // State 1: Check if it's time to start a new conversion
-    if (timeout(current_tick, kTemperatureRefreshMs)) {
-        current_tick = HAL_GetTick();
+    if (systickTimeout(current_tick, kTemperatureRefreshMs)) {
+        current_tick = getCurrentTick();
         LL_ADC_REG_StartConversionSWStart(ADC1);
     }
 

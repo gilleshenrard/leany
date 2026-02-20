@@ -1,12 +1,12 @@
-/*
+/**
  * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
- *
  * SPDX-License-Identifier: MIT
+ * 
+ * @file task_battery.h
+ * @author Gilles Henrard
  */
-#ifndef HARDWARE_GPIO_BATTERY_H
-#define HARDWARE_GPIO_BATTERY_H
-#include <stdint.h>
-
+#ifndef HARDWARE_BATTERY_BATTERY_H
+#define HARDWARE_BATTERY_BATTERY_H
 #include "errorstack.h"
 
 /**
@@ -17,8 +17,8 @@ typedef struct {
     uint8_t charging;        ///< Flag indicating whether the battery is charging
 } BatteryStatus;
 
+ErrorCode createBatteryTask(void);
 ErrorCode getBatteryStatus(BatteryStatus* status);
 uint8_t setBatteryPercentage(uint8_t percentage);
 void setBatteryChargeStatus(uint8_t status);
-
 #endif

@@ -1,15 +1,19 @@
-/*
- * SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
- *
+/**
+ * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
  * SPDX-License-Identifier: MIT
+ * 
+ * @file hardware_events.h
+ * @author Gilles Henrard
  */
-
 #ifndef HARDWARE_SYSUTILS_HARDWARE_EVENTS_H
 #define HARDWARE_SYSUTILS_HARDWARE_EVENTS_H
 #include <FreeRTOS.h>
 #include <portmacro.h>
 #include <stdint.h>
 
+/**
+ * Enumeration of hardware events
+ */
 // NOLINTBEGIN (readability-enum-initial-value)
 typedef enum {
     kEventAngle = 0U,          ///< Event : Angle value change

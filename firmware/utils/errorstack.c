@@ -1,10 +1,7 @@
-/*
- * SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
- *
- * SPDX-License-Identifier: MIT
- */
-
 /**
+ * SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
+ * SPDX-License-Identifier: MIT
+ *
  * @file errorstack.c
  * @brief Implement a structure to create a crude error codes stack trace.
  * @author Gilles Henrard
@@ -160,4 +157,30 @@ ErrorCode pushErrorCode(ErrorCode old_code, uint8_t function_id, uint8_t new_err
 
     //return the final code
     return (old_code);
+}
+
+/**
+ * Get the deepest layer value of the error code
+ *
+ * @param code Code of which to get the error
+ * @return Deepest layer
+ */
+uint8_t getDeepestError(ErrorCode code) {
+    if (!isError(code)) {
+        return 0;
+    }
+
+    if (code.layer3) {
+        return code.layer3;
+    }
+
+    if (code.layer2) {
+        return code.layer2;
+    }
+
+    if (code.layer1) {
+        return code.layer1;
+    }
+
+    return code.layer0;
 }

@@ -1,9 +1,10 @@
-/*
- * SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
- *
+/**
+ * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
  * SPDX-License-Identifier: MIT
+ * 
+ * @file errorstack.h
+ * @author Gilles Henrard
  */
-
 #ifndef INC_ERRORS_ERRORS_H
 #define INC_ERRORS_ERRORS_H
 #include <stdint.h>
@@ -57,6 +58,7 @@ extern const ErrorCode kSuccessCode;
 ErrorCode createErrorCode(uint8_t function_id, uint8_t new_error, ErrorLevel level);
 ErrorCode createErrorCodeLayer1(uint8_t function_id, uint8_t new_error, uint8_t layer1_code, ErrorLevel level);
 ErrorCode pushErrorCode(ErrorCode old_code, uint8_t function_id, uint8_t new_error);
+uint8_t getDeepestError(ErrorCode code);
 //NOLINTEND(bugprone-easily-swappable-parameters)
 
 /**
@@ -74,18 +76,6 @@ inline uint8_t isError(const ErrorCode code) { return (code.layer0); }
 #define EXIT_ON_ERROR(result, functionID, errorCode)         \
     if (isError(result)) {                                   \
         return pushErrorCode(result, functionID, errorCode); \
-    }
-
-/**
- * Macro used to avoid bloating the code with timeout loops
- */
-#define EXIT_ON_TIMEOUT(condition, timeout_ms, function_id, error_code) \
-    timeout_value = 0;                                                  \
-    while (!(condition) && !timeout_value) {                            \
-        timeout_value = timeout(start_tick, timeout_ms);                \
-    };                                                                  \
-    if (timeout_value) {                                                \
-        return createErrorCode(function_id, error_code, kErrorError);   \
     }
 
 #endif /* INC_ERRORS_ERRORS_H */

@@ -1,16 +1,18 @@
-/*
- * SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
- *
+/**
+ * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
  * SPDX-License-Identifier: MIT
+ * 
+ * @file led.c
+ * @brief Implement the GPIO state for LED
+ * @author Gilles Henrard
  */
-
 #include "led.h"
 
-#include <main.h>
 #include <stdint.h>
 #include <stm32f103xb.h>
-#include <stm32f1xx_hal.h>
 #include <stm32f1xx_ll_tim.h>
+
+#include "systick.h"
 
 static inline uint32_t hexToCompareValue(uint8_t hexvalue);
 static void applyLEDpwm(Colour colour);
@@ -45,10 +47,10 @@ void runLEDstateMachine(void) {
     }
 
     //if half period not elapsed, exit
-    if (!timeout(current_tick, blink_halfperiod_ms)) {
+    if (!systickTimeout(current_tick, blink_halfperiod_ms)) {
         return;
     }
-    current_tick = HAL_GetTick();
+    current_tick = getCurrentTick();
 
     //invert the LED status and power
     applyLEDpwm(led_is_on ? kBlack : current_colour);
@@ -76,7 +78,7 @@ void LEDsetEffect(EffectState new_effect, uint16_t period_ms) {
 
     //save the effect and period
     effect = new_effect;
-    current_tick = HAL_GetTick();
+    current_tick = getCurrentTick();
     blink_halfperiod_ms = (period_ms / 2U);
 }
 
@@ -131,6 +133,8 @@ static inline uint32_t hexToCompareValue(uint8_t hexvalue) {
 
 /**
  * Apply a colour's set of comparate values to the LED pwm output pins
+ *
+ * @param colour Colour for which set the PWMs
  */
 static void applyLEDpwm(Colour colour) {
     LL_TIM_OC_SetCompareCH1(TIM2, hexToCompareValue(colour.channels.red));
