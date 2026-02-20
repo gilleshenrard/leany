@@ -20,7 +20,8 @@ add_library(tasks STATIC
 	task_ui.c
 	task_dispatcher.c
 	task_imu.c
-	task_gpio.c)
+	task_gpio.c
+	task_battery.c)
 target_include_directories(tasks PUBLIC
 	${CMAKE_CURRENT_SOURCE_DIR}
 )
@@ -32,6 +33,7 @@ target_link_libraries(tasks PRIVATE
 	gpio
 	utils
 	serial
+	BATTERY
 	hal
 	UI)
 target_compile_options(tasks PRIVATE ${WARNING_FLAGS})

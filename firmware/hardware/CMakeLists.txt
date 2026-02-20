@@ -36,3 +36,12 @@ target_link_libraries(gpio PRIVATE
 	utils
 	serial
 )
+
+#
+# Declare the HAL library
+#
+add_library(BATTERY
+	battery/bq25619.c
+)
+target_include_directories(BATTERY PUBLIC battery)
+target_link_libraries(BATTERY PRIVATE utils)
