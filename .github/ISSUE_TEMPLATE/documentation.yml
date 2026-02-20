@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
+#
+# SPDX-License-Identifier: MIT
+
 name: Documentation Inquiry
 description: Report missing, incorrect, or unclear documentation.
 title: "[DOCS] <short description>"

@@ -29,6 +29,7 @@ jobs:
   build:
     name: Build the firmware
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
     strategy:
        matrix:
           os: [ubuntu-latest, windows-latest]
@@ -98,7 +99,7 @@ jobs:
           path: |
             ${{github.workspace}}/firmware/build/Debug/compile_commands.json
             ${{github.workspace}}/firmware/build/Debug/Leany.elf
-            ${{github.workspace}}/firmware/utilities/softversion.c
+            ${{github.workspace}}/firmware/utils/softversion.c
             ${{github.workspace}}/firmware/README.md
             ${{github.workspace}}/firmware/Doxyfile
           if-no-files-found: error
@@ -110,6 +111,7 @@ jobs:
   code-quality:
     name: Linters and documentation tools
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     needs: build
     steps:
       - name: Checkout the repository
@@ -170,7 +172,7 @@ jobs:
               -quiet
               -p ${{github.workspace}}/firmware/build/Debug/
               -extra-arg=--sysroot=${{ steps.arm-none-eabi-gcc-action.outputs.path }}/../arm-none-eabi
-              ".*(hardware|ui|tasks|utilities)/.*\\.(c|h|inc)$"
+              ".*(hardware|ui|tasks|utils)/.*\\.(c|h|inc)$"
 
       - name: Run CppCheck
         id: cppcheck
@@ -209,7 +211,7 @@ jobs:
           firmware/hardware/
           firmware/ui/
           firmware/tasks/
-          firmware/utilities/
+          firmware/utils/
 
       - name: Run Doxygen
         id: doxygen
@@ -226,7 +228,7 @@ jobs:
         id: clang-format
         continue-on-error: true
         run: >
-          find firmware/hardware firmware/ui firmware/tasks firmware/utilities -name '*.c' -o -name '*.h' -o -name '*.inc'
+          find firmware/hardware firmware/ui firmware/tasks firmware/utils -name '*.c' -o -name '*.h' -o -name '*.inc'
           | xargs clang-format-${{env.CLANG-VERSION}} --style=file --dry-run --Werror --verbose
 
       - name: Open source Copyright and Lincensing

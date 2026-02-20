@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MIT
 
 include_directories(${CMAKE_SOURCE_DIR}/hardware)
-include_directories(${CMAKE_SOURCE_DIR}/utilities)
+include_directories(${CMAKE_SOURCE_DIR}/utils)
 include_directories(${CMAKE_SOURCE_DIR}/ui)
 
 #

@@ -9,6 +9,7 @@
                 "args": [
                     "-f", "interface/stlink.cfg",
                     "-f", "target/stm32f1x.cfg",
+                    "-c", "adapter speed 4000",
                     "-c", "program {${command:cmake.getLaunchTargetPath}} verify reset exit"
                 ]
             },
@@ -16,6 +17,7 @@
                 "args": [
                     "-f", "interface/stlink.cfg",
                     "-f", "target/stm32f1x.cfg",
+                    "-c", "adapter speed 4000",
                     "-c", "program ${command:cmake.getLaunchTargetPath} verify reset exit"
                 ]
             },
@@ -105,7 +107,7 @@
                     "-quiet",
                     "-p${command:cmake.buildDirectory}",
                     "-extra-arg=--sysroot=C:/msys64/ucrt64/arm-none-eabi",
-                    ".*(hardware^|ui^|tasks^|utilities)\\\\.*\\.(c^|h^|inc)$"
+                    ".*(hardware^|ui^|tasks^|utils)\\\\.*\\.(c^|h^|inc)$"
                 ],
                 "options": {
                     "shell": {
@@ -120,7 +122,7 @@
                     "-quiet",
                     "-p${command:cmake.buildDirectory}",
                     "-extra-arg=--sysroot=/opt/arm-none-eabi/arm-none-eabi/",
-                    "\".*(hardware|ui|tasks|utilities)/.*\\.(c|h|inc)$\""
+                    "\".*(hardware|ui|tasks|utils)/.*\\.(c|h|inc)$\""
                 ]
             },
             "options": {
@@ -175,10 +177,10 @@
             "type": "shell",
             "label": "Run clang-format validation",
             "windows": {
-                "command": "Get-ChildItem -Path hardware,ui,tasks,utilities -Recurse -Include *.c,*.h,*.inc -File | ForEach-Object {clang-format --style=file --dry-run --Werror --verbose $_.FullName }"
+                "command": "Get-ChildItem -Path hardware,ui,tasks,utils -Recurse -Include *.c,*.h,*.inc -File | ForEach-Object {clang-format --style=file --dry-run --Werror --verbose $_.FullName }"
             },
             "linux": {
-                "command": "find hardware ui tasks utilities -name '*.c' -o -name '*.h'-o -name '*.inc' | xargs clang-format --style=file --dry-run --Werror --verbose"
+                "command": "find hardware ui tasks utils -name '*.c' -o -name '*.h'-o -name '*.inc' | xargs clang-format --style=file --dry-run --Werror --verbose"
             },
             "options": {
                 "cwd": "${workspaceFolder}"
@@ -300,7 +302,23 @@
                 "hardware/",
                 "ui/",
                 "tasks/",
-                "utilities/"
+                "utils/"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+
+
+        {
+            "type": "shell",
+            "label": "Normalize all file endings (LF)",
+            "command": "git",
+            "args": [
+                "add",
+                "--renormalize",
+                ".",
             ],
             "options": {
                 "cwd": "${workspaceFolder}"

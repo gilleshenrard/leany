@@ -35,11 +35,10 @@
         "-Tnloc=60",
         "-Tparameter_count=5",
         "-Tcyclomatic_complexity=10",
-        "-Eduplicate",
         "-m",
         "firmware/hardware/",
         "firmware/ui/",
-        "firmware/utilities/",
+        "firmware/utils/",
         "firmware/tasks/"
     ],
     "c-cpp-flylint.cppcheck.language": "C",
