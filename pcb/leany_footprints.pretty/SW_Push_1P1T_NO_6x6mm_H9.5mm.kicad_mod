@@ -261,7 +261,7 @@
 		(uuid "9b1d7e77-d06e-47b3-9f83-98d745df92c0")
 	)
 	(embedded_fonts no)
-	(model "${KIPRJMOD}/3d-models/grabcad/Stelian_Stefan/SW-DTSM-66N-V_Nicola-Stelian-Stefan.stp"
+	(model "${KIPRJMOD}/resources/3d-models/grabcad/Stelian_Stefan/SW-DTSM-66N-V_Nicola-Stelian-Stefan.stp"
 		(offset
 			(xyz 0 0 0)
 		)

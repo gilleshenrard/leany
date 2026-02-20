@@ -2,6 +2,173 @@
 	(version 20241209)
 	(generator "kicad_symbol_editor")
 	(generator_version "9.0")
+	(symbol "AP6683"
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(property "Reference" "U"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "AP6683"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Package_DFN_QFN:UDFN-4-1EP_1x1mm_P0.65mm_EP0.48x0.48mm"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://jlcpcb.com/api/file/downloadByFileSystemAccessId/8588944628363481088"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "One Cell Li-ion and Li-poly Battery Protection IC"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C2849565"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(symbol "AP6683_0_1"
+			(rectangle
+				(start -5.08 3.81)
+				(end 5.08 -5.08)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+		)
+		(symbol "AP6683_1_0"
+			(pin passive line
+				(at -7.62 0 0)
+				(length 2.54)
+				(hide yes)
+				(name "PAD"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "5"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+		)
+		(symbol "AP6683_1_1"
+			(pin power_out line
+				(at -7.62 0 0)
+				(length 2.54)
+				(name "VM"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "4"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin power_out line
+				(at 0 -7.62 90)
+				(length 2.54)
+				(name "GND"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin power_out line
+				(at 0 -7.62 90)
+				(length 2.54)
+				(hide yes)
+				(name "GND"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "3"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin power_in line
+				(at 7.62 0 180)
+				(length 2.54)
+				(name "VDD"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+		)
+		(embedded_fonts no)
+	)
 	(symbol "BQ25619"
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -42,6 +209,15 @@
 		)
 		(property "Description" "I2C Controlled 1-Cell 1.5A Battery Charger with 20mA Termination and 1A Boost Operation"
 			(at 0 -32.766 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C2864534"
+			(at 0 0 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -381,7 +557,7 @@
 					)
 				)
 			)
-			(pin power_in line
+			(pin power_out line
 				(at 12.7 8.89 180)
 				(length 2.54)
 				(hide yes)
@@ -400,7 +576,7 @@
 					)
 				)
 			)
-			(pin power_in line
+			(pin passive line
 				(at 12.7 8.89 180)
 				(length 2.54)
 				(name "SYS"
@@ -859,7 +1035,7 @@
 		)
 		(embedded_fonts no)
 	)
-	(symbol "NH-B2020RGBA-HF"
+	(symbol "NH-Z1921RGBA-SG"
 		(pin_names
 			(offset 0)
 			(hide yes)
@@ -875,7 +1051,7 @@
 				)
 			)
 		)
-		(property "Value" "NH-B2020RGBA-HF"
+		(property "Value" "NH-Z1921RGBA-SG"
 			(at 1.27 -11.43 0)
 			(effects
 				(font
@@ -883,7 +1059,7 @@
 				)
 			)
 		)
-		(property "Footprint" "leany_footprints:NH-B2020RGBA-HF"
+		(property "Footprint" "leany_footprints:NH-Z1921RGBA-SG"
 			(at 0 15.24 0)
 			(effects
 				(font
@@ -892,7 +1068,7 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2108150330_Foshan-NationStar-Optoelectronics-NH-B2020RGBA-HF_C2874116.pdf"
+		(property "Datasheet" "https://jlcpcb.com/api/file/downloadByFileSystemAccessId/8589040886755418112"
 			(at 0 -11.43 0)
 			(effects
 				(font
@@ -910,6 +1086,15 @@
 				(hide yes)
 			)
 		)
+		(property "LCSC" "C2874118"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(property "ki_keywords" "led rgb diode"
 			(at 0 0 0)
 			(effects
@@ -919,7 +1104,7 @@
 				(hide yes)
 			)
 		)
-		(symbol "NH-B2020RGBA-HF_0_0"
+		(symbol "NH-Z1921RGBA-SG_0_0"
 			(text "R"
 				(at -1.905 3.81 0)
 				(effects
@@ -945,7 +1130,7 @@
 				)
 			)
 		)
-		(symbol "NH-B2020RGBA-HF_0_1"
+		(symbol "NH-Z1921RGBA-SG_0_1"
 			(rectangle
 				(start -2.54 10.16)
 				(end 2.54 -8.89)
@@ -1172,7 +1357,7 @@
 				)
 			)
 		)
-		(symbol "NH-B2020RGBA-HF_1_1"
+		(symbol "NH-Z1921RGBA-SG_1_1"
 			(pin passive line
 				(at -5.08 5.08 0)
 				(length 2.54)
@@ -1183,7 +1368,7 @@
 						)
 					)
 				)
-				(number "1"
+				(number "2"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -1201,7 +1386,7 @@
 						)
 					)
 				)
-				(number "4"
+				(number "3"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -1219,7 +1404,7 @@
 						)
 					)
 				)
-				(number "2"
+				(number "4"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -1237,7 +1422,7 @@
 						)
 					)
 				)
-				(number "3"
+				(number "1"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -1248,54 +1433,28 @@
 		)
 		(embedded_fonts no)
 	)
-	(symbol "PT8810"
-		(pin_names
-			(hide yes)
-		)
+	(symbol "SLM6400"
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
-		(property "Reference" "Q"
-			(at 2.54 6.985 0)
+		(property "Reference" "U"
+			(at 0.254 0 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify left)
 			)
 		)
-		(property "Value" "PT8810"
-			(at 2.54 5.08 0)
+		(property "Value" "SLM6400"
+			(at 0.254 0 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify left)
 			)
 		)
-		(property "Footprint" "Package_TO_SOT_SMD:SOT-23-6"
-			(at 0 15.494 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-					(italic yes)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "https://www.lcsc.com/datasheet/C351413.pdf"
-			(at 25.4 -22.86 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-		(property "Description" ""
-			(at 2.032 -20.574 0)
+		(property "Footprint" "leany_footprints:DFN-8-1EP_3x3mm_P0.65mm_EP1.5x2.25mm"
+			(at 0.254 0 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1303,8 +1462,8 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" "C3019811"
-			(at 7.366 5.08 0)
+		(property "Datasheet" "https://jlcpcb.com/api/file/downloadByFileSystemAccessId/8588893350992338945"
+			(at -0.254 -0.254 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1312,8 +1471,8 @@
 				(hide yes)
 			)
 		)
-		(property "ki_keywords" "Dual Half Bridge N-Channel MOSFET Logic Level Common Drain"
-			(at 0 0 0)
+		(property "Description" "28V, 1A Linear Li-Ion Battery Charger"
+			(at 0.254 0 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1321,8 +1480,8 @@
 				(hide yes)
 			)
 		)
-		(property "ki_fp_filters" "SOT?23*"
-			(at 0 0 0)
+		(property "LCSC" "C338664"
+			(at 0.254 0 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1330,164 +1489,10 @@
 				(hide yes)
 			)
 		)
-		(symbol "PT8810_0_1"
-			(polyline
-				(pts
-					(xy -2.286 5.08) (xy -5.08 5.08)
-				)
-				(stroke
-					(width 0)
-					(type default)
-				)
-				(fill
-					(type none)
-				)
-			)
-			(polyline
-				(pts
-					(xy -2.286 3.175) (xy -2.286 6.985)
-				)
-				(stroke
-					(width 0.254)
-					(type default)
-				)
-				(fill
-					(type none)
-				)
-			)
-			(polyline
-				(pts
-					(xy -1.778 6.858) (xy 0.762 6.858) (xy 0.762 3.302) (xy -1.778 3.302)
-				)
-				(stroke
-					(width 0)
-					(type default)
-				)
-				(fill
-					(type none)
-				)
-			)
-			(polyline
-				(pts
-					(xy -1.778 6.35) (xy -1.778 7.366)
-				)
-				(stroke
-					(width 0.254)
-					(type default)
-				)
-				(fill
-					(type none)
-				)
-			)
-			(polyline
-				(pts
-					(xy -1.778 4.572) (xy -1.778 5.588)
-				)
-				(stroke
-					(width 0.254)
-					(type default)
-				)
-				(fill
-					(type none)
-				)
-			)
-			(polyline
-				(pts
-					(xy -1.778 2.794) (xy -1.778 3.81)
-				)
-				(stroke
-					(width 0.254)
-					(type default)
-				)
-				(fill
-					(type none)
-				)
-			)
-			(polyline
-				(pts
-					(xy -1.524 5.08) (xy -0.508 4.699) (xy -0.508 5.461) (xy -1.524 5.08)
-				)
-				(stroke
-					(width 0)
-					(type default)
-				)
-				(fill
-					(type outline)
-				)
-			)
-			(circle
-				(center -0.889 5.08)
-				(radius 2.794)
-				(stroke
-					(width 0.254)
-					(type default)
-				)
-				(fill
-					(type none)
-				)
-			)
-			(polyline
-				(pts
-					(xy 0 7.62) (xy 0 5.08) (xy -1.778 5.08)
-				)
-				(stroke
-					(width 0)
-					(type default)
-				)
-				(fill
-					(type none)
-				)
-			)
-			(circle
-				(center 0 6.858)
-				(radius 0.254)
-				(stroke
-					(width 0)
-					(type default)
-				)
-				(fill
-					(type outline)
-				)
-			)
-			(circle
-				(center 0 3.302)
-				(radius 0.254)
-				(stroke
-					(width 0)
-					(type default)
-				)
-				(fill
-					(type outline)
-				)
-			)
-			(polyline
-				(pts
-					(xy 0 -3.302) (xy 0 3.302)
-				)
-				(stroke
-					(width 0)
-					(type default)
-				)
-				(fill
-					(type none)
-				)
-			)
-			(polyline
-				(pts
-					(xy 0.254 4.572) (xy 0.381 4.699) (xy 1.143 4.699) (xy 1.27 4.826)
-				)
-				(stroke
-					(width 0)
-					(type default)
-				)
-				(fill
-					(type none)
-				)
-			)
-			(polyline
-				(pts
-					(xy 0.762 4.699) (xy 0.381 5.334) (xy 1.143 5.334) (xy 0.762 4.699)
-				)
+		(symbol "SLM6400_0_1"
+			(rectangle
+				(start -7.62 11.43)
+				(end 7.62 -11.43)
 				(stroke
 					(width 0)
 					(type default)
@@ -1497,211 +1502,32 @@
 				)
 			)
 		)
-		(symbol "PT8810_1_1"
-			(polyline
-				(pts
-					(xy -2.286 -3.175) (xy -2.286 -6.985)
-				)
-				(stroke
-					(width 0.254)
-					(type default)
-				)
-				(fill
-					(type none)
-				)
-			)
-			(polyline
-				(pts
-					(xy -2.286 -5.08) (xy -5.08 -5.08)
-				)
-				(stroke
-					(width 0)
-					(type default)
-				)
-				(fill
-					(type none)
-				)
-			)
-			(polyline
-				(pts
-					(xy -1.778 -2.794) (xy -1.778 -3.81)
-				)
-				(stroke
-					(width 0.254)
-					(type default)
-				)
-				(fill
-					(type none)
-				)
-			)
-			(polyline
-				(pts
-					(xy -1.778 -4.572) (xy -1.778 -5.588)
-				)
-				(stroke
-					(width 0.254)
-					(type default)
-				)
-				(fill
-					(type none)
-				)
-			)
-			(polyline
-				(pts
-					(xy -1.778 -6.35) (xy -1.778 -7.366)
-				)
-				(stroke
-					(width 0.254)
-					(type default)
-				)
-				(fill
-					(type none)
-				)
-			)
-			(polyline
-				(pts
-					(xy -1.778 -6.858) (xy 0.762 -6.858) (xy 0.762 -3.302) (xy -1.778 -3.302)
-				)
-				(stroke
-					(width 0)
-					(type default)
-				)
-				(fill
-					(type none)
-				)
-			)
-			(polyline
-				(pts
-					(xy -1.524 -5.08) (xy -0.508 -4.699) (xy -0.508 -5.461) (xy -1.524 -5.08)
-				)
-				(stroke
-					(width 0)
-					(type default)
-				)
-				(fill
-					(type outline)
-				)
-			)
-			(circle
-				(center -0.889 -5.08)
-				(radius 2.794)
-				(stroke
-					(width 0.254)
-					(type default)
-				)
-				(fill
-					(type none)
-				)
-			)
-			(circle
-				(center 0 0)
-				(radius 0.254)
-				(stroke
-					(width 0)
-					(type default)
-				)
-				(fill
-					(type outline)
-				)
-			)
-			(circle
-				(center 0 -3.302)
-				(radius 0.254)
-				(stroke
-					(width 0)
-					(type default)
-				)
-				(fill
-					(type outline)
-				)
-			)
-			(circle
-				(center 0 -6.858)
-				(radius 0.254)
-				(stroke
-					(width 0)
-					(type default)
-				)
-				(fill
-					(type outline)
-				)
-			)
-			(polyline
-				(pts
-					(xy 0 -7.62) (xy 0 -5.08) (xy -1.778 -5.08)
-				)
-				(stroke
-					(width 0)
-					(type default)
-				)
-				(fill
-					(type none)
-				)
-			)
-			(polyline
-				(pts
-					(xy 0.254 -4.572) (xy 0.381 -4.699) (xy 1.143 -4.699) (xy 1.27 -4.826)
-				)
-				(stroke
-					(width 0)
-					(type default)
-				)
-				(fill
-					(type none)
-				)
-			)
-			(polyline
-				(pts
-					(xy 0.762 -4.699) (xy 0.381 -5.334) (xy 1.143 -5.334) (xy 0.762 -4.699)
-				)
-				(stroke
-					(width 0)
-					(type default)
-				)
-				(fill
-					(type none)
-				)
-			)
-			(pin input line
-				(at -7.62 5.08 0)
-				(length 2.54)
-				(name "G1"
-					(effects
-						(font
-							(size 1.27 1.27)
-						)
-					)
-				)
-				(number "6"
-					(effects
-						(font
-							(size 1.27 1.27)
-						)
-					)
-				)
-			)
-			(pin input line
-				(at -7.62 -5.08 0)
-				(length 2.54)
-				(name "G2"
-					(effects
-						(font
-							(size 1.27 1.27)
-						)
-					)
-				)
-				(number "4"
-					(effects
-						(font
-							(size 1.27 1.27)
-						)
-					)
-				)
-			)
+		(symbol "SLM6400_1_0"
 			(pin passive line
-				(at 0 10.16 270)
+				(at -10.16 -3.81 0)
 				(length 2.54)
-				(name "D1"
+				(hide yes)
+				(name "PAD"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "9"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+		)
+		(symbol "SLM6400_1_1"
+			(pin input line
+				(at -10.16 10.16 0)
+				(length 2.54)
+				(name "NTC"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -1716,28 +1542,10 @@
 					)
 				)
 			)
-			(pin passive line
-				(at 0 -10.16 90)
+			(pin input line
+				(at -10.16 3.81 0)
 				(length 2.54)
-				(name "S2"
-					(effects
-						(font
-							(size 1.27 1.27)
-						)
-					)
-				)
-				(number "3"
-					(effects
-						(font
-							(size 1.27 1.27)
-						)
-					)
-				)
-			)
-			(pin passive line
-				(at 2.54 0 180)
-				(length 2.54)
-				(name "S1/D2"
+				(name "PROG"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -1753,10 +1561,99 @@
 				)
 			)
 			(pin passive line
-				(at 2.54 0 180)
+				(at -10.16 -3.81 0)
 				(length 2.54)
-				(hide yes)
-				(name "S1/D2"
+				(name "GND"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "3"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin power_in line
+				(at -10.16 -10.16 0)
+				(length 2.54)
+				(name "VCC"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "4"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin power_in line
+				(at 10.16 10.16 180)
+				(length 2.54)
+				(name "NCE"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "8"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin output line
+				(at 10.16 3.81 180)
+				(length 2.54)
+				(name "NCHRG"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "7"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin output line
+				(at 10.16 -3.81 180)
+				(length 2.54)
+				(name "NSTDBY"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "6"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin power_out line
+				(at 10.16 -10.16 180)
+				(length 2.54)
+				(name "BAT"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -1797,7 +1694,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12"
+		(property "Footprint" "leany_footprints:USB_C_Receptacle_HRO_TYPE-C-31-M-12"
 			(at 3.81 0 0)
 			(effects
 				(font
@@ -1878,7 +1775,7 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" "C136423"
+		(property "LCSC" "C2765186"
 			(at 0 0 0)
 			(effects
 				(font
@@ -2901,7 +2798,7 @@
 					(type none)
 				)
 			)
-			(pin unspecified line
+			(pin passive line
 				(at 0 0 0)
 				(length 5.08)
 				(name "1_1"
@@ -2919,7 +2816,7 @@
 					)
 				)
 			)
-			(pin unspecified line
+			(pin passive line
 				(at 0 -2.54 0)
 				(length 5.08)
 				(name "1_2"
@@ -2937,7 +2834,7 @@
 					)
 				)
 			)
-			(pin unspecified line
+			(pin passive line
 				(at 0 -5.08 0)
 				(length 5.08)
 				(name "2_1"
@@ -2955,7 +2852,7 @@
 					)
 				)
 			)
-			(pin unspecified line
+			(pin passive line
 				(at 0 -7.62 0)
 				(length 5.08)
 				(name "2_2"
@@ -3235,7 +3132,7 @@
 					(type none)
 				)
 			)
-			(pin unspecified line
+			(pin passive line
 				(at 0 0 0)
 				(length 5.08)
 				(name "1_1"
@@ -3253,7 +3150,7 @@
 					)
 				)
 			)
-			(pin unspecified line
+			(pin passive line
 				(at 0 -2.54 0)
 				(length 5.08)
 				(name "1_2"
@@ -3271,7 +3168,7 @@
 					)
 				)
 			)
-			(pin unspecified line
+			(pin passive line
 				(at 0 -5.08 0)
 				(length 5.08)
 				(name "2_1"
@@ -3289,7 +3186,7 @@
 					)
 				)
 			)
-			(pin unspecified line
+			(pin passive line
 				(at 0 -7.62 0)
 				(length 5.08)
 				(name "2_2"

@@ -342,7 +342,7 @@
 		(uuid "68aaf734-547f-4e13-a81d-2f4a49e18716")
 	)
 	(embedded_fonts no)
-	(model "${KIPRJMOD}/3d-models/grabcad/Nhatkhongbuon/SOP-8.step"
+	(model "${KIPRJMOD}/resources/3d-models/grabcad/Nhatkhongbuon/SOP-8.step"
 		(offset
 			(xyz 0 0 0)
 		)

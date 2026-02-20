@@ -8,20 +8,26 @@ on:
     paths:
       - 'pcb/**'
       - '!pcb/resources/**'
+      - 'pcb/resources/generate_production_files.bat'
+      - 'pcb/resources/generate_production_files.sh'
+      - 'pcb/resources/print_violations.sh'
       - '.github/workflows/pcb_production_files.yml'
   pull_request:
     paths:
       - 'pcb/**'
       - '!pcb/resources/**'
+      - 'pcb/resources/generate_production_files.bat'
+      - 'pcb/resources/generate_production_files.sh'
+      - 'pcb/resources/print_violations.sh'
       - '.github/workflows/pcb_production_files.yml'
   schedule:
-    - cron: "0 3 1 * *" #Automatically run at 03:00 every 1st of the month
+    - cron: "0 3 1 * *"
 
 env:
-  SCH_PATH: ${{github.workspace}}/leany/pcb
-  PROD_PATH: ${{ github.workspace }}/leany/pcb/production_files
-  GBR_PATH: ${{ github.workspace }}/leany/pcb/gerber
-  REPO_PATH: ${{github.workspace}}/leany
+  SCH_PATH: ${{github.workspace}}/pcb
+  PROD_PATH: ${{github.workspace}}/pcb/production_files
+  GBR_PATH: ${{github.workspace}}/pcb/gerber
+  REPO_PATH: ${{github.workspace}}
   SCH_FILE: leany.kicad_sch
   PCB_FILE: leany.kicad_pcb
   ERC_FILE: erc.json
@@ -34,212 +40,164 @@ jobs:
     kicad_checks:
         name: Run KiCad checks
         runs-on: ubuntu-latest
-        container:
-          image: kicad/kicad:9.0
-          options: --user root -v ${{ github.workspace }}:${{ github.workspace }}
+        timeout-minutes: 10
 
         steps:
-          - name: Install jq json viewer and git-lfs
-            run: |
-                  sudo apt-get update
-                  sudo apt-get install -y jq git-lfs
-                  git lfs install
+          - name: Checkout repository
+            uses: actions/checkout@v4
+            with:
+              lfs: true
 
-          #actions/checkout cannot be used because it has its own context and will not recognise git-lfs
-          - name: Clone repository with LFS
-            env:
-              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-            run: |
-              git clone https://x-access-token:${GITHUB_TOKEN}@github.com/gilleshenrard/leany.git
-              cd leany
-              git lfs pull
-
-          - name: Check LFS files
+          - name: Check pulled LFS files
             working-directory: ${{env.REPO_PATH}}
             run:  |
                   git lfs ls-files
           
-          - name: Copy the KiCad configuration to the docker container
-            run:  |
-                  mkdir -pv $HOME/.config
-                  cp -rv /home/kicad/.config/kicad $HOME/.config/
+          - name: Install KiCad and libraries
+            run: |
+                  sudo add-apt-repository --yes ppa:kicad/kicad-9.0-releases
+                  sudo apt-get update
+                  sudo apt-get install --no-install-recommends -y \
+                    kicad \
+                    kicad-symbols \
+                    kicad-footprints
 
-          - name: Check if library tables are present
-            run:  |
-                  echo "Global footprint library table"
-                  test -f ~/.config/kicad/9.0/fp-lib-table
+          - name: Install jq
+            run: sudo apt-get install -y jq
 
-                  echo " "
-                  echo "Project footprint library table:"
-                  test -f ${{env.SCH_PATH}}/fp-lib-table
-
-                  echo " "
-                  echo "Global symbol library table:"
-                  test -f ~/.config/kicad/9.0/sym-lib-table
-
-                  echo " "
-                  echo "Project symbol library table:"
-                  test -f ${{env.SCH_PATH}}/sym-lib-table
+          - name: Configure KiCad library tables  
+            run: |
+              mkdir -p ~/.config/kicad/9.0
+              
+              # Use KiCad's default library tables if they exist
+              if [ -f /usr/share/kicad/template/fp-lib-table.for_pretty ]; then
+                cp /usr/share/kicad/template/fp-lib-table.for_pretty ~/.config/kicad/9.0/fp-lib-table
+              fi
+              
+              if [ -f /usr/share/kicad/template/sym-lib-table ]; then
+                cp /usr/share/kicad/template/sym-lib-table ~/.config/kicad/9.0/sym-lib-table
+              fi
+              
+              # Fallback: generate from installed libraries if defaults don't exist
+              if [ ! -f ~/.config/kicad/9.0/fp-lib-table ]; then
+                echo "(fp_lib_table" > ~/.config/kicad/9.0/fp-lib-table
+                echo "  (version 7)" >> ~/.config/kicad/9.0/fp-lib-table
+                for lib in /usr/share/kicad/footprints/*.pretty; do
+                  libname=$(basename "$lib" .pretty)
+                  echo "  (lib (name \"$libname\")(type \"KiCad\")(uri \"$lib\")(options \"\")(descr \"\"))" >> ~/.config/kicad/9.0/fp-lib-table
+                done
+                echo ")" >> ~/.config/kicad/9.0/fp-lib-table
+              fi
+              
+              echo "Footprint libraries configured: $(grep -c '(lib' ~/.config/kicad/9.0/fp-lib-table || echo 0)"
+          
+          - name: Check KiCAD version
+            run: kicad-cli --version
 
           - name: Run Electrical Rules Check (ERC)
             id: erc
             continue-on-error: true
-            run:  >
-                  kicad-cli sch erc
-                  --output ${{env.SCH_PATH}}/${{env.ERC_FILE}}
-                  --format json
-                  --exit-code-violations
-                  ${{env.SCH_PATH}}/${{env.SCH_FILE}}
+            working-directory: ${{env.SCH_PATH}}
+            run: |
+                  kicad-cli sch erc \
+                    --output ${{env.ERC_FILE}} \
+                    --format json \
+                    --severity-all \
+                    --exit-code-violations \
+                    ${{env.SCH_FILE}}
 
           - name: Summarize ERC report
-            if: ${{ steps.erc.outcome == 'failure' }}
+            if: steps.erc.outcome == 'failure'
+            working-directory: ${{env.SCH_PATH}}
             run: |
-              echo "========== ERC Violations =========="
-              erc_json=$(cat ${{ env.SCH_PATH }}/${{ env.ERC_FILE }})
+                  source resources/print_violations.sh
 
-              sheet_count=$(echo "$erc_json" | jq '.sheets | length')
-              for sheet_index in $(seq 0 $((sheet_count - 1))); do
-                sheet_path=$(echo "$erc_json" | jq -r ".sheets[$sheet_index].path")
-                echo "Sheet: $sheet_path"
+                  echo "========== ERC Violations =========="
+                  erc_json=$(cat ${{ env.SCH_PATH }}/${{ env.ERC_FILE }})
 
-                violation_count=$(echo "$erc_json" | jq ".sheets[$sheet_index].violations | length")
-                for violation_index in $(seq 0 $((violation_count - 1))); do
-                  description=$(echo "$erc_json" | jq -r ".sheets[$sheet_index].violations[$violation_index].description")
-                  echo "  Violation: $description"
-
-                  item_count=$(echo "$erc_json" | jq ".sheets[$sheet_index].violations[$violation_index].items | length")
-                  for item_index in $(seq 0 $((item_count - 1))); do
-                    item_desc=$(echo "$erc_json" | jq -r ".sheets[$sheet_index].violations[$violation_index].items[$item_index].description")
-                    echo "    Item: $item_desc"
+                  sheet_count=$(echo "$erc_json" | jq '.sheets | length')
+                  for sheet_index in $(seq 0 $((sheet_count - 1))); do
+                    sheet_path=$(echo "$erc_json" | jq -r ".sheets[$sheet_index].path")
+                    echo "Sheet: $sheet_path"
+                    print_violation_section "$erc_json" ".sheets[$sheet_index].violations" ""
                   done
-                done
-              done
-              echo "==================================="
-
+                  echo "==================================="
 
           - name: Upload ERC report if ERC failed
             uses: actions/upload-artifact@v4
-            if: ${{ steps.erc.outcome == 'failure' }}
+            if: steps.erc.outcome == 'failure'
             with:
-                name: ${{env.ERC_FILE}}
-                path: ${{env.SCH_PATH}}/${{env.ERC_FILE}}
+              name: ${{env.ERC_FILE}}
+              path: ${{env.SCH_PATH}}/${{env.ERC_FILE}}
 
-          - name: Run JLCPCB Design Rules Check (DRC)
+          - name: Run Design Rules Check (DRC)
             id: drc
             continue-on-error: true
-            run:  >
-                  kicad-cli pcb drc
-                  --output ${{env.SCH_PATH}}/${{env.DRC_FILE}}
-                  --format json
-                  --exit-code-violations
-                  ${{env.SCH_PATH}}/${{env.PCB_FILE}}
+            working-directory: ${{env.SCH_PATH}}
+            run: |
+                  kicad-cli pcb drc \
+                    --output ${{env.DRC_FILE}} \
+                    --format json \
+                    --severity-all \
+                    --all-track-errors \
+                    --schematic-parity \
+                    --exit-code-violations \
+                    ${{env.PCB_FILE}}
 
           - name: Summarize DRC report
-            if: ${{ steps.drc.outcome == 'failure' }}
+            if: steps.drc.outcome == 'failure'
+            working-directory: ${{env.SCH_PATH}}
             run: |
-              echo "========== DRC Violations =========="
-              drc_json=$(cat ${{ env.SCH_PATH }}/${{ env.DRC_FILE }})
+                  source resources/print_violations.sh
 
-              echo "Unconnected items :"
-              unconnected_count=$(echo "$drc_json" | jq ".unconnected_items | length")
-              for unconnected_index in $(seq 0 $((unconnected_count - 1))); do
-                description=$(echo "$drc_json" | jq -r ".unconnected_items[$unconnected_index].description")
-                echo "  Violation: $description"
-              done
+                  echo "========== DRC Violations =========="
+                  drc_json=$(cat ${{ env.SCH_PATH }}/${{ env.DRC_FILE }})
 
-              echo "Violations :"
-              violations_count=$(echo "$drc_json" | jq ".violations | length")
-              for violation_index in $(seq 0 $((violations_count - 1))); do
-                description=$(echo "$drc_json" | jq -r ".violations[$violation_index].description")
-                echo "  Violation: $description"
-
-                items_count=$(echo "$drc_json" | jq ".violations[$violation_index].items | length")
-                for item_index in $(seq 0 $((items_count - 1))); do
-                  description=$(echo "$drc_json" | jq -r ".violations[$violation_index].items[$item_index].description")
-                  echo "    Item: $description"
-                done
-              done
-              echo "==================================="
+                  print_violation_section "$drc_json" ".unconnected_items" "Unconnected items"
+                  print_violation_section "$drc_json" ".violations" "Violations"
+                  print_violation_section "$drc_json" ".schematic_parity" "Parity issues"
+                  echo "==================================="
 
           - name: Upload DRC report if DRC failed
             uses: actions/upload-artifact@v4
-            if: ${{ steps.drc.outcome == 'failure' }}
+            if: steps.drc.outcome == 'failure'
             with:
               name: ${{env.DRC_FILE}}
               path: ${{env.SCH_PATH}}/${{env.DRC_FILE}}
 
-          - name: Final result
+          - name: Final linting result
             run: |
-              failed=0
-    
-              if [ "${{ steps.erc.outcome }}" != "success" ]; then
-                echo "::error::ERC failed"
-                failed=1
-              fi
-              if [ "${{ steps.drc.outcome }}" != "success" ]; then
-                echo "::error::DRC failed"
-                failed=1
-              fi
-              if [ $failed -eq 1 ]; then
-                exit 1
-              fi
+                  failed=0
+        
+                  if [ "${{ steps.erc.outcome }}" != "success" ]; then
+                    echo "::error::ERC failed"
+                    failed=1
+                  fi
+                  if [ "${{ steps.drc.outcome }}" != "success" ]; then
+                    echo "::error::DRC failed"
+                    failed=1
+                  fi
+                  
+                  [ $failed -eq 1 ] && exit 1 || exit 0
 
+          - name: Generate the JLCPCB production files
+            working-directory: ${{env.SCH_PATH}}
+            run: |
+                  resources/generate_production_files.sh
 
-    jlcpcb:
-      name: JLCPCB production files
-      needs: kicad_checks
-      runs-on: ubuntu-latest
-      container:
-        image: kicad/kicad:9.0
-        options: --user root -v ${{ github.workspace }}:${{ github.workspace }}
-
-      steps:
-        - name: Install git-lfs
-          run: |
-                sudo apt-get update
-                sudo apt-get install -y git-lfs
-                git lfs install
-
-        #actions/checkout cannot be used because it has its own context and will not recognise git-lfs
-        - name: Clone repository with LFS
-          env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          run: |
-            git clone https://x-access-token:${GITHUB_TOKEN}@github.com/gilleshenrard/leany.git
-            cd leany
-            git lfs pull
-
-        - name: Create the export directories
-          run: |
-            mkdir -pv ${{ env.PROD_PATH }}
-            mkdir -pv ${{ env.GBR_PATH }}
-
-          # Generate gerber and drill files, then zip them in the production files directory
-        - name: Generate Gerber files
-          run:  |
-                kicad-cli pcb export gerbers --output ${{ env.GBR_PATH }} --board-plot-params ${{ env.GBR_PATH }}/../leany.kicad_pcb
-                kicad-cli pcb export drill --output ${{ env.GBR_PATH }} ${{ env.GBR_PATH }}/../leany.kicad_pcb
-                zip -j ${{ env.PROD_PATH }}/${{ env.GBR_FILENAME }}.zip ${{ env.GBR_PATH }}/*
-
-          # Generate the BOM file and remove the kicad library prefixes from the footprints column
-        - name: Generate BOM file
-          run:  |
-                kicad-cli sch export bom --output ${{ env.PROD_PATH }}/${{ env.BOM_FILENAME }}.csv --preset JLCPCB --format-preset CSV ${{ env.PROD_PATH }}/../leany.kicad_sch
-                awk -F',' 'BEGIN {OFS=","} NR==1 {print; next} {sub(/.*:/, "", $3); print}' ${{ env.PROD_PATH }}/${{ env.BOM_FILENAME }}.csv > ${{ env.PROD_PATH }}/cleaned_bom.csv
-                mv ${{ env.PROD_PATH }}/cleaned_bom.csv ${{ env.PROD_PATH }}/${{ env.BOM_FILENAME }}.csv
-
-          # Generate the CPL file and replace the Kicad default header with the JLCPCB-compatible header
-        - name: Generate top side CPL file
-          run:  |
-                kicad-cli pcb export pos --output ${{ env.PROD_PATH }}/${{ env.CPL_FILENAME }}.csv --side front --format csv --units mm --use-drill-file-origin ${{ env.PROD_PATH }}/../leany.kicad_pcb
-                KICAD_HEADER='Ref,Val,Package,PosX,PosY,Rot,Side'
-                JLCPCB_HEADER='Designator,Val,Package,Mid X,Mid Y,Rotation,Layer'
-                sed -i "s/$KICAD_HEADER/$JLCPCB_HEADER/g" ${{ env.PROD_PATH }}/${{ env.CPL_FILENAME }}.csv
+          - name: List BOM components
+            working-directory: ${{env.SCH_PATH}}
+            run: |
+                  chmod +x resources/list_bom.sh
+                  resources/list_bom.sh ${{ env.PROD_PATH }}/BOM-JLCPCB.csv
 
           # Upload the production files as an artifact
-        - name: Save the production files directory
-          uses: actions/upload-artifact@v4
-          with:
-            name: production-files
-            path: ${{ env.PROD_PATH }}
-            if-no-files-found: error
+          - name: Save the production files
+            uses: actions/upload-artifact@v6
+            with:
+              name: production-files
+              if-no-files-found: error
+              path: |
+                ${{ env.PROD_PATH }}/JCLPCB_gerber.zip
+                ${{ env.PROD_PATH }}/BOM-JLCPCB.csv
+                ${{ env.PROD_PATH }}/CPL-JLCPCB.csv

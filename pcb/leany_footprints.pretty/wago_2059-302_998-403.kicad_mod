@@ -133,28 +133,6 @@
 		(layer "F.SilkS")
 		(uuid "fb1c5c53-0e8d-4232-b360-97221641f35d")
 	)
-	(fp_circle
-		(center -4.1 2.846855)
-		(end -3.719 2.846855)
-		(stroke
-			(width 0.508)
-			(type solid)
-		)
-		(fill no)
-		(layer "F.SilkS")
-		(uuid "a1207eb3-66fe-4585-b8ee-0bf34ac0291a")
-	)
-	(fp_circle
-		(center -4.1 2.846855)
-		(end -3.719 2.846855)
-		(stroke
-			(width 0.508)
-			(type solid)
-		)
-		(fill no)
-		(layer "B.SilkS")
-		(uuid "8ad4e31b-4b75-4ad9-a5ce-70b0a867aafa")
-	)
 	(fp_line
 		(start -3.204 -4.857143)
 		(end -3.204 4.350855)
@@ -235,6 +213,19 @@
 		(layer "F.Fab")
 		(uuid "572e7870-40c8-429a-9928-9ebd66787911")
 	)
+	(fp_text user "+"
+		(at -4.5 3.75 0)
+		(unlocked yes)
+		(layer "F.SilkS")
+		(uuid "829c095c-253d-4923-8597-26074d95632e")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+			(justify left bottom)
+		)
+	)
 	(fp_text user "${REFERENCE}"
 		(at 0 -0.253144 0)
 		(unlocked yes)
@@ -272,7 +263,7 @@
 		(uuid "5794529d-3262-4236-b413-558aeef2fa81")
 	)
 	(embedded_fonts no)
-	(model "${KIPRJMOD}/3d-models/wago/wago_2059-302_998-403.stp"
+	(model "${KIPRJMOD}/resources/3d-models/wago/wago_2059-302_998-403.stp"
 		(offset
 			(xyz 3 -3.5 0)
 		)
