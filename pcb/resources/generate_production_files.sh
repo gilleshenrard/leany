@@ -1,4 +1,10 @@
+# SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
+#
+# SPDX-License-Identifier: MIT
+
 #!/bin/sh
+
+set -e
 
 PROJECT_NAME=leany
 KICAD_HEADER='Ref,Val,Package,PosX,PosY,Rot,Side'
@@ -28,3 +34,8 @@ echo " "
 echo "Creating POS file"
 kicad-cli pcb export pos --output $PROD_PATH/CPL-JLCPCB.csv --side front --format csv --units mm --use-drill-file-origin $PROJECT_NAME.kicad_pcb
 sed -i "s/$KICAD_HEADER/$JLCPCB_HEADER/g" $PROD_PATH/CPL-JLCPCB.csv
+
+echo " "
+echo "Creating STL file"
+export KICAD9_3DMODEL_DIR="/usr/share/kicad/3dmodels"
+kicad-cli pcb export stl --output $PROD_PATH/$PROJECT_NAME.stl --force --subst-models --no-dnp --drill-origin $PROJECT_NAME.kicad_pcb

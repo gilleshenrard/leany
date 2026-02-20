@@ -168,26 +168,6 @@ void DebugMon_Handler(void)
 /******************************************************************************/
 
 /**
-  * @brief This function handles EXTI line0 interrupt.
-  */
-void EXTI0_IRQHandler(void)
-{
-  /* USER CODE BEGIN EXTI0_IRQn 0 */
-
-  /* USER CODE END EXTI0_IRQn 0 */
-  if (LL_EXTI_IsActiveFlag_0_31(LL_EXTI_LINE_0) != RESET)
-  {
-    LL_EXTI_ClearFlag_0_31(LL_EXTI_LINE_0);
-    /* USER CODE BEGIN LL_EXTI_LINE_0 */
-    IMUinterruptTriggered(1);
-    /* USER CODE END LL_EXTI_LINE_0 */
-  }
-  /* USER CODE BEGIN EXTI0_IRQn 1 */
-
-  /* USER CODE END EXTI0_IRQn 1 */
-}
-
-/**
   * @brief This function handles EXTI line1 interrupt.
   */
 void EXTI1_IRQHandler(void)
@@ -199,7 +179,7 @@ void EXTI1_IRQHandler(void)
   {
     LL_EXTI_ClearFlag_0_31(LL_EXTI_LINE_1);
     /* USER CODE BEGIN LL_EXTI_LINE_1 */
-    IMUinterruptTriggered(2);
+
     /* USER CODE END LL_EXTI_LINE_1 */
   }
   /* USER CODE BEGIN EXTI1_IRQn 1 */
@@ -208,23 +188,23 @@ void EXTI1_IRQHandler(void)
 }
 
 /**
-  * @brief This function handles EXTI line2 interrupt.
+  * @brief This function handles EXTI line4 interrupt.
   */
-void EXTI2_IRQHandler(void)
+void EXTI4_IRQHandler(void)
 {
-  /* USER CODE BEGIN EXTI2_IRQn 0 */
+  /* USER CODE BEGIN EXTI4_IRQn 0 */
 
-  /* USER CODE END EXTI2_IRQn 0 */
-  if (LL_EXTI_IsActiveFlag_0_31(LL_EXTI_LINE_2) != RESET)
+  /* USER CODE END EXTI4_IRQn 0 */
+  if (LL_EXTI_IsActiveFlag_0_31(LL_EXTI_LINE_4) != RESET)
   {
-    LL_EXTI_ClearFlag_0_31(LL_EXTI_LINE_2);
-    /* USER CODE BEGIN LL_EXTI_LINE_2 */
-
-    /* USER CODE END LL_EXTI_LINE_2 */
+    LL_EXTI_ClearFlag_0_31(LL_EXTI_LINE_4);
+    /* USER CODE BEGIN LL_EXTI_LINE_4 */
+    IMUinterruptTriggered(1);
+    /* USER CODE END LL_EXTI_LINE_4 */
   }
-  /* USER CODE BEGIN EXTI2_IRQn 1 */
+  /* USER CODE BEGIN EXTI4_IRQn 1 */
 
-  /* USER CODE END EXTI2_IRQn 1 */
+  /* USER CODE END EXTI4_IRQn 1 */
 }
 
 /**
@@ -252,6 +232,26 @@ void ADC1_2_IRQHandler(void)
   /* USER CODE BEGIN ADC1_2_IRQn 1 */
 
   /* USER CODE END ADC1_2_IRQn 1 */
+}
+
+/**
+  * @brief This function handles EXTI line[9:5] interrupts.
+  */
+void EXTI9_5_IRQHandler(void)
+{
+  /* USER CODE BEGIN EXTI9_5_IRQn 0 */
+
+  /* USER CODE END EXTI9_5_IRQn 0 */
+  if (LL_EXTI_IsActiveFlag_0_31(LL_EXTI_LINE_5) != RESET)
+  {
+    LL_EXTI_ClearFlag_0_31(LL_EXTI_LINE_5);
+    /* USER CODE BEGIN LL_EXTI_LINE_5 */
+
+    /* USER CODE END LL_EXTI_LINE_5 */
+  }
+  /* USER CODE BEGIN EXTI9_5_IRQn 1 */
+
+  /* USER CODE END EXTI9_5_IRQn 1 */
 }
 
 /**

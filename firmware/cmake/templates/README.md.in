@@ -25,10 +25,10 @@ cmake --build --preset Release
 ## Programming the device
 ### USB (programming only)
 1. Plug the device to a computer with a USB type C cable
-2. Press and maintain the BOOT button down
+2. Press and maintain the ZERO button down
 3. Press the RESET button
-4. Release the BOOT button
-5. Upload the Leany.elf file to the device with the STM32CubeProgrammer software in USB mode
+4. Release the ZERO button
+5. Upload the Leany.elf file to the device with the STM32CubeProgrammer software in Serial mode
 
 ### Hardware programmer (programming and debugging)
 1. Wire the programmer to the 4-pin male SWD connector on the PCB

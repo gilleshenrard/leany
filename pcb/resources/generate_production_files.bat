@@ -1,3 +1,7 @@
+rem SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
+rem
+rem SPDX-License-Identifier: MIT
+
 @echo off
 
 rem -------------------------------------------------------------------------------------------
@@ -40,7 +44,7 @@ if errorlevel 1 exit /b 1
 echo Zipping the gerber and drill files
 tar -cvf JCLPCB_gerber.zip %PROD_PATH%
 move JCLPCB_gerber.zip %PROD_PATH%
-del %PROD_PATH%\*.gbr %PROD_PATH%\*.gbrjob %PROD_PATH%\*.drl
+del %PROD_PATH%\*.g* %PROD_PATH%\*.drl
 
 rem -------------------------------------------------------------------------------------------
 rem Create the BOM file
@@ -98,3 +102,10 @@ set "replace=Designator,Val,Package,Mid X,Mid Y,Rotation,Layer"
 del "%kicadCPLfile%"
 echo %kicadCPLfile% replaced by %jlcpcbCPLfile%
 endlocal
+
+rem -------------------------------------------------------------------------------------------
+rem Create the STL file
+rem -------------------------------------------------------------------------------------------
+echo Creating STL file
+kicad-cli pcb export stl --output %PROD_PATH%\%PROJECT_NAME%.stl --force --subst-models --no-dnp --drill-origin %PROJECT_NAME%.kicad_pcb
+if errorlevel 1 exit /b 1

@@ -51,21 +51,69 @@ void MX_GPIO_Init(void)
   LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_GPIOB);
 
   /**/
-  LL_GPIO_SetOutputPin(GPIOA, IMU_CS_Pin|ST7735S_RST_Pin);
+  LL_GPIO_SetOutputPin(GPIOB, IMU_CS_Pin|ST7735S_CS_Pin);
 
   /**/
-  LL_GPIO_SetOutputPin(ST7735S_CS_GPIO_Port, ST7735S_CS_Pin);
+  LL_GPIO_SetOutputPin(ST7735S_RST_GPIO_Port, ST7735S_RST_Pin);
 
   /**/
-  LL_GPIO_ResetOutputPin(GPIOA, BATT_EN_Pin|ST7735S_DC_Pin|ST7735S_BL_Pin);
+  LL_GPIO_ResetOutputPin(GPIOA, ST7735S_BL_Pin|ST7735S_DC_Pin|BATT_EN_Pin);
 
   /**/
   LL_GPIO_ResetOutputPin(DEBUG_OUT_GPIO_Port, DEBUG_OUT_Pin);
 
   /**/
+  LL_GPIO_AF_SetEXTISource(LL_GPIO_AF_EXTI_PORTA, LL_GPIO_AF_EXTI_LINE4);
+
+  /**/
+  LL_GPIO_AF_SetEXTISource(LL_GPIO_AF_EXTI_PORTB, LL_GPIO_AF_EXTI_LINE1);
+
+  /**/
+  LL_GPIO_AF_SetEXTISource(LL_GPIO_AF_EXTI_PORTB, LL_GPIO_AF_EXTI_LINE5);
+
+  /**/
+  EXTI_InitStruct.Line_0_31 = LL_EXTI_LINE_4;
+  EXTI_InitStruct.LineCommand = ENABLE;
+  EXTI_InitStruct.Mode = LL_EXTI_MODE_IT;
+  EXTI_InitStruct.Trigger = LL_EXTI_TRIGGER_RISING;
+  LL_EXTI_Init(&EXTI_InitStruct);
+
+  /**/
+  EXTI_InitStruct.Line_0_31 = LL_EXTI_LINE_1;
+  EXTI_InitStruct.LineCommand = ENABLE;
+  EXTI_InitStruct.Mode = LL_EXTI_MODE_IT;
+  EXTI_InitStruct.Trigger = LL_EXTI_TRIGGER_RISING;
+  LL_EXTI_Init(&EXTI_InitStruct);
+
+  /**/
+  EXTI_InitStruct.Line_0_31 = LL_EXTI_LINE_5;
+  EXTI_InitStruct.LineCommand = ENABLE;
+  EXTI_InitStruct.Mode = LL_EXTI_MODE_IT;
+  EXTI_InitStruct.Trigger = LL_EXTI_TRIGGER_FALLING;
+  LL_EXTI_Init(&EXTI_InitStruct);
+
+  /**/
+  LL_GPIO_SetPinPull(IMU_INT1_GPIO_Port, IMU_INT1_Pin, LL_GPIO_PULL_UP);
+
+  /**/
+  LL_GPIO_SetPinPull(IMU_INT2_GPIO_Port, IMU_INT2_Pin, LL_GPIO_PULL_UP);
+
+  /**/
+  LL_GPIO_SetPinPull(CHG_INT_GPIO_Port, CHG_INT_Pin, LL_GPIO_PULL_UP);
+
+  /**/
+  LL_GPIO_SetPinMode(IMU_INT1_GPIO_Port, IMU_INT1_Pin, LL_GPIO_MODE_INPUT);
+
+  /**/
+  LL_GPIO_SetPinMode(IMU_INT2_GPIO_Port, IMU_INT2_Pin, LL_GPIO_MODE_INPUT);
+
+  /**/
+  LL_GPIO_SetPinMode(CHG_INT_GPIO_Port, CHG_INT_Pin, LL_GPIO_MODE_INPUT);
+
+  /**/
   GPIO_InitStruct.Pin = IMU_CS_Pin;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
-  GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_HIGH;
+  GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
   GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
   LL_GPIO_Init(IMU_CS_GPIO_Port, &GPIO_InitStruct);
@@ -85,7 +133,7 @@ void MX_GPIO_Init(void)
   LL_GPIO_Init(ST7735S_CS_GPIO_Port, &GPIO_InitStruct);
 
   /**/
-  GPIO_InitStruct.Pin = BATT_EN_Pin|ST7735S_DC_Pin|ST7735S_RST_Pin|ST7735S_BL_Pin;
+  GPIO_InitStruct.Pin = ST7735S_BL_Pin|ST7735S_DC_Pin|ST7735S_RST_Pin|BATT_EN_Pin;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
   GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
@@ -98,61 +146,13 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
   LL_GPIO_Init(DEBUG_OUT_GPIO_Port, &GPIO_InitStruct);
 
-  /**/
-  LL_GPIO_AF_SetEXTISource(LL_GPIO_AF_EXTI_PORTB, LL_GPIO_AF_EXTI_LINE0);
-
-  /**/
-  LL_GPIO_AF_SetEXTISource(LL_GPIO_AF_EXTI_PORTB, LL_GPIO_AF_EXTI_LINE1);
-
-  /**/
-  LL_GPIO_AF_SetEXTISource(LL_GPIO_AF_EXTI_PORTB, LL_GPIO_AF_EXTI_LINE2);
-
-  /**/
-  EXTI_InitStruct.Line_0_31 = LL_EXTI_LINE_0;
-  EXTI_InitStruct.LineCommand = ENABLE;
-  EXTI_InitStruct.Mode = LL_EXTI_MODE_IT;
-  EXTI_InitStruct.Trigger = LL_EXTI_TRIGGER_RISING;
-  LL_EXTI_Init(&EXTI_InitStruct);
-
-  /**/
-  EXTI_InitStruct.Line_0_31 = LL_EXTI_LINE_1;
-  EXTI_InitStruct.LineCommand = ENABLE;
-  EXTI_InitStruct.Mode = LL_EXTI_MODE_IT;
-  EXTI_InitStruct.Trigger = LL_EXTI_TRIGGER_FALLING;
-  LL_EXTI_Init(&EXTI_InitStruct);
-
-  /**/
-  EXTI_InitStruct.Line_0_31 = LL_EXTI_LINE_2;
-  EXTI_InitStruct.LineCommand = ENABLE;
-  EXTI_InitStruct.Mode = LL_EXTI_MODE_IT;
-  EXTI_InitStruct.Trigger = LL_EXTI_TRIGGER_RISING;
-  LL_EXTI_Init(&EXTI_InitStruct);
-
-  /**/
-  LL_GPIO_SetPinPull(IMU_INT1_GPIO_Port, IMU_INT1_Pin, LL_GPIO_PULL_UP);
-
-  /**/
-  LL_GPIO_SetPinPull(CHG_INT_GPIO_Port, CHG_INT_Pin, LL_GPIO_PULL_UP);
-
-  /**/
-  LL_GPIO_SetPinPull(IMU_INT2_GPIO_Port, IMU_INT2_Pin, LL_GPIO_PULL_UP);
-
-  /**/
-  LL_GPIO_SetPinMode(IMU_INT1_GPIO_Port, IMU_INT1_Pin, LL_GPIO_MODE_INPUT);
-
-  /**/
-  LL_GPIO_SetPinMode(CHG_INT_GPIO_Port, CHG_INT_Pin, LL_GPIO_MODE_INPUT);
-
-  /**/
-  LL_GPIO_SetPinMode(IMU_INT2_GPIO_Port, IMU_INT2_Pin, LL_GPIO_MODE_INPUT);
-
   /* EXTI interrupt init*/
-  NVIC_SetPriority(EXTI0_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),5, 0));
-  NVIC_EnableIRQ(EXTI0_IRQn);
   NVIC_SetPriority(EXTI1_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),5, 0));
   NVIC_EnableIRQ(EXTI1_IRQn);
-  NVIC_SetPriority(EXTI2_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),5, 0));
-  NVIC_EnableIRQ(EXTI2_IRQn);
+  NVIC_SetPriority(EXTI4_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),5, 0));
+  NVIC_EnableIRQ(EXTI4_IRQn);
+  NVIC_SetPriority(EXTI9_5_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),5, 0));
+  NVIC_EnableIRQ(EXTI9_5_IRQn);
 
 }
 

@@ -457,7 +457,7 @@
 		(uuid "0320eeb2-6a91-4d2d-9032-8bc9cc0cb72d")
 	)
 	(embedded_fonts no)
-	(model "${KIPRJMOD}/3d-models/grabcad/Paul_Thelu/tact_switch_2.5mm_paul-thelu.stp"
+	(model "${KIPRJMOD}/resources/3d-models/grabcad/Paul_Thelu/tact_switch_2.5mm_paul-thelu.stp"
 		(offset
 			(xyz -2.5 -2.6 0)
 		)
