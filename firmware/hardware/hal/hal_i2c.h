@@ -1,7 +1,9 @@
-/*
+/**
  * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
- *
  * SPDX-License-Identifier: MIT
+ * 
+ * @file hal_i2c.h
+ * @author Gilles Henrard
  */
 #ifndef HARDWARE_HAL_HAL_I2C_H
 #define HARDWARE_HAL_HAL_I2C_H

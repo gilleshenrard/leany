@@ -1,10 +1,8 @@
-/*
- * SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
- *
- * SPDX-License-Identifier: MIT
- */
-
 /**
+ * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
+ * SPDX-License-Identifier: MIT
+ * 
+ * @file buttons.c
  * @brief Implement the GPIO buttons state and debouncing
  * @author Gilles Henrard
  */

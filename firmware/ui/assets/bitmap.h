@@ -1,9 +1,10 @@
-/*
- * SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
- *
+/**
+ * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
  * SPDX-License-Identifier: MIT
+ * 
+ * @file bitmap.h
+ * @author Gilles Henrard
  */
-
 #ifndef UI_BITMAP_H
 #define UI_BITMAP_H
 #include <stdint.h>

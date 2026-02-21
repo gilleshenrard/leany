@@ -1,7 +1,10 @@
-/*
+/**
  * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
- *
  * SPDX-License-Identifier: MIT
+ * 
+ * @file screen_main.c
+ * @brief Implement the main measurements screen
+ * @author Gilles Henrard
  */
 #include "screen_main.h"
 

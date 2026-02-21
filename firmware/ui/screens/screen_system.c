@@ -1,7 +1,10 @@
-/*
+/**
  * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
- *
  * SPDX-License-Identifier: MIT
+ * 
+ * @file screen_system.c
+ * @brief Implement the system information screen
+ * @author Gilles Henrard
  */
 #include "screen_system.h"
 

@@ -1,7 +1,9 @@
-/*
+/**
  * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
- *
  * SPDX-License-Identifier: MIT
+ * 
+ * @file battery.c
+ * @author Gilles Henrard
  */
 #include "battery.h"
 

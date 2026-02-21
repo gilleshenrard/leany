@@ -1,11 +1,9 @@
-/*
- * SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
- *
- * SPDX-License-Identifier: MIT
- */
-
 /**
- * @brief Implement the FreeRTOS task taking care of simple GPIO modules
+ * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
+ * SPDX-License-Identifier: MIT
+ * 
+ * @file task_gpio.c
+ * @brief Implement the FreeRTOS task taking care of the GPIOs
  * @author Gilles Henrard
  */
 #include "task_gpio.h"

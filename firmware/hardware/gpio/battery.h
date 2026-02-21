@@ -1,7 +1,9 @@
-/*
+/**
  * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
- *
  * SPDX-License-Identifier: MIT
+ * 
+ * @file battery.h
+ * @author Gilles Henrard
  */
 #ifndef HARDWARE_GPIO_BATTERY_H
 #define HARDWARE_GPIO_BATTERY_H

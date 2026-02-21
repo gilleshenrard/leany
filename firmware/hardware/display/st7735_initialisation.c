@@ -1,7 +1,10 @@
-/*
+/**
  * SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
- *
  * SPDX-License-Identifier: MIT
+ * 
+ * @file st7735_initialisation.c
+ * @details Implement ST7735S initialisation script
+ * @author Gilles Henrard
  */
 
 #include "st7735_initialisation.h"

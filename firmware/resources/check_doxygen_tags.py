@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
+#
+# SPDX-License-Identifier: MIT
+
 #!/usr/bin/env python3
 """
 check_doxygen_file_tags.py

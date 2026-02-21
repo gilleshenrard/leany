@@ -1,10 +1,9 @@
-/*
- * SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
- *
- * SPDX-License-Identifier: MIT
- */
 /**
- * @brief Implement the FreeRTOS task taking care of UART serial communication
+ * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
+ * SPDX-License-Identifier: MIT
+ * 
+ * @file task_serial.c
+ * @brief Implement the FreeRTOS task taking care of the serial communication
  * @author Gilles Henrard
  */
 #include "task_serial.h"

@@ -1,10 +1,7 @@
-/*
- * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
- *
- * SPDX-License-Identifier: MIT
- */
-
 /**
+ * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
+ * SPDX-License-Identifier: MIT
+ *
  * @file task_battery.c
  * @brief Implement the battery voltage and BQ25619 charger status monitoring
  * @author Gilles Henrard

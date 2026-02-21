@@ -1,9 +1,11 @@
-/*
- * SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
- *
+/**
+ * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
  * SPDX-License-Identifier: MIT
+ * 
+ * @file label.c
+ * @brief Implement the labels to display on screen
+ * @author Gilles Henrard
  */
-
 #include "label.h"
 
 #include <stddef.h>

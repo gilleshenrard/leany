@@ -1,9 +1,11 @@
-/*
- * SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
- *
+/**
+ * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
  * SPDX-License-Identifier: MIT
+ * 
+ * @file complementaryfilter.c
+ * @brief Implement the sensor fusion through a Complementary Filter
+ * @author Gilles Henrard
  */
-
 #include "complementaryfilter.h"
 
 #include <math.h>

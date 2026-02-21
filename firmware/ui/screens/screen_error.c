@@ -1,7 +1,10 @@
-/*
+/**
  * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
- *
  * SPDX-License-Identifier: MIT
+ * 
+ * @file screen_error.c
+ * @brief Implement the error screen
+ * @author Gilles Henrard
  */
 #include "screen_error.h"
 

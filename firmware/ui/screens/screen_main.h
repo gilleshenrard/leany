@@ -1,7 +1,9 @@
-/*
+/**
  * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
- *
  * SPDX-License-Identifier: MIT
+ * 
+ * @file screen_main.h
+ * @author Gilles Henrard
  */
 #ifndef UI_SCREEN_MAIN_H
 #define UI_SCREEN_MAIN_H

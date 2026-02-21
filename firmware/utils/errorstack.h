@@ -1,9 +1,10 @@
-/*
- * SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
- *
+/**
+ * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
  * SPDX-License-Identifier: MIT
+ * 
+ * @file errorstack.h
+ * @author Gilles Henrard
  */
-
 #ifndef INC_ERRORS_ERRORS_H
 #define INC_ERRORS_ERRORS_H
 #include <main.h>

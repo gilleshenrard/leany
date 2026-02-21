@@ -1,9 +1,10 @@
-/*
- * SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
- *
+/**
+ * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
  * SPDX-License-Identifier: MIT
+ * 
+ * @file fonts.h
+ * @author Gilles Henrard
  */
-
 #ifndef INC_HARDWARE_SCREEN_FONTS_H
 #define INC_HARDWARE_SCREEN_FONTS_H
 #include <stddef.h>

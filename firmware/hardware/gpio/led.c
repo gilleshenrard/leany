@@ -1,9 +1,11 @@
-/*
- * SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
- *
+/**
+ * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
  * SPDX-License-Identifier: MIT
+ * 
+ * @file led.c
+ * @brief Implement the GPIO state for LED
+ * @author Gilles Henrard
  */
-
 #include "led.h"
 
 #include <main.h>

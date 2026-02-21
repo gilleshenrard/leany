@@ -1,7 +1,9 @@
-/*
- * SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
- *
+/**
+ * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
  * SPDX-License-Identifier: MIT
+ * 
+ * @file scpi_parser.h
+ * @author Gilles Henrard
  */
 #ifndef HARDWARE_SERIAL_SCPI_PARSER_H
 #define HARDWARE_SERIAL_SCPI_PARSER_H
