@@ -6,6 +6,7 @@
 
 #ifndef INC_ERRORS_ERRORS_H
 #define INC_ERRORS_ERRORS_H
+#include <main.h>
 #include <stdint.h>
 
 //definitions

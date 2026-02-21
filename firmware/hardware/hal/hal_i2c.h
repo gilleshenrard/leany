@@ -6,8 +6,8 @@
 #ifndef HARDWARE_HAL_HAL_I2C_H
 #define HARDWARE_HAL_HAL_I2C_H
 
-#include <main.h>
 #include <stdint.h>
+#include <stm32f103xb.h>
 
 #include "errorstack.h"
 

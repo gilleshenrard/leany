@@ -6,6 +6,7 @@
 
 #include "bq25619.h"
 
+#include <main.h>
 #include <stdint.h>
 #include <stm32f103xb.h>
 #include <stm32f1xx_hal.h>
@@ -15,8 +16,7 @@
 #include "hal_i2c.h"
 
 enum {
-    kI2Ctimeout_ms = 10U,  ///< Maximum number of milliseconds an I²C transfer can last
-    kRead = 1U,
+    kI2Ctimeout_ms = 10U,    ///< Maximum number of milliseconds an I²C transfer can last
     kNbChipIDtests = 5U,     ///< Number of times chip ID reading must be tested
     kChipIDtimeout = 1000U,  ///< Maximum number of milliseconds to attempt reading the chip ID
 };
@@ -99,7 +99,7 @@ ErrorCode updateBQ25619status(uint32_t interrupt_received) {
     EXIT_ON_ERROR(result, kUpdateStatus, 1)
 
     //if no interrupt was caught, stop there
-    if (interrupt_received == pdFALSE) {
+    if (!interrupt_received) {
         return kSuccessCode;
     }
 
