@@ -22,8 +22,7 @@ target_compile_definitions(UI PRIVATE $<TARGET_PROPERTY:stm32cubemx,INTERFACE_CO
 target_include_directories(UI SYSTEM PRIVATE $<TARGET_PROPERTY:stm32cubemx,INTERFACE_INCLUDE_DIRECTORIES>)
 target_link_libraries(UI PRIVATE
 	st7735s
-	gpio
+	BATTERY
 	hal
-	tasks
 	utils)
 target_compile_options(UI PRIVATE ${WARNING_FLAGS})
