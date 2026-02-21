@@ -415,7 +415,7 @@
       "extra_units": "error",
       "footprint_filter": "ignore",
       "footprint_link_issues": "error",
-      "four_way_junction": "ignore",
+      "four_way_junction": "error",
       "global_label_dangling": "error",
       "hier_label_mismatch": "error",
       "label_dangling": "error",
