@@ -29,6 +29,7 @@
 #include "hal_spi.h"
 #include "task_imu.h"
 #include "task_serial.h"
+#include "task_battery.h"
 #include "hal_adc.h"
 /* USER CODE END Includes */
 
@@ -199,7 +200,7 @@ void EXTI1_IRQHandler(void)
   {
     LL_EXTI_ClearFlag_0_31(LL_EXTI_LINE_1);
     /* USER CODE BEGIN LL_EXTI_LINE_1 */
-    IMUinterruptTriggered(2);
+    chargerInterruptTriggered();
     /* USER CODE END LL_EXTI_LINE_1 */
   }
   /* USER CODE BEGIN EXTI1_IRQn 1 */
@@ -219,7 +220,7 @@ void EXTI2_IRQHandler(void)
   {
     LL_EXTI_ClearFlag_0_31(LL_EXTI_LINE_2);
     /* USER CODE BEGIN LL_EXTI_LINE_2 */
-
+    IMUinterruptTriggered(2);
     /* USER CODE END LL_EXTI_LINE_2 */
   }
   /* USER CODE BEGIN EXTI2_IRQn 1 */

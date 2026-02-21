@@ -11,9 +11,8 @@
 #include "bq25619_registers.inc"
 #include "errorstack.h"
 
-ErrorCode initiateTransaction(I2C_TypeDef* descriptor, BQ25619register first_register, TickType_t start_tick);
-ErrorCode readRegisters(I2C_TypeDef* descriptor, BQ25619register first_register, uint8_t data[], uint8_t nb_bytes);
-ErrorCode writeRegisters(I2C_TypeDef* descriptor, BQ25619register first_register, const uint8_t data[],
-                         uint8_t nb_bytes);
+ErrorCode readI2Cregisters(I2C_TypeDef* descriptor, BQ25619register first_register, uint8_t data[], uint8_t nb_bytes);
+ErrorCode writeI2CRegisters(I2C_TypeDef* descriptor, BQ25619register first_register, const uint8_t data[],
+                            uint8_t nb_bytes);
 
 #endif

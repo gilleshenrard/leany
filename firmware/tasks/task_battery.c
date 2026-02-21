@@ -150,7 +150,7 @@ static ErrorCode stateStartup(void) {
     TickType_t start_tick = xTaskGetTickCount();
     uint8_t tests_remaining = kNbChipIDtests;
     do {
-        result = readRegisters(i2c_handle, kPART_INFO, &part_number, 1);
+        result = readI2Cregisters(i2c_handle, kPART_INFO, &part_number, 1);
         EXIT_ON_ERROR(result, kStateStartup, 1)
 
         if ((part_number & (uint8_t)kPN_MASK) == kPN_VALUE) {
@@ -164,7 +164,7 @@ static ErrorCode stateStartup(void) {
 
     //reset the registers to their default value
     uint8_t reset = kREG_RESET;
-    result = writeRegisters(i2c_handle, kPART_INFO, &reset, 1);
+    result = writeI2CRegisters(i2c_handle, kPART_INFO, &reset, 1);
     EXIT_ON_ERROR(result, kStateStartup, 3)
 
     return kSuccessCode;
@@ -192,7 +192,7 @@ static ErrorCode stateConfiguring(void) {
     // write the configuration registers
     const uint8_t nb_registers = sizeof(config_values) / 2U;
     for (uint8_t value = 0; value < nb_registers; value++) {
-        result = writeRegisters(i2c_handle, config_values[value][0], &config_values[value][1], 1U);
+        result = writeI2CRegisters(i2c_handle, config_values[value][0], &config_values[value][1], 1U);
         EXIT_ON_ERROR(result, kStateConfiguring, 1)
     }
 
@@ -211,7 +211,7 @@ static ErrorCode stateIdle(void) {
     const uint32_t interrupt_received = ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(kUpdatePeriodMS));
 
     //read the current charger status
-    result = readRegisters(i2c_handle, kCHG_STATUS0, latest_status.bytes, kNB_STATUS_BYTES);
+    result = readI2Cregisters(i2c_handle, kCHG_STATUS0, latest_status.bytes, kNB_STATUS_BYTES);
     EXIT_ON_ERROR(result, kStateIdle, 1)
 
     //if no interrupt was caught, stop there
@@ -221,7 +221,7 @@ static ErrorCode stateIdle(void) {
 
     //getting the actual new status requires a second reading
     ChargerStatus previous_status = latest_status;
-    result = readRegisters(i2c_handle, kCHG_STATUS0, latest_status.bytes, kNB_STATUS_BYTES);
+    result = readI2Cregisters(i2c_handle, kCHG_STATUS0, latest_status.bytes, kNB_STATUS_BYTES);
     EXIT_ON_ERROR(result, kStateIdle, 2)
 
     //compute the changes between the old and new status

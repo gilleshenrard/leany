@@ -28,38 +28,12 @@ typedef enum {
     kWriteRegisters = 3,     ///< writeRegisters() function
 } FunctionCode;
 
+static ErrorCode initiateTransaction(I2C_TypeDef* descriptor, BQ25619register first_register, TickType_t start_tick);
+
 static ErrorCode result = {0};  ///< Buffer used to store the latest error code
 
-/**
- * Initiate an I²C reception sequence
- *
- * @param descriptor I²C descriptor to use
- * @param first_register Number of the first register to read
- * @param start_tick FreeRTOS tick at the start of the sequence
- * @retval 0 Success
- * @retval 1 Timeout while waiting for start signal to be done
- * @retval 2 Timeout while waiting for ADDR byte to be sent
- * @retval 3 Timeout while waiting for the register address to be sent
- */
-ErrorCode initiateTransaction(I2C_TypeDef* descriptor, BQ25619register first_register, TickType_t start_tick) {
-    uint8_t timeout_value = 0;
-
-    //send a start signal
-    LL_I2C_GenerateStartCondition(descriptor);
-    EXIT_ON_TIMEOUT(LL_I2C_IsActiveFlag_SB(descriptor), kI2Ctimeout_ms, kInitiateReception, 1)
-
-    //send the slave address
-    LL_I2C_TransmitData8(descriptor, (uint8_t)((uint8_t)kDEFAULT_SLAVEADDR << 1U) | (uint8_t)kCHG_WRITE);
-    EXIT_ON_TIMEOUT(LL_I2C_IsActiveFlag_ADDR(descriptor), kI2Ctimeout_ms, kInitiateReception, 2)
-    LL_I2C_AcknowledgeNextData(descriptor, LL_I2C_NACK);
-    LL_I2C_ClearFlag_ADDR(descriptor);
-
-    //send the register address
-    EXIT_ON_TIMEOUT(LL_I2C_IsActiveFlag_TXE(descriptor), kI2Ctimeout_ms, kInitiateReception, 3)
-    LL_I2C_TransmitData8(descriptor, (uint8_t)first_register);
-
-    return kSuccessCode;
-}
+/*********************************************************************************************************************************/
+/*********************************************************************************************************************************/
 
 /**
  * Burst read data via I²C
@@ -76,7 +50,7 @@ ErrorCode initiateTransaction(I2C_TypeDef* descriptor, BQ25619register first_reg
  * @retval 5 Timeout while waiting for a data byte to be received
  * @retval 6 Timeout while waiting for the last data byte to be received
  */
-ErrorCode readRegisters(I2C_TypeDef* descriptor, BQ25619register first_register, uint8_t data[], uint8_t nb_bytes) {
+ErrorCode readI2Cregisters(I2C_TypeDef* descriptor, BQ25619register first_register, uint8_t data[], uint8_t nb_bytes) {
     (void)nb_bytes;
 
     if (!descriptor || (!data && nb_bytes)) {
@@ -133,8 +107,8 @@ ErrorCode readRegisters(I2C_TypeDef* descriptor, BQ25619register first_register,
  * @retval 4 Timeout while waiting for TXE to be set before the last data byte
  * @retval 5 Timeout while waiting for Byte Transfer Finish to be set
  */
-ErrorCode writeRegisters(I2C_TypeDef* descriptor, BQ25619register first_register, const uint8_t data[],
-                         uint8_t nb_bytes) {
+ErrorCode writeI2CRegisters(I2C_TypeDef* descriptor, BQ25619register first_register, const uint8_t data[],
+                            uint8_t nb_bytes) {
     if (!descriptor || (!data && nb_bytes)) {
         return createErrorCode(kReadRegisters, 1, kErrorError);
     }
@@ -164,6 +138,40 @@ ErrorCode writeRegisters(I2C_TypeDef* descriptor, BQ25619register first_register
     LL_I2C_TransmitData8(descriptor, data[current_byte]);
     EXIT_ON_TIMEOUT(LL_I2C_IsActiveFlag_BTF(descriptor), kI2Ctimeout_ms, kWriteRegisters, 5)
     LL_I2C_GenerateStopCondition(descriptor);
+
+    return kSuccessCode;
+}
+
+/*********************************************************************************************************************************/
+/*********************************************************************************************************************************/
+
+/**
+ * Initiate an I²C reception sequence
+ *
+ * @param descriptor I²C descriptor to use
+ * @param first_register Number of the first register to read
+ * @param start_tick FreeRTOS tick at the start of the sequence
+ * @retval 0 Success
+ * @retval 1 Timeout while waiting for start signal to be done
+ * @retval 2 Timeout while waiting for ADDR byte to be sent
+ * @retval 3 Timeout while waiting for the register address to be sent
+ */
+static ErrorCode initiateTransaction(I2C_TypeDef* descriptor, BQ25619register first_register, TickType_t start_tick) {
+    uint8_t timeout_value = 0;
+
+    //send a start signal
+    LL_I2C_GenerateStartCondition(descriptor);
+    EXIT_ON_TIMEOUT(LL_I2C_IsActiveFlag_SB(descriptor), kI2Ctimeout_ms, kInitiateReception, 1)
+
+    //send the slave address
+    LL_I2C_TransmitData8(descriptor, (uint8_t)((uint8_t)kDEFAULT_SLAVEADDR << 1U) | (uint8_t)kCHG_WRITE);
+    EXIT_ON_TIMEOUT(LL_I2C_IsActiveFlag_ADDR(descriptor), kI2Ctimeout_ms, kInitiateReception, 2)
+    LL_I2C_AcknowledgeNextData(descriptor, LL_I2C_NACK);
+    LL_I2C_ClearFlag_ADDR(descriptor);
+
+    //send the register address
+    EXIT_ON_TIMEOUT(LL_I2C_IsActiveFlag_TXE(descriptor), kI2Ctimeout_ms, kInitiateReception, 3)
+    LL_I2C_TransmitData8(descriptor, (uint8_t)first_register);
 
     return kSuccessCode;
 }
