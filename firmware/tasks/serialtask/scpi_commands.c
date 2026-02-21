@@ -12,12 +12,21 @@
 
 #include "generic_command.inc"
 
-static const Node kRootNode;
+static const Node kRootNode;  ///< Root node of the SCPI commands tree
+
+/**
+ * Get the root node of the SCPI commands tree
+ * 
+ * @return Tree root node 
+ */
 const Node* getRootNode(void) { return &kRootNode; }
 
 /*********************************************************************************************************************************/
 /*********************************************************************************************************************************/
 
+/**
+ * Log commands descriptors
+ */
 static const Node kLogCommands[] = {
     {.scpi =
          {.code = kCmdLogLevel, .short_name = "LEV", .long_name = "LEVel", .mode = kRW, .param_type = kParamInteger}},
@@ -26,6 +35,9 @@ static const Node kLogCommands[] = {
 /*********************************************************************************************************************************/
 /*********************************************************************************************************************************/
 
+/**
+ * IMU commands descriptors
+ */
 static const Node kIMUCommands[] = {
     {.scpi = {.code = kCmdKI, .short_name = "KI", .long_name = "KI", .mode = kRW, .param_type = kParamFloat}},
     {.scpi = {.code = kCmdKP, .short_name = "KP", .long_name = "KP", .mode = kRW, .param_type = kParamFloat}},
@@ -49,6 +61,9 @@ static const Node kIMUCommands[] = {
 /*********************************************************************************************************************************/
 /*********************************************************************************************************************************/
 
+/**
+ * Display commands descriptors
+ */
 static const Node kDisplayCommands[] = {
     {.scpi = {.code = kCmdOrientation,
               .short_name = "ORI",
@@ -65,6 +80,9 @@ static const Node kDisplayCommands[] = {
 /*********************************************************************************************************************************/
 /*********************************************************************************************************************************/
 
+/**
+ * Battery commands descriptors
+ */
 static const Node kBatteryCommands[] = {
     {.scpi = {.code = kCmdBatteryPercent,
               .short_name = "PER",
@@ -81,6 +99,9 @@ static const Node kBatteryCommands[] = {
 /*********************************************************************************************************************************/
 /*********************************************************************************************************************************/
 
+/**
+ * LED commands descriptors
+ */
 static const Node kLedCommands[] = {
     {.scpi =
          {.code = kCmdLedColour, .short_name = "COL", .long_name = "COLour", .mode = kWO, .param_type = kParamHexa}},
@@ -91,6 +112,9 @@ static const Node kLedCommands[] = {
 /*********************************************************************************************************************************/
 /*********************************************************************************************************************************/
 
+/**
+ * Error commands descriptors
+ */
 static const Node kErrorCommands[] = {
     {.scpi = {.code = kCmdErrorCode, .short_name = "HEX", .long_name = "HEX", .mode = kWO, .param_type = kParamHexa}},
 };
@@ -98,6 +122,9 @@ static const Node kErrorCommands[] = {
 /*********************************************************************************************************************************/
 /*********************************************************************************************************************************/
 
+/**
+ * Root commands descriptors
+ */
 static const Node kRootCommands[] = {
     {.scpi = {.short_name = "IMU", .long_name = "IMU", .mode = kNA},
      .children = kIMUCommands,
@@ -136,6 +163,9 @@ static const Node kRootCommands[] = {
     */
 };
 
+/**
+ * Tree root node
+ */
 static const Node kRootNode = {
     .children = kRootCommands,
     .nb_children = (sizeof(kRootCommands) / sizeof(Node)),

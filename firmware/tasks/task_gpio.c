@@ -32,7 +32,7 @@ static void taskGPIO(void* argument);
 
 //state variables
 static volatile TaskHandle_t task_handle = NULL;  ///< handle of the FreeRTOS task
-static ErrorCode result;
+static ErrorCode result;                          ///< Current functions errorstack result
 
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
@@ -51,6 +51,8 @@ void createGPIOtask(void) {
 
 /**
  * @brief Run the GPIO state machine
+ *
+ * @param argument Unused
  */
 static void taskGPIO(void* argument) {
     UNUSED(argument);

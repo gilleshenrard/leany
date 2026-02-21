@@ -26,7 +26,11 @@ enum {
 /**
  * @brief Enumeration of all the managed buttons
  */
-typedef enum { kButtonZero = 0, kButtonHold, kNBbuttons } ButtonType;
+typedef enum {
+    kButtonZero = 0,  ///< Zero button
+    kButtonHold,      ///< Hold button
+    kNBbuttons        ///< Number of buttons defined
+} ButtonType;
 _Static_assert((kNBbuttons <= UINT8_MAX), "The application supports maximum 255 buttons");
 
 /**

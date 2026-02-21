@@ -39,7 +39,7 @@ typedef enum {
     kSetupStatus = 5,      ///< setupStatusBar() function
 } FunctionCode;
 
-static BatteryIndicator battery_indicator;
+static BatteryIndicator battery_indicator;  ///< Battery indicator widget
 
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/

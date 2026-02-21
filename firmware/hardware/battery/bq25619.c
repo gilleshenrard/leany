@@ -46,6 +46,13 @@ static ChargerStatus changes_mask = {0};   ///< Changes in the status bytes
 /*********************************************************************************************************************************/
 /*********************************************************************************************************************************/
 
+/**
+ * Check if the charger's device ID can be retrieved
+ *
+ * @retval 0 Success
+ * @retval 1 Error while reading the register
+ * @retval 2 No ID could be retrieved
+ */
 ErrorCode testBQ25619identifier(void) {
     //attempt reading the chip ID a few times to confirm communication works properly
     uint8_t part_number = 0;
@@ -67,15 +74,27 @@ ErrorCode testBQ25619identifier(void) {
     return kSuccessCode;
 }
 
+/**
+ * Send a hard reset request to the charger
+ * 
+ * @retval 0 Success
+ * @retval 1 Error while sending the request
+ */
 ErrorCode resetBQ25619(void) {
     //reset the registers to their default value
     uint8_t reset = kREG_RESET;
     result = writeI2CRegisters(i2c_handle, kDEFAULT_SLAVEADDR, kPART_INFO, &reset, 1);
-    EXIT_ON_ERROR(result, kReset, 3)
+    EXIT_ON_ERROR(result, kReset, 1)
 
     return kSuccessCode;
 }
 
+/**
+ * Configure the charger
+ * 
+ * @retval 0 Success
+ * @retval 1 Error while writing a register
+ */
 ErrorCode configureBQ25619(void) {
     const uint8_t config_values[][2] = {
         // NOLINTBEGIN(misc-redundant-expression,hicpp-signed-bitwise)
@@ -100,6 +119,14 @@ ErrorCode configureBQ25619(void) {
     return kSuccessCode;
 }
 
+/**
+ * Retireve the latest charger status
+ *
+ * @param interrupt_received Flags indicating the charger sent a GPIO interrupt
+ * @retval 0 Success
+ * @retval 1 Error while reading the status registers
+ * @retval 2 Error while updating the registers
+ */
 ErrorCode updateBQ25619status(uint32_t interrupt_received) {
     //read the current charger status
     result = readI2Cregisters(i2c_handle, kDEFAULT_SLAVEADDR, kCHG_STATUS0, latest_status.bytes, kNB_STATUS_BYTES);

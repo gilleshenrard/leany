@@ -11,6 +11,9 @@
 #include <portmacro.h>
 #include <stdint.h>
 
+/**
+ * Enumeration of hardware events
+ */
 // NOLINTBEGIN (readability-enum-initial-value)
 typedef enum {
     kEventAngle = 0U,          ///< Event : Angle value change

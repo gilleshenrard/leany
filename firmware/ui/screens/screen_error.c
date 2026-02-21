@@ -37,6 +37,9 @@ enum {
     kAnimationRefreshPeriod_ms = 200U,  ///< Number of milliseconds between animation refresh
 };
 
+/**
+ * Function IDs
+ */
 typedef enum {
     kSetup = 1,                ///< setupErrorScreen() function
     kPrintErrorLabel = 2,      ///< printErrorCodeLabel() function
@@ -61,11 +64,10 @@ static Label errorstack_label;             ///< Label displaying the error stack
 static int8_t animation_direction = -1;    ///< Increment of the animation index (1 or -1)
 static int8_t current_bar_lit = 2;         ///< Index of the current fully lit bar
 static TickType_t latest_update_tick = 0;  ///< Latest tick at which the animation has been updated
-static ColourBigEndian colour_matchings[kNbColourMatchings] = {  ///< Colours assigned to each opacity level
-    [0] = kColourDisabled,
-    [1] = kColourCriticalOpacity28,
-    [2] = kColourCriticalOpacity50,
-    [3] = kColourCritical};
+
+static ColourBigEndian colour_matchings[kNbColourMatchings] =  ///< Colours assigned to each opacity level
+    {[0] = kColourDisabled, [1] = kColourCriticalOpacity28, [2] = kColourCriticalOpacity50, [3] = kColourCritical};
+
 static AnimatedBar bars[kNbAnimatedBars] =  ///< Bars of the animation
     {
 

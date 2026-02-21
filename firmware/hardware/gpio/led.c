@@ -133,6 +133,8 @@ static inline uint32_t hexToCompareValue(uint8_t hexvalue) {
 
 /**
  * Apply a colour's set of comparate values to the LED pwm output pins
+ *
+ * @param colour Colour for which set the PWMs
  */
 static void applyLEDpwm(Colour colour) {
     LL_TIM_OC_SetCompareCH1(TIM2, hexToCompareValue(colour.channels.red));

@@ -19,7 +19,12 @@ enum {
 /**
  * Enumeration of the axis of which to get measurements
  */
-typedef enum { kXaxis = 0, kYaxis, kZaxis, kNBaxis } Axis;
+typedef enum {
+    kXaxis = 0,  ///< X axis
+    kYaxis,      ///< Y axis
+    kZaxis,      ///< Z axis
+    kNBaxis      ///< Number of axis
+} Axis;
 
 /**
  * Structure defining time delta

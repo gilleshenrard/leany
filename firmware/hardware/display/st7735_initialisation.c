@@ -78,6 +78,9 @@ static const Register kPowerControl5args[2] = {
  */
 static const Register kVmCtr1arg = kVCOM_NEG_0_775V;
 
+/**
+ * Register values corresponding to each display orientation
+ */
 const Register kOrientations[kNBorientations] = {
     // NOLINTBEGIN(misc-redundant-expression, hicpp-signed-bitwise)
     [kPortrait] =

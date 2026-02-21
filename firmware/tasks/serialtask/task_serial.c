@@ -186,6 +186,11 @@ uint8_t popSerialCommand(GenericCommand* command_received) {
     return (xQueueReceive(queue_commands, command_received, 0) == pdTRUE);
 }
 
+/**
+ * Set the minimum level a log must have to be sent
+ *
+ * @param level New level
+ */
 void setLogLevel(ErrorLevel level) {
     if (level > kMaxErrorLevel) {
         return;
@@ -194,6 +199,11 @@ void setLogLevel(ErrorLevel level) {
     log_level = level;
 }
 
+/**
+ * Get the minimum level a log must have to be sent
+ *
+ * @return Log level
+ */
 ErrorLevel getLogLevel(void) { return log_level; }
 
 /********************************************************************************************************************************************/
