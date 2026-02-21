@@ -2,7 +2,7 @@
  * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
  * SPDX-License-Identifier: MIT
  * 
- * @file hal_i2C.c
+ * @file hal_i2c.c
  * @brief Implement generic I²C transmission
  * @author Gilles Henrard
  */
