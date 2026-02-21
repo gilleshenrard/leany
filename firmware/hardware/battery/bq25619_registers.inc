@@ -14,8 +14,6 @@ enum {
 enum {
     // General values
     kDEFAULT_SLAVEADDR = 0x6AU,  ///< Default I²C slave address
-    kCHG_READ = 0x01U,           ///< Bit value to apply to read data from the charger
-    kCHG_WRITE = 0x00U,          ///< Bit value to apply to write data to the charger
     kNB_STATUS_BYTES = 3U,       ///< Number of status bytes
 
     // Input current limit (0x00) values

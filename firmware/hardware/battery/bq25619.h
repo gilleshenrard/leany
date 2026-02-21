@@ -5,14 +5,13 @@
  */
 #ifndef HARDWARE_BATTERY_BQ25619_H
 #define HARDWARE_BATTERY_BQ25619_H
+#include <stdint.h>
 
-#include <main.h>
-
-#include "bq25619_registers.inc"
 #include "errorstack.h"
 
-ErrorCode readI2Cregisters(I2C_TypeDef* descriptor, BQ25619register first_register, uint8_t data[], uint8_t nb_bytes);
-ErrorCode writeI2CRegisters(I2C_TypeDef* descriptor, BQ25619register first_register, const uint8_t data[],
-                            uint8_t nb_bytes);
+ErrorCode testBQ25619identifier(void);
+ErrorCode resetBQ25619(void);
+ErrorCode configureBQ25619(void);
+ErrorCode updateBQ25619status(uint32_t interrupt_received);
 
 #endif

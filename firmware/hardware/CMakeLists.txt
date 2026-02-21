@@ -10,6 +10,7 @@ add_subdirectory(imu)
 add_library(hal
 	hal/hal_spi.c
 	hal/hal_adc.c
+	hal/hal_i2c.c
 )
 target_include_directories(hal PUBLIC hal)
 target_link_libraries(hal PRIVATE utils)
@@ -45,3 +46,4 @@ add_library(BATTERY
 )
 target_include_directories(BATTERY PUBLIC battery)
 target_link_libraries(BATTERY PRIVATE utils)
+target_link_libraries(BATTERY PRIVATE hal)

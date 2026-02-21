@@ -6,172 +6,112 @@
 
 #include "bq25619.h"
 
-#include <portmacro.h>
 #include <stdint.h>
 #include <stm32f103xb.h>
-#include <stm32f1xx_ll_i2c.h>
-#include <task.h>
+#include <stm32f1xx_hal.h>
 
 #include "bq25619_registers.inc"
 #include "errorstack.h"
+#include "hal_i2c.h"
 
 enum {
     kI2Ctimeout_ms = 10U,  ///< Maximum number of milliseconds an I²C transfer can last
+    kRead = 1U,
+    kNbChipIDtests = 5U,     ///< Number of times chip ID reading must be tested
+    kChipIDtimeout = 1000U,  ///< Maximum number of milliseconds to attempt reading the chip ID
 };
 
 /**
  * @brief Enumeration of all the function ID used in errors
  */
 typedef enum {
-    kReadRegisters = 1,      ///< readRegisters() function
-    kInitiateReception = 2,  ///< initiateReception() function
-    kWriteRegisters = 3,     ///< writeRegisters() function
+    kTestID = 1,        ///< testBQ25619identifier() function
+    kReset = 2,         ///< resetBQ25619() function
+    kConfigure = 3,     ///< configureBQ25619() function
+    kUpdateStatus = 4,  ///< updateBQ25619status() function
 } FunctionCode;
 
-static ErrorCode initiateTransaction(I2C_TypeDef* descriptor, BQ25619register first_register, TickType_t start_tick);
-
-static ErrorCode result = {0};  ///< Buffer used to store the latest error code
+static ErrorCode result = {0};             ///< Buffer used to store the latest error code
+static I2C_TypeDef* i2c_handle = I2C1;     ///< I²C handle to use with all transmissons
+static ChargerStatus latest_status = {0};  ///< Latest value of the charger status bytes
+static ChargerStatus changes_mask = {0};   ///< Changes in the status bytes
 
 /*********************************************************************************************************************************/
 /*********************************************************************************************************************************/
 
-/**
- * Burst read data via I²C
- *
- * @param descriptor SPI descriptor to use
- * @param first_register First register to read
- * @param[out] data Data buffer to fill
- * @param nb_bytes Number of bytes to read
- * @retval 0 Success
- * @retval 1 Invalid descriptor or data buffer provided
- * @retval 2 Error while initiating the read sequence
- * @retval 3 Timeout while waiting for the data byte
- * @retval 4 Timeout while waiting for slave address to be sent
- * @retval 5 Timeout while waiting for a data byte to be received
- * @retval 6 Timeout while waiting for the last data byte to be received
- */
-ErrorCode readI2Cregisters(I2C_TypeDef* descriptor, BQ25619register first_register, uint8_t data[], uint8_t nb_bytes) {
-    (void)nb_bytes;
+ErrorCode testBQ25619identifier(void) {
+    //attempt reading the chip ID a few times to confirm communication works properly
+    uint8_t part_number = 0;
+    uint32_t start_tick = HAL_GetTick();
+    uint8_t tests_remaining = kNbChipIDtests;
+    do {
+        result = readI2Cregisters(i2c_handle, kDEFAULT_SLAVEADDR, kPART_INFO, &part_number, 1);
+        EXIT_ON_ERROR(result, kTestID, 1)
 
-    if (!descriptor || (!data && nb_bytes)) {
-        return createErrorCode(kReadRegisters, 1, kErrorError);
+        if ((part_number & (uint8_t)kPN_MASK) == kPN_VALUE) {
+            tests_remaining--;
+        }
+    } while (tests_remaining && !timeout(start_tick, kChipIDtimeout));
+
+    if (tests_remaining) {
+        return createErrorCode(kTestID, 2, kErrorCritical);
     }
-
-    if (!nb_bytes) {
-        return kSuccessCode;
-    }
-
-    uint8_t timeout_value = 0;
-    TickType_t start_tick = xTaskGetTickCount();
-
-    //initiate the I²C reception
-    result = initiateTransaction(descriptor, first_register, start_tick);
-    EXIT_ON_ERROR(result, kReadRegisters, 2)
-
-    //resend the slave address in read mode
-    LL_I2C_GenerateStartCondition(descriptor);
-    EXIT_ON_TIMEOUT(LL_I2C_IsActiveFlag_SB(descriptor), kI2Ctimeout_ms, kInitiateReception, 3)
-    LL_I2C_TransmitData8(descriptor, (uint8_t)((uint8_t)kDEFAULT_SLAVEADDR << 1U) | (uint8_t)kCHG_READ);
-    EXIT_ON_TIMEOUT(LL_I2C_IsActiveFlag_ADDR(descriptor), kI2Ctimeout_ms, kInitiateReception, 4)
-    LL_I2C_ClearFlag_ADDR(descriptor);
-
-    //read all bytes except for the last one
-    uint8_t current_byte = 0;
-    LL_I2C_AcknowledgeNextData(descriptor, LL_I2C_ACK);
-    while (nb_bytes - 1U) {
-        EXIT_ON_TIMEOUT(LL_I2C_IsActiveFlag_RXNE(descriptor), kI2Ctimeout_ms, kReadRegisters, 5)
-        data[current_byte] = LL_I2C_ReceiveData8(descriptor);
-        current_byte++;
-        nb_bytes--;
-    }
-
-    //read the last byte, with a NACK and a STOP signal
-    LL_I2C_AcknowledgeNextData(descriptor, LL_I2C_NACK);
-    LL_I2C_GenerateStopCondition(descriptor);
-    EXIT_ON_TIMEOUT(LL_I2C_IsActiveFlag_RXNE(descriptor), kI2Ctimeout_ms, kReadRegisters, 6)
-    data[current_byte] = LL_I2C_ReceiveData8(descriptor);
-    return kSuccessCode;
-}
-
-/**
- * Burst-write data to registers
- *
- * @param descriptor I²C descriptor to use
- * @param first_register Number of the first register to which write data
- * @param data Data to write
- * @param nb_bytes Number of bytes of data to write
- * @retval 0 Success
- * @retval 1 Invalid descriptor or data buffer provided
- * @retval 2 Error while initiating the write sequence
- * @retval 3 Timeout while waiting for TXE to be set
- * @retval 4 Timeout while waiting for TXE to be set before the last data byte
- * @retval 5 Timeout while waiting for Byte Transfer Finish to be set
- */
-ErrorCode writeI2CRegisters(I2C_TypeDef* descriptor, BQ25619register first_register, const uint8_t data[],
-                            uint8_t nb_bytes) {
-    if (!descriptor || (!data && nb_bytes)) {
-        return createErrorCode(kReadRegisters, 1, kErrorError);
-    }
-
-    if (!nb_bytes) {
-        return kSuccessCode;
-    }
-
-    uint8_t timeout_value = 0;
-    TickType_t start_tick = xTaskGetTickCount();
-
-    //initiate the I²C transmission
-    result = initiateTransaction(descriptor, first_register, start_tick);
-    EXIT_ON_ERROR(result, kReadRegisters, 2)
-
-    //send the data bytes all until the one before last
-    uint8_t current_byte = 0;
-    while (nb_bytes - 1U) {
-        EXIT_ON_TIMEOUT(LL_I2C_IsActiveFlag_TXE(descriptor), kI2Ctimeout_ms, kWriteRegisters, 3)
-        LL_I2C_TransmitData8(descriptor, data[current_byte]);
-        current_byte++;
-        nb_bytes--;
-    }
-
-    //send the last byte and stop the transmission
-    EXIT_ON_TIMEOUT(LL_I2C_IsActiveFlag_TXE(descriptor), kI2Ctimeout_ms, kWriteRegisters, 4)
-    LL_I2C_TransmitData8(descriptor, data[current_byte]);
-    EXIT_ON_TIMEOUT(LL_I2C_IsActiveFlag_BTF(descriptor), kI2Ctimeout_ms, kWriteRegisters, 5)
-    LL_I2C_GenerateStopCondition(descriptor);
 
     return kSuccessCode;
 }
 
-/*********************************************************************************************************************************/
-/*********************************************************************************************************************************/
+ErrorCode resetBQ25619(void) {
+    //reset the registers to their default value
+    uint8_t reset = kREG_RESET;
+    result = writeI2CRegisters(i2c_handle, kDEFAULT_SLAVEADDR, kPART_INFO, &reset, 1);
+    EXIT_ON_ERROR(result, kReset, 3)
 
-/**
- * Initiate an I²C reception sequence
- *
- * @param descriptor I²C descriptor to use
- * @param first_register Number of the first register to read
- * @param start_tick FreeRTOS tick at the start of the sequence
- * @retval 0 Success
- * @retval 1 Timeout while waiting for start signal to be done
- * @retval 2 Timeout while waiting for ADDR byte to be sent
- * @retval 3 Timeout while waiting for the register address to be sent
- */
-static ErrorCode initiateTransaction(I2C_TypeDef* descriptor, BQ25619register first_register, TickType_t start_tick) {
-    uint8_t timeout_value = 0;
+    return kSuccessCode;
+}
 
-    //send a start signal
-    LL_I2C_GenerateStartCondition(descriptor);
-    EXIT_ON_TIMEOUT(LL_I2C_IsActiveFlag_SB(descriptor), kI2Ctimeout_ms, kInitiateReception, 1)
+ErrorCode configureBQ25619(void) {
+    const uint8_t config_values[][2] = {
+        // NOLINTBEGIN(misc-redundant-expression,hicpp-signed-bitwise)
+        {kINPUT_CUR_LIMIT, kDISABLE_HIZ | kTEMPERATURE_IGNORE | kENABLE_BATSNS | kINPUT_LIMIT_1_2A},
+        {kCHG_CONTROL0, kDISABLE_WATCHDOG | kDISABLE_PMID | kENABLE_CHARGE | kVSYS_MIN_3_5V},
+        {kCHG_CUR_LIMIT, kREGULATE_LOW_CURRENT | kFASTCHARGE_1180MA},
+        {kPCHG_TERM_CUR_LIMIT, kPRECHARGE_260MA | kTERMINATION_260MA},
+        {kBATT_VOLT_LIMIT, kBATTERY_LIMIT_4_2V | kNO_TOPOFF_TIMER | kBATT_RECHG_THRESHOLD_120MV},
+        {kCHG_CONTROL1, kENABLE_CHG_TERMINATION | kDISABLE_WATCHDOG_TIMER | kENABLE_CHG_SAFETY_TIMER | kSAFETY_10H},
+        {kCHG_CONTROL2, kOVERVOLTAGE_THRESHOLD_6_4V | kINPUT_VOLTAGE_DPM_4_5V},
+        // NOLINTEND(misc-redundant-expression,hicpp-signed-bitwise)
+    };
 
-    //send the slave address
-    LL_I2C_TransmitData8(descriptor, (uint8_t)((uint8_t)kDEFAULT_SLAVEADDR << 1U) | (uint8_t)kCHG_WRITE);
-    EXIT_ON_TIMEOUT(LL_I2C_IsActiveFlag_ADDR(descriptor), kI2Ctimeout_ms, kInitiateReception, 2)
-    LL_I2C_AcknowledgeNextData(descriptor, LL_I2C_NACK);
-    LL_I2C_ClearFlag_ADDR(descriptor);
+    // write the configuration registers
+    const uint8_t nb_registers = sizeof(config_values) / 2U;
+    for (uint8_t value = 0; value < nb_registers; value++) {
+        result =
+            writeI2CRegisters(i2c_handle, kDEFAULT_SLAVEADDR, config_values[value][0], &config_values[value][1], 1U);
+        EXIT_ON_ERROR(result, kConfigure, 1)
+    }
 
-    //send the register address
-    EXIT_ON_TIMEOUT(LL_I2C_IsActiveFlag_TXE(descriptor), kI2Ctimeout_ms, kInitiateReception, 3)
-    LL_I2C_TransmitData8(descriptor, (uint8_t)first_register);
+    return kSuccessCode;
+}
+
+ErrorCode updateBQ25619status(uint32_t interrupt_received) {
+    //read the current charger status
+    result = readI2Cregisters(i2c_handle, kDEFAULT_SLAVEADDR, kCHG_STATUS0, latest_status.bytes, kNB_STATUS_BYTES);
+    EXIT_ON_ERROR(result, kUpdateStatus, 1)
+
+    //if no interrupt was caught, stop there
+    if (interrupt_received == pdFALSE) {
+        return kSuccessCode;
+    }
+
+    //getting the actual new status requires a second reading
+    ChargerStatus previous_status = latest_status;
+    result = readI2Cregisters(i2c_handle, kDEFAULT_SLAVEADDR, kCHG_STATUS0, latest_status.bytes, kNB_STATUS_BYTES);
+    EXIT_ON_ERROR(result, kUpdateStatus, 2)
+
+    //compute the changes between the old and new status
+    changes_mask.bytes[0] = previous_status.bytes[0] ^ latest_status.bytes[0];
+    changes_mask.bytes[1] = previous_status.bytes[1] ^ latest_status.bytes[1];
+    changes_mask.bytes[2] = previous_status.bytes[2] ^ latest_status.bytes[2];
 
     return kSuccessCode;
 }
