@@ -324,6 +324,25 @@
                 "cwd": "${workspaceFolder}"
             },
             "problemMatcher": []
+        },
+
+
+        {
+            "type": "shell",
+            "label": "Check Doxygen tags",
+            "command": "python",
+            "args": [
+                "resources/check_doxygen_tags.py",
+                ".",
+                "--exclude", "build",
+                "--exclude", "Drivers",
+                "--exclude", "Middlewares",
+                "--exclude", "Core"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
         }
     ]
 }

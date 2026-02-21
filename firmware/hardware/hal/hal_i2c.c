@@ -40,6 +40,7 @@ static ErrorCode result = {0};  ///< Buffer used to store the latest error code
  * Burst read data via I²C
  *
  * @param descriptor SPI descriptor to use
+ * @param slave_address I²C slave address
  * @param first_register First register to read
  * @param[out] data Data buffer to fill
  * @param nb_bytes Number of bytes to read
@@ -99,6 +100,7 @@ ErrorCode readI2Cregisters(I2C_TypeDef* descriptor, uint8_t slave_address, uint8
  * Burst-write data to registers
  *
  * @param descriptor I²C descriptor to use
+ * @param slave_address I²C slave address
  * @param first_register Number of the first register to which write data
  * @param data Data to write
  * @param nb_bytes Number of bytes of data to write
@@ -151,6 +153,7 @@ ErrorCode writeI2CRegisters(I2C_TypeDef* descriptor, uint8_t slave_address, uint
  * Initiate an I²C reception sequence
  *
  * @param descriptor I²C descriptor to use
+ * @param slave_address I²C slave address
  * @param first_register Number of the first register to read
  * @param start_tick FreeRTOS tick at the start of the sequence
  * @retval 0 Success

@@ -77,7 +77,8 @@ static char internal_temperature[kMaxTemperatureSize + 1U];  ///< String holding
  * @retval 1 Error while filling the background
  * @retval 2 Error while printing the main title label
  * @retval 3 Error while printing the title section separator
- * @retval 2 Error while initialising the sections
+ * @retval 4 Error while initialising the sections
+ * @retval 5 Error while updating the temperature
  */
 ErrorCode setupSystemScreen(void) {
     ErrorCode result;
@@ -118,7 +119,6 @@ ErrorCode setupSystemScreen(void) {
  * Treat the messages pulled from the queue
  *
  * @param message_flags Array of flags indicating which new messages are to be treated
- * @param message_values Array of new values to treat
  * @return Any print function return code, or success if no failure
  */
 ErrorCode treatSystemScreenMessages(const uint8_t message_flags[kNbEvents]) {

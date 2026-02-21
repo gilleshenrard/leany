@@ -4,6 +4,13 @@
  * SPDX-License-Identifier: MIT
  */
 
+/**
+ * @file bq25619.c
+ * @details Implements BQ25619 charger IC configuration and control functions
+ * @author Gilles Henrard
+ *
+ * @note Datasheet : https://www.ti.com/lit/gpn/bq25619
+ */
 #include "bq25619.h"
 
 #include <main.h>

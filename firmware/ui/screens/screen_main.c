@@ -162,7 +162,6 @@ ErrorCode setupMainScreen(void) {
  * Treat the messages pulled from the queue
  *
  * @param message_flags Array of flags indicating which new messages are to be treated
- * @param message_values Array of new values to treat
  * @return Any print function return code, or success if no failure
  */
 ErrorCode treatMainScreenMessages(uint8_t message_flags[kNbEvents]) {

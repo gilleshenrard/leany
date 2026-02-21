@@ -20,10 +20,9 @@ static uint8_t battery_charging = 0U;                     ///< Current battery c
 /********************************************************************************************************************************************/
 
 /**
- * Get the battery level and charge status
+ * Get the battery status
  *
- * @param[out] percentage Battery level to get in [%] (ignored if NULL)
- * @param[out] charging Whether the battery is charging (ignored if NULL)
+ * @param[out] status Battery current status
  * @return Success 
  */
 //NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
