@@ -27,12 +27,12 @@
 #include <stdint.h>
 #include <task.h>
 
-#include "battery.h"
 #include "errorstack.h"
 #include "generic_command.inc"
 #include "hardware_events.h"
 #include "led.h"
 #include "orientation.inc"
+#include "task_battery.h"
 #include "task_imu.h"
 #include "task_serial.h"
 #include "task_ui.h"

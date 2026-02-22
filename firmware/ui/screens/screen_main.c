@@ -13,7 +13,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "battery.h"
 #include "bitmap.h"
 #include "display.h"
 #include "fonts.h"
@@ -24,6 +23,7 @@
 #include "orientation.inc"
 #include "sensorfusion.h"
 #include "st7735s.h"
+#include "task_battery.h"
 #include "task_imu.h"
 
 enum {

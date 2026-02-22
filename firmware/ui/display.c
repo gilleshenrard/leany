@@ -11,7 +11,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "battery.h"
 #include "bitmap.h"
 #include "errorstack.h"
 #include "fonts.h"
@@ -20,6 +19,7 @@
 #include "leany_std.h"
 #include "orientation.inc"
 #include "st7735s.h"
+#include "task_battery.h"
 
 enum {
     kPercentLength = 4U,         ///< Maximum number in a string representing a percentage

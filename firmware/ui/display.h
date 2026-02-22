@@ -7,11 +7,11 @@
  */
 #ifndef UI_DISPLAY_H
 #define UI_DISPLAY_H
-#include "battery.h"
 #include "bitmap.h"
 #include "icons.h"
 #include "label.h"
 #include "orientation.inc"
+#include "task_battery.h"
 
 enum {
     kStatusIconsY = 6U,      ///< Y coordinate of the status icons on screen

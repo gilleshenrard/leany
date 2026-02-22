@@ -3,11 +3,8 @@
  * SPDX-License-Identifier: MIT
  *
  * @file task_battery.c
- * @brief Implement the battery voltage and BQ25619 charger status monitoring
+ * @brief Implement the battery voltage and charger status monitoring
  * @author Gilles Henrard
- *
- * @details
- * BQ25619 Datasheet : https://www.ti.com/lit/ds/symlink/bq25618.pdf?ts=1729197098952&ref_url=https%253A%252F%252Fwww.ti.com%252Fsitesearch%252Fen-us%252Fdocs%252Funiversalsearch.tsp%253FlangPref%253Den-US%2526nr%253D186%2526searchTerm%253Dbq25618
  */
 #include "task_battery.h"
 
@@ -16,6 +13,7 @@
 #include <main.h>
 #include <portmacro.h>
 #include <projdefs.h>
+#include <semphr.h>
 #include <stdint.h>
 #include <stm32f103xb.h>
 #include <stm32f1xx_ll_i2c.h>
@@ -24,11 +22,13 @@
 #include "bq25619.h"
 
 enum {
-    kStackSize = 250U,        ///< Amount of words in the task stack
-    kTaskLowPriority = 8U,    ///< FreeRTOS number for a low priority task
-    kChipIDtimeout = 1000U,   ///< Maximum number of milliseconds to attempt reading the chip ID
-    kNbChipIDtests = 5U,      ///< Number of times chip ID reading must be tested
-    kUpdatePeriodMS = 1000U,  ///< Period between two status updates in [ms]
+    kStackSize = 250U,           ///< Amount of words in the task stack
+    kTaskLowPriority = 8U,       ///< FreeRTOS number for a low priority task
+    kChipIDtimeout = 1000U,      ///< Maximum number of milliseconds to attempt reading the chip ID
+    kNbChipIDtests = 5U,         ///< Number of times chip ID reading must be tested
+    kUpdatePeriodMS = 1000U,     ///< Period between two status updates in [ms]
+    kBatteryFullPercent = 100U,  ///< Value used as a 100% battery level
+    kMutexTimeoutMs = 10U,       ///< Maximum number of milliseconds before considering a mutex timeout
 };
 
 /**
@@ -48,12 +48,15 @@ static ErrorCode stateStartup(void);
 static ErrorCode stateConfiguring(void);
 static ErrorCode stateIdle(void);
 
-static volatile TaskHandle_t task_handle = NULL;     ///< handle of the FreeRTOS task
-static volatile FunctionCode state = kStateStartup;  ///< Current state machine state
-static StackType_t task_stack[kStackSize] = {0};     ///< Buffer used as the task stack
-static StaticTask_t task_state = {0};                ///< Task state variables
-static ErrorCode result = {0};                       ///< Buffer used to store the latest error code
-static I2C_TypeDef* i2c_handle = I2C1;               ///< I²C handle to use with all transmissons
+static volatile TaskHandle_t task_handle = NULL;          ///< handle of the FreeRTOS task
+static volatile FunctionCode state = kStateStartup;       ///< Current state machine state
+static StackType_t task_stack[kStackSize] = {0};          ///< Buffer used as the task stack
+static StaticTask_t task_state = {0};                     ///< Task state variables
+static SemaphoreHandle_t battery_mutex = NULL;            ///< Mutex used to protect the battery status
+static ErrorCode result = {0};                            ///< Buffer used to store the latest error code
+static I2C_TypeDef* i2c_handle = I2C1;                    ///< I²C handle to use with all transmissons
+static uint8_t battery_percentage = kBatteryFullPercent;  ///< Current battery percentage (for simulation)
+static uint8_t battery_charging = 0U;                     ///< Current battery charge status (for simulation)
 
 /****************************************************************************************************************/
 /****************************************************************************************************************/
@@ -77,6 +80,12 @@ void chargerInterruptTriggered(void) {
  * @return Success
  */
 ErrorCode createBatteryTask(void) {
+    static StaticSemaphore_t battery_mutex_state = {0};  ///< battery mutex state variables
+
+    //create a semaphore to protect battery status
+    battery_mutex = xSemaphoreCreateMutexStatic(&battery_mutex_state);
+    configASSERT(battery_mutex);
+
     //create the static task
     task_handle = xTaskCreateStatic(taskBatteryManagement, "Battery management task", kStackSize, NULL,
                                     kTaskLowPriority, task_stack, &task_state);
@@ -85,6 +94,52 @@ ErrorCode createBatteryTask(void) {
     }
 
     return kSuccessCode;
+}
+
+/**
+ * Get the battery status
+ *
+ * @param[out] status Battery current status
+ * @return Success 
+ */
+//NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
+ErrorCode getBatteryStatus(BatteryStatus* status) {
+    if (!status) {
+        return createErrorCode(1, 1, kErrorError);
+    }
+
+    if (xSemaphoreTake(battery_mutex, pdMS_TO_TICKS(kMutexTimeoutMs)) == pdTRUE) {
+        *status = (BatteryStatus){.level_percents = battery_percentage, .charging = battery_charging};
+    }
+
+    return kSuccessCode;
+}
+
+/**
+ * Set the battery percentage level
+ * @param percentage New percentage in [%]
+ * @retval 1 Percentage updated
+ * @retval 0 Could not update percentage
+ */
+uint8_t setBatteryPercentage(uint8_t percentage) {
+    if (percentage > kBatteryFullPercent) {
+        percentage = kBatteryFullPercent;
+    }
+
+    if (xSemaphoreTake(battery_mutex, pdMS_TO_TICKS(kMutexTimeoutMs)) == pdTRUE) {
+        battery_percentage = percentage;
+    }
+    return 1;
+}
+
+/**
+ * Set the battery charge status
+ * @param status 1 if charging, 0 otherwise
+ */
+void setBatteryChargeStatus(uint8_t status) {
+    if (xSemaphoreTake(battery_mutex, pdMS_TO_TICKS(kMutexTimeoutMs)) == pdTRUE) {
+        battery_charging = status;
+    }
 }
 
 /****************************************************************************************************************/
