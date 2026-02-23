@@ -8,8 +8,6 @@
  */
 #include "hal_i2c.h"
 
-#include <FreeRTOS.h>  // NOLINT(misc-include-cleaner,-warnings-as-errors)
-#include <portmacro.h>
 #include <stdint.h>
 #include <stm32f103xb.h>
 #include <stm32f1xx_ll_i2c.h>
@@ -34,15 +32,14 @@ typedef enum {
 } FunctionCode;
 
 static ErrorCode initiateTransaction(I2C_TypeDef* descriptor, uint8_t slave_address, uint8_t first_register);
-static ErrorCode checkI2CFlags(I2C_TypeDef* descriptor, TickType_t start_tick, uint32_t timeout_ms);
+static ErrorCode checkI2CFlags(I2C_TypeDef* descriptor, uint32_t start_tick, uint32_t timeout_ms);
 
 /**
  * @brief Poll an I²C flag until set or checkI2CFlags() reports a fault
  */
 #define EXIT_ON_I2C_ERROR(condition, descriptor, function_id, timeout_ms, error_code) \
     while (!(condition)) {                                                            \
-        result = checkI2CFlags(descriptor, start_tick, timeout_ms);                   \
-        if (isError(result)) {                                                        \
+        if (isError(checkI2CFlags(descriptor, start_tick, timeout_ms))) {             \
             return pushErrorCode(result, function_id, error_code);                    \
         }                                                                             \
     }
@@ -80,7 +77,7 @@ ErrorCode readI2Cregisters(I2C_TypeDef* descriptor, uint8_t slave_address, uint8
     ErrorCode result = initiateTransaction(descriptor, slave_address, first_register);
     EXIT_ON_ERROR(result, kReadRegisters, 2)
 
-    TickType_t start_tick = getCurrentTick();
+    uint32_t start_tick = getCurrentTick();
 
     //resend the slave address in read mode
     LL_I2C_GenerateStartCondition(descriptor);
@@ -138,7 +135,7 @@ ErrorCode writeI2CRegisters(I2C_TypeDef* descriptor, uint8_t slave_address, uint
     ErrorCode result = initiateTransaction(descriptor, slave_address, first_register);
     EXIT_ON_ERROR(result, kWriteRegisters, 2)
 
-    TickType_t start_tick = getCurrentTick();
+    uint32_t start_tick = getCurrentTick();
 
     //send the data bytes all until the one before last
     uint8_t current_byte = 0;
@@ -176,8 +173,8 @@ ErrorCode writeI2CRegisters(I2C_TypeDef* descriptor, uint8_t slave_address, uint
  */
 // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 static ErrorCode initiateTransaction(I2C_TypeDef* descriptor, uint8_t slave_address, uint8_t first_register) {
-    TickType_t start_tick = getCurrentTick();
-    ErrorCode result;
+    uint32_t start_tick = getCurrentTick();
+    ErrorCode result = kSuccessCode;
 
     //send a start signal
     LL_I2C_GenerateStartCondition(descriptor);
@@ -208,7 +205,7 @@ static ErrorCode initiateTransaction(I2C_TypeDef* descriptor, uint8_t slave_addr
  * @retval 3 BERR flag
  * @retval 4 Timeout
  */
-static ErrorCode checkI2CFlags(I2C_TypeDef* descriptor, TickType_t start_tick, uint32_t timeout_ms) {
+static ErrorCode checkI2CFlags(I2C_TypeDef* descriptor, uint32_t start_tick, uint32_t timeout_ms) {
     if (LL_I2C_IsActiveFlag_AF(descriptor)) {
         LL_I2C_ClearFlag_AF(descriptor);
         LL_I2C_GenerateStopCondition(descriptor);
