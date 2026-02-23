@@ -137,7 +137,6 @@ static inline uint8_t timeout(uint32_t startTick, uint16_t timeout_ms) {
 #define DEBUG_OUT_GPIO_Port GPIOB
 #define CHG_INT_Pin LL_GPIO_PIN_5
 #define CHG_INT_GPIO_Port GPIOB
-#define CHG_INT_EXTI_IRQn EXTI9_5_IRQn
 #define CHG_SCL_Pin LL_GPIO_PIN_6
 #define CHG_SCL_GPIO_Port GPIOB
 #define CHG_SDA_Pin LL_GPIO_PIN_7
