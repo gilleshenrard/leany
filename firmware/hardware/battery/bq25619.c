@@ -143,3 +143,15 @@ ErrorCode updateBQ25619status(ChargerStatus* new_status, ChargerStatus* changes)
 
     return kSuccessCode;
 }
+
+/**
+ * Check if the battery is charging
+ *
+ * @param status Status bits
+ * @retval 1 Battery is charging
+ * @retval 0 Battery is not charging
+ */
+uint8_t isBQ25619charging(const ChargerStatus* status) {
+    return (status->bits.vbus_status && status->bits.power_good && (status->bits.chrg_status > 0) &&
+            status->bits.poor_source_passed);
+}
