@@ -106,7 +106,6 @@ uint8_t requestADCread(void) {
     }
 
     LL_ADC_REG_StartConversionSWStart(ADC1);
-    adc_updated = 0;
     return 1;
 }
 
