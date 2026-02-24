@@ -40,10 +40,10 @@ enum {
 static void readTemperatureData(void);
 
 //variables
-static int32_t latest_temperature_celsius = 0;           ///< Latest MCU internal temperature in [°C]
-static uint32_t current_tick = 0;                        ///< Current OS tick
-static SemaphoreHandle_t temperature_mutex = NULL;       ///< Mutex which protects the temperature readings
-static volatile SemaphoreHandle_t updated_mutex = NULL;  ///< Binary semaphore indicating a new reading is available
+static int32_t latest_temperature_celsius = 0;      ///< Latest MCU internal temperature in [°C]
+static uint32_t current_tick = 0;                   ///< Current OS tick
+static SemaphoreHandle_t temperature_mutex = NULL;  ///< Mutex which protects the temperature readings
+static volatile uint8_t adc_updated = 0;            ///< Flag indicating whether the ADC finished updating
 
 /****************************************************************************************************************/
 /****************************************************************************************************************/
@@ -53,14 +53,7 @@ static volatile SemaphoreHandle_t updated_mutex = NULL;  ///< Binary semaphore i
  */
 void ADCinterruptTriggered(void) {
     LL_ADC_ClearFlag_EOS(ADC1);
-
-    if (updated_mutex == NULL) {
-        return;
-    }
-
-    BaseType_t has_woken = 0;
-    (void)xSemaphoreGiveFromISR(updated_mutex, &has_woken);
-    portYIELD_FROM_ISR(has_woken);
+    adc_updated = 1;
 }
 
 /**
@@ -68,17 +61,10 @@ void ADCinterruptTriggered(void) {
  */
 void initialiseUserADC(void) {
     static StaticSemaphore_t temperature_mutex_state = {0};  ///< ADC value mutex state variables
-    static StaticSemaphore_t updated_mutex_state = {0};      ///< ADC value mutex state variables
 
     //create a semaphore to protect measurements
     temperature_mutex = xSemaphoreCreateMutexStatic(&temperature_mutex_state);
     if (!temperature_mutex) {
-        Error_Handler();
-    }
-
-    //create a semaphore to use as an "updated" binary flag
-    updated_mutex = xSemaphoreCreateBinaryStatic(&updated_mutex_state);
-    if (!updated_mutex) {
         Error_Handler();
     }
 
@@ -88,11 +74,13 @@ void initialiseUserADC(void) {
     //request a first conversion
     current_tick = getCurrentTick();
     LL_ADC_REG_StartConversionSWStart(ADC1);
-    if (xSemaphoreTake(updated_mutex, pdMS_TO_TICKS(kInitTimeoutMs)) == pdFALSE) {
-        Error_Handler();
-    }
 
     //read the temperature value
+    while (!adc_updated) {
+        if (systickTimeout(current_tick, pdMS_TO_TICKS(kInitTimeoutMs))) {
+            Error_Handler();
+        }
+    }
     readTemperatureData();
     current_tick = getCurrentTick();
 }
@@ -108,7 +96,8 @@ void runUserADCstateMachine(void) {
     }
 
     // State 2: Check if any conversion is ready to read (independent of timeout)
-    if (xSemaphoreTake(updated_mutex, 0) == pdTRUE) {
+    if (adc_updated) {
+        adc_updated = 0;
         readTemperatureData();
     }
 }
