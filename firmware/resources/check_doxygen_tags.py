@@ -25,7 +25,7 @@ from pathlib import Path
 # Matches /** ... @file ... */ or /*! ... \file ... */ blocks anywhere in the file.
 _FILE_TAG_PATTERN = re.compile(r"/\*[*!].*?(?:@|\\)file\b.*?\*/", re.DOTALL)
 
-_EXTENSIONS = (".c", ".h")
+_EXTENSIONS = (".c", ".h", ".inc")
 _MAX_VIOLATIONS = 1000  # NASA rule: fixed upper bound on iteration
 
 
