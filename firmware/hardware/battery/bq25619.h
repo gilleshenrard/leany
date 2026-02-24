@@ -14,5 +14,6 @@ ErrorCode testBQ25619identifier(void);
 ErrorCode resetBQ25619(void);
 ErrorCode configureBQ25619(void);
 ErrorCode updateBQ25619status(ChargerStatus* new_status, ChargerStatus* changes);
+uint8_t isBQ25619charging(const ChargerStatus* status);
 
 #endif

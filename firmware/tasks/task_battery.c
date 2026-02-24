@@ -23,6 +23,7 @@
 #include "bq25619.h"
 #include "bq25619_registers.inc"
 #include "hal_i2c.h"
+#include "hardware_events.h"
 #include "systick.h"
 
 enum {
@@ -52,6 +53,7 @@ static void taskBatteryManagement(void* argument);
 static ErrorCode stateStartup(void);
 static ErrorCode stateConfiguring(void);
 static ErrorCode stateIdle(void);
+static inline uint8_t chargeStatusChanged(const ChargerStatus* changes);
 
 static volatile TaskHandle_t task_handle = NULL;          ///< handle of the FreeRTOS task
 static volatile FunctionCode state = kStateStartup;       ///< Current state machine state
@@ -63,6 +65,7 @@ static I2C_TypeDef* i2c_handle = I2C1;                    ///< I²C handle to us
 static uint8_t battery_percentage = kBatteryFullPercent;  ///< Current battery percentage (for simulation)
 static uint8_t battery_charging = 0U;                     ///< Current battery charge status (for simulation)
 static TickType_t previous_tick = 0;                      ///< Tick at the last status update
+static ChargerStatus current_battery_status;              ///< Current battery status flags
 
 /****************************************************************************************************************/
 /****************************************************************************************************************/
@@ -102,7 +105,8 @@ ErrorCode getBatteryStatus(BatteryStatus* status) {
     }
 
     if (xSemaphoreTake(battery_mutex, pdMS_TO_TICKS(kMutexTimeoutMs)) == pdTRUE) {
-        *status = (BatteryStatus){.level_percents = battery_percentage, .charging = battery_charging};
+        *status = (BatteryStatus){.level_percents = battery_percentage,
+                                  .charging = (battery_charging | isBQ25619charging(&current_battery_status))};
         xSemaphoreGive(battery_mutex);
     }
 
@@ -231,16 +235,31 @@ static ErrorCode stateConfiguring(void) {
 static ErrorCode stateIdle(void) {
     vTaskDelayUntil(&previous_tick, pdMS_TO_TICKS(kUpdatePeriodMS));
 
-    ChargerStatus current_status;
     ChargerStatus changes;
 
     for (uint8_t attempt = 0; attempt < (uint8_t)kNbRetries; attempt++) {
-        result = updateBQ25619status(&current_status, &changes);
+        result = updateBQ25619status(&current_battery_status, &changes);
         if (getDeepestError(result) != kErrorAcknowledgeFailure) {
             break;
         }
     }
     EXIT_ON_ERROR(result, kStateIdle, 1);
 
+    if (chargeStatusChanged(&changes)) {
+        triggerHardwareEvent(kEventBatteryStatus);
+    }
+
     return kSuccessCode;
+}
+
+/**
+ * Check if the charge status changed
+ *
+ * @param changes Changes flags
+ * @retval 1 The charge status changed
+ * @retval 0 The charge status has not changed
+ */
+static inline uint8_t chargeStatusChanged(const ChargerStatus* changes) {
+    return (changes->bits.vbus_status || changes->bits.power_good || (changes->bits.chrg_status > 0) ||
+            changes->bits.poor_source_passed);
 }
