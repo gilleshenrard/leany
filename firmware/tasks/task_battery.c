@@ -283,6 +283,7 @@ static ErrorCode updateBatteryLevel(void) {
     }
     last_battery_lvl_update_tick = getCurrentTick();
 
+    //open the battery measurement path
     LL_GPIO_SetOutputPin(BATT_EN_GPIO_Port, BATT_EN_Pin);
     vTaskDelay(pdMS_TO_TICKS(1U));
 
@@ -290,6 +291,7 @@ static ErrorCode updateBatteryLevel(void) {
     // TODO implement ADC reading
     //
 
+    //close the battery measurement path (saves energy)
     LL_GPIO_ResetOutputPin(BATT_EN_GPIO_Port, BATT_EN_Pin);
 
     //
