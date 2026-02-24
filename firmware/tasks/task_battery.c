@@ -21,6 +21,7 @@
 #include <task.h>
 
 #include "bq25619.h"
+#include "bq25619_registers.inc"
 #include "hal_i2c.h"
 #include "systick.h"
 
@@ -227,8 +228,11 @@ static ErrorCode stateConfiguring(void) {
 static ErrorCode stateIdle(void) {
     vTaskDelayUntil(&previous_tick, pdMS_TO_TICKS(kUpdatePeriodMS));
 
+    ChargerStatus current_status;
+    ChargerStatus changes;
+
     for (uint8_t attempt = 0; attempt < (uint8_t)kNbRetries; attempt++) {
-        result = updateBQ25619status(0);
+        result = updateBQ25619status(&current_status, &changes);
         if (getDeepestError(result) != kErrorAcknowledgeFailure) {
             break;
         }

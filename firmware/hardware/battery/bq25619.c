@@ -34,10 +34,8 @@ typedef enum {
     kUpdateStatus = 4,  ///< updateBQ25619status() function
 } FunctionCode;
 
-static ErrorCode result = {0};             ///< Buffer used to store the latest error code
-static I2C_TypeDef* i2c_handle = I2C1;     ///< I²C handle to use with all transmissons
-static ChargerStatus latest_status = {0};  ///< Latest value of the charger status bytes
-static ChargerStatus changes_mask = {0};   ///< Changes in the status bytes
+static ErrorCode result = {0};          ///< Buffer used to store the latest error code
+static I2C_TypeDef* i2c_handle = I2C1;  ///< I²C handle to use with all transmissons
 
 /*********************************************************************************************************************************/
 /*********************************************************************************************************************************/
@@ -127,18 +125,20 @@ ErrorCode configureBQ25619(void) {
  * @retval 1 Error while reading the status registers
  * @retval 2 Error while updating the registers
  */
-ErrorCode updateBQ25619status(uint32_t interrupt_received) {
-    (void)interrupt_received;
+ErrorCode updateBQ25619status(ChargerStatus* new_status, ChargerStatus* changes) {
+    if (!new_status || !changes) {
+        return createErrorCode(kUpdateStatus, 1, kErrorError);
+    }
 
     //getting the actual new status requires a second reading
-    ChargerStatus previous_status = latest_status;
-    result = readI2Cregisters(i2c_handle, kDEFAULT_SLAVEADDR, kCHG_STATUS0, latest_status.bytes, kNB_STATUS_BYTES);
+    ChargerStatus previous_status = *new_status;
+    result = readI2Cregisters(i2c_handle, kDEFAULT_SLAVEADDR, kCHG_STATUS0, new_status->bytes, kNB_STATUS_BYTES);
     EXIT_ON_ERROR(result, kUpdateStatus, 2)
 
     //compute the changes between the old and new status
-    changes_mask.bytes[0] = previous_status.bytes[0] ^ latest_status.bytes[0];
-    changes_mask.bytes[1] = previous_status.bytes[1] ^ latest_status.bytes[1];
-    changes_mask.bytes[2] = previous_status.bytes[2] ^ latest_status.bytes[2];
+    changes->bytes[0] = previous_status.bytes[0] ^ new_status->bytes[0];
+    changes->bytes[1] = previous_status.bytes[1] ^ new_status->bytes[1];
+    changes->bytes[2] = previous_status.bytes[2] ^ new_status->bytes[2];
 
     return kSuccessCode;
 }
