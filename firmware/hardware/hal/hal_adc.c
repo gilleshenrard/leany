@@ -13,7 +13,6 @@
 
 #include <FreeRTOS.h>
 #include <main.h>
-#include <portmacro.h>
 #include <projdefs.h>
 #include <semphr.h>
 #include <stddef.h>
@@ -25,9 +24,8 @@
 #include "systick.h"
 
 enum {
-    kMutexMS = 5U,                  ///< Max number of milliseconds to wait for a mutex
-    kInitTimeoutMs = 100U,          ///< Maximum number of milliseconds to wait for first reading
-    kTemperatureRefreshMs = 2000U,  ///< Timespan between two readings in [ms]
+    kMutexMS = 5U,          ///< Max number of milliseconds to wait for a mutex
+    kInitTimeoutMs = 100U,  ///< Maximum number of milliseconds to wait for first reading
 
     // STM32F103 temperature sensor calibration parameters (from datasheet)
     kTempSensorAvgSlope_mV_C = 4300,  ///< Avg slope: 4.3 mV/°C (scaled by 1000)
@@ -36,14 +34,10 @@ enum {
     kAdcVref_Mv = 3300,               ///< ADC reference voltage: 3.3V (in mV)
 };
 
-//private functions
-static void readTemperatureData(void);
-
 //variables
-static int32_t latest_temperature_celsius = 0;           ///< Latest MCU internal temperature in [°C]
-static uint32_t current_tick = 0;                        ///< Current OS tick
-static SemaphoreHandle_t temperature_mutex = NULL;       ///< Mutex which protects the temperature readings
-static volatile SemaphoreHandle_t updated_mutex = NULL;  ///< Binary semaphore indicating a new reading is available
+static int32_t latest_temperature_celsius = 0;      ///< Latest MCU internal temperature in [°C]
+static SemaphoreHandle_t temperature_mutex = NULL;  ///< Mutex which protects the temperature readings
+static volatile uint8_t adc_updated = 0;            ///< Flag indicating whether the ADC finished updating
 
 /****************************************************************************************************************/
 /****************************************************************************************************************/
@@ -53,14 +47,7 @@ static volatile SemaphoreHandle_t updated_mutex = NULL;  ///< Binary semaphore i
  */
 void ADCinterruptTriggered(void) {
     LL_ADC_ClearFlag_EOS(ADC1);
-
-    if (updated_mutex == NULL) {
-        return;
-    }
-
-    BaseType_t has_woken = 0;
-    (void)xSemaphoreGiveFromISR(updated_mutex, &has_woken);
-    portYIELD_FROM_ISR(has_woken);
+    adc_updated = 1;
 }
 
 /**
@@ -68,7 +55,6 @@ void ADCinterruptTriggered(void) {
  */
 void initialiseUserADC(void) {
     static StaticSemaphore_t temperature_mutex_state = {0};  ///< ADC value mutex state variables
-    static StaticSemaphore_t updated_mutex_state = {0};      ///< ADC value mutex state variables
 
     //create a semaphore to protect measurements
     temperature_mutex = xSemaphoreCreateMutexStatic(&temperature_mutex_state);
@@ -76,41 +62,50 @@ void initialiseUserADC(void) {
         Error_Handler();
     }
 
-    //create a semaphore to use as an "updated" binary flag
-    updated_mutex = xSemaphoreCreateBinaryStatic(&updated_mutex_state);
-    if (!updated_mutex) {
-        Error_Handler();
-    }
-
     LL_ADC_EnableIT_EOS(ADC1);  // enable ADC EOC interrupt
     LL_ADC_Enable(ADC1);        // enable ADC
 
     //request a first conversion
-    current_tick = getCurrentTick();
+    uint32_t current_tick = getCurrentTick();
     LL_ADC_REG_StartConversionSWStart(ADC1);
-    if (xSemaphoreTake(updated_mutex, pdMS_TO_TICKS(kInitTimeoutMs)) == pdFALSE) {
-        Error_Handler();
-    }
 
     //read the temperature value
+    while (!adc_updated) {
+        if (systickTimeout(current_tick, kInitTimeoutMs)) {
+            Error_Handler();
+        }
+    }
+    adc_updated = 0;
     readTemperatureData();
-    current_tick = getCurrentTick();
 }
 
 /**
- * Run the ADC1 reading state machine
+ * Check if the ADC finished updating
+ * @note This will reset the internal flag
+ *
+ * @retval 1 ADC updated
+ * @retval 0 Not updated yet
  */
-void runUserADCstateMachine(void) {
-    // State 1: Check if it's time to start a new conversion
-    if (systickTimeout(current_tick, kTemperatureRefreshMs)) {
-        current_tick = getCurrentTick();
-        LL_ADC_REG_StartConversionSWStart(ADC1);
+uint8_t consume_adc_updated(void) {
+    uint8_t is_updated = adc_updated;
+    adc_updated = 0;
+
+    return is_updated;
+}
+
+/**
+ * Request an ADC read
+ *
+ * @retval 1 Request success
+ * @retval 0 Could not request ADC read
+ */
+uint8_t requestADCread(void) {
+    if (adc_updated) {
+        return 0;
     }
 
-    // State 2: Check if any conversion is ready to read (independent of timeout)
-    if (xSemaphoreTake(updated_mutex, 0) == pdTRUE) {
-        readTemperatureData();
-    }
+    LL_ADC_REG_StartConversionSWStart(ADC1);
+    return 1;
 }
 
 /**
@@ -134,13 +129,10 @@ uint8_t getInternalTemperatureCelsius(int32_t* temperature_celsius) {
     return 1;
 }
 
-/****************************************************************************************************************/
-/****************************************************************************************************************/
-
 /**
  * Read the raw data converted by the internal MCU temperature ADC
  */
-static void readTemperatureData(void) {
+void readTemperatureData(void) {
     uint8_t value_changed = 0;
 
     if (xSemaphoreTake(temperature_mutex, pdMS_TO_TICKS(kMutexMS)) == pdFALSE) {

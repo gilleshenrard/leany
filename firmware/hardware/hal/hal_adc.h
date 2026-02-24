@@ -11,7 +11,9 @@
 
 void ADCinterruptTriggered(void);
 void initialiseUserADC(void);
-void runUserADCstateMachine(void);
 uint8_t getInternalTemperatureCelsius(int32_t* temperature_celsius);
+uint8_t consume_adc_updated(void);
+uint8_t requestADCread(void);
+void readTemperatureData(void);
 
 #endif
