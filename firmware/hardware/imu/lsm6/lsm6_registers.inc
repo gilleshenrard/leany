@@ -1,7 +1,12 @@
-/*
- * SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
- *
+/**
+ * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
  * SPDX-License-Identifier: MIT
+ *
+ * @file lsm6_registers.inc
+ * @details Describe LSM6XXX registers and bit values
+ * @author Gilles Henrard
+ *
+ * @note Datasheet : https://www.st.com/resource/en/datasheet/lsm6dsr.pdf
  */
 #ifndef HARDWARE_IMU_LSM6_REGISTERS_H_INCLUDED
 #define HARDWARE_IMU_LSM6_REGISTERS_H_INCLUDED

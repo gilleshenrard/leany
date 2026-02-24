@@ -1,14 +1,19 @@
-/*
- * SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
- *
+/**
+ * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
  * SPDX-License-Identifier: MIT
+ *
+ * @file bq25619_registers.inc
+ * @details Describe BQ25619 registers and bit values
+ * @author Gilles Henrard
+ *
+ * @note Datasheet : https://www.ti.com/lit/gpn/bq25619
  */
 #ifndef HARDWARE_BATTERY_MANAGEMENT_BQ25619_REGISTERS_H
 #define HARDWARE_BATTERY_MANAGEMENT_BQ25619_REGISTERS_H
 #include <stdint.h>
 
 enum {
-    kStatus_struct_align = 32U,
+    kStatus_struct_align = 32U,  ///< Status structure memory alignment
 };
 
 enum {
@@ -137,9 +142,12 @@ typedef struct {
     uint8_t poor_source_passed : 1;  ///< VBUS_GD bit : Whether VBUS passes poor source detection
 } __attribute__((aligned(kStatus_struct_align))) ChargerStatusBits;
 
+/**
+ * Charger status
+ */
 typedef union {
-    ChargerStatusBits bits;
-    uint8_t bytes[kNB_STATUS_BYTES];
+    ChargerStatusBits bits;           ///< Separate fields
+    uint8_t bytes[kNB_STATUS_BYTES];  ///< Raw bytes
 } ChargerStatus;
 
 /**

@@ -1,7 +1,10 @@
-/*
- * SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
- *
+/**
+ * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
  * SPDX-License-Identifier: MIT
+ *
+ * @file generic_command.inc
+ * @details Describe generic serial commands
+ * @author Gilles Henrard
  */
 #ifndef HARDWARE_SERIAL_GENERIC_COMMAND_INC
 #define HARDWARE_SERIAL_GENERIC_COMMAND_INC
