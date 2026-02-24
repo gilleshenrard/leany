@@ -128,14 +128,16 @@ ErrorCode configureBQ25619(void) {
  * @retval 2 Error while updating the registers
  */
 ErrorCode updateBQ25619status(uint32_t interrupt_received) {
-    //read the current charger status
-    result = readI2Cregisters(i2c_handle, kDEFAULT_SLAVEADDR, kCHG_STATUS0, latest_status.bytes, kNB_STATUS_BYTES);
-    EXIT_ON_ERROR(result, kUpdateStatus, 1)
+    (void)interrupt_received;
 
-    //if no interrupt was caught, stop there
-    if (!interrupt_received) {
-        return kSuccessCode;
-    }
+    // //read the current charger status
+    // result = readI2Cregisters(i2c_handle, kDEFAULT_SLAVEADDR, kCHG_STATUS0, latest_status.bytes, kNB_STATUS_BYTES);
+    // EXIT_ON_ERROR(result, kUpdateStatus, 1)
+
+    // //if no interrupt was caught, stop there
+    // if (!interrupt_received) {
+    //     return kSuccessCode;
+    // }
 
     //getting the actual new status requires a second reading
     ChargerStatus previous_status = latest_status;
