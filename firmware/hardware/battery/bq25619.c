@@ -120,7 +120,8 @@ ErrorCode configureBQ25619(void) {
 /**
  * Retireve the latest charger status
  *
- * @param interrupt_received Flags indicating the charger sent a GPIO interrupt
+ * @param[out] new_status New battery status
+ * @param[out] changes Changed status bits
  * @retval 0 Success
  * @retval 1 Error while reading the status registers
  * @retval 2 Error while updating the registers
