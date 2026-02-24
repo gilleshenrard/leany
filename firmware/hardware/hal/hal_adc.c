@@ -13,7 +13,6 @@
 
 #include <FreeRTOS.h>
 #include <main.h>
-#include <portmacro.h>
 #include <projdefs.h>
 #include <semphr.h>
 #include <stddef.h>
