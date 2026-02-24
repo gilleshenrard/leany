@@ -17,6 +17,7 @@
 #include <semphr.h>
 #include <stdint.h>
 #include <stm32f103xb.h>
+#include <stm32f1xx_ll_gpio.h>
 #include <stm32f1xx_ll_i2c.h>
 #include <task.h>
 
@@ -27,14 +28,15 @@
 #include "systick.h"
 
 enum {
-    kStackSize = 250U,           ///< Amount of words in the task stack
-    kTaskLowPriority = 8U,       ///< FreeRTOS number for a low priority task
-    kChipIDtimeout = 1000U,      ///< Maximum number of milliseconds to attempt reading the chip ID
-    kNbChipIDtests = 5U,         ///< Number of times chip ID reading must be tested
-    kUpdatePeriodMS = 200U,      ///< Period between two status updates in [ms]
-    kBatteryFullPercent = 100U,  ///< Value used as a 100% battery level
-    kMutexTimeoutMs = 10U,       ///< Maximum number of milliseconds before considering a mutex timeout
-    kNbRetries = 5U,             ///< Maximum number of retries upon I²C lack of ACK
+    kStackSize = 250U,                  ///< Amount of words in the task stack
+    kTaskLowPriority = 8U,              ///< FreeRTOS number for a low priority task
+    kChipIDtimeout = 1000U,             ///< Maximum number of milliseconds to attempt reading the chip ID
+    kNbChipIDtests = 5U,                ///< Number of times chip ID reading must be tested
+    kUpdatePeriodMS = 200U,             ///< Period between two status updates in [ms]
+    kBatteryFullPercent = 100U,         ///< Value used as a 100% battery level
+    kMutexTimeoutMs = 10U,              ///< Maximum number of milliseconds before considering a mutex timeout
+    kNbRetries = 5U,                    ///< Maximum number of retries upon I²C lack of ACK
+    kBatteryLvlUpdatePeriodMs = 1000U,  ///< Period in [ms] between two battery level updates
 };
 
 /**
@@ -53,7 +55,7 @@ static void taskBatteryManagement(void* argument);
 static ErrorCode stateStartup(void);
 static ErrorCode stateConfiguring(void);
 static ErrorCode stateIdle(void);
-static inline uint8_t chargeStatusChanged(const ChargerStatus* changes);
+static ErrorCode updateBatteryLevel(void);
 
 static volatile TaskHandle_t task_handle = NULL;          ///< handle of the FreeRTOS task
 static volatile FunctionCode state = kStateStartup;       ///< Current state machine state
@@ -66,6 +68,7 @@ static uint8_t battery_percentage = kBatteryFullPercent;  ///< Current battery p
 static uint8_t battery_charging = 0U;                     ///< Current battery charge status (for simulation)
 static TickType_t previous_tick = 0;                      ///< Tick at the last status update
 static ChargerStatus current_battery_status;              ///< Current battery status flags
+static uint32_t last_battery_lvl_update_tick = 0;         ///< Last tick at which battery lvl was updated
 
 /****************************************************************************************************************/
 /****************************************************************************************************************/
@@ -165,6 +168,7 @@ static void taskBatteryManagement(void* argument) {
             case kStateConfiguring:
                 result = stateConfiguring();
                 previous_tick = getCurrentTick();
+                last_battery_lvl_update_tick = getCurrentTick();
                 state = kStateIdle;
                 break;
 
@@ -237,6 +241,7 @@ static ErrorCode stateIdle(void) {
 
     ChargerStatus changes;
 
+    //retrieve the latest charger status
     for (uint8_t attempt = 0; attempt < (uint8_t)kNbRetries; attempt++) {
         result = updateBQ25619status(&current_battery_status, &changes);
         if (getDeepestError(result) != kErrorAcknowledgeFailure) {
@@ -245,21 +250,43 @@ static ErrorCode stateIdle(void) {
     }
     EXIT_ON_ERROR(result, kStateIdle, 1);
 
-    if (chargeStatusChanged(&changes)) {
+    //if status changed, trigger event
+    if (BQ25619statusChanged(&changes)) {
+        if (BQ25619Error(&current_battery_status)) {
+            return createErrorCode(kStateIdle, 2, kErrorError);
+        }
         triggerHardwareEvent(kEventBatteryStatus);
     }
 
-    return kSuccessCode;
+    return updateBatteryLevel();
 }
 
 /**
- * Check if the charge status changed
+ * Measure the battery voltage and estimate its level
  *
- * @param changes Changes flags
- * @retval 1 The charge status changed
- * @retval 0 The charge status has not changed
+ * @return ErrorCode 
  */
-static inline uint8_t chargeStatusChanged(const ChargerStatus* changes) {
-    return (changes->bits.vbus_status || changes->bits.power_good || (changes->bits.chrg_status > 0) ||
-            changes->bits.poor_source_passed);
+static ErrorCode updateBatteryLevel(void) {
+    //check if it is time to update the battery percentage
+    if (!systickTimeout(last_battery_lvl_update_tick, kBatteryLvlUpdatePeriodMs)) {
+        return kSuccessCode;
+    }
+    last_battery_lvl_update_tick = getCurrentTick();
+
+    //open the battery measurement path
+    LL_GPIO_SetOutputPin(BATT_EN_GPIO_Port, BATT_EN_Pin);
+    vTaskDelay(pdMS_TO_TICKS(1U));
+
+    //
+    // TODO implement ADC reading
+    //
+
+    //close the battery measurement path (saves energy)
+    LL_GPIO_ResetOutputPin(BATT_EN_GPIO_Port, BATT_EN_Pin);
+
+    //
+    // TODO implement ADC to voltage, then voltage to level lookup table
+    //
+
+    return kSuccessCode;
 }
