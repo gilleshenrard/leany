@@ -14,6 +14,7 @@
 #include <portmacro.h>
 #include <projdefs.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <stm32f1xx_hal_def.h>
 #include <task.h>
 
@@ -21,18 +22,22 @@
 #include "errorstack.h"
 #include "hal_adc.h"
 #include "led.h"
+#include "systick.h"
 
 enum {
-    kStackSize = 150U,      ///< Amount of words in the task stack
-    kTaskLowPriority = 8U,  ///< FreeRTOS number for a low priority task
+    kStackSize = 150U,              ///< Amount of words in the task stack
+    kTaskLowPriority = 8U,          ///< FreeRTOS number for a low priority task
+    kTemperatureRefreshMs = 2000U,  ///< Timespan between two readings in [ms]
 };
 
 //task functions
 static void taskGPIO(void* argument);
+static void runUserADCstateMachine(void);
 
 //state variables
 static volatile TaskHandle_t task_handle = NULL;  ///< handle of the FreeRTOS task
 static ErrorCode result;                          ///< Current functions errorstack result
+static uint32_t current_tick = 0;                 ///< Current OS tick
 
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
@@ -59,6 +64,7 @@ static void taskGPIO(void* argument) {
 
     initialiseLED();
     initialiseUserADC();
+    current_tick = getCurrentTick();
 
     while (1) {
         result = runButtonsStateMachine();
@@ -70,5 +76,21 @@ static void taskGPIO(void* argument) {
         runUserADCstateMachine();
 
         vTaskDelay(pdMS_TO_TICKS(5U));
+    }
+}
+
+/**
+ * Run the ADC1 reading state machine
+ */
+static void runUserADCstateMachine(void) {
+    // State 1: Check if it's time to start a new conversion
+    if (systickTimeout(current_tick, kTemperatureRefreshMs)) {
+        current_tick = getCurrentTick();
+        (void)requestADCread();
+    }
+
+    // State 2: Check if any conversion is ready to read (independent of timeout)
+    if (consume_adc_updated()) {
+        readTemperatureData();
     }
 }
