@@ -103,6 +103,7 @@ ErrorCode getBatteryStatus(BatteryStatus* status) {
 
     if (xSemaphoreTake(battery_mutex, pdMS_TO_TICKS(kMutexTimeoutMs)) == pdTRUE) {
         *status = (BatteryStatus){.level_percents = battery_percentage, .charging = battery_charging};
+        xSemaphoreGive(battery_mutex);
     }
 
     return kSuccessCode;
@@ -121,6 +122,7 @@ uint8_t setBatteryPercentage(uint8_t percentage) {
 
     if (xSemaphoreTake(battery_mutex, pdMS_TO_TICKS(kMutexTimeoutMs)) == pdTRUE) {
         battery_percentage = percentage;
+        xSemaphoreGive(battery_mutex);
     }
     return 1;
 }
@@ -132,6 +134,7 @@ uint8_t setBatteryPercentage(uint8_t percentage) {
 void setBatteryChargeStatus(uint8_t status) {
     if (xSemaphoreTake(battery_mutex, pdMS_TO_TICKS(kMutexTimeoutMs)) == pdTRUE) {
         battery_charging = status;
+        xSemaphoreGive(battery_mutex);
     }
 }
 
