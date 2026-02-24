@@ -55,7 +55,6 @@ static void taskBatteryManagement(void* argument);
 static ErrorCode stateStartup(void);
 static ErrorCode stateConfiguring(void);
 static ErrorCode stateIdle(void);
-static inline uint8_t chargeStatusChanged(const ChargerStatus* changes);
 static ErrorCode updateBatteryLevel(void);
 
 static volatile TaskHandle_t task_handle = NULL;          ///< handle of the FreeRTOS task
@@ -252,23 +251,14 @@ static ErrorCode stateIdle(void) {
     EXIT_ON_ERROR(result, kStateIdle, 1);
 
     //if status changed, trigger event
-    if (chargeStatusChanged(&changes)) {
+    if (BQ25619statusChanged(&changes)) {
+        if (BQ25619Error(&current_battery_status)) {
+            return createErrorCode(kStateIdle, 2, kErrorError);
+        }
         triggerHardwareEvent(kEventBatteryStatus);
     }
 
     return updateBatteryLevel();
-}
-
-/**
- * Check if the charge status changed
- *
- * @param changes Changes flags
- * @retval 1 The charge status changed
- * @retval 0 The charge status has not changed
- */
-static inline uint8_t chargeStatusChanged(const ChargerStatus* changes) {
-    return (changes->bits.vbus_status || changes->bits.power_good || (changes->bits.chrg_status > 0) ||
-            changes->bits.poor_source_passed);
 }
 
 /**
