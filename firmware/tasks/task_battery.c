@@ -21,6 +21,7 @@
 #include <task.h>
 
 #include "bq25619.h"
+#include "bq25619_registers.inc"
 #include "hal_i2c.h"
 #include "systick.h"
 
@@ -102,6 +103,7 @@ ErrorCode getBatteryStatus(BatteryStatus* status) {
 
     if (xSemaphoreTake(battery_mutex, pdMS_TO_TICKS(kMutexTimeoutMs)) == pdTRUE) {
         *status = (BatteryStatus){.level_percents = battery_percentage, .charging = battery_charging};
+        xSemaphoreGive(battery_mutex);
     }
 
     return kSuccessCode;
@@ -120,6 +122,7 @@ uint8_t setBatteryPercentage(uint8_t percentage) {
 
     if (xSemaphoreTake(battery_mutex, pdMS_TO_TICKS(kMutexTimeoutMs)) == pdTRUE) {
         battery_percentage = percentage;
+        xSemaphoreGive(battery_mutex);
     }
     return 1;
 }
@@ -131,6 +134,7 @@ uint8_t setBatteryPercentage(uint8_t percentage) {
 void setBatteryChargeStatus(uint8_t status) {
     if (xSemaphoreTake(battery_mutex, pdMS_TO_TICKS(kMutexTimeoutMs)) == pdTRUE) {
         battery_charging = status;
+        xSemaphoreGive(battery_mutex);
     }
 }
 
@@ -227,8 +231,11 @@ static ErrorCode stateConfiguring(void) {
 static ErrorCode stateIdle(void) {
     vTaskDelayUntil(&previous_tick, pdMS_TO_TICKS(kUpdatePeriodMS));
 
+    ChargerStatus current_status;
+    ChargerStatus changes;
+
     for (uint8_t attempt = 0; attempt < (uint8_t)kNbRetries; attempt++) {
-        result = updateBQ25619status(0);
+        result = updateBQ25619status(&current_status, &changes);
         if (getDeepestError(result) != kErrorAcknowledgeFailure) {
             break;
         }
