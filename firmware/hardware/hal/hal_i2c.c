@@ -39,8 +39,7 @@ static ErrorCode checkI2CFlags(I2C_TypeDef* descriptor, uint32_t start_tick, uin
  */
 #define EXIT_ON_I2C_ERROR(condition, descriptor, function_id, timeout_ms, error_code) \
     while (!(condition)) {                                                            \
-        result = checkI2CFlags(descriptor, start_tick, timeout_ms);                   \
-        if (isError(result)) {                                                        \
+        if (isError(checkI2CFlags(descriptor, start_tick, timeout_ms))) {             \
             return pushErrorCode(result, function_id, error_code);                    \
         }                                                                             \
     }
@@ -175,7 +174,6 @@ ErrorCode writeI2CRegisters(I2C_TypeDef* descriptor, uint8_t slave_address, uint
 // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 static ErrorCode initiateTransaction(I2C_TypeDef* descriptor, uint8_t slave_address, uint8_t first_register) {
     uint32_t start_tick = getCurrentTick();
-    ErrorCode result;
 
     //send a start signal
     LL_I2C_GenerateStartCondition(descriptor);
