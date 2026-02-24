@@ -174,6 +174,7 @@ ErrorCode writeI2CRegisters(I2C_TypeDef* descriptor, uint8_t slave_address, uint
 // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 static ErrorCode initiateTransaction(I2C_TypeDef* descriptor, uint8_t slave_address, uint8_t first_register) {
     uint32_t start_tick = getCurrentTick();
+    ErrorCode result = kSuccessCode;
 
     //send a start signal
     LL_I2C_GenerateStartCondition(descriptor);
