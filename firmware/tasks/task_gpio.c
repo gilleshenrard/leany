@@ -14,6 +14,7 @@
 #include <portmacro.h>
 #include <projdefs.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <stm32f1xx_hal_def.h>
 #include <task.h>
 
