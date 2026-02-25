@@ -15,13 +15,13 @@
 #include "display.h"
 #include "errorstack.h"
 #include "fonts.h"
-#include "hal_adc.h"
 #include "hardware_events.h"
 #include "label.h"
 #include "leany_std.h"
 #include "orientation.inc"
 #include "softversion.h"
 #include "st7735s.h"
+#include "task_gpio.h"
 
 enum {
     kTitleSectionHeightPx = 23U,  ///< Height of the title section in [px]
