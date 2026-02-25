@@ -117,7 +117,7 @@ static void taskGPIO(void* argument) {
 }
 
 /**
- * Run the ADC1 reading state machine
+ * Update the MCU internal temperature
  */
 static void updateInternalTemperature(void) {
     // State 1: Check if it's time to start a new conversion
