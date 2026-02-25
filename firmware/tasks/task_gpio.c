@@ -13,6 +13,7 @@
 #include <main.h>
 #include <portmacro.h>
 #include <projdefs.h>
+#include <semphr.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stm32f1xx_hal_def.h>
@@ -21,6 +22,7 @@
 #include "buttons.h"
 #include "errorstack.h"
 #include "hal_adc.h"
+#include "hardware_events.h"
 #include "led.h"
 #include "systick.h"
 
@@ -28,16 +30,19 @@ enum {
     kStackSize = 150U,              ///< Amount of words in the task stack
     kTaskLowPriority = 8U,          ///< FreeRTOS number for a low priority task
     kTemperatureRefreshMs = 2000U,  ///< Timespan between two readings in [ms]
+    kMutexMS = 5U,                  ///< Max number of milliseconds to wait for a mutex
 };
 
 //task functions
 static void taskGPIO(void* argument);
-static void runUserADCstateMachine(void);
+static void updateInternalTemperature(void);
 
 //state variables
-static volatile TaskHandle_t task_handle = NULL;  ///< handle of the FreeRTOS task
-static ErrorCode result;                          ///< Current functions errorstack result
-static uint32_t current_tick = 0;                 ///< Current OS tick
+static volatile TaskHandle_t task_handle = NULL;    ///< handle of the FreeRTOS task
+static SemaphoreHandle_t temperature_mutex = NULL;  ///< Mutex which protects the temperature readings
+static ErrorCode result;                            ///< Current functions errorstack result
+static uint32_t current_tick = 0;                   ///< Current OS tick
+static int32_t latest_temperature_celsius = 0;      ///< Latest MCU internal temperature in [°C]
 
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
@@ -46,13 +51,44 @@ static uint32_t current_tick = 0;                 ///< Current OS tick
  * @brief Create FreeRTOS static task for the buttons
  */
 void createGPIOtask(void) {
-    static StackType_t task_stack[kStackSize] = {0};  ///< Buffer used as the task stack
-    static StaticTask_t task_state = {0};             ///< Task state variables
+    static StackType_t task_stack[kStackSize] = {0};         ///< Buffer used as the task stack
+    static StaticTask_t task_state = {0};                    ///< Task state variables
+    static StaticSemaphore_t temperature_mutex_state = {0};  ///< ADC value mutex state variables
+
+    //create a semaphore to protect measurements
+    temperature_mutex = xSemaphoreCreateMutexStatic(&temperature_mutex_state);
+    if (!temperature_mutex) {
+        Error_Handler();
+    }
 
     //create the static task
     task_handle = xTaskCreateStatic(taskGPIO, "GPIO task", kStackSize, NULL, kTaskLowPriority, task_stack, &task_state);
     configASSERT(task_handle)
 }
+
+/**
+ * Get the latest MCU internal temperature in [°C]
+ * @param[out] temperature_celsius Pointer to store temperature value
+ * @retval 1 Temperature retrieved successfully
+ * @retval 0 Mutex timeout occurred
+ */
+uint8_t getInternalTemperatureCelsius(int32_t* temperature_celsius) {
+    if (temperature_celsius == NULL) {
+        return 0;
+    }
+
+    if (xSemaphoreTake(temperature_mutex, pdMS_TO_TICKS(kMutexMS)) == pdFALSE) {
+        return 0;
+    }
+
+    *temperature_celsius = latest_temperature_celsius;
+    (void)xSemaphoreGive(temperature_mutex);
+
+    return 1;
+}
+
+/********************************************************************************************************************************************/
+/********************************************************************************************************************************************/
 
 /**
  * @brief Run the GPIO state machine
@@ -63,7 +99,7 @@ static void taskGPIO(void* argument) {
     UNUSED(argument);
 
     initialiseLED();
-    initialiseUserADC();
+    initialiseHALadc();
     current_tick = getCurrentTick();
 
     while (1) {
@@ -73,24 +109,42 @@ static void taskGPIO(void* argument) {
         }
 
         runLEDstateMachine();
-        runUserADCstateMachine();
+        runADCstateMachine();
+        updateInternalTemperature();
 
         vTaskDelay(pdMS_TO_TICKS(5U));
     }
 }
 
 /**
- * Run the ADC1 reading state machine
+ * Update the MCU internal temperature
  */
-static void runUserADCstateMachine(void) {
+static void updateInternalTemperature(void) {
     // State 1: Check if it's time to start a new conversion
     if (systickTimeout(current_tick, kTemperatureRefreshMs)) {
         current_tick = getCurrentTick();
-        (void)requestADCread();
+        (void)requestADCmeasurement(kADCchannelTemperature);
     }
 
     // State 2: Check if any conversion is ready to read (independent of timeout)
-    if (consume_adc_updated()) {
-        readTemperatureData();
+    ADCresult adc_result;
+    const uint8_t updated = getADCvalue(kADCchannelTemperature, &adc_result);
+    if (!updated) {
+        return;
+    }
+
+    uint8_t value_changed = 0;
+    if (xSemaphoreTake(temperature_mutex, pdMS_TO_TICKS(kMutexMS)) == pdTRUE) {
+        int32_t new_temperature = adcToInternalTemperature(adc_result.value);
+
+        if (latest_temperature_celsius != new_temperature) {
+            latest_temperature_celsius = new_temperature;
+            value_changed = 1;
+        }
+        (void)xSemaphoreGive(temperature_mutex);
+    }
+
+    if (value_changed) {
+        triggerHardwareEvent(kEventTemperature);
     }
 }
