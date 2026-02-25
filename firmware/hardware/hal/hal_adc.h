@@ -14,6 +14,7 @@
  */
 typedef enum {
     kADCchannelTemperature = 0,  ///< MCU internal temperature
+    kADCchannelBattery,          ///< Battery voltage
     kADCnbChannels               ///< Number of ADC channels implemented
 } ADCchannel;
 
