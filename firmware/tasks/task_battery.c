@@ -23,6 +23,7 @@
 
 #include "bq25619.h"
 #include "bq25619_registers.inc"
+#include "hal_adc.h"
 #include "hal_i2c.h"
 #include "hardware_events.h"
 #include "systick.h"
@@ -56,6 +57,7 @@ static ErrorCode stateStartup(void);
 static ErrorCode stateConfiguring(void);
 static ErrorCode stateIdle(void);
 static ErrorCode updateBatteryLevel(void);
+static uint8_t adcToVoltageTenths(uint16_t adc_raw);
 
 static volatile TaskHandle_t task_handle = NULL;          ///< handle of the FreeRTOS task
 static volatile FunctionCode state = kStateStartup;       ///< Current state machine state
@@ -69,6 +71,7 @@ static uint8_t battery_charging = 0U;                     ///< Current battery c
 static TickType_t previous_tick = 0;                      ///< Tick at the last status update
 static ChargerStatus current_battery_status;              ///< Current battery status flags
 static uint32_t last_battery_lvl_update_tick = 0;         ///< Last tick at which battery lvl was updated
+static uint8_t battery_voltage_tenths = 0;                ///< Current battery voltage in [0.1V]
 
 /****************************************************************************************************************/
 /****************************************************************************************************************/
@@ -277,16 +280,43 @@ static ErrorCode updateBatteryLevel(void) {
     LL_GPIO_SetOutputPin(BATT_EN_GPIO_Port, BATT_EN_Pin);
     vTaskDelay(pdMS_TO_TICKS(1U));
 
-    //
-    // TODO implement ADC reading
-    //
+    //request ADC measurements
+    if (!requestADCmeasurement(kADCchannelBattery)) {
+        LL_GPIO_ResetOutputPin(BATT_EN_GPIO_Port, BATT_EN_Pin);
+        return kSuccessCode;
+    }
+
+    //get the latest battery value
+    ADCresult adc_result;
+    if (!getADCvalue(kADCchannelBattery, &adc_result)) {
+        LL_GPIO_ResetOutputPin(BATT_EN_GPIO_Port, BATT_EN_Pin);
+        return kSuccessCode;
+    }
 
     //close the battery measurement path (saves energy)
     LL_GPIO_ResetOutputPin(BATT_EN_GPIO_Port, BATT_EN_Pin);
 
-    //
-    // TODO implement ADC to voltage, then voltage to level lookup table
-    //
+    //transform the ADC value to [0.1V]
+    battery_voltage_tenths = adcToVoltageTenths(adc_result.value);
 
     return kSuccessCode;
+}
+
+/**
+ * Transform an ADC value to battery voltage in [0.1V]
+ *
+ * @param adc_raw Value to transform
+ * @return Battery voltage
+ */
+static uint8_t adcToVoltageTenths(uint16_t adc_raw) {
+    static const uint32_t kVoltageDividerHighKohms = 50UL;
+    static const uint32_t kVoltageDividerLowKohms = 50UL;
+    static const uint32_t kAdcRefVoltageTenths = 33UL;  // 3.3V in [0.1V]
+    static const uint32_t kAdcMaxValue = 4095UL;        // ADC 12-bits -> 4096 steps
+
+    static const uint32_t kConversionNumerator =
+        (kAdcRefVoltageTenths * (kVoltageDividerHighKohms + kVoltageDividerLowKohms));
+    static const uint32_t kConversionDenominator = (kAdcMaxValue * kVoltageDividerLowKohms);
+
+    return (uint8_t)((adc_raw * kConversionNumerator) / kConversionDenominator);
 }
