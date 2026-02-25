@@ -16,6 +16,7 @@
 #include <stdint.h>
 #include <stm32f103xb.h>
 #include <stm32f1xx_ll_adc.h>
+#include <stm32f1xx_ll_dma.h>
 
 #include "systick.h"
 
@@ -56,11 +57,14 @@ static StaticSemaphore_t adcdone_binsemaphore_state;            ///< ADC done se
 static QueueHandle_t adc_queue = NULL;                          ///< ADC requests queue
 static StaticQueue_t adc_queue_state;                           ///< ADC requests queue state
 static ADC_TypeDef* adc_handle = ADC1;                          ///< ADC handle to use
+static DMA_TypeDef* dma_handle = DMA1;                          ///< DMA handle to use
+static uint32_t dma_channel = LL_DMA_CHANNEL_1;                 ///< DMA channel receiving interrupts
 static ADCrequest requests[kRequestsLength];                    ///< Requests queue buffer
-static ADCresult adc_values[kADCnbChannels];                    ///< Latest ADC values for all channels
 static ADCstate state = kStateIdle;                             ///< Current state machine state
 static ADCrequest latest_request;                               ///< Latest request treated
 static uint32_t last_tick = 0;                                  ///< System tick at the start of a request
+static uint16_t dma_values[kADCnbChannels];                     ///< Values read from DMA
+static ADCresult adc_values[kADCnbChannels];                    ///< Latest ADC values for all channels
 
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
@@ -69,12 +73,12 @@ static uint32_t last_tick = 0;                                  ///< System tick
  * React to an ADC interrupt
  */
 void ADCinterruptTriggered(void) {
-    LL_ADC_ClearFlag_EOS(adc_handle);
-
     //semaphore not created yet
     if (!adcdone_binsemaphore) {
         return;
     }
+
+    LL_DMA_ClearFlag_TC1(dma_handle);
 
     BaseType_t has_woken = pdFALSE;
     xSemaphoreGiveFromISR(adcdone_binsemaphore, &has_woken);
@@ -94,8 +98,7 @@ void initialiseHALadc(void) {
     configASSERT(adc_queue);
 
     //Enable the ADC
-    LL_ADC_EnableIT_EOS(adc_handle);  // enable ADC EOC interrupt
-    LL_ADC_Enable(adc_handle);        // enable ADC
+    LL_ADC_Enable(adc_handle);  // enable ADC
 }
 
 /**
@@ -171,8 +174,17 @@ static void stateIdle(void) {
         return;
     }
 
-    //drain the ADC-done semaphore and start acquisition
+    //drain the ADC-done semaphore
     xSemaphoreTake(adcdone_binsemaphore, 0);
+
+    //start DMA acquisition
+    LL_DMA_DisableChannel(dma_handle, dma_channel);
+    LL_DMA_ClearFlag_GI5(dma_handle);
+    LL_DMA_EnableIT_TC(dma_handle, dma_channel);
+    LL_DMA_ConfigAddresses(dma_handle, dma_channel, LL_ADC_DMA_GetRegAddr(adc_handle, LL_ADC_DMA_REG_REGULAR_DATA),
+                           (uint32_t)dma_values, LL_DMA_DIRECTION_PERIPH_TO_MEMORY);
+    LL_DMA_SetDataLength(dma_handle, dma_channel, (kADCnbChannels * sizeof(uint16_t)));  //must be reset every time
+    LL_DMA_EnableChannel(dma_handle, dma_channel);
     LL_ADC_REG_StartConversionSWStart(adc_handle);
 
     //get to next state
@@ -197,8 +209,10 @@ static void stateAcquiring(void) {
 
     //critical section used for non-blocking section that cannot fail
     taskENTER_CRITICAL();
-    adc_values[latest_request.channel].value = LL_ADC_REG_ReadConversionData12(adc_handle);
-    adc_values[latest_request.channel].updated = 1;
+    for (uint8_t channel = 0; channel < (uint8_t)kADCnbChannels; channel++) {
+        adc_values[channel].value = dma_values[channel];
+        adc_values[channel].updated = 1;
+    }
     taskEXIT_CRITICAL();
 
     state = kStateIdle;
