@@ -208,11 +208,10 @@ static void stateAcquiring(void) {
     }
 
     //critical section used for non-blocking section that cannot fail
+    const ADCchannel channel = latest_request.channel;
     taskENTER_CRITICAL();
-    for (uint8_t channel = 0; channel < (uint8_t)kADCnbChannels; channel++) {
-        adc_values[channel].value = dma_values[channel];
-        adc_values[channel].updated = 1;
-    }
+    adc_values[channel].value = dma_values[channel];
+    adc_values[channel].updated = 1;
     taskEXIT_CRITICAL();
 
     state = kStateIdle;
