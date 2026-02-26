@@ -109,6 +109,10 @@ void initialiseHALadc(void) {
  * @retval 0 Queue could not accept the request
  */
 uint8_t requestADCmeasurement(ADCchannel channel) {
+    if (channel >= kADCnbChannels) {
+        return 0;
+    }
+
     const ADCrequest request = {.channel = channel};
     return (xQueueSend(adc_queue, &request, kNoWait) == pdTRUE);
 }
@@ -121,6 +125,14 @@ uint8_t requestADCmeasurement(ADCchannel channel) {
  * @return Whether the ADC channel has an update since last read
  */
 uint8_t getADCvalue(ADCchannel channel, ADCresult* value) {
+    if (channel >= kADCnbChannels) {
+        return 0;
+    }
+
+    if (!value) {
+        return 0;
+    }
+
     uint8_t updated = 0;
 
     //critical section used for non-blocking section that cannot fail
@@ -179,11 +191,11 @@ static void stateIdle(void) {
 
     //start DMA acquisition
     LL_DMA_DisableChannel(dma_handle, dma_channel);
-    LL_DMA_ClearFlag_GI5(dma_handle);
+    LL_DMA_ClearFlag_GI1(dma_handle);
     LL_DMA_EnableIT_TC(dma_handle, dma_channel);
     LL_DMA_ConfigAddresses(dma_handle, dma_channel, LL_ADC_DMA_GetRegAddr(adc_handle, LL_ADC_DMA_REG_REGULAR_DATA),
                            (uint32_t)dma_values, LL_DMA_DIRECTION_PERIPH_TO_MEMORY);
-    LL_DMA_SetDataLength(dma_handle, dma_channel, (kADCnbChannels * sizeof(uint16_t)));  //must be reset every time
+    LL_DMA_SetDataLength(dma_handle, dma_channel, kADCnbChannels);  //must be reset every time
     LL_DMA_EnableChannel(dma_handle, dma_channel);
     LL_ADC_REG_StartConversionSWStart(adc_handle);
 
