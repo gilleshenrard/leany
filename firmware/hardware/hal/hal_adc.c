@@ -23,7 +23,6 @@
 enum {
     kADCtimeoutMs = 100U,  ///< Maximum number of milliseconds to wait for ADC reading
     kRequestsLength = 5U,  ///< Maximum number of ADC requests in the queue
-    kNoWait = 0,           ///< Used instead of 0 for readability
 
     // STM32F103 temperature sensor calibration parameters (from datasheet)
     kTempSensorAvgSlope_mV_C = 4300,  ///< Avg slope: 4.3 mV/°C (scaled by 1000)
@@ -65,6 +64,7 @@ static ADCrequest latest_request;                               ///< Latest requ
 static uint32_t last_tick = 0;                                  ///< System tick at the start of a request
 static uint16_t dma_values[kADCnbChannels];                     ///< Values read from DMA
 static ADCresult adc_values[kADCnbChannels];                    ///< Latest ADC values for all channels
+static const Ticktype_t kNoWait = 0,                            ///< Used instead of 0 for readability
 
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
