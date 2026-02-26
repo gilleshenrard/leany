@@ -281,7 +281,7 @@ static ErrorCode updateBatteryLevel(void) {
     vTaskDelay(pdMS_TO_TICKS(1U));
 
     //request ADC measurements
-    if (requestADCmeasurement(kADCchannelBattery)) {
+    if (!requestADCmeasurement(kADCchannelBattery)) {
         LL_GPIO_ResetOutputPin(BATT_EN_GPIO_Port, BATT_EN_Pin);
         return kSuccessCode;
     }
