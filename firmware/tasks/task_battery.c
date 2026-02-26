@@ -309,17 +309,14 @@ static ErrorCode updateBatteryLevel(void) {
  * @return Battery voltage
  */
 static uint8_t adcToVoltageTenths(uint16_t adc_raw) {
-    /**
-     * Battery voltage goes through a voltage divider to a 12-bit 3.3V ADC
-     * Voltage divider : 50k high / 50k low
-     * ADC : 12-bits -> 4096 steps
-     *
-     * -> voltage in [0.1V] = adc_raw * 10 * (3.3) * (50 + 50)
-     *                                  ------------------------
-     *                                          4095 * 50
-     */
-    static const uint32_t kConversionNumerator = 3300U;
-    static const uint32_t kConversionDenominator = 204750U;
+    static const uint32_t kVoltageDividerHighKohms = 50UL;
+    static const uint32_t kVoltageDividerLowKohms = 50UL;
+    static const uint32_t kAdcRefVoltageTenths = 33UL;  // 3.3V in [0.1V]
+    static const uint32_t kAdcMaxValue = 4095UL;  // ADC 12-bits -> 4096 steps
+
+    static const uint32_t kConversionNumerator =
+        (kAdcRefVoltageTenths * (kVoltageDividerHighKohms + kVoltageDividerLowKohms));
+    static const uint32_t kConversionDenominator = (kAdcMaxValue * kVoltageDividerLowKohms);
 
     return (uint8_t)((adc_raw * kConversionNumerator) / kConversionDenominator);
 }
