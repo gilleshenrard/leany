@@ -64,7 +64,7 @@ static ADCrequest latest_request;                               ///< Latest requ
 static uint32_t last_tick = 0;                                  ///< System tick at the start of a request
 static uint16_t dma_values[kADCnbChannels];                     ///< Values read from DMA
 static ADCresult adc_values[kADCnbChannels];                    ///< Latest ADC values for all channels
-static const Ticktype_t kNoWait = 0,                            ///< Used instead of 0 for readability
+static const TickType_t kNoWait = 0;                            ///< Used instead of 0 for readability
 
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
