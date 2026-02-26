@@ -57,7 +57,7 @@ static ErrorCode stateStartup(void);
 static ErrorCode stateConfiguring(void);
 static ErrorCode stateIdle(void);
 static ErrorCode updateBatteryLevel(void);
-static uint16_t adcToVoltageTenths(uint16_t adc_raw);
+static uint8_t adcToVoltageTenths(uint16_t adc_raw);
 
 static volatile TaskHandle_t task_handle = NULL;          ///< handle of the FreeRTOS task
 static volatile FunctionCode state = kStateStartup;       ///< Current state machine state
@@ -71,7 +71,7 @@ static uint8_t battery_charging = 0U;                     ///< Current battery c
 static TickType_t previous_tick = 0;                      ///< Tick at the last status update
 static ChargerStatus current_battery_status;              ///< Current battery status flags
 static uint32_t last_battery_lvl_update_tick = 0;         ///< Last tick at which battery lvl was updated
-static uint16_t battery_voltage_tenths = 0;               ///< Current battery voltage in [0.1V]
+static uint8_t battery_voltage_tenths = 0;                ///< Current battery voltage in [0.1V]
 
 /****************************************************************************************************************/
 /****************************************************************************************************************/
@@ -308,22 +308,18 @@ static ErrorCode updateBatteryLevel(void) {
  * @param adc_raw Value to transform
  * @return Battery voltage
  */
-static uint16_t adcToVoltageTenths(uint16_t adc_raw) {
+static uint8_t adcToVoltageTenths(uint16_t adc_raw) {
     /**
      * Battery voltage goes through a voltage divider to a 12-bit 3.3V ADC
      * Voltage divider : 50k high / 50k low
      * ADC : 12-bits -> 4096 steps
      *
-     * -> voltage in [0.1V] = adc_raw * 10 * (3.3) * (50k + 50k)
-     *                                      -------  -----------
-     *                                        4095       50k
-     *
-     *                      = adc_raw * 10 * 33 * 2
-     *                                  -----------
-     *                                      4095
+     * -> voltage in [0.1V] = adc_raw * 10 * (3.3) * (50 + 50)
+     *                                  ------------------------
+     *                                          4095 * 50
      */
-    static const uint16_t kConversionNumerator = 66U;
-    static const uint16_t kConversionDenominator = 4095U;
+    static const uint32_t kConversionNumerator = 3300U;
+    static const uint32_t kConversionDenominator = 204750U;
 
-    return ((uint16_t)(adc_raw * kConversionNumerator) / kConversionDenominator);
+    return (uint8_t)((adc_raw * kConversionNumerator) / kConversionDenominator);
 }
