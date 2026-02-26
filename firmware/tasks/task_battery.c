@@ -312,7 +312,7 @@ static uint8_t adcToVoltageTenths(uint16_t adc_raw) {
     static const uint32_t kVoltageDividerHighKohms = 50UL;
     static const uint32_t kVoltageDividerLowKohms = 50UL;
     static const uint32_t kAdcRefVoltageTenths = 33UL;  // 3.3V in [0.1V]
-    static const uint32_t kAdcMaxValue = 4095UL;  // ADC 12-bits -> 4096 steps
+    static const uint32_t kAdcMaxValue = 4095UL;        // ADC 12-bits -> 4096 steps
 
     static const uint32_t kConversionNumerator =
         (kAdcRefVoltageTenths * (kVoltageDividerHighKohms + kVoltageDividerLowKohms));
