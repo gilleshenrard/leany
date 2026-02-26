@@ -159,6 +159,8 @@ void setBatteryChargeStatus(uint8_t status) {
 static void taskBatteryManagement(void* argument) {
     (void)argument;
 
+    (void)updateBatteryLevel();
+
     LL_I2C_Enable(i2c_handle);
 
     while (1) {
@@ -211,6 +213,8 @@ static ErrorCode stateStartup(void) {
         }
     }
     EXIT_ON_ERROR(result, kStateStartup, 2)
+
+    vTaskDelay(pdMS_TO_TICKS(5));
 
     return kSuccessCode;
 }
