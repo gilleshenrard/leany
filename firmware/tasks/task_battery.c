@@ -316,7 +316,7 @@ static uint16_t adcToVoltageHundredths(uint16_t adc_raw) {
     static const uint32_t kVoltageDividerHighKohms = 50UL;
     static const uint32_t kVoltageDividerLowKohms = 50UL;
     static const uint32_t kAdcMaxVoltageHundredths = 330UL;  // 3.3V in [0.01V]
-    static const uint32_t kAdcMaxValue = 4095UL;        // ADC 12-bits -> [0 ... 4095]
+    static const uint32_t kAdcMaxValue = 4095UL;             // ADC 12-bits -> [0 ... 4095]
 
     static const uint32_t kConversionNumerator =
         (kAdcMaxVoltageHundredths * (kVoltageDividerHighKohms + kVoltageDividerLowKohms));
