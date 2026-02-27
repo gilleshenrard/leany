@@ -57,7 +57,7 @@ static ErrorCode stateStartup(void);
 static ErrorCode stateConfiguring(void);
 static ErrorCode stateIdle(void);
 static ErrorCode updateBatteryLevel(void);
-static uint8_t adcToVoltageTenths(uint16_t adc_raw);
+static uint16_t adcToVoltageHundredths(uint16_t adc_raw);
 
 static volatile TaskHandle_t task_handle = NULL;          ///< handle of the FreeRTOS task
 static volatile FunctionCode state = kStateStartup;       ///< Current state machine state
@@ -71,7 +71,7 @@ static uint8_t battery_charging = 0U;                     ///< Current battery c
 static TickType_t previous_tick = 0;                      ///< Tick at the last status update
 static ChargerStatus current_battery_status;              ///< Current battery status flags
 static uint32_t last_battery_lvl_update_tick = 0;         ///< Last tick at which battery lvl was updated
-static uint8_t battery_voltage_tenths = 0;                ///< Current battery voltage in [0.1V]
+static uint16_t battery_voltage_hundredths = 0;           ///< Current battery voltage in [0.01V]
 
 /****************************************************************************************************************/
 /****************************************************************************************************************/
@@ -301,26 +301,26 @@ static ErrorCode updateBatteryLevel(void) {
     LL_GPIO_ResetOutputPin(BATT_EN_GPIO_Port, BATT_EN_Pin);
 
     //transform the ADC value to [0.1V]
-    battery_voltage_tenths = adcToVoltageTenths(adc_result.value);
+    battery_voltage_hundredths = adcToVoltageHundredths(adc_result.value);
 
     return kSuccessCode;
 }
 
 /**
- * Transform an ADC value to battery voltage in [0.1V]
+ * Transform an ADC value to battery voltage in [0.01V]
  *
  * @param adc_raw Value to transform
- * @return Battery voltage
+ * @return Battery voltage in [0.01V]
  */
-static uint8_t adcToVoltageTenths(uint16_t adc_raw) {
+static uint16_t adcToVoltageHundredths(uint16_t adc_raw) {
     static const uint32_t kVoltageDividerHighKohms = 50UL;
     static const uint32_t kVoltageDividerLowKohms = 50UL;
-    static const uint32_t kAdcRefVoltageTenths = 33UL;  // 3.3V in [0.1V]
-    static const uint32_t kAdcMaxValue = 4095UL;        // ADC 12-bits -> 4096 steps
+    static const uint32_t kAdcMaxVoltageHundredths = 330UL;  // 3.3V in [0.01V]
+    static const uint32_t kAdcMaxValue = 4095UL;             // ADC 12-bits -> [0 ... 4095]
 
     static const uint32_t kConversionNumerator =
-        (kAdcRefVoltageTenths * (kVoltageDividerHighKohms + kVoltageDividerLowKohms));
+        (kAdcMaxVoltageHundredths * (kVoltageDividerHighKohms + kVoltageDividerLowKohms));
     static const uint32_t kConversionDenominator = (kAdcMaxValue * kVoltageDividerLowKohms);
 
-    return (uint8_t)((adc_raw * kConversionNumerator) / kConversionDenominator);
+    return (uint16_t)((adc_raw * kConversionNumerator) / kConversionDenominator);
 }
