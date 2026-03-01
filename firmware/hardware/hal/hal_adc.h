@@ -10,7 +10,7 @@
 #include <stdint.h>
 
 enum {
-    kAdcVref_mV = 2400,  ///< ADC reference voltage: 2.4V (vref+ in datasheet)
+    kAdcVref_mV = 3300,  ///< ADC reference voltage: 3.3V (VDDA voltage)
 };
 
 /**
@@ -35,6 +35,5 @@ void initialiseHALadc(void);
 void runADCstateMachine(void);
 uint8_t requestADCmeasurement(ADCchannel channel);
 uint8_t getADCvalue(ADCchannel channel, ADCresult* value);
-int32_t adcToInternalTemperature(uint16_t adc_raw);
 
 #endif

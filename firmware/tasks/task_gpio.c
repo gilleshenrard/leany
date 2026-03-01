@@ -17,6 +17,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stm32f1xx_hal_def.h>
+#include <stm32f1xx_ll_adc.h>
 #include <task.h>
 
 #include "buttons.h"
@@ -31,18 +32,24 @@ enum {
     kTaskLowPriority = 8U,          ///< FreeRTOS number for a low priority task
     kTemperatureRefreshMs = 2000U,  ///< Timespan between two readings in [ms]
     kMutexMS = 5U,                  ///< Max number of milliseconds to wait for a mutex
+
+    // STM32F103 temperature sensor calibration parameters (from datasheet)
+    kTempSensorAvgSlope_uV_C = 4300,  ///< Avg slope: 4.3 mV/°C (scaled to uV/°C)
+    kTempSensorV25_mV = 1430,         ///< Voltage at 25°C: 1.43V (in mV)
+    kTempSensorCalibTemp_C = 25,      ///< Calibration temperature: 25°C
 };
 
 //task functions
 static void taskGPIO(void* argument);
 static void updateInternalTemperature(void);
+static int32_t adcToInternalTemperature(uint16_t adc_raw);
 
 //state variables
 static volatile TaskHandle_t task_handle = NULL;    ///< handle of the FreeRTOS task
 static SemaphoreHandle_t temperature_mutex = NULL;  ///< Mutex which protects the temperature readings
 static ErrorCode result;                            ///< Current functions errorstack result
 static uint32_t current_tick = 0;                   ///< Current OS tick
-static int32_t latest_temperature_celsius = 0;      ///< Latest MCU internal temperature in [°C]
+static int32_t internal_temperature_celsius = 0;    ///< Latest MCU internal temperature in [°C]
 
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
@@ -81,7 +88,7 @@ uint8_t getInternalTemperatureCelsius(int32_t* temperature_celsius) {
         return 0;
     }
 
-    *temperature_celsius = latest_temperature_celsius;
+    *temperature_celsius = internal_temperature_celsius;
     (void)xSemaphoreGive(temperature_mutex);
 
     return 1;
@@ -137,8 +144,8 @@ static void updateInternalTemperature(void) {
     if (xSemaphoreTake(temperature_mutex, pdMS_TO_TICKS(kMutexMS)) == pdTRUE) {
         int32_t new_temperature = adcToInternalTemperature(adc_result.value);
 
-        if (latest_temperature_celsius != new_temperature) {
-            latest_temperature_celsius = new_temperature;
+        if (internal_temperature_celsius != new_temperature) {
+            internal_temperature_celsius = new_temperature;
             value_changed = 1;
         }
         (void)xSemaphoreGive(temperature_mutex);
@@ -147,4 +154,15 @@ static void updateInternalTemperature(void) {
     if (value_changed) {
         triggerHardwareEvent(kEventTemperature);
     }
+}
+
+/**
+ * Compute the MCU internal temperature from a raw ADC value
+ *
+ * @param adc_raw ADC raw value
+ * @return MCU internal temperature
+ */
+static int32_t adcToInternalTemperature(const uint16_t adc_raw) {
+    return __LL_ADC_CALC_TEMPERATURE_TYP_PARAMS(kTempSensorAvgSlope_uV_C, kTempSensorV25_mV, kTempSensorCalibTemp_C,
+                                                kAdcVref_mV, adc_raw, LL_ADC_RESOLUTION_12B);
 }
