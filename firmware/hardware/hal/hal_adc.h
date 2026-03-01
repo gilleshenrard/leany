@@ -9,6 +9,10 @@
 #define HARDWARE_HAL_HAL_ADC_H
 #include <stdint.h>
 
+enum {
+    kAdcVref_mV = 2400,  ///< ADC reference voltage: 2.4V (vref+ in datasheet)
+};
+
 /**
  * ADC channels used in the application
  */
