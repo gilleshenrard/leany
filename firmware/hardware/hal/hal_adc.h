@@ -35,6 +35,5 @@ void initialiseHALadc(void);
 void runADCstateMachine(void);
 uint8_t requestADCmeasurement(ADCchannel channel);
 uint8_t getADCvalue(ADCchannel channel, ADCresult* value);
-int32_t adcToInternalTemperature(uint16_t adc_raw);
 
 #endif

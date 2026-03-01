@@ -31,11 +31,17 @@ enum {
     kTaskLowPriority = 8U,          ///< FreeRTOS number for a low priority task
     kTemperatureRefreshMs = 2000U,  ///< Timespan between two readings in [ms]
     kMutexMS = 5U,                  ///< Max number of milliseconds to wait for a mutex
+
+    // STM32F103 temperature sensor calibration parameters (from datasheet)
+    kTempSensorAvgSlope_uV_C = 4300,  ///< Avg slope: 4.3 mV/°C (scaled to uV/°C)
+    kTempSensorV25_mV = 1430,         ///< Voltage at 25°C: 1.43V (in mV)
+    kTempSensorCalibTemp_C = 25,      ///< Calibration temperature: 25°C
 };
 
 //task functions
 static void taskGPIO(void* argument);
 static void updateInternalTemperature(void);
+static int32_t adcToInternalTemperature(uint16_t adc_raw);
 
 //state variables
 static volatile TaskHandle_t task_handle = NULL;    ///< handle of the FreeRTOS task
@@ -147,4 +153,15 @@ static void updateInternalTemperature(void) {
     if (value_changed) {
         triggerHardwareEvent(kEventTemperature);
     }
+}
+
+/**
+ * Compute the MCU internal temperature from a raw ADC value
+ *
+ * @param adc_raw ADC raw value
+ * @return MCU internal temperature
+ */
+static int32_t adcToInternalTemperature(const uint16_t adc_raw) {
+    return __LL_ADC_CALC_TEMPERATURE_TYP_PARAMS(kTempSensorAvgSlope_uV_C, kTempSensorV25_mV, kTempSensorCalibTemp_C,
+                                                kAdcVref_mV, adc_raw, LL_ADC_RESOLUTION_12B);
 }
