@@ -48,7 +48,7 @@ static volatile TaskHandle_t task_handle = NULL;    ///< handle of the FreeRTOS 
 static SemaphoreHandle_t temperature_mutex = NULL;  ///< Mutex which protects the temperature readings
 static ErrorCode result;                            ///< Current functions errorstack result
 static uint32_t current_tick = 0;                   ///< Current OS tick
-static int32_t latest_temperature_celsius = 0;      ///< Latest MCU internal temperature in [°C]
+static int32_t internal_temperature_celsius = 0;    ///< Latest MCU internal temperature in [°C]
 
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
@@ -87,7 +87,7 @@ uint8_t getInternalTemperatureCelsius(int32_t* temperature_celsius) {
         return 0;
     }
 
-    *temperature_celsius = latest_temperature_celsius;
+    *temperature_celsius = internal_temperature_celsius;
     (void)xSemaphoreGive(temperature_mutex);
 
     return 1;
@@ -143,8 +143,8 @@ static void updateInternalTemperature(void) {
     if (xSemaphoreTake(temperature_mutex, pdMS_TO_TICKS(kMutexMS)) == pdTRUE) {
         int32_t new_temperature = adcToInternalTemperature(adc_result.value);
 
-        if (latest_temperature_celsius != new_temperature) {
-            latest_temperature_celsius = new_temperature;
+        if (internal_temperature_celsius != new_temperature) {
+            internal_temperature_celsius = new_temperature;
             value_changed = 1;
         }
         (void)xSemaphoreGive(temperature_mutex);

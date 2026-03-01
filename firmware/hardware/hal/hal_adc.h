@@ -10,7 +10,7 @@
 #include <stdint.h>
 
 enum {
-    kAdcVref_mV = 2400,  ///< ADC reference voltage: 2.4V (vref+ in datasheet)
+    kAdcVref_mV = 3300,  ///< ADC reference voltage: 3.3V (VDDA voltage)
 };
 
 /**
