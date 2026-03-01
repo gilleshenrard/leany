@@ -21,14 +21,14 @@
 #include "systick.h"
 
 enum {
-    kADCtimeoutMs = 100U,  ///< Maximum number of milliseconds to wait for ADC reading
-    kRequestsLength = 5U,  ///< Maximum number of ADC requests in the queue
+    kADCtimeoutMs = 100U,   ///< Maximum number of milliseconds to wait for ADC reading
+    kADCcalibWaitMs = 10U,  ///< Number of milliseconds to wait between calibration stages
+    kRequestsLength = 5U,   ///< Maximum number of ADC requests in the queue
 
     // STM32F103 temperature sensor calibration parameters (from datasheet)
-    kTempSensorAvgSlope_mV_C = 4300,  ///< Avg slope: 4.3 mV/°C (scaled by 1000)
+    kTempSensorAvgSlope_uV_C = 4300,  ///< Avg slope: 4.3 mV/°C (scaled to uV/°C)
     kTempSensorV25_mV = 1430,         ///< Voltage at 25°C: 1.43V (in mV)
     kTempSensorCalibTemp_C = 25,      ///< Calibration temperature: 25°C
-    kAdcVref_Mv = 3300,               ///< ADC reference voltage: 3.3V (in mV)
 };
 
 /**
@@ -97,8 +97,25 @@ void initialiseHALadc(void) {
     adc_queue = xQueueCreateStatic(kRequestsLength, sizeof(ADCrequest), (uint8_t*)requests, &adc_queue_state);
     configASSERT(adc_queue);
 
-    //Enable the ADC
-    LL_ADC_Enable(adc_handle);  // enable ADC
+    //ADC needs to be disabled for calibration
+    LL_ADC_Disable(adc_handle);
+    last_tick = getCurrentTick();
+    while (LL_ADC_IsEnabled(adc_handle) && systickTimeout(last_tick, kADCcalibWaitMs)) {
+    }
+
+    //Wait for at least 2 ADC clock cycles before calibration
+    last_tick = getCurrentTick();
+    while (!systickTimeout(last_tick, kADCcalibWaitMs)) {
+    }
+
+    //Start calibration
+    last_tick = getCurrentTick();
+    LL_ADC_StartCalibration(adc_handle);
+    while (LL_ADC_IsCalibrationOnGoing(adc_handle) && !systickTimeout(last_tick, kADCcalibWaitMs)) {
+    }
+
+    //Re-enable the ADC
+    LL_ADC_Enable(adc_handle);
 }
 
 /**
@@ -170,8 +187,8 @@ void runADCstateMachine(void) {
  * @return MCU internal temperature
  */
 int32_t adcToInternalTemperature(const uint16_t adc_raw) {
-    return __LL_ADC_CALC_TEMPERATURE_TYP_PARAMS(kTempSensorAvgSlope_mV_C, kTempSensorV25_mV, kTempSensorCalibTemp_C,
-                                                kAdcVref_Mv, adc_raw, LL_ADC_RESOLUTION_12B);
+    return __LL_ADC_CALC_TEMPERATURE_TYP_PARAMS(kTempSensorAvgSlope_uV_C, kTempSensorV25_mV, kTempSensorCalibTemp_C,
+                                                kAdcVref_mV, adc_raw, LL_ADC_RESOLUTION_12B);
 }
 
 /********************************************************************************************************************************************/
