@@ -24,11 +24,6 @@ enum {
     kADCtimeoutMs = 100U,   ///< Maximum number of milliseconds to wait for ADC reading
     kADCcalibWaitMs = 10U,  ///< Number of milliseconds to wait between calibration stages
     kRequestsLength = 5U,   ///< Maximum number of ADC requests in the queue
-
-    // STM32F103 temperature sensor calibration parameters (from datasheet)
-    kTempSensorAvgSlope_uV_C = 4300,  ///< Avg slope: 4.3 mV/°C (scaled to uV/°C)
-    kTempSensorV25_mV = 1430,         ///< Voltage at 25°C: 1.43V (in mV)
-    kTempSensorCalibTemp_C = 25,      ///< Calibration temperature: 25°C
 };
 
 /**
@@ -178,17 +173,6 @@ void runADCstateMachine(void) {
         default:
             break;
     }
-}
-
-/**
- * Compute the MCU internal temperature from a raw ADC value
- *
- * @param adc_raw ADC raw value
- * @return MCU internal temperature
- */
-int32_t adcToInternalTemperature(const uint16_t adc_raw) {
-    return __LL_ADC_CALC_TEMPERATURE_TYP_PARAMS(kTempSensorAvgSlope_uV_C, kTempSensorV25_mV, kTempSensorCalibTemp_C,
-                                                kAdcVref_mV, adc_raw, LL_ADC_RESOLUTION_12B);
 }
 
 /********************************************************************************************************************************************/
