@@ -17,5 +17,6 @@ ErrorCode updateBQ25619status(ChargerStatus* new_status, ChargerStatus* changes)
 uint8_t isBQ25619charging(const ChargerStatus* status);
 uint8_t BQ25619statusChanged(const ChargerStatus* changes);
 uint8_t BQ25619Error(const ChargerStatus* status);
+ErrorCode disconnectBattery(void);
 
 #endif
