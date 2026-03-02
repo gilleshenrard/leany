@@ -33,7 +33,7 @@ enum {
     kRESET_WATCHDOG = 0x40U,    ///< Bit value to reset the internal watchdog
     kDISABLE_PMID = 0x00U,      ///< Bit value to disable the boost mode (output to PMID)
     kENABLE_CHARGE = 0x10U,     ///< Bit value to enable the buck mode (battery charge)
-    kVSYS_MIN_3_5V = 0x00U,     ///< Bits value to set the minimum system voltage to 3.5V
+    kVSYS_MIN_3_5V = 0x0AU,     ///< Bits value to set the minimum system voltage to 3.5V
 
     // Charge current limit register (0x02) values
     kREGULATE_LOW_CURRENT = 0x00U,  ///< Bit value to let Q1 regulated when IINDPM < 700mA
