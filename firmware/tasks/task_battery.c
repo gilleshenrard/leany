@@ -95,6 +95,8 @@ ErrorCode createBatteryTask(void) {
         Error_Handler();
     }
 
+    LL_GPIO_SetOutputPin(BATT_EN_GPIO_Port, BATT_EN_Pin);
+
     return kSuccessCode;
 }
 
@@ -147,6 +149,13 @@ void setBatteryChargeStatus(uint8_t status) {
         xSemaphoreGive(battery_mutex);
     }
 }
+
+/**
+ * Turn the system off
+ *
+ * @return disconnectBattery() code
+ */
+ErrorCode turnSystemOff(void) { return disconnectBattery(); }
 
 /****************************************************************************************************************/
 /****************************************************************************************************************/
@@ -280,25 +289,25 @@ static ErrorCode updateBatteryLevel(void) {
     }
     last_battery_lvl_update_tick = getCurrentTick();
 
-    //open the battery measurement path
-    LL_GPIO_SetOutputPin(BATT_EN_GPIO_Port, BATT_EN_Pin);
-    vTaskDelay(pdMS_TO_TICKS(1U));
+    // //open the battery measurement path
+    // LL_GPIO_SetOutputPin(BATT_EN_GPIO_Port, BATT_EN_Pin);
+    // vTaskDelay(pdMS_TO_TICKS(1U));
 
     //request ADC measurements
     if (!requestADCmeasurement(kADCchannelBattery)) {
-        LL_GPIO_ResetOutputPin(BATT_EN_GPIO_Port, BATT_EN_Pin);
+        // LL_GPIO_ResetOutputPin(BATT_EN_GPIO_Port, BATT_EN_Pin);
         return kSuccessCode;
     }
 
     //get the latest battery value
     ADCresult adc_result;
     if (!getADCvalue(kADCchannelBattery, &adc_result)) {
-        LL_GPIO_ResetOutputPin(BATT_EN_GPIO_Port, BATT_EN_Pin);
+        // LL_GPIO_ResetOutputPin(BATT_EN_GPIO_Port, BATT_EN_Pin);
         return kSuccessCode;
     }
 
-    //close the battery measurement path (saves energy)
-    LL_GPIO_ResetOutputPin(BATT_EN_GPIO_Port, BATT_EN_Pin);
+    // //close the battery measurement path (saves energy)
+    // LL_GPIO_ResetOutputPin(BATT_EN_GPIO_Port, BATT_EN_Pin);
 
     //transform the ADC value to [mV]
     battery_voltage_mv = adcToVoltage_mV(adc_result.value);

@@ -33,6 +33,7 @@ typedef enum {
     kCmdLedEffect = 12,       ///< Set the LED effect
     kCmdErrorCode = 13,       ///< Set an error code
     kCmdHelp = 14,            ///< Get the commands help
+    kCmdBatteryOff = 15,      ///< Turn the battery charger OFF
 } CommandCode;
 
 /**

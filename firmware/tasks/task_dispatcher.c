@@ -341,6 +341,7 @@ static void handleSerialReadCommandEvent(const GenericCommand* command) {
             logSerial(kMaxErrorLevel, "%u", orientation);
             break;
 
+        case kCmdBatteryOff:
         case kCmdErrorCode:
         case kCmdBatteryPercent:
         case kCmdBatteryCharge:
@@ -415,6 +416,11 @@ static void handleSerialWriteCommandEvent(const GenericCommand* command) {
             error = (ErrorCode){.dword = command->parameter.int_value};
             setLastErrorCode(error);
             triggerHardwareEvent(kEventErrorCode);
+            break;
+
+        case kCmdBatteryOff:
+            error = turnSystemOff();
+            setLastErrorCode(error);
             break;
 
         case kCmdToggleHold:

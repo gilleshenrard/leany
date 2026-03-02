@@ -21,4 +21,5 @@ ErrorCode createBatteryTask(void);
 ErrorCode getBatteryStatus(BatteryStatus* status);
 uint8_t setBatteryPercentage(uint8_t percentage);
 void setBatteryChargeStatus(uint8_t status);
+ErrorCode turnSystemOff(void);
 #endif
