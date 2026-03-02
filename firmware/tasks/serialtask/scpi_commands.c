@@ -94,6 +94,8 @@ static const Node kBatteryCommands[] = {
               .long_name = "CHArge",
               .mode = kRW,
               .param_type = kParamInteger}},
+    {.scpi =
+         {.code = kCmdBatteryOff, .short_name = "OFF", .long_name = "OFF", .mode = kWO, .param_type = kParamInteger}},
 };
 
 /*********************************************************************************************************************************/

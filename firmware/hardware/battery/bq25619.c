@@ -28,10 +28,11 @@ enum {
  * @brief Enumeration of all the function ID used in errors
  */
 typedef enum {
-    kTestID = 1,        ///< testBQ25619identifier() function
-    kReset = 2,         ///< resetBQ25619() function
-    kConfigure = 3,     ///< configureBQ25619() function
-    kUpdateStatus = 4,  ///< updateBQ25619status() function
+    kTestID = 1,             ///< testBQ25619identifier() function
+    kReset = 2,              ///< resetBQ25619() function
+    kConfigure = 3,          ///< configureBQ25619() function
+    kUpdateStatus = 4,       ///< updateBQ25619status() function
+    kDisconnectBattery = 5,  ///< disconnectBattery() function
 } FunctionCode;
 
 static ErrorCode result = {0};          ///< Buffer used to store the latest error code
@@ -189,4 +190,23 @@ uint8_t BQ25619statusChanged(const ChargerStatus* changes) {
 uint8_t BQ25619Error(const ChargerStatus* status) {
     return (status->bits.boostmode_fault || (status->bits.thermal_fault > 0) || (status->bits.charge_fault > 0) ||
             status->bits.bat_overvoltage);
+}
+
+/**
+ * Disconnect the battery by turning BATFET off
+ *
+ * @retval 0 Success
+ * @retval 1 Error while setting up BATFET while on VBUS
+ * @retval 2 Error while turning BATFET OFF
+ */
+ErrorCode disconnectBattery(void) {
+    uint8_t register_value = kDISABLE_BATFET_ON_VBUS;
+    result = writeI2CRegisters(i2c_handle, kDEFAULT_SLAVEADDR, kCHG_CONTROL3, &register_value, 1);
+    EXIT_ON_ERROR(result, kDisconnectBattery, 1)
+
+    register_value = kDISABLE_BATFET;
+    result = writeI2CRegisters(i2c_handle, kDEFAULT_SLAVEADDR, kCHG_CONTROL3, &register_value, 1);
+    EXIT_ON_ERROR(result, kDisconnectBattery, 2)
+
+    return kSuccessCode;
 }
