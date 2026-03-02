@@ -48,9 +48,8 @@ enum {
 static void taskGPIO(void* argument);
 static void updateInternalTemperature(void);
 static int32_t adcToInternalTemperature(uint16_t adc_raw);
-static ErrorCode requestBatteryRead(void);
+static ErrorCode updateBatteryVoltage(void);
 static uint16_t adcToVoltage_mV(uint16_t adc_raw);
-static ErrorCode updateBatteryLevel(void);
 static void updateVref(void);
 
 //state variables
@@ -122,7 +121,7 @@ static void taskGPIO(void* argument) {
     initialiseHALadc();
 
     LL_GPIO_SetOutputPin(BATT_EN_GPIO_Port, BATT_EN_Pin);
-    (void)requestBatteryRead();
+    (void)updateBatteryVoltage();
 
     last_battery_lvl_update_tick = getCurrentTick();
     last_vref_update_tick = getCurrentTick();
@@ -137,8 +136,7 @@ static void taskGPIO(void* argument) {
         runADCstateMachine();
         updateVref();
         updateInternalTemperature();
-        (void)requestBatteryRead();
-        (void)updateBatteryLevel();
+        (void)updateBatteryVoltage();
 
         vTaskDelay(pdMS_TO_TICKS(5U));
     }
@@ -193,31 +191,18 @@ static int32_t adcToInternalTemperature(const uint16_t adc_raw) {
  *
  * @return ErrorCode 
  */
-static ErrorCode requestBatteryRead(void) {
+static ErrorCode updateBatteryVoltage(void) {
     //check if it is time to update the battery percentage
-    if (!systickTimeout(last_battery_lvl_update_tick, kBatteryLvlUpdatePeriodMs)) {
-        return kSuccessCode;
-    }
-    last_battery_lvl_update_tick = getCurrentTick();
+    if (systickTimeout(last_battery_lvl_update_tick, kBatteryLvlUpdatePeriodMs)) {
+        last_battery_lvl_update_tick = getCurrentTick();
 
-    // //open the battery measurement path
-    // LL_GPIO_SetOutputPin(BATT_EN_GPIO_Port, BATT_EN_Pin);
+        // //open the battery measurement path
+        // LL_GPIO_SetOutputPin(BATT_EN_GPIO_Port, BATT_EN_Pin);
 
-    //request ADC measurements
-    if (!requestADCmeasurement(kADCchannelBattery)) {
-        // LL_GPIO_ResetOutputPin(BATT_EN_GPIO_Port, BATT_EN_Pin);
-        return kSuccessCode;
+        //request ADC measurements
+        (void)requestADCmeasurement(kADCchannelBattery);
     }
 
-    return kSuccessCode;
-}
-
-/**
- * Update battery level upon ADC completion
- *
- * @return ErrorCode 
- */
-static ErrorCode updateBatteryLevel(void) {
     //get the latest battery value
     ADCresult adc_result;
     if (!getADCvalue(kADCchannelBattery, &adc_result)) {
@@ -251,8 +236,6 @@ static uint16_t adcToVoltage_mV(uint16_t adc_raw) {
 
 /**
  * Update the ADC voltage reference
- *
- * @return Success
  */
 static void updateVref(void) {
     // State 1: Check if it's time to start a new conversion
