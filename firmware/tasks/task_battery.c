@@ -48,6 +48,7 @@ typedef enum {
     kStateStartup = 3,      ///< stateStartup() state function
     kStateIdle = 4,         ///< stateIdle() state function
     kRequestRead = 5,       ///< requestRead() function
+    kturnSystemOff = 6,     ///< turnSystemOff() function
     kStateConfiguring = 8,  ///< stateConfiguring() state function
 } FunctionCode;
 
@@ -148,6 +149,27 @@ void setBatteryChargeStatus(uint8_t status) {
     }
 }
 
+/**
+ * Turn the system off
+ *
+ * @retval 0 Success
+ * @retval 1 Error while setting up BATFET while on VBUS
+ * @retval 2 Error while turning BATFET OFF
+ */
+ErrorCode turnSystemOff(void) {
+    uint8_t register_value = kDISABLE_BATFET_ON_VBUS;
+    result = writeI2CRegisters(i2c_handle, kDEFAULT_SLAVEADDR, kCHG_CONTROL3, &register_value, 1);
+    EXIT_ON_ERROR(result, kturnSystemOff, 1)
+
+    vTaskDelay(1);
+
+    register_value = kDISABLE_BATFET;
+    result = writeI2CRegisters(i2c_handle, kDEFAULT_SLAVEADDR, kCHG_CONTROL3, &register_value, 1);
+    EXIT_ON_ERROR(result, kturnSystemOff, 2)
+
+    return kSuccessCode;
+}
+
 /****************************************************************************************************************/
 /****************************************************************************************************************/
 
@@ -181,6 +203,7 @@ static void taskBatteryManagement(void* argument) {
                 result = stateIdle();
                 break;
 
+            case kturnSystemOff:
             case kTaskLoop:
             case kRequestRead:
             default:

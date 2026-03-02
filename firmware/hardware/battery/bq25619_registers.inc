@@ -58,6 +58,10 @@ enum {
     kOVERVOLTAGE_THRESHOLD_6_4V = 0x40U,  ///< Bit value to set the input overvoltage threshold to 6.4V
     kINPUT_VOLTAGE_DPM_4_5V = 0x06U,      ///< Bits value to set the input Dynamic Power Management voltage to 4.5V
 
+    // Charger Control 3 Register (0x07) values
+    kDISABLE_BATFET_ON_VBUS = 0x10U,  ///< Start BATFET full system reset even if adapter is present on VBUS
+    kDISABLE_BATFET = 0x20U,          ///< Turn off BATFET to enter ship mode
+
     // Part Information (0x0B) values
     kPN_MASK = 0x78U,    ///< Mask used to isolate the charger Part Number
     kPN_VALUE = 0x28U,   ///< Part Number value
