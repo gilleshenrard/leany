@@ -23,21 +23,19 @@
 
 #include "bq25619.h"
 #include "bq25619_registers.inc"
-#include "hal_adc.h"
 #include "hal_i2c.h"
 #include "hardware_events.h"
 #include "systick.h"
 
 enum {
-    kStackSize = 250U,                  ///< Amount of words in the task stack
-    kTaskLowPriority = 8U,              ///< FreeRTOS number for a low priority task
-    kChipIDtimeout = 1000U,             ///< Maximum number of milliseconds to attempt reading the chip ID
-    kNbChipIDtests = 5U,                ///< Number of times chip ID reading must be tested
-    kUpdatePeriodMS = 200U,             ///< Period between two status updates in [ms]
-    kBatteryFullPercent = 100U,         ///< Value used as a 100% battery level
-    kMutexTimeoutMs = 10U,              ///< Maximum number of milliseconds before considering a mutex timeout
-    kNbRetries = 5U,                    ///< Maximum number of retries upon I²C lack of ACK
-    kBatteryLvlUpdatePeriodMs = 1000U,  ///< Period in [ms] between two battery level updates
+    kStackSize = 250U,           ///< Amount of words in the task stack
+    kTaskLowPriority = 8U,       ///< FreeRTOS number for a low priority task
+    kChipIDtimeout = 1000U,      ///< Maximum number of milliseconds to attempt reading the chip ID
+    kNbChipIDtests = 5U,         ///< Number of times chip ID reading must be tested
+    kUpdatePeriodMS = 200U,      ///< Period between two status updates in [ms]
+    kBatteryFullPercent = 100U,  ///< Value used as a 100% battery level
+    kMutexTimeoutMs = 10U,       ///< Maximum number of milliseconds before considering a mutex timeout
+    kNbRetries = 5U,             ///< Maximum number of retries upon I²C lack of ACK
 };
 
 /**
@@ -56,8 +54,6 @@ static void taskBatteryManagement(void* argument);
 static ErrorCode stateStartup(void);
 static ErrorCode stateConfiguring(void);
 static ErrorCode stateIdle(void);
-static ErrorCode updateBatteryLevel(void);
-static uint16_t adcToVoltage_mV(uint16_t adc_raw);
 
 static volatile TaskHandle_t task_handle = NULL;          ///< handle of the FreeRTOS task
 static volatile FunctionCode state = kStateStartup;       ///< Current state machine state
@@ -70,8 +66,6 @@ static uint8_t battery_percentage = kBatteryFullPercent;  ///< Current battery p
 static uint8_t battery_charging = 0U;                     ///< Current battery charge status (for simulation)
 static TickType_t previous_tick = 0;                      ///< Tick at the last status update
 static ChargerStatus current_battery_status;              ///< Current battery status flags
-static uint32_t last_battery_lvl_update_tick = 0;         ///< Last tick at which battery lvl was updated
-static uint16_t battery_voltage_mv = 0;                   ///< Current battery voltage in [mV]
 
 /****************************************************************************************************************/
 /****************************************************************************************************************/
@@ -94,8 +88,6 @@ ErrorCode createBatteryTask(void) {
     if (!task_handle) {
         Error_Handler();
     }
-
-    LL_GPIO_SetOutputPin(BATT_EN_GPIO_Port, BATT_EN_Pin);
 
     return kSuccessCode;
 }
@@ -168,8 +160,6 @@ ErrorCode turnSystemOff(void) { return disconnectBattery(); }
 static void taskBatteryManagement(void* argument) {
     (void)argument;
 
-    (void)updateBatteryLevel();
-
     LL_I2C_Enable(i2c_handle);
 
     while (1) {
@@ -182,7 +172,6 @@ static void taskBatteryManagement(void* argument) {
             case kStateConfiguring:
                 result = stateConfiguring();
                 previous_tick = getCurrentTick();
-                last_battery_lvl_update_tick = getCurrentTick();
                 state = kStateIdle;
                 break;
 
@@ -274,60 +263,5 @@ static ErrorCode stateIdle(void) {
         triggerHardwareEvent(kEventBatteryStatus);
     }
 
-    return updateBatteryLevel();
-}
-
-/**
- * Measure the battery voltage and estimate its level
- *
- * @return ErrorCode 
- */
-static ErrorCode updateBatteryLevel(void) {
-    //check if it is time to update the battery percentage
-    if (!systickTimeout(last_battery_lvl_update_tick, kBatteryLvlUpdatePeriodMs)) {
-        return kSuccessCode;
-    }
-    last_battery_lvl_update_tick = getCurrentTick();
-
-    // //open the battery measurement path
-    // LL_GPIO_SetOutputPin(BATT_EN_GPIO_Port, BATT_EN_Pin);
-    // vTaskDelay(pdMS_TO_TICKS(1U));
-
-    //request ADC measurements
-    if (!requestADCmeasurement(kADCchannelBattery)) {
-        // LL_GPIO_ResetOutputPin(BATT_EN_GPIO_Port, BATT_EN_Pin);
-        return kSuccessCode;
-    }
-
-    //get the latest battery value
-    ADCresult adc_result;
-    if (!getADCvalue(kADCchannelBattery, &adc_result)) {
-        // LL_GPIO_ResetOutputPin(BATT_EN_GPIO_Port, BATT_EN_Pin);
-        return kSuccessCode;
-    }
-
-    // //close the battery measurement path (saves energy)
-    // LL_GPIO_ResetOutputPin(BATT_EN_GPIO_Port, BATT_EN_Pin);
-
-    //transform the ADC value to [mV]
-    battery_voltage_mv = adcToVoltage_mV(adc_result.value);
-
     return kSuccessCode;
-}
-
-/**
- * Transform an ADC value to battery voltage in [0.01V]
- *
- * @param adc_raw Value to transform
- * @return Battery voltage in [0.01V]
- */
-static uint16_t adcToVoltage_mV(uint16_t adc_raw) {
-    static const uint32_t kVoltageDividerHighKohms = 56UL;
-    static const uint32_t kVoltageDividerLowKohms = 56UL;
-    static const uint32_t kAdcMaxValue = 4095UL;  // ADC 12-bits -> [0 ... 4095]
-
-    static const uint32_t kConversionNumerator = (kAdcVref_mV * (kVoltageDividerHighKohms + kVoltageDividerLowKohms));
-    static const uint32_t kConversionDenominator = (kAdcMaxValue * kVoltageDividerLowKohms);
-
-    return (uint16_t)((adc_raw * kConversionNumerator) / kConversionDenominator);
 }
