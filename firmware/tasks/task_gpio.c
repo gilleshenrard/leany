@@ -28,10 +28,11 @@
 #include "systick.h"
 
 enum {
-    kStackSize = 150U,              ///< Amount of words in the task stack
-    kTaskLowPriority = 8U,          ///< FreeRTOS number for a low priority task
-    kTemperatureRefreshMs = 2000U,  ///< Timespan between two readings in [ms]
-    kMutexMS = 5U,                  ///< Max number of milliseconds to wait for a mutex
+    kStackSize = 150U,                  ///< Amount of words in the task stack
+    kTaskLowPriority = 8U,              ///< FreeRTOS number for a low priority task
+    kTemperatureRefreshMs = 2000U,      ///< Timespan between two readings in [ms]
+    kMutexMS = 5U,                      ///< Max number of milliseconds to wait for a mutex
+    kBatteryLvlUpdatePeriodMs = 1000U,  ///< Period in [ms] between two battery level updates
 
     // STM32F103 temperature sensor calibration parameters (from datasheet)
     kTempSensorAvgSlope_uV_C = 4300,  ///< Avg slope: 4.3 mV/°C (scaled to uV/°C)
@@ -43,6 +44,8 @@ enum {
 static void taskGPIO(void* argument);
 static void updateInternalTemperature(void);
 static int32_t adcToInternalTemperature(uint16_t adc_raw);
+static ErrorCode updateBatteryLevel(void);
+static uint16_t adcToVoltage_mV(uint16_t adc_raw);
 
 //state variables
 static volatile TaskHandle_t task_handle = NULL;    ///< handle of the FreeRTOS task
@@ -50,6 +53,8 @@ static SemaphoreHandle_t temperature_mutex = NULL;  ///< Mutex which protects th
 static ErrorCode result;                            ///< Current functions errorstack result
 static uint32_t current_tick = 0;                   ///< Current OS tick
 static int32_t internal_temperature_celsius = 0;    ///< Latest MCU internal temperature in [°C]
+static uint32_t last_battery_lvl_update_tick = 0;   ///< Last tick at which battery lvl was updated
+static uint16_t battery_voltage_mv = 0;             ///< Current battery voltage in [mV]
 
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
@@ -70,7 +75,9 @@ void createGPIOtask(void) {
 
     //create the static task
     task_handle = xTaskCreateStatic(taskGPIO, "GPIO task", kStackSize, NULL, kTaskLowPriority, task_stack, &task_state);
-    configASSERT(task_handle)
+    configASSERT(task_handle);
+
+    LL_GPIO_SetOutputPin(BATT_EN_GPIO_Port, BATT_EN_Pin);
 }
 
 /**
@@ -107,8 +114,10 @@ static void taskGPIO(void* argument) {
 
     initialiseLED();
     initialiseHALadc();
-    current_tick = getCurrentTick();
 
+    (void)updateBatteryLevel();
+
+    current_tick = getCurrentTick();
     while (1) {
         result = runButtonsStateMachine();
         if (isError(result)) {
@@ -118,6 +127,7 @@ static void taskGPIO(void* argument) {
         runLEDstateMachine();
         runADCstateMachine();
         updateInternalTemperature();
+        (void)updateBatteryLevel();
 
         vTaskDelay(pdMS_TO_TICKS(5U));
     }
@@ -165,4 +175,59 @@ static void updateInternalTemperature(void) {
 static int32_t adcToInternalTemperature(const uint16_t adc_raw) {
     return __LL_ADC_CALC_TEMPERATURE_TYP_PARAMS(kTempSensorAvgSlope_uV_C, kTempSensorV25_mV, kTempSensorCalibTemp_C,
                                                 kAdcVref_mV, adc_raw, LL_ADC_RESOLUTION_12B);
+}
+
+/**
+ * Measure the battery voltage and estimate its level
+ *
+ * @return ErrorCode 
+ */
+static ErrorCode updateBatteryLevel(void) {
+    //check if it is time to update the battery percentage
+    if (!systickTimeout(last_battery_lvl_update_tick, kBatteryLvlUpdatePeriodMs)) {
+        return kSuccessCode;
+    }
+    last_battery_lvl_update_tick = getCurrentTick();
+
+    // //open the battery measurement path
+    // LL_GPIO_SetOutputPin(BATT_EN_GPIO_Port, BATT_EN_Pin);
+    // vTaskDelay(pdMS_TO_TICKS(1U));
+
+    //request ADC measurements
+    if (!requestADCmeasurement(kADCchannelBattery)) {
+        // LL_GPIO_ResetOutputPin(BATT_EN_GPIO_Port, BATT_EN_Pin);
+        return kSuccessCode;
+    }
+
+    //get the latest battery value
+    ADCresult adc_result;
+    if (!getADCvalue(kADCchannelBattery, &adc_result)) {
+        // LL_GPIO_ResetOutputPin(BATT_EN_GPIO_Port, BATT_EN_Pin);
+        return kSuccessCode;
+    }
+
+    // //close the battery measurement path (saves energy)
+    // LL_GPIO_ResetOutputPin(BATT_EN_GPIO_Port, BATT_EN_Pin);
+
+    //transform the ADC value to [mV]
+    battery_voltage_mv = adcToVoltage_mV(adc_result.value);
+
+    return kSuccessCode;
+}
+
+/**
+ * Transform an ADC value to battery voltage in [0.01V]
+ *
+ * @param adc_raw Value to transform
+ * @return Battery voltage in [0.01V]
+ */
+static uint16_t adcToVoltage_mV(uint16_t adc_raw) {
+    static const uint32_t kVoltageDividerHighKohms = 56UL;
+    static const uint32_t kVoltageDividerLowKohms = 56UL;
+    static const uint32_t kAdcMaxValue = 4095UL;  // ADC 12-bits -> [0 ... 4095]
+
+    static const uint32_t kConversionNumerator = (kAdcVref_mV * (kVoltageDividerHighKohms + kVoltageDividerLowKohms));
+    static const uint32_t kConversionDenominator = (kAdcMaxValue * kVoltageDividerLowKohms);
+
+    return (uint16_t)((adc_raw * kConversionNumerator) / kConversionDenominator);
 }
