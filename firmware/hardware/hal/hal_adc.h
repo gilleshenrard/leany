@@ -9,16 +9,13 @@
 #define HARDWARE_HAL_HAL_ADC_H
 #include <stdint.h>
 
-enum {
-    kAdcVref_mV = 3300,  ///< ADC reference voltage: 3.3V (VDDA voltage)
-};
-
 /**
  * ADC channels used in the application
  */
 typedef enum {
     kADCchannelTemperature = 0,  ///< MCU internal temperature
     kADCchannelBattery,          ///< Battery voltage
+    kADCchannelVrefInt,          ///< MCU VrefInt
     kADCnbChannels               ///< Number of ADC channels implemented
 } ADCchannel;
 
