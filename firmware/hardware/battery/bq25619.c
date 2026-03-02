@@ -97,11 +97,11 @@ ErrorCode configureBQ25619(void) {
     const uint8_t config_values[][2] = {
         // NOLINTBEGIN(misc-redundant-expression,hicpp-signed-bitwise)
         {kINPUT_CUR_LIMIT, kDISABLE_HIZ | kTEMPERATURE_IGNORE | kENABLE_BATSNS | kINPUT_LIMIT_1_2A},
-        {kCHG_CONTROL0, kDISABLE_WATCHDOG | kDISABLE_PMID | kENABLE_CHARGE | kVSYS_MIN_3_5V},
+        // {kCHG_CONTROL0, kDISABLE_WATCHDOG | kDISABLE_PMID | kENABLE_CHARGE | kVSYS_MIN_3_5V},
         {kCHG_CUR_LIMIT, kREGULATE_LOW_CURRENT | kFASTCHARGE_1180MA},
-        {kPCHG_TERM_CUR_LIMIT, kPRECHARGE_260MA | kTERMINATION_260MA},
-        {kBATT_VOLT_LIMIT, kBATTERY_LIMIT_4_2V | kNO_TOPOFF_TIMER | kBATT_RECHG_THRESHOLD_120MV},
-        {kCHG_CONTROL1, kENABLE_CHG_TERMINATION | kDISABLE_WATCHDOG_TIMER | kENABLE_CHG_SAFETY_TIMER | kSAFETY_10H},
+        // {kPCHG_TERM_CUR_LIMIT, kPRECHARGE_260MA | kTERMINATION_260MA},
+        // {kBATT_VOLT_LIMIT, kBATTERY_LIMIT_4_2V | kNO_TOPOFF_TIMER | kBATT_RECHG_THRESHOLD_120MV},
+        // {kCHG_CONTROL1, kENABLE_CHG_TERMINATION | kDISABLE_WATCHDOG_TIMER | kENABLE_CHG_SAFETY_TIMER | kSAFETY_10H},
         {kCHG_CONTROL2, kOVERVOLTAGE_THRESHOLD_6_4V | kINPUT_VOLTAGE_DPM_4_5V},
         // NOLINTEND(misc-redundant-expression,hicpp-signed-bitwise)
     };
@@ -109,9 +109,20 @@ ErrorCode configureBQ25619(void) {
     // write the configuration registers
     const uint8_t nb_registers = sizeof(config_values) / 2U;
     for (uint8_t value = 0; value < nb_registers; value++) {
+        //set the register
         result =
             writeI2CRegisters(i2c_handle, kDEFAULT_SLAVEADDR, config_values[value][0], &config_values[value][1], 1U);
         EXIT_ON_ERROR(result, kConfigure, 1)
+
+        //re-read the register
+        uint8_t register_value = 0;
+        readI2Cregisters(i2c_handle, kDEFAULT_SLAVEADDR, config_values[value][0], &register_value, 1);
+        EXIT_ON_ERROR(result, kConfigure, 2)
+
+        //check if the set bits match the settings
+        if ((register_value & config_values[value][1]) != config_values[value][1]) {
+            return createErrorCode(kConfigure, 1, kErrorError);
+        }
     }
 
     return kSuccessCode;
