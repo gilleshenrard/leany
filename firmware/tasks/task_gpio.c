@@ -18,6 +18,7 @@
 #include <stdint.h>
 #include <stm32f1xx_hal_def.h>
 #include <stm32f1xx_ll_adc.h>
+#include <stm32f1xx_ll_gpio.h>
 #include <task.h>
 
 #include "buttons.h"
@@ -44,8 +45,9 @@ enum {
 static void taskGPIO(void* argument);
 static void updateInternalTemperature(void);
 static int32_t adcToInternalTemperature(uint16_t adc_raw);
-static ErrorCode updateBatteryLevel(void);
+static ErrorCode requestBatteryRead(void);
 static uint16_t adcToVoltage_mV(uint16_t adc_raw);
+static ErrorCode updateBatteryLevel(void);
 
 //state variables
 static volatile TaskHandle_t task_handle = NULL;    ///< handle of the FreeRTOS task
@@ -76,8 +78,6 @@ void createGPIOtask(void) {
     //create the static task
     task_handle = xTaskCreateStatic(taskGPIO, "GPIO task", kStackSize, NULL, kTaskLowPriority, task_stack, &task_state);
     configASSERT(task_handle);
-
-    LL_GPIO_SetOutputPin(BATT_EN_GPIO_Port, BATT_EN_Pin);
 }
 
 /**
@@ -115,7 +115,8 @@ static void taskGPIO(void* argument) {
     initialiseLED();
     initialiseHALadc();
 
-    (void)updateBatteryLevel();
+    LL_GPIO_SetOutputPin(BATT_EN_GPIO_Port, BATT_EN_Pin);
+    (void)requestBatteryRead();
 
     current_tick = getCurrentTick();
     while (1) {
@@ -127,6 +128,7 @@ static void taskGPIO(void* argument) {
         runLEDstateMachine();
         runADCstateMachine();
         updateInternalTemperature();
+        (void)requestBatteryRead();
         (void)updateBatteryLevel();
 
         vTaskDelay(pdMS_TO_TICKS(5U));
@@ -178,11 +180,11 @@ static int32_t adcToInternalTemperature(const uint16_t adc_raw) {
 }
 
 /**
- * Measure the battery voltage and estimate its level
+ * Request a battery read on ADC
  *
  * @return ErrorCode 
  */
-static ErrorCode updateBatteryLevel(void) {
+static ErrorCode requestBatteryRead(void) {
     //check if it is time to update the battery percentage
     if (!systickTimeout(last_battery_lvl_update_tick, kBatteryLvlUpdatePeriodMs)) {
         return kSuccessCode;
@@ -191,7 +193,6 @@ static ErrorCode updateBatteryLevel(void) {
 
     // //open the battery measurement path
     // LL_GPIO_SetOutputPin(BATT_EN_GPIO_Port, BATT_EN_Pin);
-    // vTaskDelay(pdMS_TO_TICKS(1U));
 
     //request ADC measurements
     if (!requestADCmeasurement(kADCchannelBattery)) {
@@ -199,10 +200,18 @@ static ErrorCode updateBatteryLevel(void) {
         return kSuccessCode;
     }
 
+    return kSuccessCode;
+}
+
+/**
+ * Update battery level upon ADC completion
+ *
+ * @return ErrorCode 
+ */
+static ErrorCode updateBatteryLevel(void) {
     //get the latest battery value
     ADCresult adc_result;
     if (!getADCvalue(kADCchannelBattery, &adc_result)) {
-        // LL_GPIO_ResetOutputPin(BATT_EN_GPIO_Port, BATT_EN_Pin);
         return kSuccessCode;
     }
 

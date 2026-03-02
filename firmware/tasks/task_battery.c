@@ -17,7 +17,6 @@
 #include <semphr.h>
 #include <stdint.h>
 #include <stm32f103xb.h>
-#include <stm32f1xx_ll_gpio.h>
 #include <stm32f1xx_ll_i2c.h>
 #include <task.h>
 
