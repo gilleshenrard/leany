@@ -49,7 +49,7 @@ static void taskGPIO(void* argument);
 static void updateInternalTemperature(void);
 static int32_t adcToInternalTemperature(uint16_t adc_raw);
 static ErrorCode updateBatteryVoltage(void);
-static uint16_t adcToVoltage_mV(uint16_t adc_raw);
+static uint16_t adcToBatteryVoltage_mV(uint16_t adc_raw);
 static void updateVref(void);
 
 //state variables
@@ -213,7 +213,7 @@ static ErrorCode updateBatteryVoltage(void) {
     // LL_GPIO_ResetOutputPin(BATT_EN_GPIO_Port, BATT_EN_Pin);
 
     //transform the ADC value to [mV]
-    battery_voltage_mv = adcToVoltage_mV(adc_result.value);
+    battery_voltage_mv = adcToBatteryVoltage_mV(adc_result.value);
 
     return kSuccessCode;
 }
@@ -224,7 +224,7 @@ static ErrorCode updateBatteryVoltage(void) {
  * @param adc_raw Value to transform
  * @return Battery voltage in [0.01V]
  */
-static uint16_t adcToVoltage_mV(uint16_t adc_raw) {
+static uint16_t adcToBatteryVoltage_mV(uint16_t adc_raw) {
     static const uint32_t kVoltageDividerHighKohms = 56UL;
     static const uint32_t kVoltageDividerLowKohms = 56UL;
 
