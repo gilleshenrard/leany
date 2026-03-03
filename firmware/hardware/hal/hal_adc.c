@@ -110,7 +110,7 @@ void initialiseHALadc(void) {
         //ADC needs to be disabled for calibration
         LL_ADC_Disable(mapping->adc_handle);
         last_tick = getCurrentTick();
-        while (LL_ADC_IsEnabled(mapping->adc_handle) && systickTimeout(last_tick, kADCcalibWaitMs)) {
+        while (LL_ADC_IsEnabled(mapping->adc_handle) && !systickTimeout(last_tick, kADCcalibWaitMs)) {
         }
 
         //Wait for at least 2 ADC clock cycles before calibration
@@ -231,6 +231,7 @@ static void stateIdle(void) {
 static void stateAcquiring(void) {
     //if too long, abort
     if (systickTimeout(last_tick, kADCtimeoutMs)) {
+        LL_DMA_DisableChannel(devices[latest_request].dma_handle, devices[latest_request].dma_channel);
         state = kStateIdle;
         return;
     }
