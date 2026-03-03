@@ -32,6 +32,7 @@ enum {
     kStackSize = 150U,                  ///< Amount of words in the task stack
     kTaskLowPriority = 8U,              ///< FreeRTOS number for a low priority task
     kTemperatureRefreshMs = 2000U,      ///< Timespan between two readings in [ms]
+    kADCrefreshMs = 1000U,              ///< Timespan between two ADC readings in [ms]
     kMutexMS = 5U,                      ///< Max number of milliseconds to wait for a mutex
     kBatteryLvlUpdatePeriodMs = 1000U,  ///< Period in [ms] between two battery level updates
     kVrefUpdatePeriodMs = 1000U,        ///< Period in [ms] between two Vref updates
@@ -46,11 +47,11 @@ enum {
 
 //task functions
 static void taskGPIO(void* argument);
+static void updateADCvalues(void);
 static void updateInternalTemperature(void);
 static int32_t adcToInternalTemperature(uint16_t adc_raw);
 static ErrorCode updateBatteryVoltage(void);
 static uint16_t adcToBatteryVoltage_mV(uint16_t adc_raw);
-static void updateVref(void);
 
 //state variables
 static volatile TaskHandle_t task_handle = NULL;    ///< handle of the FreeRTOS task
@@ -60,8 +61,8 @@ static int32_t internal_temperature_celsius = 0;    ///< Latest MCU internal tem
 static uint32_t adc_vref_mv;                        ///< Current ADC Vref voltage in [mV]
 static uint16_t battery_voltage_mv = 0;             ///< Current battery voltage in [mV]
 static uint32_t current_tick = 0;                   ///< Current OS tick
+static uint32_t last_adc_update_tick = 0;           ///< Last tick at which ADC was updated
 static uint32_t last_battery_lvl_update_tick = 0;   ///< Last tick at which battery lvl was updated
-static uint32_t last_vref_update_tick = 0;          ///< Last tick at which battery lvl was updated
 
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
@@ -121,10 +122,10 @@ static void taskGPIO(void* argument) {
     initialiseHALadc();
 
     LL_GPIO_SetOutputPin(BATT_EN_GPIO_Port, BATT_EN_Pin);
-    (void)updateBatteryVoltage();
+    (void)requestADCmeasurement(kADC1);
 
     last_battery_lvl_update_tick = getCurrentTick();
-    last_vref_update_tick = getCurrentTick();
+    last_adc_update_tick = getCurrentTick();
     current_tick = getCurrentTick();
     while (1) {
         result = runButtonsStateMachine();
@@ -134,7 +135,7 @@ static void taskGPIO(void* argument) {
 
         runLEDstateMachine();
         runADCstateMachine();
-        updateVref();
+        updateADCvalues();
         updateInternalTemperature();
         (void)updateBatteryVoltage();
 
@@ -145,23 +146,38 @@ static void taskGPIO(void* argument) {
 /**
  * Update the MCU internal temperature
  */
-static void updateInternalTemperature(void) {
-    // State 1: Check if it's time to start a new conversion
-    if (systickTimeout(current_tick, kTemperatureRefreshMs)) {
-        current_tick = getCurrentTick();
-        (void)requestADCmeasurement(kADCchannelTemperature);
+static void updateADCvalues(void) {
+    if (systickTimeout(last_adc_update_tick, kADCrefreshMs)) {
+        last_adc_update_tick = getCurrentTick();
+        (void)requestADCmeasurement(kADC1);
     }
 
+    uint16_t vref_adc_raw = 0;
+    if (!getADCvalue(kADC1, kADCchannelVrefInt, &vref_adc_raw)) {
+        return;
+    }
+
+    adc_vref_mv = (kMCUvrefInt_mV * kAdcMaxValue) / vref_adc_raw;
+}
+
+/**
+ * Update the MCU internal temperature
+ */
+static void updateInternalTemperature(void) {
+    if (!systickTimeout(current_tick, kTemperatureRefreshMs)) {
+        return;
+    }
+    current_tick = getCurrentTick();
+
     // State 2: Check if any conversion is ready to read (independent of timeout)
-    ADCresult adc_result;
-    const uint8_t updated = getADCvalue(kADCchannelTemperature, &adc_result);
-    if (!updated) {
+    uint16_t adc_temp_raw = 0;
+    if (!getADCvalue(kADC1, kADCchannelTemperature, &adc_temp_raw)) {
         return;
     }
 
     uint8_t value_changed = 0;
     if (xSemaphoreTake(temperature_mutex, pdMS_TO_TICKS(kMutexMS)) == pdTRUE) {
-        int32_t new_temperature = adcToInternalTemperature(adc_result.value);
+        int32_t new_temperature = adcToInternalTemperature(adc_temp_raw);
 
         if (internal_temperature_celsius != new_temperature) {
             internal_temperature_celsius = new_temperature;
@@ -198,14 +214,11 @@ static ErrorCode updateBatteryVoltage(void) {
 
         // //open the battery measurement path
         // LL_GPIO_SetOutputPin(BATT_EN_GPIO_Port, BATT_EN_Pin);
-
-        //request ADC measurements
-        (void)requestADCmeasurement(kADCchannelBattery);
     }
 
     //get the latest battery value
-    ADCresult adc_result;
-    if (!getADCvalue(kADCchannelBattery, &adc_result)) {
+    uint16_t battery_adc_raw = 0;
+    if (!getADCvalue(kADC1, kADCchannelBattery, &battery_adc_raw)) {
         return kSuccessCode;
     }
 
@@ -213,7 +226,7 @@ static ErrorCode updateBatteryVoltage(void) {
     // LL_GPIO_ResetOutputPin(BATT_EN_GPIO_Port, BATT_EN_Pin);
 
     //transform the ADC value to [mV]
-    battery_voltage_mv = adcToBatteryVoltage_mV(adc_result.value);
+    battery_voltage_mv = adcToBatteryVoltage_mV(battery_adc_raw);
 
     return kSuccessCode;
 }
@@ -232,24 +245,4 @@ static uint16_t adcToBatteryVoltage_mV(uint16_t adc_raw) {
     static const uint32_t kConversionDenominator = (kAdcMaxValue * kVoltageDividerLowKohms);
 
     return (uint16_t)((adc_raw * conversion_numerator) / kConversionDenominator);
-}
-
-/**
- * Update the ADC voltage reference
- */
-static void updateVref(void) {
-    // State 1: Check if it's time to start a new conversion
-    if (systickTimeout(last_vref_update_tick, kVrefUpdatePeriodMs)) {
-        last_vref_update_tick = getCurrentTick();
-        (void)requestADCmeasurement(kADCchannelVrefInt);
-    }
-
-    // State 2: Check if any conversion is ready to read (independent of timeout)
-    ADCresult adc_result;
-    const uint8_t updated = getADCvalue(kADCchannelVrefInt, &adc_result);
-    if (!updated) {
-        return;
-    }
-
-    adc_vref_mv = (kMCUvrefInt_mV * kAdcMaxValue) / adc_result.value;
 }
