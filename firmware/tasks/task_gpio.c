@@ -195,7 +195,7 @@ static void updateInternalTemperature(void) {
  * Compute the MCU internal temperature from a raw ADC value
  *
  * @param adc_raw ADC raw value
- * @return MCU internal temperature
+ * @return MCU internal temperature in [°C]
  */
 static int32_t adcToInternalTemperature(const uint16_t adc_raw) {
     return __LL_ADC_CALC_TEMPERATURE_TYP_PARAMS(kTempSensorAvgSlope_uV_C, kTempSensorV25_mV, kTempSensorCalibTemp_C,
@@ -232,10 +232,10 @@ static ErrorCode updateBatteryVoltage(void) {
 }
 
 /**
- * Transform an ADC value to battery voltage in [0.01V]
+ * Transform an ADC value to battery voltage in [mV]
  *
  * @param adc_raw Value to transform
- * @return Battery voltage in [0.01V]
+ * @return Battery voltage in [mV]
  */
 static uint16_t adcToBatteryVoltage_mV(uint16_t adc_raw) {
     static const uint32_t kVoltageDividerHighKohms = 56UL;

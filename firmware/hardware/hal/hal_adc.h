@@ -9,9 +9,12 @@
 #define HARDWARE_HAL_HAL_ADC_H
 #include <stdint.h>
 
+/**
+ * ADC devices implemented
+ */
 typedef enum {
-    kADC1 = 0,
-    kADCnbDevices,
+    kADC1 = 0,      ///< ADC1
+    kADCnbDevices,  ///< Number of ADC devices
 } ADCdevice;
 
 /**

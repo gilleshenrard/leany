@@ -33,16 +33,19 @@ typedef enum {
     kStateAcquiring = 1,  ///< ADC is updating
 } ADCstate;
 
+/**
+ * ADC to DMA mapping
+ */
 typedef struct {
-    DMA_TypeDef* dma_handle;
-    ADC_TypeDef* adc_handle;
-    uint32_t dma_channel;
-    uint8_t nb_channels;
-    uint16_t* update_values;
-    uint16_t* latest_values;
+    DMA_TypeDef* dma_handle;  ///< DMA handle used
+    ADC_TypeDef* adc_handle;  ///< ADC handle used
+    uint32_t dma_channel;     ///< DMA channel
+    uint8_t nb_channels;      ///< Number of ADC channels read in sequence
+    uint16_t* update_values;  ///< Values updated by the ADC
+    uint16_t* latest_values;  ///< Copy of values, available to tasks
 } ADCmapping;
 
-typedef uint8_t RequestIDType;
+typedef uint8_t RequestIDType;  ///< Type of a request ID
 
 //state functions
 static void stateIdle(void);
@@ -56,17 +59,18 @@ static StaticQueue_t adc_queue_state;                           ///< ADC request
 static TickType_t last_tick = 0;                                ///< System tick at the start of a request
 static const TickType_t kNoWait = 0;                            ///< Used instead of 0 for readability
 static ADCstate state = kStateIdle;                             ///< Current state machine state
-static RequestIDType latest_request = 0;
-static RequestIDType requests[kRequestsLength] = {0};
-static uint16_t dma1_latest_values[kADC1nbChannels] = {0};
-static uint16_t dma1_update_values[kADC1nbChannels] = {0};
-static ADCmapping devices[kADCnbDevices] = {
-    [kADC1] = {.dma_handle = DMA1,
-               .adc_handle = ADC1,
-               .dma_channel = LL_DMA_CHANNEL_1,
-               .nb_channels = kADC1nbChannels,
-               .update_values = dma1_update_values,
-               .latest_values = dma1_latest_values},
+static RequestIDType latest_request = 0;                        ///< Latest request ID received
+static RequestIDType requests[kRequestsLength] = {0};           ///< Buffer for the requests queue
+static uint16_t dma1_latest_values[kADC1nbChannels] = {0};      ///< Buffer of the latest values read by DMA1
+static uint16_t dma1_update_values[kADC1nbChannels] = {0};      ///< Buffer of the copy of values read by DMA1
+static ADCmapping devices[kADCnbDevices] =                      ///< ADC device mappings
+    {
+        [kADC1] = {.dma_handle = DMA1,
+                   .adc_handle = ADC1,
+                   .dma_channel = LL_DMA_CHANNEL_1,
+                   .nb_channels = kADC1nbChannels,
+                   .update_values = dma1_update_values,
+                   .latest_values = dma1_latest_values},
 };
 
 /********************************************************************************************************************************************/
@@ -126,9 +130,9 @@ void initialiseHALadc(void) {
 }
 
 /**
- * Request an update on an ADC channel
+ * Request an update on an ADC device
  *
- * @param channel Channel to update
+ * @param device Device to update
  * @retval 1 Request sent
  * @retval 0 Queue could not accept the request
  */
@@ -144,9 +148,10 @@ uint8_t requestADCmeasurement(ADCdevice device) {
 /**
  * Get the current value of an ADC channel
  *
+ * @param device Device from which to retrieve the value
  * @param channel Channel of which get the value
  * @param[out] value ADC value
- * @return Whether the ADC channel has an update since last read
+ * @return Whether retrieval succeeded
  */
 uint8_t getADCvalue(ADCdevice device, uint8_t channel, uint16_t* value) {
     if (device >= kADCnbDevices) {
