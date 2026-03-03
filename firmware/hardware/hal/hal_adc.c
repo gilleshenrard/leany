@@ -11,7 +11,6 @@
 #include <FreeRTOSConfig.h>
 #include <portmacro.h>
 #include <projdefs.h>
-#include <queue.h>
 #include <semphr.h>
 #include <stdint.h>
 #include <stm32f103xb.h>
@@ -27,13 +26,6 @@ enum {
 };
 
 /**
- * ADC request
- */
-typedef struct {
-    ADCchannel channel;  ///< ADC channel for which to request an update
-} ADCrequest;
-
-/**
  * ADC states
  */
 typedef enum {
@@ -41,7 +33,21 @@ typedef enum {
     kStateAcquiring = 1,  ///< ADC is updating
 } ADCstate;
 
-//private functions
+/**
+ * ADC to DMA mapping
+ */
+typedef struct {
+    DMA_TypeDef* dma_handle;  ///< DMA handle used
+    ADC_TypeDef* adc_handle;  ///< ADC handle used
+    uint32_t dma_channel;     ///< DMA channel
+    uint8_t nb_channels;      ///< Number of ADC channels read in sequence
+    uint16_t* update_values;  ///< Values updated by the ADC
+    uint16_t* latest_values;  ///< Copy of values, available to tasks
+} ADCmapping;
+
+typedef uint8_t RequestIDType;  ///< Type of a request ID
+
+//state functions
 static void stateIdle(void);
 static void stateAcquiring(void);
 
@@ -50,16 +56,22 @@ static volatile SemaphoreHandle_t adcdone_binsemaphore = NULL;  ///< Binary sema
 static StaticSemaphore_t adcdone_binsemaphore_state;            ///< ADC done semaphore state
 static QueueHandle_t adc_queue = NULL;                          ///< ADC requests queue
 static StaticQueue_t adc_queue_state;                           ///< ADC requests queue state
-static ADC_TypeDef* adc_handle = ADC1;                          ///< ADC handle to use
-static DMA_TypeDef* dma_handle = DMA1;                          ///< DMA handle to use
-static uint32_t dma_channel = LL_DMA_CHANNEL_1;                 ///< DMA channel receiving interrupts
-static ADCrequest requests[kRequestsLength];                    ///< Requests queue buffer
-static ADCstate state = kStateIdle;                             ///< Current state machine state
-static ADCrequest latest_request;                               ///< Latest request treated
-static uint32_t last_tick = 0;                                  ///< System tick at the start of a request
-static uint16_t dma_values[kADCnbChannels];                     ///< Values read from DMA
-static ADCresult adc_values[kADCnbChannels];                    ///< Latest ADC values for all channels
+static TickType_t last_tick = 0;                                ///< System tick at the start of a request
 static const TickType_t kNoWait = 0;                            ///< Used instead of 0 for readability
+static ADCstate state = kStateIdle;                             ///< Current state machine state
+static RequestIDType latest_request = 0;                        ///< Latest request ID received
+static RequestIDType requests[kRequestsLength] = {0};           ///< Buffer for the requests queue
+static uint16_t dma1_latest_values[kADC1nbChannels] = {0};      ///< Buffer of the latest values read by DMA1
+static uint16_t dma1_update_values[kADC1nbChannels] = {0};      ///< Buffer of the copy of values read by DMA1
+static ADCmapping devices[kADCnbDevices] =                      ///< ADC device mappings
+    {
+        [kADC1] = {.dma_handle = DMA1,
+                   .adc_handle = ADC1,
+                   .dma_channel = LL_DMA_CHANNEL_1,
+                   .nb_channels = kADC1nbChannels,
+                   .update_values = dma1_update_values,
+                   .latest_values = dma1_latest_values},
+};
 
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
@@ -73,7 +85,7 @@ void ADCinterruptTriggered(void) {
         return;
     }
 
-    LL_DMA_ClearFlag_TC1(dma_handle);
+    LL_DMA_ClearFlag_TC1(devices[latest_request].dma_handle);
 
     BaseType_t has_woken = pdFALSE;
     xSemaphoreGiveFromISR(adcdone_binsemaphore, &has_woken);
@@ -89,55 +101,64 @@ void initialiseHALadc(void) {
     configASSERT(adcdone_binsemaphore);
 
     //create the ADC requests queue
-    adc_queue = xQueueCreateStatic(kRequestsLength, sizeof(ADCrequest), (uint8_t*)requests, &adc_queue_state);
+    adc_queue = xQueueCreateStatic(kRequestsLength, sizeof(RequestIDType), (uint8_t*)requests, &adc_queue_state);
     configASSERT(adc_queue);
 
-    //ADC needs to be disabled for calibration
-    LL_ADC_Disable(adc_handle);
-    last_tick = getCurrentTick();
-    while (LL_ADC_IsEnabled(adc_handle) && systickTimeout(last_tick, kADCcalibWaitMs)) {
-    }
+    for (uint8_t device = 0; device < (uint8_t)kADCnbDevices; device++) {
+        const ADCmapping* mapping = &devices[device];
 
-    //Wait for at least 2 ADC clock cycles before calibration
-    last_tick = getCurrentTick();
-    while (!systickTimeout(last_tick, kADCcalibWaitMs)) {
-    }
+        //ADC needs to be disabled for calibration
+        LL_ADC_Disable(mapping->adc_handle);
+        last_tick = getCurrentTick();
+        while (LL_ADC_IsEnabled(mapping->adc_handle) && systickTimeout(last_tick, kADCcalibWaitMs)) {
+        }
 
-    //Start calibration
-    last_tick = getCurrentTick();
-    LL_ADC_StartCalibration(adc_handle);
-    while (LL_ADC_IsCalibrationOnGoing(adc_handle) && !systickTimeout(last_tick, kADCcalibWaitMs)) {
-    }
+        //Wait for at least 2 ADC clock cycles before calibration
+        last_tick = getCurrentTick();
+        while (!systickTimeout(last_tick, kADCcalibWaitMs)) {
+        }
 
-    //Re-enable the ADC
-    LL_ADC_Enable(adc_handle);
+        //Start calibration
+        last_tick = getCurrentTick();
+        LL_ADC_StartCalibration(mapping->adc_handle);
+        while (LL_ADC_IsCalibrationOnGoing(mapping->adc_handle) && !systickTimeout(last_tick, kADCcalibWaitMs)) {
+        }
+
+        //Re-enable the ADC
+        LL_ADC_Enable(mapping->adc_handle);
+    }
 }
 
 /**
- * Request an update on an ADC channel
+ * Request an update on an ADC device
  *
- * @param channel Channel to update
+ * @param device Device to update
  * @retval 1 Request sent
  * @retval 0 Queue could not accept the request
  */
-uint8_t requestADCmeasurement(ADCchannel channel) {
-    if (channel >= kADCnbChannels) {
+uint8_t requestADCmeasurement(ADCdevice device) {
+    if (device >= kADCnbDevices) {
         return 0;
     }
 
-    const ADCrequest request = {.channel = channel};
-    return (xQueueSend(adc_queue, &request, kNoWait) == pdTRUE);
+    const RequestIDType device_id = (RequestIDType)device;
+    return (xQueueSend(adc_queue, &device_id, kNoWait) == pdTRUE);
 }
 
 /**
  * Get the current value of an ADC channel
  *
+ * @param device Device from which to retrieve the value
  * @param channel Channel of which get the value
  * @param[out] value ADC value
- * @return Whether the ADC channel has an update since last read
+ * @return Whether retrieval succeeded
  */
-uint8_t getADCvalue(ADCchannel channel, ADCresult* value) {
-    if (channel >= kADCnbChannels) {
+uint8_t getADCvalue(ADCdevice device, uint8_t channel, uint16_t* value) {
+    if (device >= kADCnbDevices) {
+        return 0;
+    }
+
+    if (channel >= devices[device].nb_channels) {
         return 0;
     }
 
@@ -145,16 +166,12 @@ uint8_t getADCvalue(ADCchannel channel, ADCresult* value) {
         return 0;
     }
 
-    uint8_t updated = 0;
-
     //critical section used for non-blocking section that cannot fail
     taskENTER_CRITICAL();
-    value->value = adc_values[channel].value;
-    updated = adc_values[channel].updated;
-    adc_values[channel].updated = 0;
+    *value = devices[device].latest_values[channel];
     taskEXIT_CRITICAL();
 
-    return updated;
+    return 1;
 }
 
 /**
@@ -190,15 +207,18 @@ static void stateIdle(void) {
     //drain the ADC-done semaphore
     xSemaphoreTake(adcdone_binsemaphore, 0);
 
+    const ADCmapping* mapping = &devices[latest_request];
+
     //start DMA acquisition
-    LL_DMA_DisableChannel(dma_handle, dma_channel);
-    LL_DMA_ClearFlag_GI1(dma_handle);
-    LL_DMA_EnableIT_TC(dma_handle, dma_channel);
-    LL_DMA_ConfigAddresses(dma_handle, dma_channel, LL_ADC_DMA_GetRegAddr(adc_handle, LL_ADC_DMA_REG_REGULAR_DATA),
-                           (uint32_t)dma_values, LL_DMA_DIRECTION_PERIPH_TO_MEMORY);
-    LL_DMA_SetDataLength(dma_handle, dma_channel, kADCnbChannels);  //must be reset every time
-    LL_DMA_EnableChannel(dma_handle, dma_channel);
-    LL_ADC_REG_StartConversionSWStart(adc_handle);
+    LL_DMA_DisableChannel(mapping->dma_handle, mapping->dma_channel);
+    LL_DMA_ClearFlag_GI1(mapping->dma_handle);
+    LL_DMA_EnableIT_TC(mapping->dma_handle, mapping->dma_channel);
+    LL_DMA_ConfigAddresses(mapping->dma_handle, mapping->dma_channel,
+                           LL_ADC_DMA_GetRegAddr(mapping->adc_handle, LL_ADC_DMA_REG_REGULAR_DATA),
+                           (uint32_t)mapping->update_values, LL_DMA_DIRECTION_PERIPH_TO_MEMORY);
+    LL_DMA_SetDataLength(mapping->dma_handle, mapping->dma_channel, mapping->nb_channels);  //must be reset every time
+    LL_DMA_EnableChannel(mapping->dma_handle, mapping->dma_channel);
+    LL_ADC_REG_StartConversionSWStart(mapping->adc_handle);
 
     //get to next state
     last_tick = getCurrentTick();
@@ -220,11 +240,10 @@ static void stateAcquiring(void) {
         return;
     }
 
-    //critical section used for non-blocking section that cannot fail
-    const ADCchannel channel = latest_request.channel;
     taskENTER_CRITICAL();
-    adc_values[channel].value = dma_values[channel];
-    adc_values[channel].updated = 1;
+    for (uint8_t channel = 0; channel < devices[latest_request].nb_channels; channel++) {
+        devices[latest_request].latest_values[channel] = devices[latest_request].update_values[channel];
+    }
     taskEXIT_CRITICAL();
 
     state = kStateIdle;

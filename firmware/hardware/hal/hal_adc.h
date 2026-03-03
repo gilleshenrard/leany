@@ -10,27 +10,27 @@
 #include <stdint.h>
 
 /**
+ * ADC devices implemented
+ */
+typedef enum {
+    kADC1 = 0,      ///< ADC1
+    kADCnbDevices,  ///< Number of ADC devices
+} ADCdevice;
+
+/**
  * ADC channels used in the application
  */
 typedef enum {
     kADCchannelTemperature = 0,  ///< MCU internal temperature
     kADCchannelBattery,          ///< Battery voltage
     kADCchannelVrefInt,          ///< MCU VrefInt
-    kADCnbChannels               ///< Number of ADC channels implemented
-} ADCchannel;
-
-/**
- * ADC read result
- */
-typedef struct {
-    uint16_t value;   ///< Latest ADC value
-    uint8_t updated;  ///< Flag indicating whether the value has been updated
-} ADCresult;
+    kADC1nbChannels              ///< Number of ADC channels implemented
+} ADC1channel;
 
 void ADCinterruptTriggered(void);
 void initialiseHALadc(void);
+uint8_t requestADCmeasurement(ADCdevice device);
+uint8_t getADCvalue(ADCdevice device, uint8_t channel, uint16_t* value);
 void runADCstateMachine(void);
-uint8_t requestADCmeasurement(ADCchannel channel);
-uint8_t getADCvalue(ADCchannel channel, ADCresult* value);
 
 #endif
