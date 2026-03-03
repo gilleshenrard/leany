@@ -121,7 +121,6 @@ static void taskGPIO(void* argument) {
     initialiseLED();
     initialiseHALadc();
 
-    LL_GPIO_SetOutputPin(BATT_EN_GPIO_Port, BATT_EN_Pin);
     (void)requestADCmeasurement(kADC1);
 
     last_battery_lvl_update_tick = getCurrentTick();
@@ -198,6 +197,10 @@ static void updateInternalTemperature(void) {
  * @return MCU internal temperature in [°C]
  */
 static int32_t adcToInternalTemperature(const uint16_t adc_raw) {
+    if (!adc_vref_mv) {
+        return 0;
+    }
+
     return __LL_ADC_CALC_TEMPERATURE_TYP_PARAMS(kTempSensorAvgSlope_uV_C, kTempSensorV25_mV, kTempSensorCalibTemp_C,
                                                 adc_vref_mv, adc_raw, LL_ADC_RESOLUTION_12B);
 }
@@ -213,7 +216,11 @@ static ErrorCode updateBatteryVoltage(void) {
         last_battery_lvl_update_tick = getCurrentTick();
 
         // //open the battery measurement path
-        // LL_GPIO_SetOutputPin(BATT_EN_GPIO_Port, BATT_EN_Pin);
+        LL_GPIO_SetOutputPin(BATT_EN_GPIO_Port, BATT_EN_Pin);
+    }
+
+    if (!systickTimeout(last_battery_lvl_update_tick, 2U)) {
+        return kSuccessCode;
     }
 
     //get the latest battery value
@@ -223,7 +230,7 @@ static ErrorCode updateBatteryVoltage(void) {
     }
 
     // //close the battery measurement path (saves energy)
-    // LL_GPIO_ResetOutputPin(BATT_EN_GPIO_Port, BATT_EN_Pin);
+    LL_GPIO_ResetOutputPin(BATT_EN_GPIO_Port, BATT_EN_Pin);
 
     //transform the ADC value to [mV]
     battery_voltage_mv = adcToBatteryVoltage_mV(battery_adc_raw);
@@ -240,6 +247,10 @@ static ErrorCode updateBatteryVoltage(void) {
 static uint16_t adcToBatteryVoltage_mV(uint16_t adc_raw) {
     static const uint32_t kVoltageDividerHighKohms = 56UL;
     static const uint32_t kVoltageDividerLowKohms = 56UL;
+
+    if (!adc_vref_mv) {
+        return 0;
+    }
 
     const uint32_t conversion_numerator = (adc_vref_mv * (kVoltageDividerHighKohms + kVoltageDividerLowKohms));
     static const uint32_t kConversionDenominator = (kAdcMaxValue * kVoltageDividerLowKohms);
