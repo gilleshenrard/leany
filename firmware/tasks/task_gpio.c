@@ -18,7 +18,6 @@
 #include <stdint.h>
 #include <stm32f1xx_hal_def.h>
 #include <stm32f1xx_ll_adc.h>
-#include <stm32f1xx_ll_gpio.h>
 #include <task.h>
 
 #include "buttons.h"
@@ -50,7 +49,7 @@ static void taskGPIO(void* argument);
 static void updateADCvalues(void);
 static void updateInternalTemperature(void);
 static int32_t adcToInternalTemperature(uint16_t adc_raw);
-static ErrorCode updateBatteryVoltage(void);
+static void updateBatteryVoltage(void);
 static uint16_t adcToBatteryVoltage_mV(uint16_t adc_raw);
 
 //state variables
@@ -60,7 +59,7 @@ static ErrorCode result;                            ///< Current functions error
 static int32_t internal_temperature_celsius = 0;    ///< Latest MCU internal temperature in [°C]
 static uint32_t adc_vref_mv;                        ///< Current ADC Vref voltage in [mV]
 static uint16_t battery_voltage_mv = 0;             ///< Current battery voltage in [mV]
-static uint32_t current_tick = 0;                   ///< Current OS tick
+static uint32_t last_temperature_update_tick = 0;   ///< Last tick at which temperature was updated
 static uint32_t last_adc_update_tick = 0;           ///< Last tick at which ADC was updated
 static uint32_t last_battery_lvl_update_tick = 0;   ///< Last tick at which battery lvl was updated
 
@@ -125,7 +124,7 @@ static void taskGPIO(void* argument) {
 
     last_battery_lvl_update_tick = getCurrentTick();
     last_adc_update_tick = getCurrentTick();
-    current_tick = getCurrentTick();
+    last_temperature_update_tick = getCurrentTick();
     while (1) {
         result = runButtonsStateMachine();
         if (isError(result)) {
@@ -136,7 +135,7 @@ static void taskGPIO(void* argument) {
         runADCstateMachine();
         updateADCvalues();
         updateInternalTemperature();
-        (void)updateBatteryVoltage();
+        updateBatteryVoltage();
 
         vTaskDelay(pdMS_TO_TICKS(5U));
     }
@@ -156,6 +155,19 @@ static void updateADCvalues(void) {
         return;
     }
 
+    /*
+     * Compute the actual VDDA (ADC reference voltage) by using the MCU internal bandgap reference (VrefInt).
+     *
+     * VDDA cannot be assumed to equal 3.3V: it is the LDO output, which droops
+     * as the battery discharges. Instead, VrefInt (1.2V, stable regardless of VDDA)
+     * is used as a known anchor.
+     *
+     * The ADC measures ratios against VDDA:
+     *   vref_adc_raw = (VrefInt / VDDA) * 4095
+     *
+     * Rearranging to isolate VDDA:
+     *   VDDA = (VrefInt * 4095) / vref_adc_raw
+     */
     adc_vref_mv = (kMCUvrefInt_mV * kAdcMaxValue) / vref_adc_raw;
 }
 
@@ -163,10 +175,10 @@ static void updateADCvalues(void) {
  * Update the MCU internal temperature
  */
 static void updateInternalTemperature(void) {
-    if (!systickTimeout(current_tick, kTemperatureRefreshMs)) {
+    if (!systickTimeout(last_temperature_update_tick, kTemperatureRefreshMs)) {
         return;
     }
-    current_tick = getCurrentTick();
+    last_temperature_update_tick = getCurrentTick();
 
     // State 2: Check if any conversion is ready to read (independent of timeout)
     uint16_t adc_temp_raw = 0;
@@ -207,35 +219,30 @@ static int32_t adcToInternalTemperature(const uint16_t adc_raw) {
 
 /**
  * Request a battery read on ADC
- *
- * @return ErrorCode 
  */
-static ErrorCode updateBatteryVoltage(void) {
+static void updateBatteryVoltage(void) {
+    static uint8_t updating = 0;
+
     //check if it is time to update the battery percentage
     if (systickTimeout(last_battery_lvl_update_tick, kBatteryLvlUpdatePeriodMs)) {
         last_battery_lvl_update_tick = getCurrentTick();
-
-        // //open the battery measurement path
-        LL_GPIO_SetOutputPin(BATT_EN_GPIO_Port, BATT_EN_Pin);
+        updating = 1;
     }
 
-    if (!systickTimeout(last_battery_lvl_update_tick, 2U)) {
-        return kSuccessCode;
+    //wait for 2ms after GPIO being set high
+    if (!updating || !systickTimeout(last_battery_lvl_update_tick, 2U)) {
+        return;
     }
 
     //get the latest battery value
     uint16_t battery_adc_raw = 0;
     if (!getADCvalue(kADC1, kADCchannelBattery, &battery_adc_raw)) {
-        return kSuccessCode;
+        return;
     }
-
-    // //close the battery measurement path (saves energy)
-    LL_GPIO_ResetOutputPin(BATT_EN_GPIO_Port, BATT_EN_Pin);
 
     //transform the ADC value to [mV]
     battery_voltage_mv = adcToBatteryVoltage_mV(battery_adc_raw);
-
-    return kSuccessCode;
+    updating = 0;
 }
 
 /**
