@@ -10,6 +10,7 @@
 
 #include <FreeRTOS.h>
 #include <FreeRTOSConfig.h>
+#include <assert.h>
 #include <main.h>
 #include <portmacro.h>
 #include <projdefs.h>
@@ -35,6 +36,7 @@ enum {
     kMutexMS = 5U,                      ///< Max number of milliseconds to wait for a mutex
     kBatteryLvlUpdatePeriodMs = 1000U,  ///< Period in [ms] between two battery level updates
     kVrefUpdatePeriodMs = 1000U,        ///< Period in [ms] between two Vref updates
+    kNbAverageSamples = 8U,             ///< Maximum number of elements in the average buffer
 
     // STM32F103 temperature sensor calibration parameters (from datasheet)
     kTempSensorAvgSlope_uV_C = 4300,  ///< Avg slope: 4.3 mV/°C (scaled to uV/°C)
@@ -44,6 +46,9 @@ enum {
     kMCUvrefInt_mV = 1200,            ///< MCU VrefInt voltage in [mV]
 };
 
+static_assert(((uint8_t)kNbAverageSamples & ((uint8_t)kNbAverageSamples - 1U)) == 0U,
+              "kNbAverageSamples must be a power of 2");
+
 //task functions
 static void taskGPIO(void* argument);
 static void updateADCvalues(void);
@@ -51,17 +56,22 @@ static void updateInternalTemperature(void);
 static int32_t adcToInternalTemperature(uint16_t adc_raw);
 static void updateBatteryVoltage(void);
 static uint16_t adcToBatteryVoltage_mV(uint16_t adc_raw);
+static void averageBatteryVoltageMv(uint32_t new_voltage_mv);
 
 //state variables
-static volatile TaskHandle_t task_handle = NULL;    ///< handle of the FreeRTOS task
-static SemaphoreHandle_t temperature_mutex = NULL;  ///< Mutex which protects the temperature readings
-static ErrorCode result;                            ///< Current functions errorstack result
-static int32_t internal_temperature_celsius = 0;    ///< Latest MCU internal temperature in [°C]
-static uint32_t adc_vref_mv;                        ///< Current ADC Vref voltage in [mV]
-static uint16_t battery_voltage_mv = 0;             ///< Current battery voltage in [mV]
-static uint32_t last_temperature_update_tick = 0;   ///< Last tick at which temperature was updated
-static uint32_t last_adc_update_tick = 0;           ///< Last tick at which ADC was updated
-static uint32_t last_battery_lvl_update_tick = 0;   ///< Last tick at which battery lvl was updated
+static volatile TaskHandle_t task_handle = NULL;                 ///< handle of the FreeRTOS task
+static SemaphoreHandle_t temperature_mutex = NULL;               ///< Mutex which protects the temperature readings
+static ErrorCode result;                                         ///< Current functions errorstack result
+static int32_t internal_temperature_celsius = 0;                 ///< Latest MCU internal temperature in [°C]
+static uint32_t adc_vref_mv;                                     ///< Current ADC Vref voltage in [mV]
+static uint16_t battery_voltage_mv = 0;                          ///< Current battery voltage in [mV]
+static uint32_t last_temperature_update_tick = 0;                ///< Last tick at which temperature was updated
+static uint32_t last_adc_update_tick = 0;                        ///< Last tick at which ADC was updated
+static uint32_t last_battery_lvl_update_tick = 0;                ///< Last tick at which battery lvl was updated
+static uint32_t battery_average_queue[kNbAverageSamples] = {0};  ///< Buffer used for averaging battery
+static uint8_t battery_average_nbsamples = 0;                    ///< Number of samples saved in the buffer
+static uint8_t battery_average_index = 0;                        ///< Index of the current buffer head
+static uint32_t battery_average_total = 0;                       ///< Total value used to calculate battery average
 
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
@@ -241,7 +251,8 @@ static void updateBatteryVoltage(void) {
     }
 
     //transform the ADC value to [mV]
-    battery_voltage_mv = adcToBatteryVoltage_mV(battery_adc_raw);
+    const uint16_t new_battery_voltage_mv = adcToBatteryVoltage_mV(battery_adc_raw);
+    averageBatteryVoltageMv(new_battery_voltage_mv);
     updating = 0;
 }
 
@@ -263,4 +274,28 @@ static uint16_t adcToBatteryVoltage_mV(uint16_t adc_raw) {
     static const uint32_t kConversionDenominator = (kAdcMaxValue * kVoltageDividerLowKohms);
 
     return (uint16_t)((adc_raw * conversion_numerator) / kConversionDenominator);
+}
+
+/**
+ * Blend a new battery voltage into the running average measurements
+ *
+ * @param new_voltage_mv New voltage to add in [mV]
+ */
+static void averageBatteryVoltageMv(uint32_t new_voltage_mv) {
+    //add elements to the buffer until it's full
+    if (battery_average_nbsamples < (kNbAverageSamples - 1)) {
+        battery_average_queue[battery_average_index] = new_voltage_mv;
+        battery_average_index++;
+        battery_average_total += new_voltage_mv;
+        battery_average_nbsamples++;
+        battery_voltage_mv = (uint16_t)(battery_average_total / battery_average_nbsamples);
+        return;
+    }
+
+    //buffer is full, use a cyclic average
+    battery_average_index = (battery_average_index + 1U) % kNbAverageSamples;
+    battery_average_total -= battery_average_queue[battery_average_index];
+    battery_average_queue[battery_average_index] = new_voltage_mv;
+    battery_average_total += new_voltage_mv;
+    battery_voltage_mv = (uint16_t)(battery_average_total / kNbAverageSamples);
 }
