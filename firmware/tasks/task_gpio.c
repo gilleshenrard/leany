@@ -61,6 +61,7 @@ static void averageBatteryVoltageMv(uint32_t new_voltage_mv);
 //state variables
 static volatile TaskHandle_t task_handle = NULL;                 ///< handle of the FreeRTOS task
 static SemaphoreHandle_t temperature_mutex = NULL;               ///< Mutex which protects the temperature readings
+static SemaphoreHandle_t battery_mutex = NULL;                   ///< Mutex which protects the battery readings
 static ErrorCode result;                                         ///< Current functions errorstack result
 static int32_t internal_temperature_celsius = 0;                 ///< Latest MCU internal temperature in [°C]
 static uint32_t adc_vref_mv;                                     ///< Current ADC Vref voltage in [mV]
@@ -83,12 +84,15 @@ void createGPIOtask(void) {
     static StackType_t task_stack[kStackSize] = {0};         ///< Buffer used as the task stack
     static StaticTask_t task_state = {0};                    ///< Task state variables
     static StaticSemaphore_t temperature_mutex_state = {0};  ///< ADC value mutex state variables
+    static StaticSemaphore_t battery_mutex_state = {0};      ///< battery value mutex state variables
 
     //create a semaphore to protect measurements
     temperature_mutex = xSemaphoreCreateMutexStatic(&temperature_mutex_state);
-    if (!temperature_mutex) {
-        Error_Handler();
-    }
+    configASSERT(temperature_mutex);
+
+    //create a semaphore to protect battery measurements
+    battery_mutex = xSemaphoreCreateMutexStatic(&battery_mutex_state);
+    configASSERT(battery_mutex);
 
     //create the static task
     task_handle = xTaskCreateStatic(taskGPIO, "GPIO task", kStackSize, NULL, kTaskLowPriority, task_stack, &task_state);
@@ -114,6 +118,24 @@ uint8_t getInternalTemperatureCelsius(int32_t* temperature_celsius) {
     (void)xSemaphoreGive(temperature_mutex);
 
     return 1;
+}
+
+/**
+ * Get the latest measured battery voltage
+ *
+ * @param[out] voltage_mv Battery voltage in [mV]
+ * @retval 1 Successfully retrieved
+ * @retval 0 Could not retrieve voltage
+ */
+uint8_t getBatteryVoltageMv(uint16_t* voltage_mv) {
+    uint8_t success = 0;
+    if (xSemaphoreTake(temperature_mutex, pdMS_TO_TICKS(kMutexMS)) == pdTRUE) {
+        *voltage_mv = battery_voltage_mv;
+        success = 1;
+        xSemaphoreGive(temperature_mutex);
+    }
+
+    return success;
 }
 
 /********************************************************************************************************************************************/
@@ -288,7 +310,10 @@ static void averageBatteryVoltageMv(uint32_t new_voltage_mv) {
         battery_average_index++;
         battery_average_total += new_voltage_mv;
         battery_average_nbsamples++;
-        battery_voltage_mv = (uint16_t)(battery_average_total / battery_average_nbsamples);
+        if (xSemaphoreTake(temperature_mutex, pdMS_TO_TICKS(kMutexMS)) == pdTRUE) {
+            battery_voltage_mv = (uint16_t)(battery_average_total / battery_average_nbsamples);
+            xSemaphoreGive(temperature_mutex);
+        }
         return;
     }
 
@@ -297,5 +322,8 @@ static void averageBatteryVoltageMv(uint32_t new_voltage_mv) {
     battery_average_total -= battery_average_queue[battery_average_index];
     battery_average_queue[battery_average_index] = new_voltage_mv;
     battery_average_total += new_voltage_mv;
-    battery_voltage_mv = (uint16_t)(battery_average_total / kNbAverageSamples);
+    if (xSemaphoreTake(temperature_mutex, pdMS_TO_TICKS(kMutexMS)) == pdTRUE) {
+        battery_voltage_mv = (uint16_t)(battery_average_total / kNbAverageSamples);
+        xSemaphoreGive(temperature_mutex);
+    }
 }
