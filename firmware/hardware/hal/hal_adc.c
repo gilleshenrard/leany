@@ -9,6 +9,7 @@
 
 #include <FreeRTOS.h>
 #include <FreeRTOSConfig.h>
+#include <main.h>
 #include <portmacro.h>
 #include <projdefs.h>
 #include <semphr.h>
@@ -16,6 +17,7 @@
 #include <stm32f103xb.h>
 #include <stm32f1xx_ll_adc.h>
 #include <stm32f1xx_ll_dma.h>
+#include <stm32f1xx_ll_gpio.h>
 
 #include "systick.h"
 
@@ -209,6 +211,8 @@ static void stateIdle(void) {
 
     const ADCmapping* mapping = &devices[latest_request];
 
+    LL_GPIO_SetOutputPin(BATT_EN_GPIO_Port, BATT_EN_Pin);
+
     //start DMA acquisition
     LL_DMA_DisableChannel(mapping->dma_handle, mapping->dma_channel);
     LL_DMA_ClearFlag_GI1(mapping->dma_handle);
@@ -241,11 +245,14 @@ static void stateAcquiring(void) {
         return;
     }
 
+    //critical section used for non-blocking section that cannot fail
     taskENTER_CRITICAL();
     for (uint8_t channel = 0; channel < devices[latest_request].nb_channels; channel++) {
         devices[latest_request].latest_values[channel] = devices[latest_request].update_values[channel];
     }
     taskEXIT_CRITICAL();
+
+    LL_GPIO_ResetOutputPin(BATT_EN_GPIO_Port, BATT_EN_Pin);
 
     state = kStateIdle;
 }

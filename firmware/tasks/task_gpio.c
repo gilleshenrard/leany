@@ -18,7 +18,6 @@
 #include <stdint.h>
 #include <stm32f1xx_hal_def.h>
 #include <stm32f1xx_ll_adc.h>
-#include <stm32f1xx_ll_gpio.h>
 #include <task.h>
 
 #include "buttons.h"
@@ -227,9 +226,6 @@ static void updateBatteryVoltage(void) {
     //check if it is time to update the battery percentage
     if (systickTimeout(last_battery_lvl_update_tick, kBatteryLvlUpdatePeriodMs)) {
         last_battery_lvl_update_tick = getCurrentTick();
-
-        // //open the battery measurement path
-        LL_GPIO_SetOutputPin(BATT_EN_GPIO_Port, BATT_EN_Pin);
         updating = 1;
     }
 
@@ -243,9 +239,6 @@ static void updateBatteryVoltage(void) {
     if (!getADCvalue(kADC1, kADCchannelBattery, &battery_adc_raw)) {
         return;
     }
-
-    // //close the battery measurement path (saves energy)
-    LL_GPIO_ResetOutputPin(BATT_EN_GPIO_Port, BATT_EN_Pin);
 
     //transform the ADC value to [mV]
     battery_voltage_mv = adcToBatteryVoltage_mV(battery_adc_raw);
