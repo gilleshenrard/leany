@@ -10,6 +10,7 @@
 
 #include <FreeRTOS.h>
 #include <FreeRTOSConfig.h>
+#include <assert.h>
 #include <errorstack.h>
 #include <main.h>
 #include <portmacro.h>
@@ -22,20 +23,29 @@
 
 #include "bq25619.h"
 #include "bq25619_registers.inc"
+#include "hal_adc.h"
 #include "hal_i2c.h"
 #include "hardware_events.h"
 #include "systick.h"
+#include "task_gpio.h"
 
 enum {
-    kStackSize = 250U,           ///< Amount of words in the task stack
-    kTaskLowPriority = 8U,       ///< FreeRTOS number for a low priority task
-    kChipIDtimeout = 1000U,      ///< Maximum number of milliseconds to attempt reading the chip ID
-    kNbChipIDtests = 5U,         ///< Number of times chip ID reading must be tested
-    kUpdatePeriodMS = 200U,      ///< Period between two status updates in [ms]
-    kBatteryFullPercent = 100U,  ///< Value used as a 100% battery level
-    kMutexTimeoutMs = 10U,       ///< Maximum number of milliseconds before considering a mutex timeout
-    kNbRetries = 5U,             ///< Maximum number of retries upon I²C lack of ACK
+    kStackSize = 250U,                  ///< Amount of words in the task stack
+    kTaskLowPriority = 8U,              ///< FreeRTOS number for a low priority task
+    kChipIDtimeout = 1000U,             ///< Maximum number of milliseconds to attempt reading the chip ID
+    kNbChipIDtests = 5U,                ///< Number of times chip ID reading must be tested
+    kUpdatePeriodMS = 200U,             ///< Period between two status updates in [ms]
+    kBatteryFullPercent = 100U,         ///< Value used as a 100% battery level
+    kMutexTimeoutMs = 10U,              ///< Maximum number of milliseconds before considering a mutex timeout
+    kNbRetries = 5U,                    ///< Maximum number of retries upon I²C lack of ACK
+    kNbAverageSamples = 8U,             ///< Maximum number of elements in the average buffer
+    kBatteryLvlUpdatePeriodMs = 1000U,  ///< Period in [ms] between two battery level updates
+    kMutexMS = 5U,                      ///< Max number of milliseconds to wait for a mutex
+    kAdcMaxValue = 4095,                ///< Maximum ADC LSB value (12-bits -> [0 ... 4095])
 };
+
+static_assert(((uint8_t)kNbAverageSamples & ((uint8_t)kNbAverageSamples - 1U)) == 0U,
+              "kNbAverageSamples must be a power of 2");
 
 /**
  * @brief Enumeration of all the function ID used in errors
@@ -53,18 +63,27 @@ static void taskBatteryManagement(void* argument);
 static ErrorCode stateStartup(void);
 static ErrorCode stateConfiguring(void);
 static ErrorCode stateIdle(void);
+static void updateBatteryVoltage(void);
+static uint16_t adcToBatteryVoltage_mV(uint16_t adc_raw, uint32_t adc_vref_mv);
+static void averageBatteryVoltageMv(uint32_t new_voltage_mv);
 
-static volatile TaskHandle_t task_handle = NULL;          ///< handle of the FreeRTOS task
-static volatile FunctionCode state = kStateStartup;       ///< Current state machine state
-static StackType_t task_stack[kStackSize] = {0};          ///< Buffer used as the task stack
-static StaticTask_t task_state = {0};                     ///< Task state variables
-static SemaphoreHandle_t battery_mutex = NULL;            ///< Mutex used to protect the battery status
-static ErrorCode result = {0};                            ///< Buffer used to store the latest error code
-static I2C_TypeDef* i2c_handle = I2C1;                    ///< I²C handle to use with all transmissons
-static uint8_t battery_percentage = kBatteryFullPercent;  ///< Current battery percentage (for simulation)
-static uint8_t battery_charging = 0U;                     ///< Current battery charge status (for simulation)
-static TickType_t previous_tick = 0;                      ///< Tick at the last status update
-static ChargerStatus current_battery_status;              ///< Current battery status flags
+static volatile TaskHandle_t task_handle = NULL;                 ///< handle of the FreeRTOS task
+static volatile FunctionCode state = kStateStartup;              ///< Current state machine state
+static StackType_t task_stack[kStackSize] = {0};                 ///< Buffer used as the task stack
+static StaticTask_t task_state = {0};                            ///< Task state variables
+static SemaphoreHandle_t battery_mutex = NULL;                   ///< Mutex used to protect the battery status
+static ErrorCode result = {0};                                   ///< Buffer used to store the latest error code
+static I2C_TypeDef* i2c_handle = I2C1;                           ///< I²C handle to use with all transmissons
+static uint8_t battery_percentage = kBatteryFullPercent;         ///< Current battery percentage (for simulation)
+static uint8_t battery_charging = 0U;                            ///< Current battery charge status (for simulation)
+static TickType_t previous_tick = 0;                             ///< Tick at the last status update
+static ChargerStatus current_battery_status;                     ///< Current battery status flags
+static uint32_t last_battery_lvl_update_tick = 0;                ///< Last tick at which battery lvl was updated
+static uint32_t battery_average_queue[kNbAverageSamples] = {0};  ///< Buffer used for averaging battery
+static uint8_t battery_average_nbsamples = 0;                    ///< Number of samples saved in the buffer
+static uint8_t battery_average_index = 0;                        ///< Index of the current buffer head
+static uint32_t battery_average_total = 0;                       ///< Total value used to calculate battery average
+static uint16_t battery_voltage_mv = 0;                          ///< Current battery voltage in [mV]
 
 /****************************************************************************************************************/
 /****************************************************************************************************************/
@@ -148,6 +167,24 @@ void setBatteryChargeStatus(uint8_t status) {
  */
 ErrorCode turnSystemOff(void) { return disconnectBattery(); }
 
+/**
+ * Get the latest measured battery voltage
+ *
+ * @param[out] voltage_mv Battery voltage in [mV]
+ * @retval 1 Successfully retrieved
+ * @retval 0 Could not retrieve voltage
+ */
+uint8_t getBatteryVoltageMv(uint16_t* voltage_mv) {
+    uint8_t success = 0;
+    if (xSemaphoreTake(battery_mutex, pdMS_TO_TICKS(kMutexMS)) == pdTRUE) {
+        *voltage_mv = battery_voltage_mv;
+        success = 1;
+        xSemaphoreGive(battery_mutex);
+    }
+
+    return success;
+}
+
 /****************************************************************************************************************/
 /****************************************************************************************************************/
 
@@ -161,6 +198,7 @@ static void taskBatteryManagement(void* argument) {
 
     LL_I2C_Enable(i2c_handle);
 
+    last_battery_lvl_update_tick = getCurrentTick();
     while (1) {
         switch (state) {
             case kStateStartup:
@@ -188,6 +226,8 @@ static void taskBatteryManagement(void* argument) {
         if (isError(result)) {
             Error_Handler();
         }
+
+        updateBatteryVoltage();
     }
 }
 
@@ -263,4 +303,89 @@ static ErrorCode stateIdle(void) {
     }
 
     return kSuccessCode;
+}
+
+/**
+ * Request a battery read on ADC
+ */
+static void updateBatteryVoltage(void) {
+    static uint8_t updating = 0;
+
+    //check if it is time to update the battery percentage
+    if (systickTimeout(last_battery_lvl_update_tick, kBatteryLvlUpdatePeriodMs)) {
+        last_battery_lvl_update_tick = getCurrentTick();
+        updating = 1;
+    }
+
+    //wait for 2ms after GPIO being set high
+    if (!updating || !systickTimeout(last_battery_lvl_update_tick, 2U)) {
+        return;
+    }
+
+    //get the latest battery value
+    uint16_t battery_adc_raw = 0;
+    if (!getADCvalue(kADC1, kADCchannelBattery, &battery_adc_raw)) {
+        return;
+    }
+
+    uint32_t adc_reference_mv = 0;
+    if (!getADCreference_mV(&adc_reference_mv)) {
+        return;
+    }
+
+    //transform the ADC value to [mV]
+    const uint16_t new_battery_voltage_mv = adcToBatteryVoltage_mV(battery_adc_raw, adc_reference_mv);
+    averageBatteryVoltageMv(new_battery_voltage_mv);
+    updating = 0;
+}
+
+/**
+ * Transform an ADC value to battery voltage in [mV]
+ *
+ * @param adc_raw Value to transform
+ * @param adc_vref_mv ADC voltage reference in [mV]
+ * @return Battery voltage in [mV]
+ */
+static uint16_t adcToBatteryVoltage_mV(uint16_t adc_raw, uint32_t adc_vref_mv) {
+    static const uint32_t kVoltageDividerHighKohms = 56UL;
+    static const uint32_t kVoltageDividerLowKohms = 56UL;
+
+    if (!adc_vref_mv) {
+        return 0;
+    }
+
+    const uint32_t conversion_numerator = (adc_vref_mv * (kVoltageDividerHighKohms + kVoltageDividerLowKohms));
+    static const uint32_t kConversionDenominator = (kAdcMaxValue * kVoltageDividerLowKohms);
+
+    return (uint16_t)((adc_raw * conversion_numerator) / kConversionDenominator);
+}
+
+/**
+ * Blend a new battery voltage into the running average measurements
+ *
+ * @param new_voltage_mv New voltage to add in [mV]
+ */
+static void averageBatteryVoltageMv(uint32_t new_voltage_mv) {
+    //add elements to the buffer until it's full
+    if (battery_average_nbsamples < (kNbAverageSamples - 1)) {
+        battery_average_queue[battery_average_index] = new_voltage_mv;
+        battery_average_index++;
+        battery_average_total += new_voltage_mv;
+        battery_average_nbsamples++;
+        if (xSemaphoreTake(battery_mutex, pdMS_TO_TICKS(kMutexMS)) == pdTRUE) {
+            battery_voltage_mv = (uint16_t)(battery_average_total / battery_average_nbsamples);
+            xSemaphoreGive(battery_mutex);
+        }
+        return;
+    }
+
+    //buffer is full, use a cyclic average
+    battery_average_index = (battery_average_index + 1U) % kNbAverageSamples;
+    battery_average_total -= battery_average_queue[battery_average_index];
+    battery_average_queue[battery_average_index] = new_voltage_mv;
+    battery_average_total += new_voltage_mv;
+    if (xSemaphoreTake(battery_mutex, pdMS_TO_TICKS(kMutexMS)) == pdTRUE) {
+        battery_voltage_mv = (uint16_t)(battery_average_total / kNbAverageSamples);
+        xSemaphoreGive(battery_mutex);
+    }
 }
