@@ -87,7 +87,7 @@ static const Node kBatteryCommands[] = {
     {.scpi = {.code = kCmdBatteryPercent,
               .short_name = "PER",
               .long_name = "PERcentage",
-              .mode = kRW,
+              .mode = kRO,
               .param_type = kParamInteger}},
     {.scpi = {.code = kCmdBatteryCharge,
               .short_name = "CHA",
