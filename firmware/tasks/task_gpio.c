@@ -121,8 +121,8 @@ uint8_t getADCreference_mV(uint32_t* voltage_mv) {
 
     if (xSemaphoreTake(reference_mutex, pdMS_TO_TICKS(kMutexMS)) == pdTRUE) {
         *voltage_mv = adc_vref_mv;
-        success = 1;
         (void)xSemaphoreGive(reference_mutex);
+        success = 1;
     }
 
     return success;
@@ -190,8 +190,9 @@ static void updateADCvalues(void) {
      * Rearranging to isolate VDDA:
      *   VDDA = (VrefInt * 4095) / vref_adc_raw
      */
+    const uint32_t temporary_vref_mv = (kMCUvrefInt_mV * kAdcMaxValue) / vref_adc_raw;
     if (xSemaphoreTake(reference_mutex, pdMS_TO_TICKS(kMutexMS)) == pdTRUE) {
-        adc_vref_mv = (kMCUvrefInt_mV * kAdcMaxValue) / vref_adc_raw;
+        adc_vref_mv = temporary_vref_mv;
         (void)xSemaphoreGive(reference_mutex);
     }
 }
