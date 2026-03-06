@@ -38,10 +38,14 @@ enum {
     kBatteryFullPercent = 100U,         ///< Value used as a 100% battery level
     kMutexTimeoutMs = 10U,              ///< Maximum number of milliseconds before considering a mutex timeout
     kNbRetries = 5U,                    ///< Maximum number of retries upon I²C lack of ACK
-    kNbAverageSamples = 8U,             ///< Maximum number of elements in the average buffer
+    kNbAverageSamples = 16U,            ///< Maximum number of elements in the average buffer
     kBatteryLvlUpdatePeriodMs = 1000U,  ///< Period in [ms] between two battery level updates
     kMutexMS = 5U,                      ///< Max number of milliseconds to wait for a mutex
-    kAdcMaxValue = 4095,                ///< Maximum ADC LSB value (12-bits -> [0 ... 4095])
+    kAdcMaxValue = 4095U,               ///< Maximum ADC LSB value (12-bits -> [0 ... 4095])
+    kBatteryMaxMv = 4200U,              ///< Maximum voltage of a typical lithium cell in [mV]
+    kBatteryMinMv = 3500U,              ///< Minimum voltage of a typical lithium cell in [mV]
+    kNbBatteryLevelSteps = 21U,         ///< Number of battery level steps in the lookup table
+    kBatteryLevelPercentStep = 5U,      ///< Number of percents between two steps
 };
 
 static_assert(((uint8_t)kNbAverageSamples & ((uint8_t)kNbAverageSamples - 1U)) == 0U,
@@ -66,6 +70,41 @@ static ErrorCode stateIdle(void);
 static void updateBatteryVoltage(void);
 static uint16_t adcToBatteryVoltage_mV(uint16_t adc_raw, uint32_t adc_vref_mv);
 static void averageBatteryVoltageMv(uint32_t new_voltage_mv);
+static uint8_t batteryVoltageToPercent(uint32_t voltage_mv);
+
+/**
+ * Lookup table mapping SoC level (in 5% steps) to cell voltage (mV).
+ *
+ * Index 0  = 0%   SoC = 3500 mV  (discharge cutoff)
+ * Index 20 = 100% SoC = 4200 mV  (fully charged)
+ *
+ * Based on a typical Li-ion 18650 OCV discharge curve at ~80 mA load.
+ * Voltage range: 3500 mV to 4200 mV.
+ * Step size: 5% SoC per entry.
+ */
+static const uint16_t kBatteryLevelsLookupTable[kNbBatteryLevelSteps] = {
+    kBatteryMinMv,  // 0%
+    3520U,          // 5%
+    3550U,          // 10%
+    3580U,          // 15%
+    3610U,          // 20%
+    3630U,          // 25%
+    3650U,          // 30%
+    3670U,          // 35%
+    3690U,          // 40%
+    3710U,          // 45%
+    3730U,          // 50%
+    3760U,          // 55%
+    3790U,          // 60%
+    3820U,          // 65%
+    3860U,          // 70%
+    3910U,          // 75%
+    3970U,          // 80%
+    4030U,          // 85%
+    4090U,          // 90%
+    4150U,          // 95%
+    kBatteryMaxMv,  // 100%
+};
 
 static volatile TaskHandle_t task_handle = NULL;                 ///< handle of the FreeRTOS task
 static volatile FunctionCode state = kStateStartup;              ///< Current state machine state
@@ -74,8 +113,9 @@ static StaticTask_t task_state = {0};                            ///< Task state
 static SemaphoreHandle_t battery_mutex = NULL;                   ///< Mutex used to protect the battery status
 static ErrorCode result = {0};                                   ///< Buffer used to store the latest error code
 static I2C_TypeDef* i2c_handle = I2C1;                           ///< I²C handle to use with all transmissons
-static uint8_t battery_percentage = kBatteryFullPercent;         ///< Current battery percentage (for simulation)
-static uint8_t battery_charging = 0U;                            ///< Current battery charge status (for simulation)
+static uint8_t battery_percentage = kBatteryFullPercent;         ///< Current battery percentage
+static uint8_t previous_battery_percentage = 0;                  ///< Previous battery percentage
+static uint8_t battery_charging = 0U;                            ///< Current battery charge status
 static TickType_t previous_tick = 0;                             ///< Tick at the last status update
 static ChargerStatus current_battery_status;                     ///< Current battery status flags
 static uint32_t last_battery_lvl_update_tick = 0;                ///< Last tick at which battery lvl was updated
@@ -122,31 +162,14 @@ ErrorCode getBatteryStatus(BatteryStatus* status) {
         return createErrorCode(1, 1, kErrorError);
     }
 
-    if (xSemaphoreTake(battery_mutex, pdMS_TO_TICKS(kMutexTimeoutMs)) == pdTRUE) {
-        *status = (BatteryStatus){.level_percents = battery_percentage,
-                                  .charging = (battery_charging | isBQ25619charging(&current_battery_status))};
-        xSemaphoreGive(battery_mutex);
+    if (xSemaphoreTake(battery_mutex, pdMS_TO_TICKS(kMutexTimeoutMs)) != pdTRUE) {
+        return createErrorCode(1, 2, kErrorError);
     }
 
+    *status = (BatteryStatus){.level_percents = battery_percentage,
+                              .charging = (battery_charging | isBQ25619charging(&current_battery_status))};
+    xSemaphoreGive(battery_mutex);
     return kSuccessCode;
-}
-
-/**
- * Set the battery percentage level
- * @param percentage New percentage in [%]
- * @retval 1 Percentage updated
- * @retval 0 Could not update percentage
- */
-uint8_t setBatteryPercentage(uint8_t percentage) {
-    if (percentage > kBatteryFullPercent) {
-        percentage = kBatteryFullPercent;
-    }
-
-    if (xSemaphoreTake(battery_mutex, pdMS_TO_TICKS(kMutexTimeoutMs)) == pdTRUE) {
-        battery_percentage = percentage;
-        xSemaphoreGive(battery_mutex);
-    }
-    return 1;
 }
 
 /**
@@ -325,17 +348,39 @@ static void updateBatteryVoltage(void) {
     //get the latest battery value
     uint16_t battery_adc_raw = 0;
     if (!getADCvalue(kADC1, kADCchannelBattery, &battery_adc_raw)) {
-        return;
+        return;  // ADC not ready yet, retry on next loop iteration
     }
 
     uint32_t adc_reference_mv = 0;
     if (!getADCreference_mV(&adc_reference_mv)) {
+        updating = 0;
         return;
     }
 
     //transform the ADC value to [mV]
-    const uint16_t new_battery_voltage_mv = adcToBatteryVoltage_mV(battery_adc_raw, adc_reference_mv);
+    uint16_t new_battery_voltage_mv = adcToBatteryVoltage_mV(battery_adc_raw, adc_reference_mv);
     averageBatteryVoltageMv(new_battery_voltage_mv);
+
+    //transform battery voltage to percentage
+    if (!getBatteryVoltageMv(&new_battery_voltage_mv)) {
+        updating = 0;
+        return;
+    }
+
+    const uint8_t new_percentage = batteryVoltageToPercent(new_battery_voltage_mv);
+    if (xSemaphoreTake(battery_mutex, pdMS_TO_TICKS(kMutexMS)) != pdTRUE) {
+        updating = 0;
+        return;
+    }
+
+    battery_percentage = new_percentage;
+    xSemaphoreGive(battery_mutex);
+
+    if (new_percentage != previous_battery_percentage) {
+        previous_battery_percentage = new_percentage;
+        triggerHardwareEvent(kEventBatteryStatus);
+    }
+
     updating = 0;
 }
 
@@ -367,7 +412,7 @@ static uint16_t adcToBatteryVoltage_mV(uint16_t adc_raw, uint32_t adc_vref_mv) {
  */
 static void averageBatteryVoltageMv(uint32_t new_voltage_mv) {
     //add elements to the buffer until it's full
-    if (battery_average_nbsamples < (kNbAverageSamples - 1)) {
+    if (battery_average_nbsamples < kNbAverageSamples) {
         battery_average_queue[battery_average_index] = new_voltage_mv;
         battery_average_index++;
         battery_average_total += new_voltage_mv;
@@ -380,12 +425,38 @@ static void averageBatteryVoltageMv(uint32_t new_voltage_mv) {
     }
 
     //buffer is full, use a cyclic average
-    battery_average_index = (battery_average_index + 1U) % kNbAverageSamples;
+    battery_average_index %= kNbAverageSamples;  // 16 -> 0
     battery_average_total -= battery_average_queue[battery_average_index];
     battery_average_queue[battery_average_index] = new_voltage_mv;
     battery_average_total += new_voltage_mv;
+    battery_average_index = (battery_average_index + 1U) % kNbAverageSamples;
     if (xSemaphoreTake(battery_mutex, pdMS_TO_TICKS(kMutexMS)) == pdTRUE) {
         battery_voltage_mv = (uint16_t)(battery_average_total / kNbAverageSamples);
         xSemaphoreGive(battery_mutex);
     }
+}
+
+/**
+ * Transform a battery voltage to a percentage, following a typical cell curve
+ *
+ * @param voltage_mv Voltage to transform, in [mV]
+ * @return Battery percentage
+ */
+static uint8_t batteryVoltageToPercent(uint32_t voltage_mv) {
+    if (voltage_mv >= kBatteryMaxMv) {
+        return kBatteryFullPercent;
+    }
+
+    if (voltage_mv <= kBatteryMinMv) {
+        return 0;
+    }
+
+    uint8_t step = 0U;
+    for (step = 0U; step < (uint8_t)kNbBatteryLevelSteps; step++) {
+        if (kBatteryLevelsLookupTable[step] >= voltage_mv) {
+            break;
+        }
+    }
+
+    return (uint8_t)(step * kBatteryLevelPercentStep);
 }

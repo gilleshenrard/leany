@@ -389,12 +389,6 @@ static void handleSerialWriteCommandEvent(const GenericCommand* command) {
             triggerHardwareEvent(kEventOrientation);
             break;
 
-        case kCmdBatteryPercent:
-            if (setBatteryPercentage((uint8_t)command->parameter.int_value)) {
-                triggerHardwareEvent(kEventBatteryStatus);
-            }
-            break;
-
         case kCmdBatteryCharge:
             setBatteryChargeStatus((uint8_t)command->parameter.int_value);
             triggerHardwareEvent(kEventBatteryStatus);
@@ -423,6 +417,7 @@ static void handleSerialWriteCommandEvent(const GenericCommand* command) {
             setLastErrorCode(error);
             break;
 
+        case kCmdBatteryPercent:
         case kCmdToggleHold:
         case kCmdToggleZero:
         case kCmdHelp:
