@@ -317,8 +317,8 @@ static void updateBatteryVoltage(void) {
         updating = 1;
     }
 
-    //wait for 2ms after GPIO being set high
-    if (!updating || !systickTimeout(last_battery_lvl_update_tick, 2U)) {
+    //if not supposed to be updating, exit
+    if (!updating) {
         return;
     }
 
