@@ -51,8 +51,8 @@ enum {
 static_assert(((uint8_t)kNbAverageSamples & ((uint8_t)kNbAverageSamples - 1U)) == 0U,
               "kNbAverageSamples must be a power of 2");
 
-static_assert((uint32_t)(kNbBatteryLevelSteps * kBatteryLevelPercentStep) < (uint32_t)kBatteryFullPercent,"Top lookup-table bucket must not reach 100% — the kBatteryMaxMv guard owns that"
-);
+static_assert((uint32_t)(kNbBatteryLevelSteps * kBatteryLevelPercentStep) < (uint32_t)kBatteryFullPercent,
+              "Top lookup-table bucket must not reach 100% — the kBatteryMaxMv guard owns that");
 
 /**
  * @brief Enumeration of all the function ID used in errors
