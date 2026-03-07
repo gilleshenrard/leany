@@ -38,7 +38,7 @@ enum {
     kBatteryFullPercent = 100U,         ///< Value used as a 100% battery level
     kMutexTimeoutMs = 10U,              ///< Maximum number of milliseconds before considering a mutex timeout
     kNbRetries = 5U,                    ///< Maximum number of retries upon I²C lack of ACK
-    kNbAverageSamples = 8U,             ///< Maximum number of elements in the average buffer
+    kNbAverageSamples = 16U,            ///< Maximum number of elements in the average buffer
     kBatteryLvlUpdatePeriodMs = 1000U,  ///< Period in [ms] between two battery level updates
     kMutexMS = 5U,                      ///< Max number of milliseconds to wait for a mutex
     kAdcMaxValue = 4095U,               ///< Maximum ADC LSB value (12-bits -> [0 ... 4095])
@@ -398,7 +398,7 @@ static uint16_t adcToBatteryVoltage_mV(uint16_t adc_raw, uint32_t adc_vref_mv) {
  */
 static void averageBatteryVoltageMv(uint32_t new_voltage_mv) {
     //add elements to the buffer until it's full
-    if (battery_average_nbsamples < (kNbAverageSamples - 1)) {
+    if (battery_average_nbsamples < kNbAverageSamples) {
         battery_average_queue[battery_average_index] = new_voltage_mv;
         battery_average_index++;
         battery_average_total += new_voltage_mv;
