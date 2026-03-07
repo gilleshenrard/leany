@@ -44,15 +44,12 @@ enum {
     kAdcMaxValue = 4095U,               ///< Maximum ADC LSB value (12-bits -> [0 ... 4095])
     kBatteryMaxMv = 4200U,              ///< Maximum voltage of a typical lithium cell in [mV]
     kBatteryMinMv = 3500U,              ///< Minimum voltage of a typical lithium cell in [mV]
-    kNbBatteryLevelSteps = 19U,         ///< Number of battery level steps in the lookup table
+    kNbBatteryLevelSteps = 21U,         ///< Number of battery level steps in the lookup table
     kBatteryLevelPercentStep = 5U,      ///< Number of percents between two steps
 };
 
 static_assert(((uint8_t)kNbAverageSamples & ((uint8_t)kNbAverageSamples - 1U)) == 0U,
               "kNbAverageSamples must be a power of 2");
-
-static_assert((uint32_t)(kNbBatteryLevelSteps * kBatteryLevelPercentStep) < (uint32_t)kBatteryFullPercent,
-              "Top lookup-table bucket must not reach 100% — the kBatteryMaxMv guard owns that");
 
 /**
  * @brief Enumeration of all the function ID used in errors
@@ -86,25 +83,27 @@ static uint8_t batteryVoltageToPercent(uint32_t voltage_mv);
  * Step size: 5% SoC per entry.
  */
 static const uint16_t kBatteryLevelsLookupTable[kNbBatteryLevelSteps] = {
-    3520U,  // 5%
-    3550U,  // 10%
-    3580U,  // 15%
-    3610U,  // 20%
-    3630U,  // 25%
-    3650U,  // 30%
-    3670U,  // 35%
-    3690U,  // 40%
-    3710U,  // 45%
-    3730U,  // 50%
-    3760U,  // 55%
-    3790U,  // 60%
-    3820U,  // 65%
-    3860U,  // 70%
-    3910U,  // 75%
-    3970U,  // 80%
-    4030U,  // 85%
-    4090U,  // 90%
-    4150U,  // 95%
+    kBatteryMinMv,  // 0%
+    3520U,          // 5%
+    3550U,          // 10%
+    3580U,          // 15%
+    3610U,          // 20%
+    3630U,          // 25%
+    3650U,          // 30%
+    3670U,          // 35%
+    3690U,          // 40%
+    3710U,          // 45%
+    3730U,          // 50%
+    3760U,          // 55%
+    3790U,          // 60%
+    3820U,          // 65%
+    3860U,          // 70%
+    3910U,          // 75%
+    3970U,          // 80%
+    4030U,          // 85%
+    4090U,          // 90%
+    4150U,          // 95%
+    kBatteryMaxMv,  // 100%
 };
 
 static volatile TaskHandle_t task_handle = NULL;                 ///< handle of the FreeRTOS task
@@ -438,7 +437,7 @@ static uint8_t batteryVoltageToPercent(uint32_t voltage_mv) {
 
     uint8_t step = 0U;
     for (step = 0U; step < (uint8_t)kNbBatteryLevelSteps; step++) {
-        if (kBatteryLevelsLookupTable[step] > voltage_mv) {
+        if (kBatteryLevelsLookupTable[step] >= voltage_mv) {
             break;
         }
     }
