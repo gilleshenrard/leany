@@ -114,8 +114,9 @@ static StaticTask_t task_state = {0};                            ///< Task state
 static SemaphoreHandle_t battery_mutex = NULL;                   ///< Mutex used to protect the battery status
 static ErrorCode result = {0};                                   ///< Buffer used to store the latest error code
 static I2C_TypeDef* i2c_handle = I2C1;                           ///< I²C handle to use with all transmissons
-static uint8_t battery_percentage = kBatteryFullPercent;         ///< Current battery percentage (for simulation)
-static uint8_t battery_charging = 0U;                            ///< Current battery charge status (for simulation)
+static uint8_t battery_percentage = kBatteryFullPercent;         ///< Current battery percentage
+static uint16_t previous_battery_percentage = 0;                 ///< Previous battery percentage
+static uint8_t battery_charging = 0U;                            ///< Current battery charge status
 static TickType_t previous_tick = 0;                             ///< Tick at the last status update
 static ChargerStatus current_battery_status;                     ///< Current battery status flags
 static uint32_t last_battery_lvl_update_tick = 0;                ///< Last tick at which battery lvl was updated
@@ -169,24 +170,6 @@ ErrorCode getBatteryStatus(BatteryStatus* status) {
     }
 
     return kSuccessCode;
-}
-
-/**
- * Set the battery percentage level
- * @param percentage New percentage in [%]
- * @retval 1 Percentage updated
- * @retval 0 Could not update percentage
- */
-uint8_t setBatteryPercentage(uint8_t percentage) {
-    if (percentage > kBatteryFullPercent) {
-        percentage = kBatteryFullPercent;
-    }
-
-    if (xSemaphoreTake(battery_mutex, pdMS_TO_TICKS(kMutexTimeoutMs)) == pdTRUE) {
-        battery_percentage = percentage;
-        xSemaphoreGive(battery_mutex);
-    }
-    return 1;
 }
 
 /**
@@ -376,7 +359,14 @@ static void updateBatteryVoltage(void) {
     //transform the ADC value to [mV]
     const uint16_t new_battery_voltage_mv = adcToBatteryVoltage_mV(battery_adc_raw, adc_reference_mv);
     averageBatteryVoltageMv(new_battery_voltage_mv);
+
+    //transform battery voltage to percentage
     battery_percentage = batteryVoltageToPercent(battery_voltage_mv);
+    if (battery_percentage != previous_battery_percentage) {
+        previous_battery_percentage = battery_percentage;
+        triggerHardwareEvent(kEventBatteryStatus);
+    }
+
     updating = 0;
 }
 
