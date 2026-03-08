@@ -139,8 +139,6 @@ uint8_t getADCreference_mV(uint32_t* voltage_mv) {
 static void taskGPIO(void* argument) {
     UNUSED(argument);
 
-    ErrorCode result;
-
     initialiseLED();
     initialiseHALadc();
 
@@ -149,7 +147,7 @@ static void taskGPIO(void* argument) {
     last_adc_update_tick = getCurrentTick();
     last_temperature_update_tick = getCurrentTick();
     while (1) {
-        result = runButtonsStateMachine();
+        const ErrorCode result = runButtonsStateMachine();
         if (isError(result)) {
             Error_Handler();
         }

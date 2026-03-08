@@ -21,12 +21,14 @@
 #include "orientation.inc"
 #include "softversion.h"
 #include "st7735s.h"
+#include "task_battery.h"
 #include "task_gpio.h"
 
 enum {
     kTitleSectionHeightPx = 23U,  ///< Height of the title section in [px]
     kSectionHeightPx = 34U,       ///< Height of the info sections in [px]
     kMaxTemperatureSize = 6U,     ///< Maximum number of characters to format temperature
+    kMaxBatterySize = 6U,         ///< Maximum number of characters to format battery voltage
     kInformationTitleSize = 19U,  ///< Maximum size of the information title
 };
 
@@ -43,10 +45,11 @@ typedef enum {
  * Section types
  */
 typedef enum {
-    kFirmware = 0,  ///< Firmware version section
-    kGitHash,       ///< Git commit hash section
-    kTemperature,   ///< MCU internal temperature section
-    kNbSections,    ///< Number of sections
+    kFirmware = 0,    ///< Firmware version section
+    kGitHash,         ///< Git commit hash section
+    kTemperature,     ///< MCU internal temperature section
+    kBatteryVoltage,  ///< Battery voltage
+    kNbSections,      ///< Number of sections
 } SectionCode;
 
 /**
@@ -65,11 +68,13 @@ typedef struct {
 static ErrorCode initialiseSections(Section sections[kNbSections]);
 static ErrorCode printSection(const Section* section, uint8_t index, uint8_t label_margin_px);
 static ErrorCode updateTemperature(void);
+static ErrorCode updateBatteryVoltage(void);
 
 //variables
 static Label system_info_label;                              ///< Label representing the battery percentage
 static Section sections[kNbSections];                        ///< Array of display sections
 static char internal_temperature[kMaxTemperatureSize + 1U];  ///< String holding the MCU internal temperature in [°C]
+static char battery_voltage[kMaxBatterySize + 1U];           ///< String holding the battery voltage in [V]
 
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
@@ -115,6 +120,9 @@ ErrorCode setupSystemScreen(void) {
     result = updateTemperature();
     EXIT_ON_ERROR(result, kSetup, 5)
 
+    result = updateBatteryVoltage();
+    EXIT_ON_ERROR(result, kSetup, 6)
+
     return kSuccessCode;
 }
 
@@ -125,11 +133,13 @@ ErrorCode setupSystemScreen(void) {
  * @return Any print function return code, or success if no failure
  */
 ErrorCode treatSystemScreenMessages(const uint8_t message_flags[kNbEvents]) {
-    if (!message_flags[kEventTemperature]) {
-        return kSuccessCode;
+    if (message_flags[kEventTemperature]) {
+        (void)updateTemperature();
     }
 
-    (void)updateTemperature();
+    if (message_flags[kEventBatteryStatus]) {
+        (void)updateBatteryVoltage();
+    }
 
     return kSuccessCode;
 }
@@ -153,6 +163,8 @@ static ErrorCode initialiseSections(Section sections_array[kNbSections]) {
         (Section){.title = "HASH", .title_size = 5U, .value = kGitCommitHash, .value_size = kCommitHashSize};
     sections_array[kTemperature] = (Section){
         .title = "TEMP.", .title_size = 6U, .value = internal_temperature, .value_size = (kMaxTemperatureSize + 1U)};
+    sections_array[kBatteryVoltage] =
+        (Section){.title = "BATT.", .title_size = 6U, .value = battery_voltage, .value_size = (kMaxBatterySize + 1U)};
     // NOLINTEND (cppcoreguidelines-avoid-magic-numbers)
 
     //precompute coordinates
@@ -236,4 +248,19 @@ static ErrorCode updateTemperature(void) {
 
     int32_t length = leany_snprintf(internal_temperature, (kMaxTemperatureSize + 1U), "%3u*C", (uint8_t)temperature);
     return printLabel(&sections[kTemperature].value_label, internal_temperature, (uint8_t)length, kColourEnabled);
+}
+
+/**
+ * Update the battery voltage label
+ *
+ * @return printLabel return code
+ */
+static ErrorCode updateBatteryVoltage(void) {
+    uint16_t voltage = 0;
+    (void)getBatteryVoltageMv(&voltage);
+
+    const uint16_t thousands = 1000U;
+    int32_t length = leany_snprintf(battery_voltage, (kMaxBatterySize + 1U), "%1u.%03uV", (voltage / thousands),
+                                    (voltage % thousands));
+    return printLabel(&sections[kBatteryVoltage].value_label, battery_voltage, (uint8_t)length, kColourEnabled);
 }
