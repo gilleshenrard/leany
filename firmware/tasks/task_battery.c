@@ -44,6 +44,7 @@ enum {
     kAdcMaxValue = 4095U,               ///< Maximum ADC LSB value (12-bits -> [0 ... 4095])
     kBatteryMaxMv = 4200U,              ///< Maximum voltage of a typical lithium cell in [mV]
     kBatteryMinMv = 3500U,              ///< Minimum voltage of a typical lithium cell in [mV]
+    kBatteryMinDetectionMv = 2500U,     ///< Minimum voltage detection threshold in [mV]
     kNbBatteryLevelSteps = 21U,         ///< Number of battery level steps in the lookup table
     kBatteryLevelPercentStep = 5U,      ///< Number of percents between two steps
 };
@@ -249,8 +250,6 @@ static void taskBatteryManagement(void* argument) {
         if (isError(result)) {
             Error_Handler();
         }
-
-        updateBatteryVoltage();
     }
 }
 
@@ -323,6 +322,18 @@ static ErrorCode stateIdle(void) {
             return createErrorCode(kStateIdle, 2, kErrorError);
         }
         triggerHardwareEvent(kEventBatteryStatus);
+    }
+
+    updateBatteryVoltage();
+
+    uint16_t battery_voltage = 0;
+    if (!getBatteryVoltageMv(&battery_voltage)) {
+        return kSuccessCode;
+    }
+
+    //if battery voltage is too low, shut the system down
+    if ((battery_voltage > kBatteryMinDetectionMv) && (battery_voltage <= kBatteryMinMv)) {
+        turnSystemOff();
     }
 
     return kSuccessCode;
