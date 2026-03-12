@@ -36,6 +36,6 @@ kicad-cli pcb export pos --output $PROD_PATH/CPL-JLCPCB.csv --side front --forma
 sed -i "s/$KICAD_HEADER/$JLCPCB_HEADER/g" $PROD_PATH/CPL-JLCPCB.csv
 
 echo " "
-echo "Creating STL file"
+echo "Creating STEP file"
 export KICAD9_3DMODEL_DIR="/usr/share/kicad/3dmodels"
-kicad-cli pcb export stl --output $PROD_PATH/$PROJECT_NAME.stl --force --subst-models --no-dnp --drill-origin $PROJECT_NAME.kicad_pcb
+kicad-cli pcb export step --output $PROD_PATH/$PROJECT_NAME.step --force --subst-models --drill-origin $PROJECT_NAME.kicad_pcb
