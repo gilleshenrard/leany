@@ -492,7 +492,7 @@
       "plot": "gerber/",
       "pos_files": "production_files/",
       "specctra_dsn": "",
-      "step": "",
+      "step": "production_files/leany.step",
       "svg": "",
       "vrml": ""
     },
