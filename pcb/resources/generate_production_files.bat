@@ -104,8 +104,8 @@ echo %kicadCPLfile% replaced by %jlcpcbCPLfile%
 endlocal
 
 rem -------------------------------------------------------------------------------------------
-rem Create the STL file
+rem Create the STEP file
 rem -------------------------------------------------------------------------------------------
-echo Creating STL file
-kicad-cli pcb export stl --output %PROD_PATH%\%PROJECT_NAME%.stl --force --subst-models --no-dnp --drill-origin %PROJECT_NAME%.kicad_pcb
+echo Creating STEP file
+kicad-cli pcb export step --output %PROD_PATH%\%PROJECT_NAME%.step --force --subst-models --drill-origin %PROJECT_NAME%.kicad_pcb
 if errorlevel 1 exit /b 1
