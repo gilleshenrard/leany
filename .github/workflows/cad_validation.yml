@@ -7,12 +7,12 @@ name: CAD files validation
 on: 
   push:
     paths:
-      - 'CAD/**'
+      - 'cad/**'
       - '.github/workflows/cad_validation.yml'
       - '.github/scripts/validate_freecad.py'
   pull_request:
     paths:
-      - 'CAD/**'
+      - 'cad/**'
       - '.github/workflows/cad_validation.yml'
       - '.github/scripts/validate_freecad.py'
   schedule:
@@ -48,6 +48,6 @@ jobs:
                   status=1
                 fi
                 echo ""
-              done < <(find CAD -type f -name "*.FCStd")
+              done < <(find cad -type f -name "*.FCStd")
               exit $status
             '
