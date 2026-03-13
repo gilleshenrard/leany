@@ -29,6 +29,10 @@ jobs:
         with:
           lfs: true
 
+      - name: List files in cad/
+        run: |
+          bash -c 'find cad -type f | sort'
+
       - name: Run FreeCAD validation
         run: |
           docker run --rm \
