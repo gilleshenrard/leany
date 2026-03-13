@@ -45,7 +45,7 @@ jobs:
                 echo "=================================================="
                 echo " Validating file: $f"
                 echo "=================================================="
-                if FreeCADCmd -c cad/resources/validate_freecad.py "$f"; then
+                if FreeCADCmd -c cad/resources/validate_freecad.py "$f" < /dev/null; then
                   echo "$f passed validation"
                 else
                   echo "$f failed validation"
