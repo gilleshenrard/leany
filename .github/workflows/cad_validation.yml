@@ -41,10 +41,10 @@ jobs:
                 echo "=================================================="
                 echo " Validating file: $f"
                 echo "=================================================="
-                if FreeCADCmd -c .github/scripts/validate_freecad.py "$f"; then
-                  echo "✅ $f passed validation"
+                if FreeCADCmd -c cad/resources/validate_freecad.py "$f"; then
+                  echo "$f passed validation"
                 else
-                  echo "❌ $f failed validation"
+                  echo "$f failed validation"
                   status=1
                 fi
                 echo ""
