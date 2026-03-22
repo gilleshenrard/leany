@@ -24,7 +24,7 @@ on:
     - cron: "0 3 1 * *"
 
 env:
-  KICAD_VERSION: "9.0"
+  KICAD_VERSION: "10.0"
   SCH_PATH: ${{github.workspace}}/pcb
   PROD_PATH: ${{github.workspace}}/pcb/production_files
   GBR_PATH: ${{github.workspace}}/pcb/gerber
