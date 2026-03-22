@@ -6,7 +6,7 @@
 	(paper "A4")
 	(title_block
 		(title "Leany - Control circuit")
-		(date "2026-02-19")
+		(date "2026-03-22")
 		(rev "0.4")
 		(comment 1 "CERN Open Hardware Licence Version 2 - Permissive")
 		(comment 2 "Copyright (c) 2026 Gilles Henrard")
@@ -7890,7 +7890,7 @@
 			(uuid "a34ebbf1-a720-44d8-90fd-269d615a9d65")
 		)
 		(instances
-			(project ""
+			(project "leany"
 				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5"
 					(reference "J2")
 					(unit 1)
@@ -8793,7 +8793,7 @@
 			(uuid "59079036-d6dc-425c-a4bc-4d4d8b8c8b75")
 		)
 		(instances
-			(project ""
+			(project "leany"
 				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5"
 					(reference "U1")
 					(unit 1)
@@ -8858,7 +8858,7 @@
 			(uuid "7555fe08-b7fe-4b41-a7fc-c93af2e22727")
 		)
 		(instances
-			(project ""
+			(project "leany"
 				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5"
 					(reference "#PWR015")
 					(unit 1)
@@ -9800,7 +9800,7 @@
 			(uuid "95db70ad-0b2f-473e-907b-0ec7078bbebf")
 		)
 		(instances
-			(project ""
+			(project "leany"
 				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5"
 					(reference "U3")
 					(unit 1)
@@ -11309,7 +11309,7 @@
 			(uuid "66e2a104-4d42-4c5e-8dc8-f4bc0059d395")
 		)
 		(instances
-			(project ""
+			(project "leany"
 				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5"
 					(reference "U2")
 					(unit 1)
@@ -11533,7 +11533,7 @@
 			(uuid "16bd4fd6-9606-4217-9556-323ad167579e")
 		)
 		(instances
-			(project ""
+			(project "leany"
 				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5"
 					(reference "R10")
 					(unit 1)
@@ -11710,7 +11710,7 @@
 			(uuid "ddd9672f-b3f4-4b0d-a07e-6c8c81e5d5b1")
 		)
 		(instances
-			(project ""
+			(project "leany"
 				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5"
 					(reference "J1")
 					(unit 1)
@@ -12478,7 +12478,7 @@
 			(uuid "df8b278a-b839-40a8-81fd-a6283aebbf9a")
 		)
 		(instances
-			(project ""
+			(project "leany"
 				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5"
 					(reference "Q1")
 					(unit 1)
@@ -13216,7 +13216,7 @@
 			(uuid "16d1c851-e6b7-4b44-99d7-e8cee4b06a59")
 		)
 		(instances
-			(project ""
+			(project "leany"
 				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5"
 					(reference "Y1")
 					(unit 1)
@@ -13654,7 +13654,7 @@
 			(uuid "4d05226e-f3f0-4f35-9740-a7669fe04278")
 		)
 		(instances
-			(project ""
+			(project "leany"
 				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5"
 					(reference "D1")
 					(unit 1)
@@ -14352,7 +14352,7 @@
 			(uuid "07933c17-2813-430e-a9b5-bae2a08d6e84")
 		)
 		(instances
-			(project ""
+			(project "leany"
 				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5"
 					(reference "SW3")
 					(unit 1)
@@ -14576,7 +14576,7 @@
 			)
 		)
 		(instances
-			(project ""
+			(project "leany"
 				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5"
 					(reference "H1")
 					(unit 1)
