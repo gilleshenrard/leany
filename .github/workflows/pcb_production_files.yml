@@ -24,6 +24,7 @@ on:
     - cron: "0 3 1 * *"
 
 env:
+  KICAD_VERSION: "9.0"
   SCH_PATH: ${{github.workspace}}/pcb
   PROD_PATH: ${{github.workspace}}/pcb/production_files
   GBR_PATH: ${{github.workspace}}/pcb/gerber
@@ -44,7 +45,7 @@ jobs:
 
         steps:
           - name: Checkout repository
-            uses: actions/checkout@v4
+            uses: actions/checkout@v6
             with:
               lfs: true
 
@@ -55,41 +56,43 @@ jobs:
           
           - name: Install KiCad and libraries
             run: |
-                  sudo add-apt-repository --yes ppa:kicad/kicad-9.0-releases
+                  sudo add-apt-repository --yes ppa:kicad/kicad-${{env.KICAD_VERSION}}-releases
                   sudo apt-get update
                   sudo apt-get install --no-install-recommends -y \
                     kicad \
                     kicad-symbols \
-                    kicad-footprints
+                    kicad-footprints \
+                    kicad-libraries \
+                    kicad-packages3d
 
-          - name: Install jq
-            run: sudo apt-get install -y jq
+          - name: Install jq and pdfunite
+            run: sudo apt-get install -y jq poppler-utils
 
           - name: Configure KiCad library tables  
             run: |
-              mkdir -p ~/.config/kicad/9.0
+              mkdir -p ~/.config/kicad/${{env.KICAD_VERSION}}
               
               # Use KiCad's default library tables if they exist
               if [ -f /usr/share/kicad/template/fp-lib-table.for_pretty ]; then
-                cp /usr/share/kicad/template/fp-lib-table.for_pretty ~/.config/kicad/9.0/fp-lib-table
+                cp /usr/share/kicad/template/fp-lib-table.for_pretty ~/.config/kicad/${{env.KICAD_VERSION}}/fp-lib-table
               fi
               
               if [ -f /usr/share/kicad/template/sym-lib-table ]; then
-                cp /usr/share/kicad/template/sym-lib-table ~/.config/kicad/9.0/sym-lib-table
+                cp /usr/share/kicad/template/sym-lib-table ~/.config/kicad/${{env.KICAD_VERSION}}/sym-lib-table
               fi
               
               # Fallback: generate from installed libraries if defaults don't exist
-              if [ ! -f ~/.config/kicad/9.0/fp-lib-table ]; then
-                echo "(fp_lib_table" > ~/.config/kicad/9.0/fp-lib-table
-                echo "  (version 7)" >> ~/.config/kicad/9.0/fp-lib-table
+              if [ ! -f ~/.config/kicad/${{env.KICAD_VERSION}}/fp-lib-table ]; then
+                echo "(fp_lib_table" > ~/.config/kicad/${{env.KICAD_VERSION}}/fp-lib-table
+                echo "  (version 7)" >> ~/.config/kicad/${{env.KICAD_VERSION}}/fp-lib-table
                 for lib in /usr/share/kicad/footprints/*.pretty; do
                   libname=$(basename "$lib" .pretty)
-                  echo "  (lib (name \"$libname\")(type \"KiCad\")(uri \"$lib\")(options \"\")(descr \"\"))" >> ~/.config/kicad/9.0/fp-lib-table
+                  echo "  (lib (name \"$libname\")(type \"KiCad\")(uri \"$lib\")(options \"\")(descr \"\"))" >> ~/.config/kicad/${{env.KICAD_VERSION}}/fp-lib-table
                 done
-                echo ")" >> ~/.config/kicad/9.0/fp-lib-table
+                echo ")" >> ~/.config/kicad/${{env.KICAD_VERSION}}/fp-lib-table
               fi
               
-              echo "Footprint libraries configured: $(grep -c '(lib' ~/.config/kicad/9.0/fp-lib-table || echo 0)"
+              echo "Footprint libraries configured: $(grep -c '(lib' ~/.config/kicad/${{env.KICAD_VERSION}}/fp-lib-table || echo 0)"
           
           - name: Check KiCAD version
             run: kicad-cli --version
@@ -124,7 +127,7 @@ jobs:
                   echo "==================================="
 
           - name: Upload ERC report if ERC failed
-            uses: actions/upload-artifact@v4
+            uses: actions/upload-artifact@v6
             if: steps.erc.outcome == 'failure'
             with:
               name: ${{env.ERC_FILE}}
@@ -159,7 +162,7 @@ jobs:
                   echo "==================================="
 
           - name: Upload DRC report if DRC failed
-            uses: actions/upload-artifact@v4
+            uses: actions/upload-artifact@v6
             if: steps.drc.outcome == 'failure'
             with:
               name: ${{env.DRC_FILE}}
@@ -198,6 +201,7 @@ jobs:
               name: production-files
               if-no-files-found: error
               path: |
-                ${{ env.PROD_PATH }}/JCLPCB_gerber.zip
+                ${{ env.PROD_PATH }}/JLCPCB_gerber.zip
                 ${{ env.PROD_PATH }}/BOM-JLCPCB.csv
                 ${{ env.PROD_PATH }}/CPL-JLCPCB.csv
+                ${{ env.PROD_PATH }}/leany.pdf
