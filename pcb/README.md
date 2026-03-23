@@ -1,6 +1,11 @@
+<!--
+SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
+
+SPDX-License-Identifier: MIT
+-->
 # Leany Project PCB Documentation
 
-**Revision:** 0.3
+![Revision](https://img.shields.io/badge/revision-0.5-blue)
 
 Welcome to the Leany project's PCB documentation. This repository contains all the necessary files and information related to the PCB schematics and layouts for the Leany project.
 
@@ -18,11 +23,17 @@ Welcome to the Leany project's PCB documentation. This repository contains all t
 
 This documentation provides an overview of the PCB schematics and layouts used in the Leany project. It includes detailed information on the design, components, and assembly instructions.
 
-## Generate the production files (Linux only)
+## Introduction
+
+Inspect the project on [KiCanvas](https://kicanvas.org/?repo=https%3A%2F%2Fgithub.com%2Fgilleshenrard%2Fleany%2Ftree%2Fmain%2Fpcb)
+
+## Generate the production files
 
 1. Download KiCad from the [official website](https://kicad.org/).
 2. Go to the pcb/ directory
-3. Run the generation script located under resources/
+3. Run the generation script located under resources/ :
+    - *generate_production_files.bat* on Windows
+    - *generate_production_files.sh* on Linux
 
 ## PCB fabrication
 
@@ -40,9 +51,10 @@ This documentation provides an overview of the PCB schematics and layouts used i
 ## Directory Structure
 ```
 pcb/
-├── 3d-models
 └── resources
-    └── generate_production_files.sh
+    ├── 3d-models
+    ├── generate_production_files.sh
+    └── generate_production_files.bat
 ```
 
 ### `3d-models`
@@ -51,7 +63,8 @@ All the models are organised as [source]/[author]/[file]
 
 ### `resources`
 Contains additional resources :
-- `generate_production_files.sh` : A script to automatically generate and organise production files, with respect to JLCPCB standards.
+- `generate_production_files.sh` : A script to automatically generate and organise production files on Linux, with respect to JLCPCB standards.
+- `generate_production_files.sh` : A script to automatically generate and organise production files on Windows, with respect to JLCPCB standards.
 
 ## CI/CD workflows
 The PCB files are instected by a [Github Action](https://github.com/gilleshenrard/leany/actions/workflows/pcb_production_files.yml) upon push and pull request to run the **Electrical Rules Check** and **Design Rules Check** ensure the production files are easily generated.
