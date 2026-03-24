@@ -86,6 +86,7 @@ firmware/.vscode/
 config-cppcheck-build-dir/
 
 #KiCad
+*.kicad_prl
 schematics/KiCad/*.lck
 schematics/KiCad/*.bak
 schematics/KiCad/*.rpt
