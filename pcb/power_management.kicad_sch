@@ -6,8 +6,8 @@
 	(paper "A4")
 	(title_block
 		(title "Leany - Power management")
-		(date "2026-03-22")
-		(rev "0.4")
+		(date "2026-03-24")
+		(rev "0.5")
 		(comment 1 "CERN Open Hardware Licence Version 2 - Permissive")
 		(comment 2 "Copyright (c) 2026 Gilles Henrard")
 	)
