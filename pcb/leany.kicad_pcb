@@ -9,7 +9,7 @@
 	(paper "A4")
 	(title_block
 		(title "Leany")
-		(date "2026-03-24")
+		(date "2026-04-06")
 		(rev "0.5")
 		(comment 1 "CERN Open Hardware Licence Version 2 - Permissive")
 		(comment 2 "Copyright (c) 2026 Gilles Henrard")
@@ -361,12 +361,6 @@
 		(path "/800f6219-05ff-47ce-9c09-d245629983b5")
 		(sheetname "/")
 		(sheetfile "leany.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -640,12 +634,6 @@
 		(path "/b67591ea-309b-472a-bdcb-ac9a3c775037")
 		(sheetname "/")
 		(sheetfile "leany.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -1041,12 +1029,6 @@
 		(path "/702fc064-eab2-4b82-8f62-a654ccd28f72/e5a668b7-bc44-46fb-8725-847bd65a0da4")
 		(sheetname "/Power management/")
 		(sheetfile "power_management.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "3" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -1556,12 +1538,6 @@
 		(path "/5ed37e87-24df-46bd-a5df-b564ba277984")
 		(sheetname "/")
 		(sheetfile "leany.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -1835,12 +1811,6 @@
 		(path "/702fc064-eab2-4b82-8f62-a654ccd28f72/2f460757-dcdd-4ad1-b802-409bd7b96fe0")
 		(sheetname "/Power management/")
 		(sheetfile "power_management.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -2153,12 +2123,6 @@
 		(path "/702fc064-eab2-4b82-8f62-a654ccd28f72/8ea6c4dd-764a-4516-bc27-91e15566ec68")
 		(sheetname "/Power management/")
 		(sheetfile "power_management.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2")
-			)
-		)
 		(attr through_hole)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -2693,12 +2657,6 @@
 		(path "/702fc064-eab2-4b82-8f62-a654ccd28f72/ebc277c9-5694-443f-bb07-ce54c290f0d3")
 		(sheetname "/Power management/")
 		(sheetfile "power_management.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1")
-			)
-		)
 		(attr dnp)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -2989,12 +2947,6 @@
 		(path "/82849af5-b92a-4e4d-8964-e6dfbf92a405")
 		(sheetname "/")
 		(sheetfile "leany.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -3305,12 +3257,6 @@
 		(path "/203b5e27-a67d-4368-ae33-a18187863682")
 		(sheetname "/")
 		(sheetfile "leany.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -3621,12 +3567,6 @@
 		(path "/dfed64ab-fb9d-4198-98c1-8fc85da21bc5")
 		(sheetname "/")
 		(sheetfile "leany.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -3950,12 +3890,6 @@
 		(path "/15dc1b7a-94b2-4ac3-a6a4-e5fb38f5ef1c")
 		(sheetname "/")
 		(sheetfile "leany.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -4240,12 +4174,6 @@
 		(path "/702fc064-eab2-4b82-8f62-a654ccd28f72/658b50b4-91a6-4b6d-8f6e-972077559cbf")
 		(sheetname "/Power management/")
 		(sheetfile "power_management.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -4360,7 +4288,7 @@
 				)
 			)
 		)
-		(property "Datasheet" "https://invensense.tdk.com/wp-content/uploads/2020/04/ds-000347_icm-42688-p-datasheet.pdf"
+		(property "Datasheet" ""
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
@@ -4412,12 +4340,6 @@
 		(path "/68a8e145-46e2-4efb-92d6-5a9a533d96db")
 		(sheetname "/")
 		(sheetfile "leany.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "14" "13" "12" "10" "11" "5" "6" "7" "8" "2" "3" "4" "9")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -4887,12 +4809,6 @@
 		(path "/c9fab69b-307b-41e2-af33-b4b56d8f8226")
 		(sheetname "/")
 		(sheetfile "leany.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -5223,12 +5139,6 @@
 		(path "/702fc064-eab2-4b82-8f62-a654ccd28f72/a4206ad6-553f-4bf4-9692-bc5966ba8986")
 		(sheetname "/Power management/")
 		(sheetfile "power_management.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "3" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -5725,12 +5635,6 @@
 		(path "/702fc064-eab2-4b82-8f62-a654ccd28f72/d540caa6-611c-45c2-8b74-74c08a9ed986")
 		(sheetname "/Power management/")
 		(sheetfile "power_management.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -6053,12 +5957,6 @@
 		(path "/702fc064-eab2-4b82-8f62-a654ccd28f72/89531d04-0ab5-48e3-bc4b-4e88b664b450")
 		(sheetname "/Power management/")
 		(sheetfile "power_management.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "3" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -6440,13 +6338,7 @@
 		(path "/c225d8d0-d123-49e7-beee-e6e0df8455a8")
 		(sheetname "/")
 		(sheetfile "leany.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins)
-			)
-		)
-		(attr exclude_from_bom)
+		(attr exclude_from_pos_files exclude_from_bom)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_circle
 			(center 0 0)
@@ -6678,12 +6570,6 @@
 		(path "/f1e12c25-41d9-4489-9431-41d7cf7b943a")
 		(sheetname "/")
 		(sheetfile "leany.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -7299,12 +7185,6 @@
 		(path "/6333379f-653d-4780-9992-341db6c1a752")
 		(sheetname "/")
 		(sheetfile "leany.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -7618,12 +7498,6 @@
 		(path "/b0f0a6a0-d54a-4702-b0e5-740fd4f1d212")
 		(sheetname "/")
 		(sheetfile "leany.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1")
-			)
-		)
 		(attr dnp)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -7914,12 +7788,6 @@
 		(path "/702fc064-eab2-4b82-8f62-a654ccd28f72/ef27d89a-d0c2-4ebc-b57a-78cda4fb95d9")
 		(sheetname "/Power management/")
 		(sheetfile "power_management.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -8230,12 +8098,6 @@
 		(path "/b05e32f1-fa07-4120-a392-3dc5fae7f57b")
 		(sheetname "/")
 		(sheetfile "leany.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -8441,12 +8303,6 @@
 		(path "/702fc064-eab2-4b82-8f62-a654ccd28f72/19a4c686-d695-40fb-8373-c1debc8b7d5a")
 		(sheetname "/Power management/")
 		(sheetfile "power_management.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "3" "2" "4" "5")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -8963,12 +8819,6 @@
 		(path "/481ef5f7-e997-4c6e-a125-d1a218a727ab")
 		(sheetname "/")
 		(sheetfile "leany.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -9279,12 +9129,6 @@
 		(path "/702fc064-eab2-4b82-8f62-a654ccd28f72/b8851cb9-b18c-49bf-9260-bbf0816d2cf4")
 		(sheetname "/Power management/")
 		(sheetfile "power_management.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -9598,12 +9442,6 @@
 		(path "/702fc064-eab2-4b82-8f62-a654ccd28f72/ec02fa99-14ef-4bad-a7da-4c2e7bab954e")
 		(sheetname "/Power management/")
 		(sheetfile "power_management.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1")
-			)
-		)
 		(attr dnp)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -9789,12 +9627,6 @@
 		(path "/8a3d0edf-cb86-4032-8a5e-58c5ce75bc88")
 		(sheetname "/")
 		(sheetfile "leany.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "8" "1" "2" "5" "3" "6" "7" "4")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -10291,12 +10123,6 @@
 		(path "/f80b8011-f46a-4aa9-943f-c8fec36da8d9")
 		(sheetname "/")
 		(sheetfile "leany.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -10619,12 +10445,6 @@
 		(path "/702fc064-eab2-4b82-8f62-a654ccd28f72/584fa893-3045-4976-a958-d2e500068f18")
 		(sheetname "/Power management/")
 		(sheetfile "power_management.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -10910,12 +10730,6 @@
 		(path "/702fc064-eab2-4b82-8f62-a654ccd28f72/2a156e16-ff59-4569-aeeb-f02c063d4f9a")
 		(sheetname "/Power management/")
 		(sheetfile "power_management.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -11200,12 +11014,6 @@
 		(path "/702fc064-eab2-4b82-8f62-a654ccd28f72/146fca25-f602-4746-8e23-1fbb78c18d1e")
 		(sheetname "/Power management/")
 		(sheetfile "power_management.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -11490,12 +11298,6 @@
 		(path "/b177be59-3c82-45b6-8cdc-c20ef1407cc0")
 		(sheetname "/")
 		(sheetfile "leany.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "3" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -11992,12 +11794,6 @@
 		(path "/95748bf6-dd2b-42fb-902f-07f6d0f84428")
 		(sheetname "/")
 		(sheetfile "leany.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -12312,12 +12108,6 @@
 		(path "/702fc064-eab2-4b82-8f62-a654ccd28f72/a1d042e2-e4f6-4b2d-bccd-a6d6b90d3a83")
 		(sheetname "/Power management/")
 		(sheetfile "power_management.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1")
-			)
-		)
 		(attr dnp)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -12621,12 +12411,6 @@
 		(path "/702fc064-eab2-4b82-8f62-a654ccd28f72/9a2d577a-067d-43b0-bcb3-08100bb443af")
 		(sheetname "/Power management/")
 		(sheetfile "power_management.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -12903,12 +12687,6 @@
 		(path "/702fc064-eab2-4b82-8f62-a654ccd28f72/6dbb5aa0-ca57-4aee-b32c-c8f9f599b73a")
 		(sheetname "/Power management/")
 		(sheetfile "power_management.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1")
-			)
-		)
 		(attr dnp)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -13199,12 +12977,6 @@
 		(path "/115cc0c7-c736-4c1a-aabf-32782c148ba1")
 		(sheetname "/")
 		(sheetfile "leany.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -13516,12 +13288,6 @@
 		(path "/702fc064-eab2-4b82-8f62-a654ccd28f72/9d218e5b-92e4-4268-91ce-97e3021fd663")
 		(sheetname "/Power management/")
 		(sheetfile "power_management.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -13832,12 +13598,6 @@
 		(path "/00821413-ec8f-4e7b-b775-4e6b1cf70bf6")
 		(sheetname "/")
 		(sheetfile "leany.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -14148,12 +13908,6 @@
 		(path "/702fc064-eab2-4b82-8f62-a654ccd28f72/ea206d4c-4021-44ea-9b95-eaa6e622d704")
 		(sheetname "/Power management/")
 		(sheetfile "power_management.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -14464,12 +14218,6 @@
 		(path "/702fc064-eab2-4b82-8f62-a654ccd28f72/7ad30b29-4530-4e9e-96d2-4a839fafedf4")
 		(sheetname "/Power management/")
 		(sheetfile "power_management.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -14792,12 +14540,6 @@
 		(path "/613bce09-9044-4c7f-86bd-f663b53f4aa0")
 		(sheetname "/")
 		(sheetfile "leany.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -15083,12 +14825,6 @@
 		(path "/702fc064-eab2-4b82-8f62-a654ccd28f72/5cad4b92-0750-48c8-b86d-d16b26e3f245")
 		(sheetname "/Power management/")
 		(sheetfile "power_management.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -15246,12 +14982,6 @@
 		(path "/702fc064-eab2-4b82-8f62-a654ccd28f72/fcc1688a-3536-4fde-b0ed-01ff11f5b17e")
 		(sheetname "/Power management/")
 		(sheetfile "power_management.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "5" "4" "2" "3" "1")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -15692,12 +15422,6 @@
 		(path "/f1ea12e0-7eef-46cd-bf26-3d0471b5ca79")
 		(sheetname "/")
 		(sheetfile "leany.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -16085,12 +15809,6 @@
 		(path "/702fc064-eab2-4b82-8f62-a654ccd28f72/dbac3c18-7c90-472b-9e18-78becf68bb01")
 		(sheetname "/Power management/")
 		(sheetfile "power_management.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1")
-			)
-		)
 		(attr dnp)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -16266,13 +15984,7 @@
 		(path "/f623e9df-d01f-43c1-bd96-17afdbbdc241")
 		(sheetname "/")
 		(sheetfile "leany.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins)
-			)
-		)
-		(attr exclude_from_bom)
+		(attr exclude_from_pos_files exclude_from_bom)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_circle
 			(center 0 0)
@@ -16515,12 +16227,6 @@
 		(path "/332f7171-9e6f-4299-8e3d-0f05266e9192")
 		(sheetname "/")
 		(sheetfile "leany.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2" "3" "4")
-			)
-		)
 		(attr through_hole)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -17323,12 +17029,6 @@
 		(path "/962166c5-fbea-48ad-9674-f8950f9c20fa")
 		(sheetname "/")
 		(sheetfile "leany.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2" "3" "4" "5" "6" "7" "8")
-			)
-		)
 		(attr through_hole)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -17907,12 +17607,6 @@
 		(path "/702fc064-eab2-4b82-8f62-a654ccd28f72/5a92b5b5-1413-49c1-a932-8fd6e4a72e5b")
 		(sheetname "/Power management/")
 		(sheetfile "power_management.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -18185,12 +17879,6 @@
 		(path "/702fc064-eab2-4b82-8f62-a654ccd28f72/ce50210d-6d55-406d-b704-cfbb7f843c48")
 		(sheetname "/Power management/")
 		(sheetfile "power_management.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -18501,12 +18189,6 @@
 		(path "/72a578ab-05b5-496d-be15-1903e0ebb474")
 		(sheetname "/")
 		(sheetfile "leany.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -18702,13 +18384,7 @@
 		(path "/674b322f-2ae7-47aa-99c4-30fc8def612a")
 		(sheetname "/")
 		(sheetfile "leany.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins)
-			)
-		)
-		(attr exclude_from_bom)
+		(attr exclude_from_pos_files exclude_from_bom)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_circle
 			(center 0 0)
@@ -18950,12 +18626,6 @@
 		(path "/702fc064-eab2-4b82-8f62-a654ccd28f72/f45a5bd3-1dc1-4f0f-a3a9-046c57287e42")
 		(sheetname "/Power management/")
 		(sheetfile "power_management.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -19228,12 +18898,6 @@
 		(path "/e8e8a634-7b4b-4d49-8ea7-1649d657aff7")
 		(sheetname "/")
 		(sheetfile "leany.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -19544,12 +19208,6 @@
 		(path "/702fc064-eab2-4b82-8f62-a654ccd28f72/884acaaf-939f-4e44-8b23-614cfab45421")
 		(sheetname "/Power management/")
 		(sheetfile "power_management.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -19860,12 +19518,6 @@
 		(path "/88071433-a2bb-4ecb-9b62-676b383a4122")
 		(sheetname "/")
 		(sheetfile "leany.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -20176,12 +19828,6 @@
 		(path "/c5d3a294-7a74-4a17-b2dc-b0e39091fc6e")
 		(sheetname "/")
 		(sheetfile "leany.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -20377,13 +20023,7 @@
 		(path "/6c5a1806-4cfa-494b-b28a-4151b660cf32")
 		(sheetname "/")
 		(sheetfile "leany.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins)
-			)
-		)
-		(attr exclude_from_bom)
+		(attr exclude_from_pos_files exclude_from_bom)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_circle
 			(center 0 0)
@@ -20613,12 +20253,6 @@
 		(path "/395e1c5d-8445-47a6-bd17-6792e9fd8fac")
 		(sheetname "/")
 		(sheetfile "leany.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -20941,16 +20575,6 @@
 		(path "/3fc56ddb-f0ff-4280-9ca5-c5dba1dbca26")
 		(sheetname "/")
 		(sheetfile "leany.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "7" "44" "5" "6" "2" "3" "4" "18" "19" "20" "39" "40" "41" "42"
-					"43" "45" "46" "21" "22" "25" "26" "27" "28" "1" "24" "36" "23" "35"
-					"47" "48" "8" "9" "10" "11" "12" "13" "14" "15" "16" "17" "29" "30"
-					"31" "32" "33" "34" "37" "38"
-				)
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -21947,12 +21571,6 @@
 		(path "/3ed01b0a-24dc-4876-a4b2-08daac2c351b")
 		(sheetname "/")
 		(sheetfile "leany.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -22275,12 +21893,6 @@
 		(path "/d614eca6-bf33-4f8d-b6e5-90cfc42f5ed1")
 		(sheetname "/")
 		(sheetfile "leany.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -22437,12 +22049,6 @@
 		(path "/da235e5d-f471-4131-b788-f8f04dfc5aee")
 		(sheetname "/")
 		(sheetfile "leany.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "2" "3" "4" "1")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -22739,12 +22345,6 @@
 		(path "/702fc064-eab2-4b82-8f62-a654ccd28f72/f8fbed63-d8ce-4975-b78d-59a8b714fed1")
 		(sheetname "/Power management/")
 		(sheetfile "power_management.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -23055,12 +22655,6 @@
 		(path "/9f3501e6-0970-4c9a-8c38-5483b409477d")
 		(sheetname "/")
 		(sheetfile "leany.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -23374,14 +22968,6 @@
 		(path "/702fc064-eab2-4b82-8f62-a654ccd28f72/97cb8250-b1bb-40f4-b950-533f6c7d5c34")
 		(sheetname "/Power management/")
 		(sheetfile "power_management.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "S1" "A1" "A12" "B1" "B12" "A4" "A9" "B4" "B9" "A5" "B5" "A7" "B7"
-					"A6" "B6" "A8" "B8"
-				)
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -23930,12 +23516,6 @@
 		(path "/dd9164a9-4bef-4e8b-9fc6-8332c39175c5")
 		(sheetname "/")
 		(sheetfile "leany.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -24246,12 +23826,6 @@
 		(path "/7f863e61-7c2f-44a6-813d-1f458f033d52")
 		(sheetname "/")
 		(sheetfile "leany.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -24562,12 +24136,6 @@
 		(path "/39640ca7-bf64-45fd-976d-f9aea173cd4e")
 		(sheetname "/")
 		(sheetfile "leany.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -24889,14 +24457,6 @@
 		(path "/702fc064-eab2-4b82-8f62-a654ccd28f72/82e88193-8481-42a0-baa6-28012111303f")
 		(sheetname "/Power management/")
 		(sheetfile "power_management.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "24" "2" "4" "23" "3" "6" "5" "7" "9" "17" "18" "25" "8" "19"
-					"20" "21" "15" "16" "13" "14" "10" "11" "22" "12"
-				)
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -25811,12 +25371,6 @@
 		(path "/702fc064-eab2-4b82-8f62-a654ccd28f72/3110608b-3cf0-42ec-adfe-2c013aef3395")
 		(sheetname "/Power management/")
 		(sheetfile "power_management.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -26140,12 +25694,6 @@
 		(path "/702fc064-eab2-4b82-8f62-a654ccd28f72/ddeb6576-0f5f-4854-be18-d08158054609")
 		(sheetname "/Power management/")
 		(sheetfile "power_management.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -26418,12 +25966,6 @@
 		(path "/702fc064-eab2-4b82-8f62-a654ccd28f72/3aaa5ad1-cb75-4653-8dbc-b150ef685702")
 		(sheetname "/Power management/")
 		(sheetfile "power_management.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -26619,12 +26161,6 @@
 		(path "/702fc064-eab2-4b82-8f62-a654ccd28f72/025437df-c020-49d3-b0f2-f44c92e3290c")
 		(sheetname "/Power management/")
 		(sheetfile "power_management.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2" "3" "4")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -27047,12 +26583,6 @@
 		(path "/702fc064-eab2-4b82-8f62-a654ccd28f72/483d4c59-82cc-4282-924e-e40e254b88fd")
 		(sheetname "/Power management/")
 		(sheetfile "power_management.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -27363,12 +26893,6 @@
 		(path "/86329ce5-6221-475d-a955-7dc8f25b8527")
 		(sheetname "/")
 		(sheetfile "leany.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -27679,12 +27203,6 @@
 		(path "/2f2ef601-6b0d-4476-a4eb-da0ef7bccd38")
 		(sheetname "/")
 		(sheetfile "leany.kicad_sch")
-		(units
-			(unit
-				(name "A")
-				(pins "1" "2")
-			)
-		)
 		(attr smd)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
@@ -28272,7 +27790,7 @@
 		)
 	)
 	(gr_text "TP6"
-		(at 79.55 140.85 0)
+		(at 107.442 119.7864 0)
 		(layer "F.Fab")
 		(uuid "bf3cac7a-a73d-4c76-92da-0aacadf9ee12")
 		(effects
