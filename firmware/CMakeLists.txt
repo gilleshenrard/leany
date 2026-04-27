@@ -45,6 +45,9 @@ add_subdirectory(ui)
 add_subdirectory(utils)
 add_subdirectory(tasks)
 
+enable_testing()
+add_subdirectory(tests)
+
 # Add linked libraries
 target_link_libraries(${CMAKE_PROJECT_NAME}
     IMU
