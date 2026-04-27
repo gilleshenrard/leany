@@ -121,7 +121,7 @@ ErrorCode st7735sSetOrientation(Orientation orientation) {
     result = writeRegisters(&dma_descriptor.spi, kMADCTL, &kOrientations[orientation], 1);
     EXIT_ON_ERROR(result, kOrient, 1)
 
-    return (kSuccessCode);
+    return kSuccessCode;
 }
 
 /**
@@ -154,7 +154,7 @@ ErrorCode configureST7735S(void) {
     result = writeConfiguration();
     EXIT_ON_ERROR(result, kSetConfig, 2)
 
-    return (kSuccessCode);
+    return kSuccessCode;
 }
 
 /**
@@ -183,7 +183,7 @@ static ErrorCode restartScreen(void) {
     vTaskDelay(pdMS_TO_TICKS(kSleepoutDelayMS));
 
     //save the current systick and get to waiting state
-    return (kSuccessCode);
+    return kSuccessCode;
 }
 
 /**
@@ -207,7 +207,7 @@ static ErrorCode writeConfiguration(void) {
     result = st7735sSetOrientation(kLandscape);
     EXIT_ON_ERROR(result, kConfig, 2)
 
-    return (kSuccessCode);
+    return kSuccessCode;
 }
 
 /**
