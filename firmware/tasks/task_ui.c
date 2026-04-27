@@ -91,7 +91,7 @@ ErrorCode createUItask(void) {
     task_handle = xTaskCreateStatic(runUItask, "UI task", kStackSize, NULL, kTaskLowPriority, task_stack, &task_state);
     configASSERT(task_handle);
 
-    return (kSuccessCode);
+    return kSuccessCode;
 }
 
 /**

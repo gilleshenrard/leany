@@ -12,7 +12,6 @@
 #include "leany_std.h"
 
 #include <stdarg.h>
-#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -27,13 +26,13 @@ enum {
  * @brief Format flags parsed from format specifier
  */
 typedef struct {
-    bool zero_pad;      /**< Use zero padding instead of spaces */
-    bool left_justify;  /**< Left justify the output */
-    bool show_sign;     /**< Always show sign for signed numbers */
-    bool space_sign;    /**< Use space for positive numbers */
-    uint32_t width;     /**< Minimum field width */
-    uint32_t precision; /**< Precision for strings/numbers */
-    bool has_precision; /**< Whether precision was specified */
+    uint8_t zero_pad;      /**< Use zero padding instead of spaces */
+    uint8_t left_justify;  /**< Left justify the output */
+    uint8_t show_sign;     /**< Always show sign for signed numbers */
+    uint8_t space_sign;    /**< Use space for positive numbers */
+    uint32_t width;        /**< Minimum field width */
+    uint32_t precision;    /**< Precision for strings/numbers */
+    uint8_t has_precision; /**< Whether precision was specified */
 } FormatFlags;
 
 /**
@@ -42,7 +41,7 @@ typedef struct {
 typedef struct {
     const char* input_string;  ///< String which will be copied
     uint32_t input_length;     ///< Length of the input string
-    bool is_negative;          ///< Whether the number is negative
+    uint8_t is_negative;       ///< Whether the number is negative
 } IntegerInput;
 
 /**
@@ -56,12 +55,12 @@ typedef struct {
 
 static void outputChar(OutputBuffer* output, char character);
 static void outputPadding(OutputBuffer* output, char pad_char, uint32_t count);
-static uint32_t convertUnsigned(uint32_t value, char* buffer, uint32_t base, bool uppercase);
-static uint32_t convertSigned(int32_t value, char* buffer, uint32_t base, bool* is_negative);
+static uint32_t convertUnsigned(uint32_t value, char* buffer, uint32_t base, uint8_t uppercase);
+static uint32_t convertSigned(int32_t value, char* buffer, uint32_t base, uint8_t* is_negative);
 static uint32_t parseFlags(const char* format, FormatFlags* flags);
 static uint8_t qualifyFormatPrefix(const char* format, FormatFlags* flags);
 static void outputInteger(OutputBuffer* output, const IntegerInput* input, const FormatFlags* flags);
-static char qualifySignCharacter(const FormatFlags* flags, bool is_negative);
+static char qualifySignCharacter(const FormatFlags* flags, uint8_t is_negative);
 static void outputString(OutputBuffer* output, const char* str, const FormatFlags* flags);
 static void qualifyConversionSpecifier(char specifier, OutputBuffer* output, const FormatFlags* flags, va_list* args);
 static uint32_t qualifyHexCharacter(char character);
@@ -457,7 +456,7 @@ static void outputPadding(OutputBuffer* output, char pad_char, uint32_t count) {
  * @param uppercase Use uppercase for hex digits
  * @return Length of converted string
  */
-static uint32_t convertUnsigned(uint32_t value, char* buffer, uint32_t base, bool uppercase) {
+static uint32_t convertUnsigned(uint32_t value, char* buffer, uint32_t base, uint8_t uppercase) {
     if (!buffer) {
         return 0U;
     }
@@ -498,15 +497,15 @@ static uint32_t convertUnsigned(uint32_t value, char* buffer, uint32_t base, boo
  * @param value Value to convert
  * @param[out] buffer Buffer to store result
  * @param base Numeric base (typically 10)
- * @param[out] is_negative Set to true if value was negative
+ * @param[out] is_negative Set to 1 if value was negative
  * @return Length of converted string (excluding sign)
  */
-static uint32_t convertSigned(int32_t value, char* buffer, uint32_t base, bool* is_negative) {
+static uint32_t convertSigned(int32_t value, char* buffer, uint32_t base, uint8_t* is_negative) {
     if (!buffer || !is_negative) {
         return 0U;
     }
 
-    *is_negative = ((value < 0) ? true : false);
+    *is_negative = (value < 0);
 
     uint32_t unsigned_value = 0;
     if (value < 0) {
@@ -516,7 +515,7 @@ static uint32_t convertSigned(int32_t value, char* buffer, uint32_t base, bool* 
         unsigned_value = (uint32_t)value;
     }
 
-    uint32_t length = convertUnsigned(unsigned_value, buffer, base, false);
+    uint32_t length = convertUnsigned(unsigned_value, buffer, base, 0);
     return length;
 }
 
@@ -557,45 +556,45 @@ static uint8_t qualifyFormatPrefix(const char* format, FormatFlags* flags) {
         return 0U;
     }
 
-    bool parsing = true;
+    uint8_t parsing = 1;
     uint8_t length = 0;
 
     // Initialize flags
     *flags = (FormatFlags){
-        .zero_pad = false,
-        .left_justify = false,
-        .show_sign = false,
-        .space_sign = false,
+        .zero_pad = 0,
+        .left_justify = 0,
+        .show_sign = 0,
+        .space_sign = 0,
         .width = 0U,
         .precision = 0U,
-        .has_precision = false,
+        .has_precision = 0,
     };
 
     // Qualify flag characters
     while (parsing && (length < (uint8_t)kMaxPrefixLength)) {
         switch (format[length]) {
             case '0':
-                flags->zero_pad = true;
+                flags->zero_pad = 1;
                 length++;
                 break;
 
             case '-':
-                flags->left_justify = true;
+                flags->left_justify = 1;
                 length++;
                 break;
 
             case '+':
-                flags->show_sign = true;
+                flags->show_sign = 1;
                 length++;
                 break;
 
             case ' ':
-                flags->space_sign = true;
+                flags->space_sign = 1;
                 length++;
                 break;
 
             default:
-                parsing = false;
+                parsing = 0;
                 break;
         }
     }
@@ -645,7 +644,7 @@ static void outputInteger(OutputBuffer* output, const IntegerInput* input, const
  * @param is_negative Flag indicating whether the sign is negative
  * @return Corresponding character
  */
-static char qualifySignCharacter(const FormatFlags* flags, bool is_negative) {
+static char qualifySignCharacter(const FormatFlags* flags, uint8_t is_negative) {
     if (!flags) {
         return '\0';
     }
@@ -704,9 +703,9 @@ static void qualifyConversionSpecifier(char specifier, OutputBuffer* output, con
     const uint8_t decimal_radix = 10U;
     const uint8_t hexa_radix = 16U;
     char num_buffer[kMaxIntBuffer];
-    const bool is_uppercase_hex = (specifier == 'X');
+    const uint8_t is_uppercase_hex = (specifier == 'X');
 
-    IntegerInput input = {.input_string = num_buffer, .is_negative = false};
+    IntegerInput input = {.input_string = num_buffer, .is_negative = 0};
     switch (specifier) {
         case 'd':
         case 'i':
@@ -715,7 +714,7 @@ static void qualifyConversionSpecifier(char specifier, OutputBuffer* output, con
             break;
 
         case 'u':
-            input.input_length = convertUnsigned(va_arg(*args, uint32_t), num_buffer, decimal_radix, false);
+            input.input_length = convertUnsigned(va_arg(*args, uint32_t), num_buffer, decimal_radix, 0);
             outputInteger(output, &input, flags);
             break;
 
@@ -737,8 +736,7 @@ static void qualifyConversionSpecifier(char specifier, OutputBuffer* output, con
             /* Pointer as hex with 0x prefix */
             outputChar(output, '0');
             outputChar(output, 'x');
-            input.input_length =
-                convertUnsigned((uint32_t)(uintptr_t)va_arg(*args, void*), num_buffer, hexa_radix, false);
+            input.input_length = convertUnsigned((uint32_t)(uintptr_t)va_arg(*args, void*), num_buffer, hexa_radix, 0);
             outputInteger(output, &input, flags);
             break;
 

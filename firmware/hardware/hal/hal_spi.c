@@ -168,7 +168,7 @@ ErrorCode readRegisters(SPI* descriptor, SPIregister first_register, SPIregister
         return (createErrorCode(kSPIreadRegisters, 2, kErrorWarning));
     }
 
-    return (kSuccessCode);
+    return kSuccessCode;
 }
 
 /**
@@ -216,7 +216,7 @@ ErrorCode writeRegistersAndContinue(SPI* descriptor, SPIregister register_number
         return (createErrorCode(kSPIwriteRegistersContinue, 2, kErrorWarning));
     }
 
-    return (kSuccessCode);
+    return kSuccessCode;
 }
 
 /**

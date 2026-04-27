@@ -18,7 +18,7 @@ on:
     - cron: "0 3 1 * *" #Automatically run at 03:00 every 1st of the month
 
 env:
-  CLANG-VERSION: 21
+  CLANG-VERSION: 22
 
 jobs:
 
@@ -159,14 +159,15 @@ jobs:
       - name: check clang-tidy configuration
         id: clang-tidy-config
         continue-on-error: true
+        working-directory: ${{github.workspace}}/firmware
         run:  >
               clang-tidy-${{env.CLANG-VERSION}}
               --dump-config
-        working-directory: ${{github.workspace}}/firmware
 
       - name: run clang-tidy
         id: clang-tidy
         continue-on-error: true
+        working-directory: ${{github.workspace}}/firmware
         run:  >
               run-clang-tidy-${{env.CLANG-VERSION}}
               -quiet

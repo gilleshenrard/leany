@@ -423,7 +423,7 @@ ErrorCode IMUgetSample(IMUsample* sample) {
             temperature.accel_bias;
     }
 
-    return (kSuccessCode);
+    return kSuccessCode;
 }
 /** \endcond */
 
@@ -452,7 +452,7 @@ static void updateTemperature(int16_t lsb_value) {
     }
 
     //compute current temperature and delta
-    temperature.current_celsius = kBASE_TEMPERATURE + ((float)(lsb_value)*kTemperatureSensitivity);
+    temperature.current_celsius = kBASE_TEMPERATURE + ((float)lsb_value * kTemperatureSensitivity);
     float delta_celsius = (temperature.current_celsius - kBASE_TEMPERATURE);
 
     //compute gyroscope sensitivity and bias

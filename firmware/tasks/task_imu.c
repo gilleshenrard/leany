@@ -160,7 +160,7 @@ uint8_t anglesChanged(void) {
         previous_angle_rad = current_angle_rad;
     }
 
-    return (changed);
+    return changed;
 }
 
 /**

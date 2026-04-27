@@ -81,7 +81,7 @@ ErrorCode createErrorCode(uint8_t function_id, uint8_t new_error, ErrorLevel lev
 
     //if code means success, return success
     if (new_error == kSuccessValue) {
-        return (kSuccessCode);
+        return kSuccessCode;
     }
 
     //set the fields values (clamped if necessary)
@@ -89,7 +89,7 @@ ErrorCode createErrorCode(uint8_t function_id, uint8_t new_error, ErrorLevel lev
     code.dword |= ((uint32_t)(function_id & kFunctionIDclamp) << kFunctionIDoffset);
     code.dword |= ((uint32_t)(new_error & kErrorCodeClamp) << kLayer0codeOffset);
 
-    return (code);
+    return code;
 }
 
 /**
@@ -110,7 +110,7 @@ ErrorCode createErrorCodeLayer1(uint8_t function_id, uint8_t new_error, uint8_t 
 
     //if code means success, return success
     if (new_error == kSuccessValue) {
-        return (kSuccessCode);
+        return kSuccessCode;
     }
 
     //set the fields values (clamped if necessary)
@@ -119,7 +119,7 @@ ErrorCode createErrorCodeLayer1(uint8_t function_id, uint8_t new_error, uint8_t 
     code.dword |= ((uint32_t)(new_error & kErrorCodeClamp) << kLayer0codeOffset);
     code.dword |= ((uint32_t)(layer1_code & kErrorCodeClamp) << layer1_code_offset);
 
-    return (code);
+    return code;
 }
 
 /**
@@ -139,7 +139,7 @@ ErrorCode pushErrorCode(ErrorCode old_code, uint8_t function_id, uint8_t new_err
 
     //if code means success, return success
     if (new_error == kSuccessValue) {
-        return (kSuccessCode);
+        return kSuccessCode;
     }
 
     //erase and replace the function ID
@@ -156,7 +156,7 @@ ErrorCode pushErrorCode(ErrorCode old_code, uint8_t function_id, uint8_t new_err
     old_code.dword |= new_error_stack;
 
     //return the final code
-    return (old_code);
+    return old_code;
 }
 
 /**

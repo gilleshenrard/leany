@@ -80,7 +80,7 @@ ErrorCode createMessageDispatchertask(void) {
                                                  task_stack, &task_state);
     configASSERT(task_handle);
 
-    return (kSuccessCode);
+    return kSuccessCode;
 }
 
 /**
