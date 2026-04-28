@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: MIT
  *
  * @file test_sensorfusion.c
- * @brief Unit tests for the Mahony AHRS filter using simulated IMU inputs.
+ * Unit tests for the Mahony AHRS filter using simulated IMU inputs.
  *
  * @details
  * All tests run on-host (x86). No HAL or sensor driver dependency is required.
@@ -35,20 +35,23 @@
 #include "sensorfusion.h"
 #include "unity.h"
 
-static const float kPI_F = 3.14159265358979323846F;
+static const float kPI_F = 3.14159265358979323846F;  ///< Pi, as a float value
 
 enum {
     kConvergenceSteps = 2000U,  ///< Number of steps for the filter to reach a stable attitude from identity
     kStepsIn1second = 100U,     ///< Steps representing exactly 1 second at 100 Hz
 };
 
+/**
+ * Raw acceleration and gyroscope values along each axis
+ */
 typedef struct {
-    float accel_x;
-    float accel_y;
-    float accel_z;
-    float gyro_x;
-    float gyro_y;
-    float gyro_z;
+    float accel_x;  ///< Acceleration along X axis in [G]
+    float accel_y;  ///< Acceleration along Y axis in [G]
+    float accel_z;  ///< Acceleration along Z axis in [G]
+    float gyro_x;   ///< Rotation rate along X axis in [rad/s]
+    float gyro_y;   ///< Rotation rate along X axis in [rad/s]
+    float gyro_z;   ///< Rotation rate along X axis in [rad/s]
 } RawValue;
 
 // NOLINTBEGIN (misc-use-internal-linkage)
@@ -127,6 +130,7 @@ void tearDown(void) {}
 /**
  * Test 1 — Static convergence to identity
  *
+ * @details
  * Input : accel = [0, 0, 1 G] (gravity along −Z body axis), gyro = [0, 0, 0].
  * Expect: roll → 0 rad, pitch → 0 rad, quaternion norm = 1.
  *
@@ -142,9 +146,10 @@ void test_static_convergence_to_identity(void) {
     TEST_ASSERT_FLOAT_WITHIN(kNormTolerance, 1.0F, quat_norm(&s_ctx.attitude));
 }
 
-/* ---------------------------------------------------------------------------
+/**
  * Test 2 — Known roll rotation (pure gyro integration, kp = 0)
  *
+ * @brief
  * Input : accel = [0, 0, 1 G], gyro = [π/2, 0, 0] for exactly 1 second.
  * Expect: roll ≈ π/2 rad, quaternion norm = 1.
  *
@@ -156,7 +161,7 @@ void test_static_convergence_to_identity(void) {
  * Note: using nominal Kp=2.5 here would require knowing the exact convergence
  * behaviour of the PI controller during rotation, which is not analytically
  * tractable for a unit test.
- * ------------------------------------------------------------------------ */
+ */
 void test_known_roll_rotation_90deg(void) {
     /* Converge with nominal gains so the filter starts from a stable baseline. */
     const RawValue values = {.accel_z = 1.0F};
@@ -177,15 +182,16 @@ void test_known_roll_rotation_90deg(void) {
     TEST_ASSERT_FLOAT_WITHIN(kNormTolerance, 1.0F, quat_norm(&s_ctx.attitude));
 }
 
-/* ---------------------------------------------------------------------------
+/**
  * Test 3 — Quaternion norm stability under sustained arbitrary input
  *
+ * @brief
  * Input : off-axis accel + multi-axis gyro, for 2000 steps.
  * Expect: quaternion norm stays within 1.0 ± kNormTolerance.
  *
  * Rationale: verifies that numerical drift in the first-order Euler integration
  * is fully corrected by the per-step quaternion normalisation.
- * ------------------------------------------------------------------------ */
+ */
 void test_quaternion_norm_stays_unity(void) {
     const RawValue skewed = {
         .accel_x = 0.1F,
@@ -200,9 +206,10 @@ void test_quaternion_norm_stays_unity(void) {
     TEST_ASSERT_FLOAT_WITHIN(kNormTolerance, 1.0F, quat_norm(&s_ctx.attitude));
 }
 
-/* ---------------------------------------------------------------------------
+/**
  * Test 4 — Strong lateral acceleration rejected by alignment check
  *
+ * @details
  * Input : accel = [0.6, 0, 0.8 G] (norm ≈ 1.0, but 37° off the Z axis),
  *         gyro = [0, 0, 0], align_check_enabled = 1.
  * Expect: attitude is frozen (all updates skipped), norm = 1.
@@ -214,7 +221,7 @@ void test_quaternion_norm_stays_unity(void) {
  *
  * Note: a 5 G lateral shock would fail validateNorm() before ever reaching
  * alignmentValid(), so align_check_enabled would play no role in that case.
- * ------------------------------------------------------------------------ */
+ */
 void test_lateral_acceleration_rejected_by_alignment_check(void) {
     /* Converge to a stable identity orientation. */
     const RawValue values = {.accel_z = 1.0F};
@@ -246,9 +253,10 @@ void test_lateral_acceleration_rejected_by_alignment_check(void) {
     // NOLINTEND
 }
 
-/* ---------------------------------------------------------------------------
+/**
  * Test 5 — High angular rate does not blow up the quaternion
  *
+ * @brief
  * Input : accel = [0, 0, 1 G], gyro = [0, 4π, 0] (~720 deg/s pitch), 50 steps.
  * Expect: quaternion norm stays at 1.0, pitch angle changes by > 0.5 rad.
  *
@@ -256,7 +264,7 @@ void test_lateral_acceleration_rejected_by_alignment_check(void) {
  * |dq|·dt ≈ 0.063 to each quaternion component before normalisation. This
  * verifies that normaliseQuaternion() successfully prevents norm blow-up
  * and that the filter tracks (not freezes) the motion.
- * ------------------------------------------------------------------------ */
+ */
 void test_strong_rotation_does_not_diverge(void) {
     /* Converge to a stable reference attitude. */
     const RawValue values = {.accel_z = 1.0F};
@@ -279,9 +287,11 @@ void test_strong_rotation_does_not_diverge(void) {
                                    fabsf(pitch_after - pitch_before));
 }
 
-/* ---------------------------------------------------------------------------
- * Runner
- * ------------------------------------------------------------------------ */
+/**
+ * Tests runner
+ *
+ * @return UNITY_END result 
+ */
 int main(void) {
     UNITY_BEGIN();
     RUN_TEST(test_static_convergence_to_identity);
@@ -296,7 +306,7 @@ int main(void) {
 /*********************************************************************************************************************************/
 
 /**
- * @brief Feed N identical IMU samples into the filter.
+ * Feed N identical IMU samples into the filter.
  *
  * @details ctx.dt.current_tick is set to the current s_tick value before
  * each call because updateMahonyFilter() derives elapsed time from
