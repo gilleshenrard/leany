@@ -12,7 +12,7 @@
  * sample->latest_tick internally.
  *
  * ## Key implementation constraints respected here
- * - resetMahonyFilter() does NOT initialise kp, ki, tick_period_seconds,
+ * - resetMahonyFilter() does NOT initialise kp, ki, kTickPeriod_sececonds,
  *   max_tick, or align_check_enabled. setUp() must set them explicitly.
  * - validateNorm() resets bad_acceleration_count to 0 on the first valid
  *   sample. Tests 4 feeds exactly (kMaxBadCounts - 1) bad samples to avoid
@@ -35,19 +35,48 @@
 #include "sensorfusion.h"
 #include "unity.h"
 
+static const float kPI_F = 3.14159265358979323846F;
 
-/* ---------------------------------------------------------------------------
- * Test configuration
- * ------------------------------------------------------------------------ */
+enum {
+    kConvergenceSteps = 2000U,  ///< Number of steps for the filter to reach a stable attitude from identity
+    kStepsIn1second = 100U,     ///< Steps representing exactly 1 second at 100 Hz
+};
 
-/** Tolerance for quaternion norm comparisons. */
-#define NORM_TOLERANCE (0.005f)
+typedef struct {
+    float accel_x;
+    float accel_y;
+    float accel_z;
+    float gyro_x;
+    float gyro_y;
+    float gyro_z;
+} RawValue;
 
-/** Tolerance for angle comparisons in [rad] (~3 degrees). */
-#define ANGLE_TOLERANCE_RAD (0.05f)
+// NOLINTBEGIN (misc-use-internal-linkage)
+void test_static_convergence_to_identity(void);
+void test_known_roll_rotation_90deg(void);
+void test_quaternion_norm_stays_unity(void);
+void test_lateral_acceleration_rejected_by_alignment_check(void);
+void test_strong_rotation_does_not_diverge(void);
+// NOLINTEND
 
-/** Simulated tick period in [s]: 10ms → 100 Hz update rate. */
-#define TICK_PERIOD_S (0.01f)
+static void run_filter(const RawValue* values, uint32_t steps);
+static float quat_norm(const Quaternion* quat);
+
+static const float kNormTolerance = 0.005F;      ///< Tolerance for quaternion norm comparisons
+static const float kAngleTolerance_rad = 0.05F;  ///< Tolerance for angle comparisons in [rad] (~3 degrees)
+static const float kTickPeriod_sec = 0.01F;      ///< Simulated tick period in [s]: 10ms → 100 Hz update rate
+
+/**
+ * Angular rate producing a 90-degree rotation in exactly 1 second, in [rad/s].
+ * With kp=0 (pure integration), roll after kStepsIn1second ≈ PI/2.
+ */
+static const float kRate90DegreesIn1sec = (kPI_F * 0.5F);
+
+/**
+ * Gyro rate for the strong rotation test (~720 deg/s), in [rad/s].
+ * Used to verify numerical stability of the quaternion integration step.
+ */
+static const float kStrongGyro_radps = (4.0F * kPI_F);
 
 /**
  * All uint32_t bits set, used as max_tick.
@@ -55,43 +84,23 @@
  */
 #define MAX_TICK_VALUE (UINT32_MAX)
 
-/** Number of steps for the filter to reach a stable attitude from identity. */
-#define CONVERGENCE_STEPS (2000U)
+// /**
+//  * Number of consecutive bad-norm samples to feed in test 4.
+//  * Must be strictly less than kMaxBadCounts (5) to avoid triggering a
+//  * filter reset that would zero bad_acceleration_count before we read it.
+//  */
+// static const uint8_t kBadAccelSampleCount = 3U;
 
-/** Steps representing exactly 1 second at 100 Hz. */
-#define ONE_SECOND_STEPS (100U)
+static MahonyContext s_ctx;  ///< Filter context used during tests
+static uint32_t s_tick;      ///< Simulated application tick
 
-/**
- * Angular rate producing a 90-degree rotation in exactly 1 second, in [rad/s].
- * With kp=0 (pure integration), roll after ONE_SECOND_STEPS ≈ PI/2.
- */
-#define RATE_90DEG_IN_1S ((float)M_PI * 0.5f)
-
-/**
- * Gyro rate for the strong rotation test (~720 deg/s), in [rad/s].
- * Used to verify numerical stability of the quaternion integration step.
- */
-#define STRONG_GYRO_RADPS ((float)(4.0 * M_PI))
+/*********************************************************************************************************************************/
+/*********************************************************************************************************************************/
 
 /**
- * Number of consecutive bad-norm samples to feed in test 4.
- * Must be strictly less than kMaxBadCounts (5) to avoid triggering a
- * filter reset that would zero bad_acceleration_count before we read it.
- */
-#define BAD_ACCEL_SAMPLE_COUNT (3U)
-
-/* ---------------------------------------------------------------------------
- * Fixtures
- * ------------------------------------------------------------------------ */
-
-static MahonyContext s_ctx;
-
-/** Monotonically increasing tick counter, incremented in run_filter(). */
-static uint32_t s_tick;
-
-/**
- * @brief Initialise the filter context to a clean, known state before each test.
+ * Initialise the filter context to a clean, known state before each test.
  *
+ * @note
  * resetMahonyFilter() only resets the quaternion, error integrals, and bad
  * counters. All other fields must be set explicitly here.
  */
@@ -101,7 +110,7 @@ void setUp(void) {
 
     s_ctx.kp = kProportionalGain;
     s_ctx.ki = kIntegralGain;
-    s_ctx.dt.tick_period_seconds = TICK_PERIOD_S;
+    s_ctx.dt.tick_period_seconds = kTickPeriod_sec;
     s_ctx.dt.max_tick = MAX_TICK_VALUE;
     s_ctx.dt.current_tick = 0U;
     s_ctx.dt.previous_tick = 0U;
@@ -110,56 +119,12 @@ void setUp(void) {
     s_tick = 1U;
 }
 
+/**
+ * Free up the resources used during testing
+ */
 void tearDown(void) {}
 
-/* ---------------------------------------------------------------------------
- * Helper: feed identical IMU samples for N steps
- * ------------------------------------------------------------------------ */
-
 /**
- * @brief Feed N identical IMU samples into the filter.
- *
- * @details ctx.dt.current_tick is set to the current s_tick value before
- * each call because updateMahonyFilter() derives elapsed time from
- * ctx.dt.current_tick and ctx.dt.previous_tick, not from sample->latest_tick.
- *
- * @param ax Accelerometer X in [G].
- * @param ay Accelerometer Y in [G].
- * @param az Accelerometer Z in [G].
- * @param gx Gyroscope X in [rad/s].
- * @param gy Gyroscope Y in [rad/s].
- * @param gz Gyroscope Z in [rad/s].
- * @param steps Number of update cycles to run.
- */
-static void run_filter(float ax, float ay, float az, float gx, float gy, float gz, uint32_t steps) {
-    IMUsample sample;
-    memset(&sample, 0, sizeof(sample));
-    sample.accelerometer_g[kXaxis] = ax;
-    sample.accelerometer_g[kYaxis] = ay;
-    sample.accelerometer_g[kZaxis] = az;
-    sample.gyroscope_radps[kXaxis] = gx;
-    sample.gyroscope_radps[kYaxis] = gy;
-    sample.gyroscope_radps[kZaxis] = gz;
-
-    for (uint32_t i = 0U; i < steps; i++) {
-        s_ctx.dt.current_tick = s_tick;
-        updateMahonyFilter(&s_ctx, &sample);
-        s_tick++;
-    }
-}
-
-/**
- * @brief Compute the Euclidean norm of the current attitude quaternion.
- *
- * @param ctx Mahony filter context.
- * @return Quaternion norm.
- */
-static float quat_norm(const MahonyContext* ctx) {
-    const Quaternion* q = &ctx->attitude;
-    return sqrtf((q->q0 * q->q0) + (q->q1 * q->q1) + (q->q2 * q->q2) + (q->q3 * q->q3));
-}
-
-/* ---------------------------------------------------------------------------
  * Test 1 — Static convergence to identity
  *
  * Input : accel = [0, 0, 1 G] (gravity along −Z body axis), gyro = [0, 0, 0].
@@ -167,13 +132,14 @@ static float quat_norm(const MahonyContext* ctx) {
  *
  * Rationale: with no angular rate and gravity pointing straight down, the PI
  * controller must drive orientation errors to zero over time.
- * ------------------------------------------------------------------------ */
+ */
 void test_static_convergence_to_identity(void) {
-    run_filter(0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, CONVERGENCE_STEPS);
+    const RawValue values = {.accel_z = 1.0F};
+    run_filter(&values, kConvergenceSteps);
 
-    TEST_ASSERT_FLOAT_WITHIN(ANGLE_TOLERANCE_RAD, 0.0f, angleAlongAxis(&s_ctx, kXaxis));
-    TEST_ASSERT_FLOAT_WITHIN(ANGLE_TOLERANCE_RAD, 0.0f, angleAlongAxis(&s_ctx, kYaxis));
-    TEST_ASSERT_FLOAT_WITHIN(NORM_TOLERANCE, 1.0f, quat_norm(&s_ctx));
+    TEST_ASSERT_FLOAT_WITHIN(kAngleTolerance_rad, 0.0F, angleAlongAxis(&s_ctx, kXaxis));
+    TEST_ASSERT_FLOAT_WITHIN(kAngleTolerance_rad, 0.0F, angleAlongAxis(&s_ctx, kYaxis));
+    TEST_ASSERT_FLOAT_WITHIN(kNormTolerance, 1.0F, quat_norm(&s_ctx.attitude));
 }
 
 /* ---------------------------------------------------------------------------
@@ -185,7 +151,7 @@ void test_static_convergence_to_identity(void) {
  * Rationale: with kp = 0 the accel correction term is zeroed, leaving only
  * first-order Euler integration of the gyro. After 100 steps × 0.01 s × π/2
  * rad/s the accumulated angle is π/2. Quaternion normalisation each step
- * keeps the norm at 1 with negligible angle error (< ANGLE_TOLERANCE_RAD).
+ * keeps the norm at 1 with negligible angle error (< kAngleTolerance_rad).
  *
  * Note: using nominal Kp=2.5 here would require knowing the exact convergence
  * behaviour of the PI controller during rotation, which is not analytically
@@ -193,32 +159,45 @@ void test_static_convergence_to_identity(void) {
  * ------------------------------------------------------------------------ */
 void test_known_roll_rotation_90deg(void) {
     /* Converge with nominal gains so the filter starts from a stable baseline. */
-    run_filter(0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, CONVERGENCE_STEPS);
+    const RawValue values = {.accel_z = 1.0F};
+    run_filter(&values, kConvergenceSteps);
 
     /* Switch to zero correction gains: the filter becomes a pure integrator. */
-    s_ctx.kp = 0.0f;
-    s_ctx.ki = 0.0f;
+    s_ctx.kp = 0.0F;
+    s_ctx.ki = 0.0F;
 
     /* Apply roll rate for exactly 1 second. */
-    run_filter(0.0f, 0.0f, 1.0f, RATE_90DEG_IN_1S, 0.0f, 0.0f, ONE_SECOND_STEPS);
+    const RawValue roll_values = {
+        .accel_z = 1.0F,
+        .gyro_x = kRate90DegreesIn1sec,
+    };
+    run_filter(&roll_values, kStepsIn1second);
 
-    TEST_ASSERT_FLOAT_WITHIN(ANGLE_TOLERANCE_RAD, (float)(M_PI * 0.5), angleAlongAxis(&s_ctx, kXaxis));
-    TEST_ASSERT_FLOAT_WITHIN(NORM_TOLERANCE, 1.0f, quat_norm(&s_ctx));
+    TEST_ASSERT_FLOAT_WITHIN(kAngleTolerance_rad, kRate90DegreesIn1sec, angleAlongAxis(&s_ctx, kXaxis));
+    TEST_ASSERT_FLOAT_WITHIN(kNormTolerance, 1.0F, quat_norm(&s_ctx.attitude));
 }
 
 /* ---------------------------------------------------------------------------
  * Test 3 — Quaternion norm stability under sustained arbitrary input
  *
  * Input : off-axis accel + multi-axis gyro, for 2000 steps.
- * Expect: quaternion norm stays within 1.0 ± NORM_TOLERANCE.
+ * Expect: quaternion norm stays within 1.0 ± kNormTolerance.
  *
  * Rationale: verifies that numerical drift in the first-order Euler integration
  * is fully corrected by the per-step quaternion normalisation.
  * ------------------------------------------------------------------------ */
 void test_quaternion_norm_stays_unity(void) {
-    run_filter(0.1f, 0.2f, 0.95f, 0.1f, -0.2f, 0.3f, CONVERGENCE_STEPS);
+    const RawValue skewed = {
+        .accel_x = 0.1F,
+        .accel_y = 0.2F,
+        .accel_z = 0.95F,
+        .gyro_x = 0.1F,
+        .gyro_y = -0.2F,
+        .gyro_z = 0.3F,
+    };
+    run_filter(&skewed, kConvergenceSteps);
 
-    TEST_ASSERT_FLOAT_WITHIN(NORM_TOLERANCE, 1.0f, quat_norm(&s_ctx));
+    TEST_ASSERT_FLOAT_WITHIN(kNormTolerance, 1.0F, quat_norm(&s_ctx.attitude));
 }
 
 /* ---------------------------------------------------------------------------
@@ -238,7 +217,8 @@ void test_quaternion_norm_stays_unity(void) {
  * ------------------------------------------------------------------------ */
 void test_lateral_acceleration_rejected_by_alignment_check(void) {
     /* Converge to a stable identity orientation. */
-    run_filter(0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, CONVERGENCE_STEPS);
+    const RawValue values = {.accel_z = 1.0F};
+    run_filter(&values, kConvergenceSteps);
 
     s_ctx.align_check_enabled = 1U;
 
@@ -250,14 +230,20 @@ void test_lateral_acceleration_rejected_by_alignment_check(void) {
      * norm([0.6, 0, 0.8]) = sqrt(0.36 + 0 + 0.64) = 1.0 → passes validateNorm.
      * dot([0.6, 0, 0.8], [0, 0, 1]) = 0.8 < 0.9659 → fails alignmentValid.
      */
-    run_filter(0.6f, 0.0f, 0.8f, 0.0f, 0.0f, 0.0f, 10U);
+    const RawValue unit_norm_values = {
+        .accel_x = 0.6F,
+        .accel_z = 0.8F,
+    };
+    run_filter(&unit_norm_values, 10U);  // NOLINT (cppcoreguidelines-avoid-magic-numbers)
 
     /* The quaternion must be bit-identical (no update happened). */
+    // NOLINTBEGIN (cppcoreguidelines-avoid-magic-numbers)
     TEST_ASSERT_EQUAL_FLOAT(attitude_before.q0, s_ctx.attitude.q0);
     TEST_ASSERT_EQUAL_FLOAT(attitude_before.q1, s_ctx.attitude.q1);
     TEST_ASSERT_EQUAL_FLOAT(attitude_before.q2, s_ctx.attitude.q2);
     TEST_ASSERT_EQUAL_FLOAT(attitude_before.q3, s_ctx.attitude.q3);
-    TEST_ASSERT_FLOAT_WITHIN(NORM_TOLERANCE, 1.0f, quat_norm(&s_ctx));
+    TEST_ASSERT_FLOAT_WITHIN(kNormTolerance, 1.0F, quat_norm(&s_ctx.attitude));
+    // NOLINTEND
 }
 
 /* ---------------------------------------------------------------------------
@@ -273,18 +259,24 @@ void test_lateral_acceleration_rejected_by_alignment_check(void) {
  * ------------------------------------------------------------------------ */
 void test_strong_rotation_does_not_diverge(void) {
     /* Converge to a stable reference attitude. */
-    run_filter(0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, CONVERGENCE_STEPS);
+    const RawValue values = {.accel_z = 1.0F};
+    run_filter(&values, kConvergenceSteps);
 
     const float pitch_before = angleAlongAxis(&s_ctx, kYaxis);
 
     /* Apply violent pitch rotation for 0.5 s (50 steps at 100 Hz). */
-    run_filter(0.0f, 0.0f, 1.0f, 0.0f, STRONG_GYRO_RADPS, 0.0f, 50U);
+    const RawValue violent_pitch = {
+        .accel_z = 1.0F,
+        .gyro_y = kStrongGyro_radps,
+    };
+    run_filter(&violent_pitch, 50U);  // NOLINT (cppcoreguidelines-avoid-magic-numbers)
 
     const float pitch_after = angleAlongAxis(&s_ctx, kYaxis);
 
-    TEST_ASSERT_FLOAT_WITHIN(NORM_TOLERANCE, 1.0f, quat_norm(&s_ctx));
+    TEST_ASSERT_FLOAT_WITHIN(kNormTolerance, 1.0F, quat_norm(&s_ctx.attitude));
     /* The pitch must have moved by at least 0.5 rad — the filter is tracking. */
-    TEST_ASSERT_GREATER_THAN(0.5f, fabsf(pitch_after - pitch_before));
+    TEST_ASSERT_GREATER_THAN_FLOAT(0.5F,  // NOLINT (cppcoreguidelines-avoid-magic-numbers)
+                                   fabsf(pitch_after - pitch_before));
 }
 
 /* ---------------------------------------------------------------------------
@@ -298,4 +290,44 @@ int main(void) {
     RUN_TEST(test_lateral_acceleration_rejected_by_alignment_check);
     RUN_TEST(test_strong_rotation_does_not_diverge);
     return UNITY_END();
+}
+
+/*********************************************************************************************************************************/
+/*********************************************************************************************************************************/
+
+/**
+ * @brief Feed N identical IMU samples into the filter.
+ *
+ * @details ctx.dt.current_tick is set to the current s_tick value before
+ * each call because updateMahonyFilter() derives elapsed time from
+ * ctx.dt.current_tick and ctx.dt.previous_tick, not from sample->latest_tick.
+ *
+ * @param values Raw values to use in the test
+ * @param steps Number of update cycles to run.
+ */
+static void run_filter(const RawValue* values, uint32_t steps) {
+    IMUsample sample;
+    memset(&sample, 0, sizeof(sample));
+    sample.accelerometer_g[kXaxis] = values->accel_x;
+    sample.accelerometer_g[kYaxis] = values->accel_y;
+    sample.accelerometer_g[kZaxis] = values->accel_z;
+    sample.gyroscope_radps[kXaxis] = values->gyro_x;
+    sample.gyroscope_radps[kYaxis] = values->gyro_y;
+    sample.gyroscope_radps[kZaxis] = values->gyro_z;
+
+    for (uint32_t i = 0U; i < steps; i++) {
+        s_ctx.dt.current_tick = s_tick;
+        updateMahonyFilter(&s_ctx, &sample);
+        s_tick++;
+    }
+}
+
+/**
+ * Compute the Euclidean norm of the current attitude quaternion.
+ *
+ * @param quat Quaternion of which to compute the norm
+ * @return Quaternion norm.
+ */
+static float quat_norm(const Quaternion* quat) {
+    return sqrtf((quat->q0 * quat->q0) + (quat->q1 * quat->q1) + (quat->q2 * quat->q2) + (quat->q3 * quat->q3));
 }
