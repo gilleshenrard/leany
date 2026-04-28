@@ -32,7 +32,10 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/../hardware/imu/
 )
 
-target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE Unity)
+target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE
+    Unity
+    m
+)
 target_compile_options(${CMAKE_PROJECT_NAME} PUBLIC ${WARNING_FLAGS})
 
 enable_testing()

@@ -258,6 +258,15 @@ jobs:
           chmod +x firmware/resources/check_filenames.sh
           ./firmware/resources/check_filenames.sh
 
+      - name : Run unit tests
+        id : unit-tests
+        working-directory: ${{github.workspace}}/firmware
+        continue-on-error: true
+        run : |
+          cmake -S tests -B build/host-tests -G Ninja
+          cmake --build build/host-tests
+          ctest --test-dir build/host-tests --output-on-failure
+
       - name : Display symbols size
         id : sizing
         continue-on-error: true
@@ -314,6 +323,10 @@ jobs:
           fi
           if [ "${{ steps.doxygen-tags.outcome }}" != "success" ]; then
             echo "::error::Doxygen @file tags failed"
+            failed=1
+          fi
+          if [ "${{ steps.unit-tests.outcome }}" != "success" ]; then
+            echo "::error::Unit tests failed"
             failed=1
           fi
           if [ $failed -eq 1 ]; then
