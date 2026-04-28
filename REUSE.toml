@@ -33,6 +33,13 @@ precedence = "aggregate"
 SPDX-FileCopyrightText = "2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved."
 SPDX-License-Identifier = "MIT"
 
+# Unity files contain the MIT licensing text
+[[annotations]]
+path = "firmware/Middlewares/Third_Party/Unity/**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "Copyright (c) 2007-26 Mike Karlesky, Mark VanderVoord, & Greg Williams"
+SPDX-License-Identifier = "MIT"
+
 # Git hooks are MIT-licenced
 [[annotations]]
 path = "scripts/git-hooks/*"
