@@ -345,55 +345,5 @@
             },
             "problemMatcher": []
         },
-
-
-        {
-            "type": "shell",
-            "label": "Configure unit tests",
-            "hide": true,
-            "command": "cmake",
-            "args": [
-                "-S tests",
-                "-B build/host-tests",
-                "-G Ninja",
-            ],
-            "options": {
-                "cwd": "${workspaceFolder}"
-            },
-            "problemMatcher": []
-        },
-        {
-            "type": "shell",
-            "label": "Build unit tests",
-            "dependsOn": [
-                "Configure unit tests"
-            ],
-            "hide": true,
-            "command": "cmake",
-            "args": [
-                "--build",
-                "build/host-tests",
-            ],
-            "options": {
-                "cwd": "${workspaceFolder}"
-            },
-            "problemMatcher": []
-        },
-        {
-            "type": "shell",
-            "label": "Run unit tests",
-            "dependsOn": [
-                "Build unit tests"
-            ],
-            "command": "ctest",
-            "args": [
-                "--test-dir build/host-tests",
-                "--output-on-failure",
-            ],
-            "options": {
-                "cwd": "${workspaceFolder}"
-            },
-            "problemMatcher": []
-        },
     ]
 }

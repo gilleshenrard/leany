@@ -38,7 +38,7 @@
         "-m",
         "firmware/hardware/",
         "firmware/ui/",
-        "firmware/utils/",
+        "firmware/utilities/",
         "firmware/tasks/"
     ],
     "c-cpp-flylint.cppcheck.language": "C",
@@ -64,12 +64,6 @@
             "statusBarVisibility": "hidden"
         },
         "workflow": {
-            "statusBarVisibility": "hidden"
-        },
-        "ctest": {
-            "statusBarVisibility": "hidden"
-        },
-        "testPreset": {
             "statusBarVisibility": "hidden"
         },
         "packagePreset": {
