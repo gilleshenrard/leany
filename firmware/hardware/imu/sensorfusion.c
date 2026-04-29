@@ -85,7 +85,6 @@ static const float kMaxNormEpsilon = 0.15F;         ///< Maximum deviation of a 
 static const float kMaxIntegralError = 0.3F;        ///< Maximum integral error absolute value accepted
 static const float kMinValidDTseconds = 1e-6F;      ///< Minimum acceptable timespan between updates
 static const float kMaxValidDTseconds = 0.5F;       ///< Maximum acceptable timespan between updates
-static const uint8_t kMaxBadCounts = 5U;            ///< Maximum number of bad accel. or quatern. counts before reset
 
 /*********************************************************************************************************************************/
 // Mahony filter's publicly accessible functions
