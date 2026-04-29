@@ -14,8 +14,6 @@
 
 #include "sensorfusion.h"
 
-static const float kPI_F = 3.14159265358979323846F;  ///< Pi, as a float value
-
 enum {
     kConvergenceSteps = 2000U,   ///< Number of steps for the filter to reach a stable attitude from identity
     kStepsIn1second = 100U,      ///< Steps representing exactly 1 second at 100 Hz
@@ -34,9 +32,10 @@ void test_integration_stable_at_high_angular_rate(void);
 static void iterate_filter(MahonyContext* filter_context, const IMUsample* sample, uint32_t steps);
 static float quat_norm(const Quaternion* quat);
 
-static const float kNormTolerance = 0.005F;      ///< Tolerance for quaternion norm comparisons
-static const float kAngleTolerance_rad = 0.05F;  ///< Tolerance for angle comparisons in [rad] (~3 degrees)
-static const float kTickPeriod_sec = 0.01F;      ///< Simulated tick period in [s]: 10ms -> 100 Hz update rate
+static const float kNormTolerance = 0.005F;          ///< Tolerance for quaternion norm comparisons
+static const float kAngleTolerance_rad = 0.05F;      ///< Tolerance for angle comparisons in [rad] (~3 degrees)
+static const float kTickPeriod_sec = 0.01F;          ///< Simulated tick period in [s]: 10ms -> 100 Hz update rate
+static const float kPI_F = 3.14159265358979323846F;  ///< Pi, as a float value
 
 /**
  * All uint32_t bits set, used as max_tick.
