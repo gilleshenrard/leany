@@ -69,6 +69,7 @@ typedef struct {
 
 static const float kProportionalGain = 2.5F;  ///< Propotional gain (KP) of the Mahony filter
 static const float kIntegralGain = 0.5F;      ///< Integral gain (KI) of the Mahony filter
+static const uint8_t kMaxBadCounts = 5U;      ///< Maximum number of bad accel. or quatern. counts before reset
 
 void resetMahonyFilter(MahonyContext* context);
 void updateMahonyFilter(MahonyContext* context, const IMUsample* sample);

@@ -24,6 +24,11 @@ enum {
 //private functions
 static void iterate_filter(MahonyContext* filter_context, const IMUsample* sample, uint32_t steps);
 static float quat_norm(const Quaternion* quat);
+static void test_null_pointer_guards(void);
+static void test_tick_handles_overflow(void);
+static void test_bad_samples_counter_resets_correctly(void);
+static void test_yaw_angle_returns_0(void);
+static void test_correct_attitude_angle_calculation(void);
 static void test_controller_no_shift_at_rest(void);
 static void test_gyro_integration_accumulates_correctly(void);
 static void test_normalisation_prevents_drift_under_sustained_input(void);
@@ -31,11 +36,12 @@ static void test_alignment_check_freezes_update_on_lateral_accel(void);
 static void test_integration_stable_at_high_angular_rate(void);
 
 //constants
-static const float kNormTolerance = 0.005F;          ///< Tolerance for quaternion norm comparisons
-static const float kAngleTolerance_rad = 0.05F;      ///< Tolerance for angle comparisons in [rad] (~3 degrees)
-static const float kTickPeriod_sec = 0.01F;          ///< Simulated tick period in [s]: 10ms -> 100 Hz update rate
-static const float kPI_F = 3.14159265358979323846F;  ///< Pi, as a float value
-static const uint32_t kMaxTick = UINT32_MAX;         ///< Maximum value a system tick can take
+static const float kNormTolerance = 0.005F;             ///< Tolerance for quaternion norm comparisons
+static const float kAngleTolerance_rad = 0.05F;         ///< Tolerance for angle comparisons in [rad] (~3 degrees)
+static const float kTickPeriod_sec = 0.01F;             ///< Simulated tick period in [s]: 10ms -> 100 Hz update rate
+static const float kPI_F = 3.14159265358979323846F;     ///< Pi, as a float value
+static const uint32_t kMaxTick = UINT32_MAX;            ///< Maximum value a system tick can take
+static const float kStrongGyro_radps = (4.0F * kPI_F);  ///< Strong rotation speed
 
 //state variables
 static MahonyContext context;                                             ///< Filter context used during tests
@@ -53,6 +59,11 @@ static const IMUsample kPureGravity = {.accelerometer_g[kZaxis] = 1.0F};  ///< S
  */
 int main(void) {
     UNITY_BEGIN();
+    RUN_TEST(test_null_pointer_guards);
+    RUN_TEST(test_tick_handles_overflow);
+    RUN_TEST(test_bad_samples_counter_resets_correctly);
+    RUN_TEST(test_yaw_angle_returns_0);
+    RUN_TEST(test_correct_attitude_angle_calculation);
     RUN_TEST(test_controller_no_shift_at_rest);
     RUN_TEST(test_gyro_integration_accumulates_correctly);
     RUN_TEST(test_normalisation_prevents_drift_under_sustained_input);
@@ -91,6 +102,153 @@ void tearDown(void) {}
 /*********************************************************************************************************************************/
 // TEST FUNCTIONS
 /*********************************************************************************************************************************/
+
+/**
+ * Test that NULL parameters will leave the context unchanged
+ *
+ * @details
+ * This is achieved by feeding mixes of contexts and violent pitches and see if changes are duly avoided
+ *
+ * @internal
+ * Any NULL parameter should make updateMahonyFilter() leave without doing anything
+ */
+static void test_null_pointer_guards(void) {
+    const MahonyContext old_context = context;
+    const IMUsample violent_pitch = {
+        .accelerometer_g[kZaxis] = 1.0F,
+        .gyroscope_radps[kYaxis] = kStrongGyro_radps,
+    };
+
+    //test with a NULL context
+    updateMahonyFilter(NULL, &violent_pitch);
+    // NOLINTNEXTLINE (DeprecatedOrUnsafeBufferHandling)
+    uint8_t equals = (memcmp(&old_context, &context, sizeof(MahonyContext)) == 0);
+    TEST_ASSERT_TRUE_MESSAGE(equals, "NULL context failed");
+
+    //test with a NULL sample
+    updateMahonyFilter(&context, NULL);
+    // NOLINTNEXTLINE (DeprecatedOrUnsafeBufferHandling)
+    equals = (memcmp(&old_context, &context, sizeof(MahonyContext)) == 0);
+    TEST_ASSERT_TRUE_MESSAGE(equals, "NULL sample failed");
+
+    //test in normal conditions
+    context.dt.current_tick++;
+    updateMahonyFilter(&context, &violent_pitch);
+    // NOLINTNEXTLINE (DeprecatedOrUnsafeBufferHandling)
+    equals = (memcmp(&old_context, &context, sizeof(MahonyContext)) == 0);
+    TEST_ASSERT_FALSE_MESSAGE(equals, "Normal update condition failed");
+}
+
+/**
+ * Test that the tick wraparound protection avoids triggering a reset at context update
+ *
+ * @details
+ * This is achieved by resetting two contexts and putting one in a position of tick wraparound,
+ * then comparing both after update
+ *
+ * @internal
+ * Any invalid dT triggers resetMahonyFilter()
+ */
+static void test_tick_handles_overflow(void) {
+    MahonyContext overflow_context;
+    MahonyContext reset_context;
+
+    memset(&reset_context, 0, sizeof(MahonyContext));
+    memset(&overflow_context, 0, sizeof(MahonyContext));
+    resetMahonyFilter(&reset_context);
+    resetMahonyFilter(&overflow_context);
+
+    //test tick wraparound -> no reset
+    overflow_context.dt.previous_tick = (kMaxTick - 5U);  // NOLINT (cppcoreguidelines-avoid-magic-numbers)
+    overflow_context.dt.current_tick = 3U;
+    updateMahonyFilter(&overflow_context, &kPureGravity);
+    // NOLINTNEXTLINE (DeprecatedOrUnsafeBufferHandling)
+    uint8_t different = (memcmp(&overflow_context, &reset_context, sizeof(MahonyContext)) != 0);
+    TEST_ASSERT_TRUE_MESSAGE(different, "Correct wraparound context failed");
+
+    //test dT = 0 ticks -> filter reset
+    overflow_context.dt.previous_tick = overflow_context.dt.current_tick;
+    updateMahonyFilter(&overflow_context, &kPureGravity);
+    // NOLINTNEXTLINE (DeprecatedOrUnsafeBufferHandling)
+    different = (memcmp(&overflow_context, &reset_context, sizeof(MahonyContext)) != 0);
+    TEST_ASSERT_FALSE_MESSAGE(different, "dT 0s context failed");
+
+    //test dT > 5s -> filter reset
+    const uint32_t tick_dt_5s = (uint32_t)(5.0F / kTickPeriod_sec);
+    overflow_context.dt.previous_tick = 0;
+    overflow_context.dt.current_tick = tick_dt_5s;
+    updateMahonyFilter(&overflow_context, &kPureGravity);
+    // NOLINTNEXTLINE (DeprecatedOrUnsafeBufferHandling)
+    different = (memcmp(&overflow_context, &reset_context, sizeof(MahonyContext)) != 0);
+    TEST_ASSERT_FALSE_MESSAGE(different, "dT > 5s context failed");
+}
+
+/**
+ * Test that the linear acceleration filter resets the context after too many strong accelerations
+ *
+ * @details
+ * This is achieved by feeding the maximum number of bad values admitted, and checking if the filter was resetted.
+ * Then check with (max - 1) values to see if the context is safe
+ *
+ * @internal
+ * Max. bad values will reset the filter
+ */
+static void test_bad_samples_counter_resets_correctly(void) {
+    const IMUsample bad_sample = {.accelerometer_g[kXaxis] = 5.0F};
+
+    //prepare a copy of context with resetted values
+    MahonyContext reset_context;
+    memset(&reset_context, 0, sizeof(MahonyContext));
+    reset_context = context;
+    reset_context.dt.current_tick = 1U;
+    reset_context.align_check_enabled = 1U;
+
+    //enable alignment check and feed the maximum number of bad acceleration values
+    context.dt.current_tick = 1U;
+    context.align_check_enabled = 1U;
+    for (uint8_t attempt = 0; attempt < kMaxBadCounts; attempt++) {
+        updateMahonyFilter(&context, &bad_sample);
+    }
+
+    //test whether the context resetted after all bad values
+    // NOLINTNEXTLINE (DeprecatedOrUnsafeBufferHandling)
+    uint8_t equals = (memcmp(&reset_context, &context, sizeof(MahonyContext)) == 0);
+    TEST_ASSERT_TRUE_MESSAGE(equals, "Maximum bad attempts test failed");
+
+    //reset the context and feed (max - 1) bad values, then one good
+    setUp();
+    context.dt.current_tick = 1U;
+    context.align_check_enabled = 1U;
+    for (uint8_t attempt = 0; attempt < (kMaxBadCounts - 1U); attempt++) {
+        updateMahonyFilter(&context, &bad_sample);
+    }
+    updateMahonyFilter(&context, &kPureGravity);
+
+    //test whether the context wasn't resetted because of the last good one
+    // NOLINTNEXTLINE (DeprecatedOrUnsafeBufferHandling)
+    equals = (memcmp(&reset_context, &context, sizeof(MahonyContext)) == 0);
+    TEST_ASSERT_FALSE_MESSAGE(equals, "Recovery without reset failed");
+}
+
+/**
+ * Test whether the yaw angle is always 0°
+ *
+ * @details Yaw angle estimation is not implemented
+ */
+static void test_yaw_angle_returns_0(void) {
+    // NOLINTNEXTLINE (cppcoreguidelines-avoid-magic-numbers)
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, angleAlongAxis(&context, kZaxis));
+}
+
+/**
+ * Test the attitude angle calculation is correct after reset
+ *
+ * @details After resetMahonyFilter, q0 = 1, so getAttitudeAngle should return 2 * acos(1) = 0
+ */
+static void test_correct_attitude_angle_calculation(void) {
+    // NOLINTNEXTLINE (cppcoreguidelines-avoid-magic-numbers)
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, getAttitudeAngle(&context));
+}
 
 /**
  * Test that the PI controller induces no attitude shift at rest.
@@ -252,13 +410,12 @@ static void test_alignment_check_freezes_update_on_lateral_accel(void) {
  */
 static void test_integration_stable_at_high_angular_rate(void) {
     const float min_expected_pitch_change_rad = 0.5F;
-    const float strong_gyro_radps = (4.0F * kPI_F);
     const float pitch_before = angleAlongAxis(&context, kYaxis);
 
     // Apply violent pitch rotation for 0.5 s (50 steps at 100 Hz)
     const IMUsample violent_pitch = {
         .accelerometer_g[kZaxis] = 1.0F,
-        .gyroscope_radps[kYaxis] = strong_gyro_radps,
+        .gyroscope_radps[kYaxis] = kStrongGyro_radps,
     };
     iterate_filter(&context, &violent_pitch, kHighRateSteps);
 
