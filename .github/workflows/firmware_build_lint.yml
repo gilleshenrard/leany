@@ -263,9 +263,9 @@ jobs:
         working-directory: ${{github.workspace}}/firmware
         continue-on-error: true
         run : |
-          cmake -S tests -B build/host-tests -G Ninja
-          cmake --build build/host-tests
-          ctest --test-dir build/host-tests --output-on-failure
+            cmake --preset HOSTgcc
+            cmake --build --preset Tests
+            ctest --preset Tests
 
       - name : Display symbols size
         id : sizing
