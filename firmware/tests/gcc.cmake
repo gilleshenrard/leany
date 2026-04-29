@@ -1,33 +1,20 @@
 # SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
-#
 # SPDX-License-Identifier: MIT
 
-set(CMAKE_SYSTEM_NAME               Generic)
 set(CMAKE_SYSTEM_PROCESSOR          GNU)
 set(CMAKE_C_COMPILER_ID GNU)
 
 # Some default GCC settings
-set(CMAKE_C_COMPILER   gcc   CACHE FILEPATH "")
-set(CMAKE_CXX_COMPILER g++   CACHE FILEPATH "")
-set(CMAKE_ASM_COMPILER gcc   CACHE FILEPATH "")
-
-# --- LTO-safe archive tools ---
-set(CMAKE_AR     gcc-ar     CACHE FILEPATH "")
-set(CMAKE_RANLIB gcc-ranlib CACHE FILEPATH "")
-
-set(CMAKE_OBJCOPY objcopy CACHE FILEPATH "")
-set(CMAKE_SIZE    size    CACHE FILEPATH "")
+set(CMAKE_C_COMPILER    gcc   CACHE FILEPATH "")
+set(CMAKE_AR            gcc-ar     CACHE FILEPATH "")
+set(CMAKE_RANLIB        gcc-ranlib CACHE FILEPATH "")
+set(CMAKE_OBJCOPY       objcopy CACHE FILEPATH "")
+set(CMAKE_SIZE          size    CACHE FILEPATH "")
 
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Og -g3 -ggdb")
-
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fdata-sections -ffunction-sections")
-
-set(CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS} -x assembler-with-cpp -MMD -MP")
-set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -fno-rtti -fno-exceptions -fno-threadsafe-statics")
-
-set(CMAKE_C_LINK_FLAGS "${CMAKE_C_LINK_FLAGS} -Wl,--print-memory-usage")
 
 #declare GCC-specific warning flags
 set(WARNING_FLAGS
