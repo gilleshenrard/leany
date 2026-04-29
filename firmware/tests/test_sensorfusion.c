@@ -21,33 +21,29 @@ enum {
     kHighRateSteps = 50U,        ///< Number of steps in which high rate test is done
 };
 
-// NOLINTBEGIN (misc-use-internal-linkage)
-void test_controller_no_shift_at_rest(void);
-void test_gyro_integration_accumulates_correctly(void);
-void test_normalisation_prevents_drift_under_sustained_input(void);
-void test_alignment_check_freezes_update_on_lateral_accel(void);
-void test_integration_stable_at_high_angular_rate(void);
-// NOLINTEND
-
+//private functions
 static void iterate_filter(MahonyContext* filter_context, const IMUsample* sample, uint32_t steps);
 static float quat_norm(const Quaternion* quat);
+static void test_controller_no_shift_at_rest(void);
+static void test_gyro_integration_accumulates_correctly(void);
+static void test_normalisation_prevents_drift_under_sustained_input(void);
+static void test_alignment_check_freezes_update_on_lateral_accel(void);
+static void test_integration_stable_at_high_angular_rate(void);
 
+//constants
 static const float kNormTolerance = 0.005F;          ///< Tolerance for quaternion norm comparisons
 static const float kAngleTolerance_rad = 0.05F;      ///< Tolerance for angle comparisons in [rad] (~3 degrees)
 static const float kTickPeriod_sec = 0.01F;          ///< Simulated tick period in [s]: 10ms -> 100 Hz update rate
 static const float kPI_F = 3.14159265358979323846F;  ///< Pi, as a float value
+static const uint32_t kMaxTick = UINT32_MAX;         ///< Maximum value a system tick can take
 
-/**
- * All uint32_t bits set, used as max_tick.
- * getDT() masks with this value, making it a transparent modulo-wrap mask.
- */
-#define MAX_TICK_VALUE (UINT32_MAX)
-
+//state variables
 static MahonyContext context;                                             ///< Filter context used during tests
 static uint32_t current_tick;                                             ///< Simulated application tick
 static const IMUsample kPureGravity = {.accelerometer_g[kZaxis] = 1.0F};  ///< Sample pointing towards gravity
 
 /*********************************************************************************************************************************/
+// PUBLIC FUNCTIONS
 /*********************************************************************************************************************************/
 
 /**
@@ -79,7 +75,7 @@ void setUp(void) {
     context.kp = kProportionalGain;
     context.ki = kIntegralGain;
     context.dt.tick_period_seconds = kTickPeriod_sec;
-    context.dt.max_tick = MAX_TICK_VALUE;
+    context.dt.max_tick = kMaxTick;
     context.dt.current_tick = 0U;
     context.dt.previous_tick = 0U;
     context.align_check_enabled = 0U;
@@ -91,6 +87,10 @@ void setUp(void) {
  * Free up the resources used during each test
  */
 void tearDown(void) {}
+
+/*********************************************************************************************************************************/
+// TEST FUNCTIONS
+/*********************************************************************************************************************************/
 
 /**
  * Test that the PI controller induces no attitude shift at rest.
@@ -108,7 +108,7 @@ void tearDown(void) {}
  * test verifies no spurious drift accumulates through floating-point
  * approximation of zero over 2000 iterations.
  */
-void test_controller_no_shift_at_rest(void) {
+static void test_controller_no_shift_at_rest(void) {
     iterate_filter(&context, &kPureGravity, kConvergenceSteps);
 
     //make sure the attitude still points to pure gravity (within acceptable range)
@@ -135,7 +135,7 @@ void test_controller_no_shift_at_rest(void) {
  * skipped entirely, so the only active path is the quaternion derivative
  * and the Euler integration step.
  */
-void test_gyro_integration_accumulates_correctly(void) {
+static void test_gyro_integration_accumulates_correctly(void) {
     const float rate_90degrees_in_1sec = (kPI_F * 0.5F);
 
     // Switch to zero correction gains: the filter becomes a pure integrator
@@ -172,7 +172,7 @@ void test_gyro_integration_accumulates_correctly(void) {
  * Removing or breaking that call would cause this test to fail within
  * a few hundred iterations.
  */
-void test_normalisation_prevents_drift_under_sustained_input(void) {
+static void test_normalisation_prevents_drift_under_sustained_input(void) {
     const IMUsample skewed = {
         // NOLINTBEGIN (cppcoreguidelines-avoid-magic-numbers)
         .accelerometer_g = {0.1F, 0.2F, 0.95F},
@@ -206,7 +206,7 @@ void test_normalisation_prevents_drift_under_sustained_input(void) {
  * norm is valid. A 5G lateral shock would be rejected earlier by validateNorm()
  * and would never reach alignmentValid().
  */
-void test_alignment_check_freezes_update_on_lateral_accel(void) {
+static void test_alignment_check_freezes_update_on_lateral_accel(void) {
     iterate_filter(&context, &kPureGravity, kConvergenceSteps);
 
     context.align_check_enabled = 1U;
@@ -250,7 +250,7 @@ void test_alignment_check_freezes_update_on_lateral_accel(void) {
  * update under high rates - the pitch must change by at least 0.5 rad over 0.5s,
  * proving the filter is tracking rather than stalling.
  */
-void test_integration_stable_at_high_angular_rate(void) {
+static void test_integration_stable_at_high_angular_rate(void) {
     const float min_expected_pitch_change_rad = 0.5F;
     const float strong_gyro_radps = (4.0F * kPI_F);
     const float pitch_before = angleAlongAxis(&context, kYaxis);
@@ -271,6 +271,7 @@ void test_integration_stable_at_high_angular_rate(void) {
 }
 
 /*********************************************************************************************************************************/
+// HELPER FUNCTIONS
 /*********************************************************************************************************************************/
 
 /**
@@ -282,7 +283,7 @@ void test_integration_stable_at_high_angular_rate(void) {
  *
  * @param[out] filter_context Mahony filter context to update
  * @param[in] sample Constant IMU sample to feed
- * @param steps Number of update cycles to run.
+ * @param[in] steps Number of update cycles to run.
  */
 static void iterate_filter(MahonyContext* filter_context, const IMUsample* sample, uint32_t steps) {
     for (uint32_t i = 0U; i < steps; i++) {
