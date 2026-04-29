@@ -9,7 +9,7 @@
             "cacheVariables": {}
         },
         {
-            "name": "GCC",
+            "name": "ARMgcc",
             "hidden": true,
             "inherits": "default",
             "toolchainFile": "${sourceDir}/cmake/gcc-arm-none-eabi.cmake"
@@ -21,28 +21,41 @@
             "toolchainFile": "${sourceDir}/cmake/starm-clang.cmake"
         },
         {
+            "name": "HOSTgcc",
+            "inherits": "default",
+            "toolchainFile": "${sourceDir}/cmake/gcc.cmake",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "UNIT_TESTING": true
+            }
+        },
+        {
             "name": "Debug",
-            "inherits": "GCC",
+            "inherits": "ARMgcc",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug"
             }
         },
         {
             "name": "Release",
-            "inherits": "GCC",
+            "inherits": "ARMgcc",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release"
             }
         }
     ],
     "buildPresets": [
+        { "name": "Debug", "configurePreset": "Debug"},
+        { "name": "Release", "configurePreset": "Release"},
+        { "name": "Tests", "configurePreset": "HOSTgcc"}
+    ],
+    "testPresets": [
         {
-            "name": "Debug",
-            "configurePreset": "Debug"
-        },
-        {
-            "name": "Release",
-            "configurePreset": "Release"
+            "name": "Tests",
+            "configurePreset": "HOSTgcc",
+            "output": {
+                "outputOnFailure": true
+            }
         }
     ]
 }

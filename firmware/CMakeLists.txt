@@ -19,6 +19,13 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Debug")
 endif()
 
+# if set, configure unit-testing and exit
+if(UNIT_TESTING)
+    enable_testing()
+    add_subdirectory(tests)
+    return()
+endif()
+
 # Enable compile command to ease indexing with e.g. clangd
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 

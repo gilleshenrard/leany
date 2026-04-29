@@ -15,12 +15,21 @@ Firmware for **Leany**, an inclinometer project based on the **STM32F103 (ARM Co
 ## Building the Firmware
 
 1. Install the required tools by running the appropriate prerequisites installation script in `resources/`.
-2. Run the following command, with either **Debug** or **Release** as a configuration name :
+2. Run the following commands, with either **Debug** or **Release** as a configuration name :
 ```
 cmake --preset Release
 cmake --build --preset Release
 ```
 3. When the build task is complete, the firmware binary file (*.elf) can be found under build/<configuration_name>/
+
+## Run unit-testing
+1. Install the required tools by running the appropriate prerequisites installation script in `resources/`.
+2. Run the following commands :
+```
+cmake --preset HOSTgcc
+cmake --build --preset Tests
+ctest --preset Tests
+```
 
 ## Programming the device
 ### USB (programming only)
@@ -71,6 +80,7 @@ firmware/
 ├───cmake/
 │   ├───templates/
 │   ├───gcc-arm-none-eabi.cmake
+│   ├───gcc.cmake
 │   └───starm-clang.cmake
 ├───hardware/
 ├───resources/
@@ -80,9 +90,10 @@ firmware/
 │   └───install_prerequisites_windows.bat
 ├───tasks/
 ├───ui/
-├───utilities/
+├───tests/
+├───utils/
 ├───CMakeLists.json
-├───CMakeLists.json
+├───CMakePresets.json
 └───Doxyfile
 ```
 
@@ -128,6 +139,9 @@ Contains the implementation of the user interface
 
 ### `utilities/`
 Contains utility modules used across the whole applicaton (error stack, hardware events, ...)
+
+### `tests/`
+Contains a unit-testing suite
 
 ## Formatting, Code Quality, Linting, Documentation and licensing
 
