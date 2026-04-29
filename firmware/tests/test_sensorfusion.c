@@ -3,81 +3,40 @@
  * SPDX-License-Identifier: MIT
  *
  * @file test_sensorfusion.c
- * Unit tests for the Mahony AHRS filter using simulated IMU inputs.
- *
- * @details
- * All tests run on-host (x86). No HAL or sensor driver dependency is required.
- * Time is simulated by incrementing context.dt.current_tick directly before each
- * call to updateMahonyFilter(), since that function does not read
- * sample->latest_tick internally.
- *
- * ## Key implementation constraints respected here
- * - resetMahonyFilter() does NOT initialise kp, ki, kTickPeriod_sececonds,
- *   max_tick, or align_check_enabled. setUp() must set them explicitly.
- * - validateNorm() resets bad_acceleration_count to 0 on the first valid
- *   sample. Tests 4 feeds exactly (kMaxBadCounts - 1) bad samples to avoid
- *   triggering a full filter reset that would zero the counter.
- * - Test 2 uses kp=0, ki=0 to isolate pure first-order gyro integration,
- *   giving a known expected roll value. With nominal Kp=2.5, the accel
- *   correction actively fights the rotation and the expected angle is
- *   not analytically predictable.
- * - Test 4 uses a unit-norm but misaligned accel vector. A 5G lateral shock
- *   would fail validateNorm() before reaching alignmentValid(), making
- *   align_check_enabled irrelevant.
+ * @brief Unit tests for the Mahony AHRS filter using simulated IMU inputs.
  */
 
 #include <math.h>
 #include <stdint.h>
 #include <string.h>
+#include <unity.h>
+#include <unity_internals.h>
 
 #include "sensorfusion.h"
-#include "unity.h"
 
 static const float kPI_F = 3.14159265358979323846F;  ///< Pi, as a float value
 
 enum {
-    kConvergenceSteps = 2000U,  ///< Number of steps for the filter to reach a stable attitude from identity
-    kStepsIn1second = 100U,     ///< Steps representing exactly 1 second at 100 Hz
+    kConvergenceSteps = 2000U,   ///< Number of steps for the filter to reach a stable attitude from identity
+    kStepsIn1second = 100U,      ///< Steps representing exactly 1 second at 100 Hz
+    kAlignmentCheckSteps = 10U,  ///< Number of steps in which alignment test is done
+    kHighRateSteps = 50U,        ///< Number of steps in which high rate test is done
 };
 
-/**
- * Raw acceleration and gyroscope values along each axis
- */
-typedef struct {
-    float accel_x;  ///< Acceleration along X axis in [G]
-    float accel_y;  ///< Acceleration along Y axis in [G]
-    float accel_z;  ///< Acceleration along Z axis in [G]
-    float gyro_x;   ///< Rotation rate along X axis in [rad/s]
-    float gyro_y;   ///< Rotation rate along X axis in [rad/s]
-    float gyro_z;   ///< Rotation rate along X axis in [rad/s]
-} RawValue;
-
 // NOLINTBEGIN (misc-use-internal-linkage)
-void test_static_convergence_to_identity(void);
-void test_known_roll_rotation_90deg(void);
-void test_quaternion_norm_stays_unity(void);
-void test_lateral_acceleration_rejected_by_alignment_check(void);
-void test_strong_rotation_does_not_diverge(void);
+void test_controller_no_shift_at_rest(void);
+void test_gyro_integration_accumulates_correctly(void);
+void test_normalisation_prevents_drift_under_sustained_input(void);
+void test_alignment_check_freezes_update_on_lateral_accel(void);
+void test_integration_stable_at_high_angular_rate(void);
 // NOLINTEND
 
-static void run_filter(const RawValue* values, uint32_t steps);
+static void iterate_filter(MahonyContext* filter_context, const IMUsample* sample, uint32_t steps);
 static float quat_norm(const Quaternion* quat);
 
 static const float kNormTolerance = 0.005F;      ///< Tolerance for quaternion norm comparisons
 static const float kAngleTolerance_rad = 0.05F;  ///< Tolerance for angle comparisons in [rad] (~3 degrees)
-static const float kTickPeriod_sec = 0.01F;      ///< Simulated tick period in [s]: 10ms → 100 Hz update rate
-
-/**
- * Angular rate producing a 90-degree rotation in exactly 1 second, in [rad/s].
- * With kp=0 (pure integration), roll after kStepsIn1second ~ PI/2.
- */
-static const float kRate90DegreesIn1sec = (kPI_F * 0.5F);
-
-/**
- * Gyro rate for the strong rotation test (~720 deg/s), in [rad/s].
- * Used to verify numerical stability of the quaternion integration step.
- */
-static const float kStrongGyro_radps = (4.0F * kPI_F);
+static const float kTickPeriod_sec = 0.01F;      ///< Simulated tick period in [s]: 10ms -> 100 Hz update rate
 
 /**
  * All uint32_t bits set, used as max_tick.
@@ -85,29 +44,37 @@ static const float kStrongGyro_radps = (4.0F * kPI_F);
  */
 #define MAX_TICK_VALUE (UINT32_MAX)
 
-// /**
-//  * Number of consecutive bad-norm samples to feed in test 4.
-//  * Must be strictly less than kMaxBadCounts (5) to avoid triggering a
-//  * filter reset that would zero bad_acceleration_count before we read it.
-//  */
-// static const uint8_t kBadAccelSampleCount = 3U;
-
-static MahonyContext context;                             ///< Filter context used during tests
-static uint32_t current_tick;                             ///< Simulated application tick
-static const RawValue kUnityVectors = {.accel_z = 1.0F};  ///< Values representing a unity acceleration vector
+static MahonyContext context;                                             ///< Filter context used during tests
+static uint32_t current_tick;                                             ///< Simulated application tick
+static const IMUsample kPureGravity = {.accelerometer_g[kZaxis] = 1.0F};  ///< Sample pointing towards gravity
 
 /*********************************************************************************************************************************/
 /*********************************************************************************************************************************/
 
 /**
+ * Tests runner
+ *
+ * @return UNITY_END result 
+ */
+int main(void) {
+    UNITY_BEGIN();
+    RUN_TEST(test_controller_no_shift_at_rest);
+    RUN_TEST(test_gyro_integration_accumulates_correctly);
+    RUN_TEST(test_normalisation_prevents_drift_under_sustained_input);
+    RUN_TEST(test_alignment_check_freezes_update_on_lateral_accel);
+    RUN_TEST(test_integration_stable_at_high_angular_rate);
+    return UNITY_END();
+}
+
+/**
  * Initialise the filter context to a clean, known state before each test.
  *
- * @note
- * resetMahonyFilter() only resets the quaternion, error integrals, and bad
- * counters. All other fields must be set explicitly here.
+ * @internal
+ * resetMahonyFilter() only resets the quaternion, error integrals, and bad counters.
+ * All other fields must be set explicitly here.
  */
 void setUp(void) {
-    memset(&context, 0, sizeof(context));
+    (void)memset(&context, 0, sizeof(context));  // NOLINT (DeprecatedOrUnsafeBufferHandling)
     resetMahonyFilter(&context);
 
     context.kp = kProportionalGain;
@@ -122,107 +89,126 @@ void setUp(void) {
 }
 
 /**
- * Free up the resources used during testing
+ * Free up the resources used during each test
  */
 void tearDown(void) {}
 
 /**
- * Test 1 — Static convergence to identity
+ * Test that the PI controller induces no attitude shift at rest.
  *
  * @details
- * Input : accel = [0, 0, 1 G] (gravity along −Z body axis), gyro = [0, 0, 0].
- * Expect: roll → 0 rad, pitch → 0 rad, quaternion norm = 1.
+ * This is achieved by feeding 2000 steps of pure static gravity ([0, 0, 1G],
+ * zero gyro) into a freshly reset filter. Under these conditions, the
+ * cross-product error between measured and estimated gravity is zero from the
+ * first step, so the PI controller has nothing to correct. Example: measured
+ * = [0,0,1], estimated = [0,0,1] -> error = [0,0,1] × [0,0,1] = [0,0,0].
  *
- * Rationale: with no angular rate and gravity pointing straight down, the PI
- * controller must drive orientation errors to zero over time.
+ * @internal
+ * Exercises the kp and ki correction paths in updateMahonyFilter(). Both are
+ * skipped implicitly when the error vector is zero, not by a branch - so this
+ * test verifies no spurious drift accumulates through floating-point
+ * approximation of zero over 2000 iterations.
  */
-void test_static_convergence_to_identity(void) {
-    RawValue values = kUnityVectors;
-    run_filter(&values, kConvergenceSteps);
+void test_controller_no_shift_at_rest(void) {
+    iterate_filter(&context, &kPureGravity, kConvergenceSteps);
 
+    //make sure the attitude still points to pure gravity (within acceptable range)
     TEST_ASSERT_FLOAT_WITHIN(kAngleTolerance_rad, 0.0F, angleAlongAxis(&context, kXaxis));
     TEST_ASSERT_FLOAT_WITHIN(kAngleTolerance_rad, 0.0F, angleAlongAxis(&context, kYaxis));
     TEST_ASSERT_FLOAT_WITHIN(kNormTolerance, 1.0F, quat_norm(&context.attitude));
 }
 
 /**
- * Test 2 — Known roll rotation (pure gyro integration, kp = 0)
+ * Test that gyroscope integration accumulates angle correctly over time.
  *
- * @brief
- * Input : accel = [0, 0, 1 G], gyro = [Pi/2, 0, 0] for exactly 1 second.
- * Expect: roll ~ Pi/2 rad, quaternion norm = 1.
+ * @details
+ * This is achieved by zeroing kp and ki, turning the filter into a pure
+ * integrator, then feeding a constant roll rate of Pi/2 rad/s for exactly
+ * 1 second (100 steps × 0.01s). Under these conditions the accumulated angle
+ * is analytically predictable.
  *
- * Rationale: with kp = 0 the accel correction term is zeroed, leaving only
- * first-order Euler integration of the gyro. After 100 steps × 0.01 s × Pi/2
- * rad/s the accumulated angle is Pi/2. Quaternion normalisation each step
- * keeps the norm at 1 with negligible angle error (< kAngleTolerance_rad).
+ * @par Example
+ * gyro_x = Pi/2 rad/s, dt = 0.01s, 100 steps -> roll = Pi/2 rad/s × 1s = Pi/2 rad
  *
- * Note: using nominal Kp=2.5 here would require knowing the exact convergence
- * behaviour of the PI controller during rotation, which is not analytically
- * tractable for a unit test.
+ * @internal
+ * Exercises integrateGyroMeasurements() in isolation. With kp and ki zeroed,
+ * applyProportionate() adds zero correction and the integral branch is
+ * skipped entirely, so the only active path is the quaternion derivative
+ * and the Euler integration step.
  */
-void test_known_roll_rotation_90deg(void) {
-    RawValue values = kUnityVectors;
-    run_filter(&values, kConvergenceSteps);
+void test_gyro_integration_accumulates_correctly(void) {
+    const float rate_90degrees_in_1sec = (kPI_F * 0.5F);
 
     // Switch to zero correction gains: the filter becomes a pure integrator
     context.kp = 0.0F;
     context.ki = 0.0F;
 
-    // Apply roll rate for exactly 1 second.
-    RawValue roll_values = {
-        .accel_z = 1.0F,
-        .gyro_x = kRate90DegreesIn1sec,
+    // Apply roll rate for exactly 1 second
+    const IMUsample roll_rate = {
+        .accelerometer_g[kZaxis] = 1.0F,
+        .gyroscope_radps[kXaxis] = rate_90degrees_in_1sec,
     };
-    run_filter(&roll_values, kStepsIn1second);
+    iterate_filter(&context, &roll_rate, kStepsIn1second);
 
-    TEST_ASSERT_FLOAT_WITHIN(kAngleTolerance_rad, kRate90DegreesIn1sec, angleAlongAxis(&context, kXaxis));
+    //make sure the final angle and norm are correct (within acceptable range)
+    TEST_ASSERT_FLOAT_WITHIN(kAngleTolerance_rad, rate_90degrees_in_1sec, angleAlongAxis(&context, kXaxis));
     TEST_ASSERT_FLOAT_WITHIN(kNormTolerance, 1.0F, quat_norm(&context.attitude));
 }
 
 /**
- * Test 3 — Quaternion norm stability under sustained arbitrary input
- *
- * @brief
- * Input : off-axis accel + multi-axis gyro, for 2000 steps.
- * Expect: quaternion norm stays within 1.0 +- kNormTolerance.
- *
- * Rationale: verifies that numerical drift in the first-order Euler integration
- * is fully corrected by the per-step quaternion normalisation.
- */
-void test_quaternion_norm_stays_unity(void) {
-    RawValue skewed = {
-        .accel_x = 0.1F,   // NOLINT (cppcoreguidelines-avoid-magic-numbers)
-        .accel_y = 0.2F,   // NOLINT (cppcoreguidelines-avoid-magic-numbers)
-        .accel_z = 0.95F,  // NOLINT (cppcoreguidelines-avoid-magic-numbers)
-        .gyro_x = 0.1F,    // NOLINT (cppcoreguidelines-avoid-magic-numbers)
-        .gyro_y = -0.2F,   // NOLINT (cppcoreguidelines-avoid-magic-numbers)
-        .gyro_z = 0.3F,    // NOLINT (cppcoreguidelines-avoid-magic-numbers)
-    };
-    run_filter(&skewed, kConvergenceSteps);
-
-    TEST_ASSERT_FLOAT_WITHIN(kNormTolerance, 1.0F, quat_norm(&context.attitude));
-}
-
-/**
- * Test 4 — Strong lateral acceleration rejected by alignment check
+ * Test that quaternion normalisation prevents norm drift under sustained arbitrary input.
  *
  * @details
- * Input : accel = [0.6, 0, 0.8 G] (norm ~ 1.0, but 37° off the Z axis),
- *         gyro = [0, 0, 0], align_check_enabled = 1.
- * Expect: attitude is frozen (all updates skipped), norm = 1.
+ * This is achieved by feeding 2000 steps of off-axis acceleration and
+ * multi-axis gyro into the filter. Under these conditions, first-order Euler
+ * integration introduces a small norm error at every step that, left
+ * uncorrected, would accumulate into significant drift.
  *
- * Rationale: after convergence the estimated gravity is [0, 0, 1]. The dot
- * product with normalised [0.6, 0, 0.8] is 0.8, which is below
- * kMinAlignmentCosine (cos 15° ~ 0.9659). alignmentValid() returns 0 and
- * updateMahonyFilter() returns early without touching the quaternion.
+ * @par Example
+ * accel = [0.1, 0.2, 0.95G], gyro = [0.1, -0.2, 0.3 rad/s] → norm must
+ * remain within [0.995, 1.005] after 2000 steps
  *
- * Note: a 5 G lateral shock would fail validateNorm() before ever reaching
- * alignmentValid(), so align_check_enabled would play no role in that case.
+ * @internal
+ * Exercises normaliseQuaternion() under sustained non-trivial input.
+ * Removing or breaking that call would cause this test to fail within
+ * a few hundred iterations.
  */
-void test_lateral_acceleration_rejected_by_alignment_check(void) {
-    RawValue values = kUnityVectors;
-    run_filter(&values, kConvergenceSteps);
+void test_normalisation_prevents_drift_under_sustained_input(void) {
+    const IMUsample skewed = {
+        // NOLINTBEGIN (cppcoreguidelines-avoid-magic-numbers)
+        .accelerometer_g = {0.1F, 0.2F, 0.95F},
+        .gyroscope_radps = {0.1F, -0.2F, 0.3F},
+        // NOLINTEND
+    };
+    iterate_filter(&context, &skewed, kConvergenceSteps);
+
+    //make sure the norm value is still within acceptable range
+    TEST_ASSERT_FLOAT_WITHIN(kNormTolerance, 1.0F, quat_norm(&context.attitude));
+}
+
+/**
+ * Test that the alignment check freezes quaternion updates on lateral acceleration.
+ *
+ * @details
+ * This is achieved by enabling align_check_enabled after convergence, then
+ * feeding 10 steps of a unit-norm but horizontally biased acceleration vector.
+ * Under these conditions the dot product between measured and estimated gravity
+ * falls below kMinAlignmentCosine, indicating linear motion rather than
+ * gravity, and updateMahonyFilter() must return without touching the quaternion.
+ *
+ * @par Example
+ * accel = [0.6, 0, 0.8G] → norm = 1.0 (passes validateNorm),
+ * dot([0.6, 0, 0.8], [0, 0, 1]) = 0.8 < 0.9659 (fails alignmentValid) →
+ * quaternion unchanged
+ *
+ * @internal
+ * Exercises the alignmentValid() early-return path in updateMahonyFilter(),
+ * which is only reached when align_check_enabled is set and the acceleration
+ * norm is valid. A 5G lateral shock would be rejected earlier by validateNorm()
+ * and would never reach alignmentValid().
+ */
+void test_alignment_check_freezes_update_on_lateral_accel(void) {
+    iterate_filter(&context, &kPureGravity, kConvergenceSteps);
 
     context.align_check_enabled = 1U;
 
@@ -231,14 +217,13 @@ void test_lateral_acceleration_rejected_by_alignment_check(void) {
 
     /*
      * Feed 10 samples with a unit-norm but horizontally biased accel.
-     * norm([0.6, 0, 0.8]) = sqrt(0.36 + 0 + 0.64) = 1.0 → passes validateNorm.
-     * dot([0.6, 0, 0.8], [0, 0, 1]) = 0.8 < 0.9659 → fails alignmentValid.
+     * norm([0.6, 0, 0.8]) = sqrt(0.36 + 0 + 0.64) = 1.0 -> passes validateNorm.
+     * dot([0.6, 0, 0.8], [0, 0, 1]) = 0.8 < 0.9659 -> fails alignmentValid.
      */
-    RawValue unit_norm_values = {
-        .accel_x = 0.6F,  // NOLINT (cppcoreguidelines-avoid-magic-numbers)
-        .accel_z = 0.8F,  // NOLINT (cppcoreguidelines-avoid-magic-numbers)
+    const IMUsample unit_norm_values = {
+        .accelerometer_g = {0.6F, 0.0F, 0.8F},
     };
-    run_filter(&unit_norm_values, 10U);  // NOLINT (cppcoreguidelines-avoid-magic-numbers)
+    iterate_filter(&context, &unit_norm_values, kAlignmentCheckSteps);
 
     // The quaternion must be bit-identical (no update happened)
     // NOLINTBEGIN (cppcoreguidelines-avoid-magic-numbers)
@@ -251,52 +236,39 @@ void test_lateral_acceleration_rejected_by_alignment_check(void) {
 }
 
 /**
- * Test 5 — High angular rate does not blow up the quaternion
+ * Test that the quaternion integration remains stable at high angular rates.
  *
- * @brief
- * Input : accel = [0, 0, 1 G], gyro = [0, 4Pi, 0] (~720 deg/s pitch), 50 steps.
- * Expect: quaternion norm stays at 1.0, pitch angle changes by > 0.5 rad.
+ * @details
+ * This is achieved by feeding 50 steps of violent pitch rotation (4Pi rad/s, ~720°/s)
+ * into a converged filter. Under these conditions, each Euler integration step adds
+ * a large delta to the quaternion components before normalisation corrects it.
+ * Example: at 4Pi rad/s with dt=0.01s, each step adds ~0.063 to a component before
+ * normaliseQuaternion() pulls the norm back to 1.
  *
- * Rationale: at 4Pi rad/s with dt = 0.01 s, each integration step adds
- * |dq|·dt ~ 0.063 to each quaternion component before normalisation. This
- * verifies that normaliseQuaternion() successfully prevents norm blow-up
- * and that the filter tracks (not freezes) the motion.
+ * @internal
+ * Exercises normaliseQuaternion() under near-worst-case integration stress. Also
+ * verifies that the PI correction path in applyProportionate() does not freeze the
+ * update under high rates - the pitch must change by at least 0.5 rad over 0.5s,
+ * proving the filter is tracking rather than stalling.
  */
-void test_strong_rotation_does_not_diverge(void) {
-    RawValue values = kUnityVectors;
-    run_filter(&values, kConvergenceSteps);
-
+void test_integration_stable_at_high_angular_rate(void) {
+    const float min_expected_pitch_change_rad = 0.5F;
+    const float strong_gyro_radps = (4.0F * kPI_F);
     const float pitch_before = angleAlongAxis(&context, kYaxis);
 
     // Apply violent pitch rotation for 0.5 s (50 steps at 100 Hz)
-    RawValue violent_pitch = {
-        .accel_z = 1.0F,
-        .gyro_y = kStrongGyro_radps,
+    const IMUsample violent_pitch = {
+        .accelerometer_g[kZaxis] = 1.0F,
+        .gyroscope_radps[kYaxis] = strong_gyro_radps,
     };
-    run_filter(&violent_pitch, 50U);  // NOLINT (cppcoreguidelines-avoid-magic-numbers)
+    iterate_filter(&context, &violent_pitch, kHighRateSteps);
 
     const float pitch_after = angleAlongAxis(&context, kYaxis);
 
     TEST_ASSERT_FLOAT_WITHIN(kNormTolerance, 1.0F, quat_norm(&context.attitude));
 
     // The pitch must have moved by at least 0.5 rad — the filter is tracking
-    TEST_ASSERT_GREATER_THAN_FLOAT(0.5F,  // NOLINT (cppcoreguidelines-avoid-magic-numbers)
-                                   fabsf(pitch_after - pitch_before));
-}
-
-/**
- * Tests runner
- *
- * @return UNITY_END result 
- */
-int main(void) {
-    UNITY_BEGIN();
-    RUN_TEST(test_static_convergence_to_identity);
-    RUN_TEST(test_known_roll_rotation_90deg);
-    RUN_TEST(test_quaternion_norm_stays_unity);
-    RUN_TEST(test_lateral_acceleration_rejected_by_alignment_check);
-    RUN_TEST(test_strong_rotation_does_not_diverge);
-    return UNITY_END();
+    TEST_ASSERT_GREATER_THAN_FLOAT(min_expected_pitch_change_rad, fabsf(pitch_after - pitch_before));
 }
 
 /*********************************************************************************************************************************/
@@ -305,26 +277,18 @@ int main(void) {
 /**
  * Feed N identical IMU samples into the filter.
  *
- * @details ctx.dt.current_tick is set to the current current_tick value before
+ * @details filter_context->dt.current_tick is set to the current current_tick value before
  * each call because updateMahonyFilter() derives elapsed time from
- * ctx.dt.current_tick and ctx.dt.previoucurrent_tick, not from sample->latest_tick.
+ * filter_context->dt.current_tick and filter_context->dt.previous_tick, not from sample->latest_tick.
  *
- * @param values Raw values to use in the test
+ * @param[out] filter_context Mahony filter context to update
+ * @param[in] sample Constant IMU sample to feed
  * @param steps Number of update cycles to run.
  */
-static void run_filter(const RawValue* values, uint32_t steps) {
-    IMUsample sample;
-    memset(&sample, 0, sizeof(sample));
-    sample.accelerometer_g[kXaxis] = values->accel_x;
-    sample.accelerometer_g[kYaxis] = values->accel_y;
-    sample.accelerometer_g[kZaxis] = values->accel_z;
-    sample.gyroscope_radps[kXaxis] = values->gyro_x;
-    sample.gyroscope_radps[kYaxis] = values->gyro_y;
-    sample.gyroscope_radps[kZaxis] = values->gyro_z;
-
+static void iterate_filter(MahonyContext* filter_context, const IMUsample* sample, uint32_t steps) {
     for (uint32_t i = 0U; i < steps; i++) {
-        context.dt.current_tick = current_tick;
-        updateMahonyFilter(&context, &sample);
+        filter_context->dt.current_tick = current_tick;
+        updateMahonyFilter(filter_context, sample);
         current_tick++;
     }
 }
