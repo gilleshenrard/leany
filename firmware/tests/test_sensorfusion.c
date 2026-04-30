@@ -28,6 +28,7 @@ static uint8_t isContextReset(const MahonyContext* filter_context);
 static void test_null_pointer_guards(void);
 static void test_tick_handles_overflow(void);
 static void test_bad_samples_counter_resets_correctly(void);
+static void test_alignment_check_disabled_allows_update(void);
 static void test_yaw_angle_returns_0(void);
 static void test_correct_attitude_angle_calculation(void);
 static void test_controller_no_shift_at_rest(void);
@@ -35,6 +36,9 @@ static void test_gyro_integration_accumulates_correctly(void);
 static void test_normalisation_prevents_drift_under_sustained_input(void);
 static void test_alignment_check_freezes_update_on_lateral_accel(void);
 static void test_integration_stable_at_high_angular_rate(void);
+static void test_integral_clamped_on_windup(void);
+static void test_out_of_range_axis_returns_0(void);
+static void test_bad_quaternion_counter_resets_filter_at_threshold(void);
 
 //constants
 static const float kNormTolerance = 0.005F;             ///< Tolerance for quaternion norm comparisons
@@ -63,6 +67,7 @@ int main(void) {
     RUN_TEST(test_null_pointer_guards);
     RUN_TEST(test_tick_handles_overflow);
     RUN_TEST(test_bad_samples_counter_resets_correctly);
+    RUN_TEST(test_alignment_check_disabled_allows_update);
     RUN_TEST(test_yaw_angle_returns_0);
     RUN_TEST(test_correct_attitude_angle_calculation);
     RUN_TEST(test_controller_no_shift_at_rest);
@@ -70,6 +75,9 @@ int main(void) {
     RUN_TEST(test_normalisation_prevents_drift_under_sustained_input);
     RUN_TEST(test_alignment_check_freezes_update_on_lateral_accel);
     RUN_TEST(test_integration_stable_at_high_angular_rate);
+    RUN_TEST(test_integral_clamped_on_windup);
+    RUN_TEST(test_out_of_range_axis_returns_0);
+    RUN_TEST(test_bad_quaternion_counter_resets_filter_at_threshold);
     return UNITY_END();
 }
 
@@ -144,6 +152,10 @@ static void test_null_pointer_guards(void) {
     // NOLINTNEXTLINE (DeprecatedOrUnsafeBufferHandling)
     equals = (memcmp(&old_context, &context, sizeof(MahonyContext)) == 0);
     TEST_ASSERT_FALSE_MESSAGE(equals, "Normal update condition failed");
+
+    //test getting an angles with a NULL context
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, angleAlongAxis(NULL, kXaxis));
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, getAttitudeAngle(NULL));
 }
 
 /**
@@ -215,21 +227,46 @@ static void test_bad_samples_counter_resets_correctly(void) {
     //enable alignment check and feed the maximum number of bad acceleration values
     context.dt.current_tick = 1U;
     context.align_check_enabled = 1U;
-    for (uint8_t attempt = 0; attempt < kMaxBadCounts; attempt++) {
-        updateMahonyFilter(&context, &bad_sample);
-    }
+    iterate_filter(&context, &bad_sample, kMaxBadCounts);
     TEST_ASSERT_TRUE_MESSAGE(isContextReset(&context), "Maximum bad attempts test failed");
 
     //reset the context and feed (max - 1) bad values, then one good
-    setUp();
+    (void)memset(&context, 0, sizeof(context));  // NOLINT (DeprecatedOrUnsafeBufferHandling)
+    resetMahonyFilter(&context);
+    context.kp = kProportionalGain;
+    context.ki = kIntegralGain;
+    context.dt.tick_period_seconds = kTickPeriod_sec;
+    context.dt.max_tick = kMaxTick;
     context.attitude.q1 = 0.1F;  // non-identity so recovery is distinguishable from reset
     context.dt.current_tick = 1U;
     context.align_check_enabled = 1U;
-    for (uint8_t attempt = 0; attempt < (kMaxBadCounts - 1U); attempt++) {
-        updateMahonyFilter(&context, &bad_sample);
-    }
+    iterate_filter(&context, &bad_sample, (kMaxBadCounts - 1U));
     updateMahonyFilter(&context, &kPureGravity);
     TEST_ASSERT_FALSE_MESSAGE(isContextReset(&context), "Recovery without reset failed");
+}
+
+/**
+ * @brief Test that disabling the alignment check allows misaligned acceleration updates.
+ *
+ * @details
+ * This is achieved by feeding a unit-norm but horizontally biased acceleration
+ * vector with align_check_enabled=0. Under these conditions validateNorm passes
+ * and alignmentValid is never called, so the filter must update.
+ * Example: accel=[0.6, 0, 0.8G] → norm=1.0 (passes validateNorm),
+ * dot=0.8 < 0.9659 (would fail alignmentValid if enabled) → filter updates.
+ *
+ * @internal
+ * Exercises the align_check_enabled guard in updateMahonyFilter(), which
+ * short-circuits the alignmentValid() call entirely when cleared.
+ * Complements test_alignment_check_freezes_update_on_lateral_accel.
+ */
+static void test_alignment_check_disabled_allows_update(void) {
+    const IMUsample misaligned = {.accelerometer_g = {0.6F, 0.0F, 0.8F}};
+    const Quaternion attitude_before = context.attitude;
+    context.dt.current_tick = 1U;
+
+    updateMahonyFilter(&context, &misaligned);
+    TEST_ASSERT_NOT_EQUAL_FLOAT(attitude_before.q0, context.attitude.q0);
 }
 
 /**
@@ -444,6 +481,92 @@ static void test_integration_stable_at_high_angular_rate(void) {
 
     // The pitch must have moved by at least 0.1 rad — the filter is tracking
     TEST_ASSERT_GREATER_THAN_FLOAT(min_expected_pitch_change_rad, fabsf(pitch_after - pitch_before));
+}
+
+/**
+ * Test that integral terms are clamped to prevent windup under sustained error.
+ *
+ * @details
+ * This is achieved by zeroing kp and setting a high ki, then feeding a purely
+ * lateral acceleration vector for 10 steps. Under these conditions the cross-product
+ * error on the Y axis is large and non-zero from identity, driving the integral to
+ * saturation within the first step.
+ * Example: accel=[1,0,0], body_estimates=[0,0,1] → error[Y] = 0*0 - 1*1 = -1.0 →
+ * integral[Y] += 100 * (-1.0) * 0.01s = -1.0 → clamped to -0.3.
+ *
+ * @internal
+ * Exercises the clamp() call applied to each error_integrals[axis] inside
+ * updateMahonyFilter(). kExpectedMaxIntegral mirrors the private kMaxIntegralError
+ * constant in sensorfusion.c — any change to that constant must be reflected here.
+ * kp=0 removes the proportional path so only the integral branch is active.
+ */
+static void test_integral_clamped_on_windup(void) {
+    // mirrors kMaxIntegralError in sensorfusion.c
+    static const float kExpectedMaxIntegral = 0.3F;
+    // ki > kMaxIntegralError / (|error| * dt) = 0.3 / (1.0 * 0.01) = 30 guarantees
+    // saturation in one step; 100 gives safe margin
+    static const float kHighKi = 100.0F;  // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+
+    context.kp = 0.0F;
+    context.ki = kHighKi;
+
+    // Purely lateral: norm=1 (passes validateNorm), produces error[Y]=-1 from identity
+    const IMUsample lateral = {
+        .accelerometer_g = {1.0F, 0.0F, 0.0F},  // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+    };
+    iterate_filter(&context, &lateral, kAlignmentCheckSteps);
+
+    // Y-axis integral must be saturated at -kExpectedMaxIntegral after first step
+    TEST_ASSERT_FLOAT_WITHIN(kNormTolerance, -kExpectedMaxIntegral, context.error_integrals[kYaxis]);
+    // All integrals must remain within the symmetric clamp range
+    for (uint8_t axis = 0U; axis < kNBaxis; axis++) {
+        TEST_ASSERT_FLOAT_WITHIN(kExpectedMaxIntegral, 0.0F, context.error_integrals[axis]);
+    }
+}
+
+/**
+ * Test that an out-of-range axis value returns zero from angleAlongAxis.
+ *
+ * @details
+ * This is achieved by passing kNBaxis to angleAlongAxis() on a freshly reset
+ * context. kNBaxis is not a valid measurement axis and must never produce an
+ * angle estimate. Example: angleAlongAxis(&ctx, kNBaxis) → 0.0F.
+ *
+ * @internal
+ * Exercises the explicit kNBaxis case in the switch statement of
+ * angleAlongAxis(), which exists alongside the default case to document the
+ * no-op contract for sentinel values. Without this test, removing the case
+ * would go unnoticed since default already covers it.
+ */
+static void test_out_of_range_axis_returns_0(void) {
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, angleAlongAxis(&context, kNBaxis));
+}
+
+/**
+ * Test that the bad quaternion counter resets the filter at threshold.
+ *
+ * @details
+ * This is achieved by forcing a near-zero quaternion before each update call
+ * for exactly kMaxBadCounts iterations. Under these conditions normaliseQuaternion()
+ * bails early (norm < kCloseToZero = 1e-3), leaving an un-normalised quaternion
+ * that validateNorm() then rejects, incrementing bad_quaternion_count each time.
+ * Example: q=[0.0001, 0, 0, 0] → norm=0.0001 < 1e-3 → normalisation skipped →
+ * |norm - 1.0| = 0.9999 > kMaxNormEpsilon → bad_quaternion_count++.
+ *
+ * @internal
+ * Exercises the bad_quaternion_count threshold in validateNorm(). Direct
+ * quaternion manipulation is required because this path cannot be reached
+ * through normal Euler integration: all four quaternion components collapsing
+ * toward zero simultaneously has no physical equivalent under any sensor input.
+ */
+static void test_bad_quaternion_counter_resets_filter_at_threshold(void) {
+    for (uint8_t attempt = 0U; attempt < kMaxBadCounts; attempt++) {
+        // Force near-zero norm so normaliseQuaternion bails, triggering validateNorm rejection
+        context.attitude = (Quaternion){.q0 = 0.0001F};  // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+        context.dt.current_tick = (uint32_t)(attempt + 1U);
+        updateMahonyFilter(&context, &kPureGravity);
+    }
+    TEST_ASSERT_TRUE_MESSAGE(isContextReset(&context), "bad_quaternion_count failed to trigger reset");
 }
 
 /*********************************************************************************************************************************/
