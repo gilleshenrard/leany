@@ -192,24 +192,25 @@ static void test_tick_handles_overflow(void) {
 }
 
 /**
- * Test that the linear acceleration filter resets the context after too many strong accelerations
+ * Test that the bad sample counter resets the filter at threshold and
+ * clears on valid input before threshold.
  *
  * @details
- * This is achieved by feeding the maximum number of bad values admitted, and checking if the filter was resetted.
- * Then check with (max - 1) values to see if the context is safe
+ * This is achieved in two sub-cases. First, kMaxBadCounts consecutive
+ * out-of-range acceleration samples are fed — the filter must reset to
+ * identity on the final one. Second, (kMaxBadCounts - 1) bad samples followed
+ * by one valid sample are fed — the counter must clear without triggering a
+ * reset. Example: 5 bad samples → q0=1, integrals=0; 4 bad + 1 good →
+ * filter not reset, bad_acceleration_count=0.
  *
  * @internal
- * Max. bad values will reset the filter
+ * Exercises the increment and threshold logic in validateNorm(), and the
+ * counter-clear path on the first valid sample after a bad streak. The
+ * second sub-case specifically guards against off-by-one errors in the
+ * threshold comparison.
  */
 static void test_bad_samples_counter_resets_correctly(void) {
     const IMUsample bad_sample = {.accelerometer_g[kXaxis] = 5.0F};
-
-    //prepare a copy of context with resetted values
-    MahonyContext reset_context;
-    memset(&reset_context, 0, sizeof(MahonyContext));
-    reset_context = context;
-    reset_context.dt.current_tick = 1U;
-    reset_context.align_check_enabled = 1U;
 
     //enable alignment check and feed the maximum number of bad acceleration values
     context.dt.current_tick = 1U;
@@ -217,11 +218,7 @@ static void test_bad_samples_counter_resets_correctly(void) {
     for (uint8_t attempt = 0; attempt < kMaxBadCounts; attempt++) {
         updateMahonyFilter(&context, &bad_sample);
     }
-
-    //test whether the context resetted after all bad values
-    // NOLINTNEXTLINE (DeprecatedOrUnsafeBufferHandling)
-    uint8_t equals = (memcmp(&reset_context, &context, sizeof(MahonyContext)) == 0);
-    TEST_ASSERT_TRUE_MESSAGE(equals, "Maximum bad attempts test failed");
+    TEST_ASSERT_TRUE_MESSAGE(isContextReset(&context), "Maximum bad attempts test failed");
 
     //reset the context and feed (max - 1) bad values, then one good
     setUp();
@@ -231,11 +228,7 @@ static void test_bad_samples_counter_resets_correctly(void) {
         updateMahonyFilter(&context, &bad_sample);
     }
     updateMahonyFilter(&context, &kPureGravity);
-
-    //test whether the context wasn't resetted because of the last good one
-    // NOLINTNEXTLINE (DeprecatedOrUnsafeBufferHandling)
-    equals = (memcmp(&reset_context, &context, sizeof(MahonyContext)) == 0);
-    TEST_ASSERT_FALSE_MESSAGE(equals, "Recovery without reset failed");
+    TEST_ASSERT_FALSE_MESSAGE(isContextReset(&context), "Recovery without reset failed");
 }
 
 /**
