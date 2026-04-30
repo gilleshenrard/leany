@@ -222,6 +222,7 @@ static void test_bad_samples_counter_resets_correctly(void) {
 
     //reset the context and feed (max - 1) bad values, then one good
     setUp();
+    context.attitude.q1 = 0.1F;  // non-identity so recovery is distinguishable from reset
     context.dt.current_tick = 1U;
     context.align_check_enabled = 1U;
     for (uint8_t attempt = 0; attempt < (kMaxBadCounts - 1U); attempt++) {
@@ -441,7 +442,7 @@ static void test_integration_stable_at_high_angular_rate(void) {
 
     TEST_ASSERT_FLOAT_WITHIN(kNormTolerance, 1.0F, quat_norm(&context.attitude));
 
-    // The pitch must have moved by at least 0.5 rad — the filter is tracking
+    // The pitch must have moved by at least 0.1 rad — the filter is tracking
     TEST_ASSERT_GREATER_THAN_FLOAT(min_expected_pitch_change_rad, fabsf(pitch_after - pitch_before));
 }
 
