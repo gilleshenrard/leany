@@ -24,6 +24,7 @@ enum {
 //private functions
 static void iterate_filter(MahonyContext* filter_context, const IMUsample* sample, uint32_t steps);
 static float quat_norm(const Quaternion* quat);
+static uint8_t isContextReset(const MahonyContext* filter_context);
 static void test_null_pointer_guards(void);
 static void test_tick_handles_overflow(void);
 static void test_bad_samples_counter_resets_correctly(void);
@@ -104,13 +105,19 @@ void tearDown(void) {}
 /*********************************************************************************************************************************/
 
 /**
- * Test that NULL parameters will leave the context unchanged
+ * Test that NULL parameters do not modify the filter context.
  *
  * @details
- * This is achieved by feeding mixes of contexts and violent pitches and see if changes are duly avoided
+ * This is achieved by calling updateMahonyFilter() three times: once with a
+ * NULL context, once with a NULL sample, and once with valid parameters. Under
+ * the first two conditions the context must remain bit-identical to its initial
+ * state; under the third it must differ, proving the valid path does update.
+ * Example: updateMahonyFilter(NULL, &sample) → context unchanged.
  *
  * @internal
- * Any NULL parameter should make updateMahonyFilter() leave without doing anything
+ * Exercises the NULL guard at the entry of updateMahonyFilter(). The third
+ * call verifies the guard does not over-reject valid input, making it a
+ * combined positive and negative test.
  */
 static void test_null_pointer_guards(void) {
     const MahonyContext old_context = context;
@@ -140,47 +147,48 @@ static void test_null_pointer_guards(void) {
 }
 
 /**
- * Test that the tick wraparound protection avoids triggering a reset at context update
+ * Test that tick wraparound does not trigger a spurious filter reset.
  *
  * @details
- * This is achieved by resetting two contexts and putting one in a position of tick wraparound,
- * then comparing both after update
+ * This is achieved by setting previous_tick near UINT32_MAX and current_tick
+ * near zero, then running one update. Under these conditions getDT() computes
+ * the correct elapsed time via bitmask subtraction rather than overflowing.
+ * Example: previous_tick = UINT32_MAX - 5, current_tick = 3 →
+ * delta = (3 - (UINT32_MAX - 5)) & UINT32_MAX = 9 ticks = 0.09s (valid).
+ * Also verifies that dT=0 and dT>5s each trigger a reset.
  *
  * @internal
- * Any invalid dT triggers resetMahonyFilter()
+ * Exercises the bitmask subtraction in getDT() and the bounds check in
+ * isDTvalid(). The dT=0 and dT>5s sub-cases exercise the reset branch in
+ * updateMahonyFilter(), which currently lacks a return after the reset call —
+ * those sub-cases are expected to fail until that bug is fixed.
  */
 static void test_tick_handles_overflow(void) {
-    MahonyContext overflow_context;
-    MahonyContext reset_context;
+    const IMUsample violent_pitch = {
+        .accelerometer_g[kZaxis] = 1.0F,
+        .gyroscope_radps[kYaxis] = kStrongGyro_radps,
+    };
 
-    memset(&reset_context, 0, sizeof(MahonyContext));
-    memset(&overflow_context, 0, sizeof(MahonyContext));
-    resetMahonyFilter(&reset_context);
-    resetMahonyFilter(&overflow_context);
-
-    //test tick wraparound -> no reset
-    overflow_context.dt.previous_tick = (kMaxTick - 5U);  // NOLINT (cppcoreguidelines-avoid-magic-numbers)
-    overflow_context.dt.current_tick = 3U;
-    updateMahonyFilter(&overflow_context, &kPureGravity);
-    // NOLINTNEXTLINE (DeprecatedOrUnsafeBufferHandling)
-    uint8_t different = (memcmp(&overflow_context, &reset_context, sizeof(MahonyContext)) != 0);
-    TEST_ASSERT_TRUE_MESSAGE(different, "Correct wraparound context failed");
+    // Test tick wraparound -> no reset
+    // Tilt the quaternion slightly so a valid update and a reset produce
+    // distinguishable states — identity after reset vs. rotated after update
+    context.attitude.q1 = 0.1F;
+    context.dt.previous_tick = (kMaxTick - 5U);  // NOLINT (cppcoreguidelines-avoid-magic-numbers)
+    context.dt.current_tick = 3U;
+    updateMahonyFilter(&context, &violent_pitch);
+    TEST_ASSERT_FALSE_MESSAGE(isContextReset(&context), "Correct wraparound context failed");
 
     //test dT = 0 ticks -> filter reset
-    overflow_context.dt.previous_tick = overflow_context.dt.current_tick;
-    updateMahonyFilter(&overflow_context, &kPureGravity);
-    // NOLINTNEXTLINE (DeprecatedOrUnsafeBufferHandling)
-    different = (memcmp(&overflow_context, &reset_context, sizeof(MahonyContext)) != 0);
-    TEST_ASSERT_FALSE_MESSAGE(different, "dT 0s context failed");
+    context.dt.previous_tick = context.dt.current_tick;
+    updateMahonyFilter(&context, &violent_pitch);
+    TEST_ASSERT_TRUE_MESSAGE(isContextReset(&context), "dT 0s context failed");
 
     //test dT > 5s -> filter reset
     const uint32_t tick_dt_5s = (uint32_t)(5.0F / kTickPeriod_sec);
-    overflow_context.dt.previous_tick = 0;
-    overflow_context.dt.current_tick = tick_dt_5s;
-    updateMahonyFilter(&overflow_context, &kPureGravity);
-    // NOLINTNEXTLINE (DeprecatedOrUnsafeBufferHandling)
-    different = (memcmp(&overflow_context, &reset_context, sizeof(MahonyContext)) != 0);
-    TEST_ASSERT_FALSE_MESSAGE(different, "dT > 5s context failed");
+    context.dt.previous_tick = 0;
+    context.dt.current_tick = tick_dt_5s;
+    updateMahonyFilter(&context, &violent_pitch);
+    TEST_ASSERT_TRUE_MESSAGE(isContextReset(&context), "dT > 5s context failed");
 }
 
 /**
@@ -458,4 +466,28 @@ static void iterate_filter(MahonyContext* filter_context, const IMUsample* sampl
  */
 static float quat_norm(const Quaternion* quat) {
     return sqrtf((quat->q0 * quat->q0) + (quat->q1 * quat->q1) + (quat->q2 * quat->q2) + (quat->q3 * quat->q3));
+}
+
+/**
+ * Check whether the filter context is in a reset state.
+ *
+ * @details
+ * A reset context has: attitude quaternion = identity [1,0,0,0], all error
+ * integrals = 0, and both bad sample counters = 0. These are exactly the
+ * fields touched by resetMahonyFilter().
+ *
+ * @param filter_context Filter context to inspect
+ * @retval 1 Context matches a reset state
+ * @retval 0 Context has diverged from a reset state
+ */
+static uint8_t isContextReset(const MahonyContext* filter_context) {
+    const float default_integrals[kNBaxis] = {0.0F, 0.0F, 0.0F};
+    const Quaternion unit_quaternion = {.q0 = 1.0F, .q1 = 0.0F, .q2 = 0.0F, .q3 = 0.0F};
+
+    // NOLINTBEGIN (DeprecatedOrUnsafeBufferHandling)
+    const uint8_t quat_resetted = (memcmp(&filter_context->attitude, &unit_quaternion, sizeof(Quaternion)) == 0);
+    const uint8_t integrals_resetted = (memcmp(&filter_context->error_integrals, &default_integrals, (kNBaxis * sizeof(float))) == 0);
+    // NOLINTEND
+
+    return (quat_resetted && integrals_resetted && (filter_context->bad_acceleration_count == 0) && (filter_context->bad_quaternion_count == 0));
 }
