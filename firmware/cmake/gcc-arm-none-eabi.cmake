@@ -56,49 +56,84 @@ set(CMAKE_CXX_LINK_FLAGS "${CMAKE_C_LINK_FLAGS} -Wl,--start-group -lstdc++ -lsup
 
 #declare GCC-specific warning flags
 set(WARNING_FLAGS
-	-Wall
-	-Wextra
-	-Werror
-	-pedantic
-	-pedantic-errors
-	-Waggressive-loop-optimizations
-	-Wbad-function-cast
-	-Wbuiltin-macro-redefined
-	-Wdate-time
-	-Wdisabled-optimization
-	-Wdiscarded-array-qualifiers
-	-Wdiscarded-qualifiers
-	-Wdiv-by-zero
-	-Wduplicated-branches
-	-Wduplicated-cond
-	-Wfloat-equal
-	-Wignored-attributes
-	-Winline
-	-Winvalid-memory-model
-	-Winvalid-pch
-	-Wjump-misses-init
-	-Wlogical-op
-	-Wlogical-not-parentheses
-	-Wmissing-declarations
-	-Wmissing-include-dirs
-	-Wnested-externs
-	-Wnormalized=nfc
-	-Wnull-dereference
-	-Wredundant-decls
-	-Wtrampolines
-	-Wunsuffixed-float-constants
-	-Wswitch-default
-	-Wswitch-unreachable
-	-Wswitch-enum
-	-Wconversion
-	-Wshadow
-	-Wformat=2
-	-Wformat-truncation
-	-Wformat-signedness
-	-Wundef
-	-fno-common
-	-Wdouble-promotion	# only on 32-bits microcontrollers
-	-fstack-usage
-	-fanalyzer
-	-ffast-math
+# --- Core error policy ---
+-Wall
+-Wextra
+-Werror
+-pedantic
+-pedantic-errors
+-fmax-errors=0
+
+# --- Flow and logic ---
+-Waggressive-loop-optimizations
+-Wduplicated-branches
+-Wduplicated-cond
+-Wjump-misses-init
+-Wlogical-op
+-Wlogical-not-parentheses
+-Wswitch-default
+-Wswitch-enum
+-Wswitch-unreachable
+
+# --- Arithmetic and conversion ---
+-Wfloat-equal
+-Wdouble-promotion                # 32-bit MCU only: implicit float->double promotion
+-Wconversion
+-Warith-conversion                # narrowing in arithmetic expressions, not caught by -Wconversion
+-Wunsuffixed-float-constants
+
+# --- Pointers and casts ---
+-Wbad-function-cast
+-Wcast-qual                       # cast removes const/volatile qualifier
+-Wcast-align=strict               # pointer cast increases alignment requirement
+-Wpointer-arith                   # arithmetic on void* or function pointers
+-Wnull-dereference
+-Wdiscarded-array-qualifiers
+-Wdiscarded-qualifiers
+
+# --- Stack and memory (embedded) ---
+-Walloca                          # prohibit alloca (NASA rule 10 equivalent)
+-Wvla                             # prohibit variable-length arrays (NASA rule 10)
+-fstack-usage                     # emit .su files for stack analysis by STM32CubeMX
+
+# --- Declarations and prototypes ---
+-Wmissing-declarations
+-Wmissing-prototypes
+-Wstrict-prototypes
+-Wredundant-decls
+-Wnested-externs
+
+# --- Preprocessor and macros ---
+-Wbuiltin-macro-redefined
+-Wdate-time
+-Wundef
+
+# --- Format strings ---
+-Wformat=2
+-Wformat-truncation=2
+-Wformat-signedness
+
+# --- Attributes and inlining ---
+-Wignored-attributes
+-Winline
+-Wtrampolines
+
+# --- Miscellaneous ---
+-Wdisabled-optimization
+-Winvalid-memory-model
+-Winvalid-pch
+-Wmissing-include-dirs
+-Wnormalized=nfc
+-Wshadow
+-Wdiv-by-zero
+-Wbidi-chars=any
+
+# --- Analysis ---
+-fanalyzer
+
+# --- Optimisation ---
+-ffast-math						# disables strict IEEE 754 — verify against sensorfusion if behaviour differs
+
+# --- Linker ---
+-fno-common
 )

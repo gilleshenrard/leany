@@ -45,9 +45,21 @@
         }
     ],
     "buildPresets": [
-        { "name": "Debug", "configurePreset": "Debug"},
-        { "name": "Release", "configurePreset": "Release"},
-        { "name": "Tests", "configurePreset": "HOSTgcc"}
+        { "name": "Debug", "configurePreset": "Debug",
+            "nativeToolOptions": [
+                "-k", "0"
+            ]
+        },
+        { "name": "Release", "configurePreset": "Release",
+            "nativeToolOptions": [
+                "-k", "0"
+            ]
+        },
+        { "name": "Tests", "configurePreset": "HOSTgcc",
+            "nativeToolOptions": [
+                "-k", "0"
+            ]
+        }
     ],
     "testPresets": [
         {
