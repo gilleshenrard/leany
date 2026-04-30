@@ -82,7 +82,6 @@ static const float kCloseToZero = 1e-3F;            ///< Value used to compare f
 static const float kMinAlignmentCosine = 0.9659F;   ///< cosine value for 15°, used as a maximum alignment angle
 static const float kMaxAlignmentCosine = 1.00001F;  ///< maximum alignment angle cosine acceptable
 static const float kMaxNormEpsilon = 0.15F;         ///< Maximum deviation of a norm around 1
-static const float kMaxIntegralError = 0.3F;        ///< Maximum integral error absolute value accepted
 static const float kMinValidDTseconds = 1e-6F;      ///< Minimum acceptable timespan between updates
 static const float kMaxValidDTseconds = 0.5F;       ///< Maximum acceptable timespan between updates
 
