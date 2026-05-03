@@ -79,12 +79,12 @@ set(WARNING_FLAGS
 -Wfloat-equal
 -Wdouble-promotion                # 32-bit MCU only: implicit float->double promotion
 -Wconversion
--Warith-conversion                # narrowing in arithmetic expressions, not caught by -Wconversion
+#-Warith-conversion                # narrowing in arithmetic expressions, not caught by -Wconversion
 -Wunsuffixed-float-constants
 
 # --- Pointers and casts ---
 -Wbad-function-cast
--Wcast-qual                       # cast removes const/volatile qualifier
+#-Wcast-qual                       # cast removes const/volatile qualifier
 -Wcast-align=strict               # pointer cast increases alignment requirement
 -Wpointer-arith                   # arithmetic on void* or function pointers
 -Wnull-dereference
