@@ -43,6 +43,7 @@ enum {
     kNbTickRegisters = 4U,       ///< Number of sensor tick registers
     kDriftAlignment = 32U,       ///< Memory alignment of the TemperatureDrift struct
     kNbSelfTestRegisters = 10U,  ///< Number of registers to write during self-test
+    kNbAverage = 5U,             ///< Number of elements used to calculate an average
 };
 
 /**
@@ -485,9 +486,8 @@ static ErrorCode getAverageMeasures(SPIregister first_register, SPIregister avai
     EXIT_ON_ERROR(result, kAverageMeasures, 1)
 
     //read 5 values for each axis
-    const uint8_t nb_average = 5U;
-    int16_t raw[nb_average][kNBaxis];
-    for (uint8_t data_set = 0; data_set < nb_average; data_set++) {
+    int16_t raw[kNbAverage][kNBaxis];
+    for (uint8_t data_set = 0; data_set < kNbAverage; data_set++) {
         result = waitAndRead(first_register, available_mask, raw[data_set]);
         EXIT_ON_ERROR(result, kAverageMeasures, 2)
     }
@@ -496,7 +496,7 @@ static ErrorCode getAverageMeasures(SPIregister first_register, SPIregister avai
     for (uint8_t axis = 0; axis < (uint8_t)kNBaxis; axis++) {
         measures[axis] = (int16_t)(((int32_t)raw[0][axis] + (int32_t)raw[1][axis] + (int32_t)raw[2][axis] +
                                     (int32_t)raw[3][axis] + (int32_t)raw[4][axis]) /
-                                   (int32_t)nb_average);
+                                   (int32_t)kNbAverage);
     }
 
     return kSuccessCode;

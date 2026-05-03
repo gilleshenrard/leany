@@ -62,9 +62,9 @@ ErrorCode uncompressIcon(Icon icon, Bitmap* bitmap_metadata, ColourBigEndian for
     const IconMetadata* icon_metadata = (IconMetadata*)&kDescriptors[icon];
     const void* icon_bitmap = NULL;
     if (icon == kIconWarning) {
-        icon_bitmap = (BitmapRow*)&kLargeIconsPool[icon_metadata->pool_offset];
+        icon_bitmap = &kLargeIconsPool[icon_metadata->pool_offset];
     } else {
-        icon_bitmap = (uint32_t*)&kIconsPool[icon_metadata->pool_offset];
+        icon_bitmap = &kIconsPool[icon_metadata->pool_offset];
     }
 
     bitmap_metadata->width_px = icon_metadata->width_px;
