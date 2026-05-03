@@ -538,9 +538,7 @@ static void test_integral_clamped_on_windup(void) {
  * no-op contract for sentinel values. Without this test, removing the case
  * would go unnoticed since default already covers it.
  */
-static void test_out_of_range_axis_returns_0(void) {
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, angleAlongAxis(&context, kNBaxis));
-}
+static void test_out_of_range_axis_returns_0(void) { TEST_ASSERT_EQUAL_FLOAT(0.0F, angleAlongAxis(&context, kNBaxis)); }
 
 /**
  * Test that the bad quaternion counter resets the filter at threshold.
@@ -620,8 +618,10 @@ static uint8_t isContextReset(const MahonyContext* filter_context) {
 
     // NOLINTBEGIN (DeprecatedOrUnsafeBufferHandling)
     const uint8_t quat_resetted = (memcmp(&filter_context->attitude, &unit_quaternion, sizeof(Quaternion)) == 0);
-    const uint8_t integrals_resetted = (memcmp(&filter_context->error_integrals, &default_integrals, (kNBaxis * sizeof(float))) == 0);
+    const uint8_t integrals_resetted =
+        (memcmp(&filter_context->error_integrals, &default_integrals, (kNBaxis * sizeof(float))) == 0);
     // NOLINTEND
 
-    return (quat_resetted && integrals_resetted && (filter_context->bad_acceleration_count == 0) && (filter_context->bad_quaternion_count == 0));
+    return (quat_resetted && integrals_resetted && (filter_context->bad_acceleration_count == 0) &&
+            (filter_context->bad_quaternion_count == 0));
 }
