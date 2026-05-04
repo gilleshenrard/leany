@@ -80,14 +80,14 @@
                 "command": "powershell.exe",
                 "args": [
                     "-Command",
-                    "(Get-Content '${command:cmake.buildDirectory}\\compile_commands.json') -replace ''-fanalyzer'','''' | Set-Content '${command:cmake.buildDirectory}\\compile_commands.json'"
+                    "(Get-Content '${command:cmake.buildDirectory}\\compile_commands.json') -replace ''-fanalyzer'','''' -replace ''-fmax-errors=0'','''' | Set-Content '${command:cmake.buildDirectory}\\compile_commands.json'"
                 ]
             },
             "linux": {
                 "command": "sed",
                 "args": [
                     "-i",
-                    "s/-fanalyzer//g",
+                    "/-fanalyzer/g;/-fmax-errors=0/g",
                     "${command:cmake.buildDirectory}/compile_commands.json"
                 ]
             },
