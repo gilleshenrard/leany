@@ -61,7 +61,7 @@ ErrorCode uncompressLabel(const Label* label, Pixel* buffer, const char string[]
     for (uint8_t character = 0; character < string_length; character++) {
         const uint8_t index = getCharIndex(label->font, string[character]);
         char_indexes[character] = index;
-        string_width_px += label->font->descriptors[index].width_px;
+        string_width_px = (uint8_t)(string_width_px + label->font->descriptors[index].width_px);
     }
     if (string_width_px > label->width_px) {
         return createErrorCode(1, 2, kErrorError);
@@ -121,7 +121,7 @@ static ErrorCode uncompressStringBitmaps(const uint8_t indexes[kStringMaxLength]
         if (char_width_px == 0U) {
             return createErrorCode(2, 2, kErrorError);
         }
-        offset_metadata.x_offset_px += char_width_px;
+        offset_metadata.x_offset_px = (char)(offset_metadata.x_offset_px + char_width_px);
     }
 
     return kSuccessCode;
@@ -145,7 +145,7 @@ static uint8_t getStringXoffset(const Label* label, uint8_t string_width_px) {
 
     switch (label->alignment) {
         case kAlignmentRight:
-            return (uint8_t)((label->width_px - string_width_px) - 1U);
+            return (uint8_t)((label->width_px - string_width_px) - (uint8_t)1U);
             break;
 
         case kAlignmentLeft:
@@ -154,7 +154,7 @@ static uint8_t getStringXoffset(const Label* label, uint8_t string_width_px) {
 
         case kAlignmentCentered:
         default:
-            return (uint8_t)((label->width_px - string_width_px) / 2U);
+            return (uint8_t)((label->width_px - string_width_px) / (uint8_t)2U);
             break;
     }
 }
@@ -178,7 +178,7 @@ static void wipeLabelLeftRight(const Label* label, Pixel* buffer, uint8_t x_offs
         }
 
         for (uint8_t column = 0; column < right_empty_width_px; column++) {
-            label_row[label->width_px - column - 1U] = kColourBackground;
+            label_row[label->width_px - column - (uint8_t)1U] = kColourBackground;
         }
     }
 }

@@ -46,7 +46,7 @@ extern uint16_t display_buffer[kFrameBufferSize];
  * @param area Window of which get the width
  * @return Width in [pixels]
  */
-static inline uint8_t getAreaWidth(const Area* area) { return (uint8_t)(area->x1 - area->x0 + 1U); }
+static inline uint8_t getAreaWidth(const Area* area) { return (uint8_t)(area->x1 - area->x0 + (uint8_t)1U); }
 
 /**
  * Get the height of a display window in [pixels]
@@ -54,5 +54,5 @@ static inline uint8_t getAreaWidth(const Area* area) { return (uint8_t)(area->x1
  * @param area Window of which get the height
  * @return Height in [pixels]
  */
-static inline uint8_t getAreaHeight(const Area* area) { return (uint8_t)(area->y1 - area->y0 + 1U); }
+static inline uint8_t getAreaHeight(const Area* area) { return (uint8_t)(area->y1 - area->y0 + (uint8_t)1U); }
 #endif

@@ -91,7 +91,8 @@ static char battery_voltage[kMaxBatterySize + 1U];           ///< String holding
 ErrorCode setupSystemScreen(void) {
     ErrorCode result;
 
-    const uint8_t title_label_y = (uint8_t)((kTitleSectionHeightPx - kInterV_7pt_alpha_descriptor.height_px) / 2U);
+    const uint8_t title_label_y =
+        (uint8_t)((kTitleSectionHeightPx - kInterV_7pt_alpha_descriptor.height_px) / (uint8_t)2U);
     system_info_label = (Label){
         .width_px = 110U,        // NOLINT (cppcoreguidelines-avoid-magic-numbers)
         .x_left = 9U,            // NOLINT (cppcoreguidelines-avoid-magic-numbers)
@@ -170,8 +171,8 @@ static ErrorCode initialiseSections(Section sections_array[kNbSections]) {
     //precompute coordinates
     const uint8_t label_margin_px = 7U;
     const uint8_t label_width_px = (kDisplayHeight / 2U);
-    const uint8_t label_y = (uint8_t)((kSectionHeightPx - kInterV_7pt_alpha_descriptor.height_px) / 2U);
-    const uint8_t label_top = (kTitleSectionHeightPx + label_y);
+    const uint8_t label_y = (uint8_t)((kSectionHeightPx - kInterV_7pt_alpha_descriptor.height_px) / (uint8_t)2U);
+    const uint8_t label_top = (uint8_t)(kTitleSectionHeightPx + label_y);
 
     for (uint8_t index = 0; index < (uint8_t)kNbSections; index++) {
         Section* section = &sections_array[index];
@@ -180,14 +181,14 @@ static ErrorCode initialiseSections(Section sections_array[kNbSections]) {
         section->title_label = (Label){.font = &kInterV_7pt_alpha_descriptor,
                                        .width_px = label_width_px,
                                        .x_left = label_margin_px,
-                                       .y_top = label_top + (uint8_t)(index * kSectionHeightPx),
+                                       .y_top = (uint8_t)(label_top + (uint8_t)(index * kSectionHeightPx)),
                                        .alignment = kAlignmentLeft};
 
         //initialise the value label
         section->value_label = (Label){.font = &kInterV_7pt_alpha_descriptor,
                                        .width_px = label_width_px,
                                        .x_left = (kDisplayHeight - label_width_px - label_margin_px),
-                                       .y_top = label_top + (uint8_t)(index * kSectionHeightPx),
+                                       .y_top = (uint8_t)(label_top + (uint8_t)(index * kSectionHeightPx)),
                                        .alignment = kAlignmentRight};
 
         ErrorCode result = printSection(section, index, label_margin_px);
@@ -228,7 +229,7 @@ static ErrorCode printSection(const Section* section, uint8_t index, uint8_t lab
     //initialise the separator
     const Area separator = {.x0 = label_margin_px,
                             .y0 = (uint8_t)(kTitleSectionHeightPx + ((index + 1U) * kSectionHeightPx) - (uint8_t)1U),
-                            .x1 = kDisplayHeight - label_margin_px,
+                            .x1 = (uint8_t)(kDisplayHeight - label_margin_px),
                             .y1 = (uint8_t)(kTitleSectionHeightPx + ((index + 1U) * kSectionHeightPx) - (uint8_t)1U)};
 
     result = printRectangle(display_buffer, kFrameBufferSize, &separator, kColourDecoration);

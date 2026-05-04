@@ -51,7 +51,7 @@ ErrorCode uncompressBitmap(Bitmap* metadata, const void* bitmap, ColourBigEndian
 
     for (uint8_t row = 0; row < metadata->height_px; row++) {
         const uint16_t container_offset =
-            (uint16_t)((row + metadata->y_offset_px) * metadata->container_width_px) + metadata->x_offset_px;
+            (uint16_t)(((row + metadata->y_offset_px) * metadata->container_width_px) + metadata->x_offset_px);
 
         Pixel* pixel = &metadata->output_buffer[container_offset];
         if (metadata->width_px <= kSmallRowWidthPx) {

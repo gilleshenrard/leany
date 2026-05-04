@@ -108,8 +108,8 @@ void drawBatteryLevelBars(Pixel buffer[], uint8_t battery_percent, bool charging
     const uint8_t battery_width_px = kDescriptors[kIconBattery].width_px;
     for (uint8_t level = 0; level < nb_bars; level++) {
         for (uint8_t row = 0; row < 4U; row++) {
-            uint16_t buffer_offset = (uint16_t)((row + y_margin) * battery_width_px) + x_margin;
-            buffer_offset += (uint16_t)(level * bar_width);
+            uint16_t buffer_offset = (uint16_t)(((row + y_margin) * battery_width_px) + x_margin);
+            buffer_offset = (uint16_t)(buffer_offset + (uint16_t)(level * bar_width));
 
             Pixel* bar_row = &buffer[buffer_offset];
             bar_row[0] = (Pixel)bars_colour;

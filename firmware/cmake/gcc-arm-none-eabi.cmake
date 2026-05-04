@@ -79,7 +79,7 @@ set(WARNING_FLAGS
 -Wfloat-equal
 -Wdouble-promotion                # 32-bit MCU only: implicit float->double promotion
 -Wconversion
-#-Warith-conversion                # narrowing in arithmetic expressions, not caught by -Wconversion
+-Warith-conversion                # narrowing in arithmetic expressions, not caught by -Wconversion
 -Wunsuffixed-float-constants
 
 # --- Pointers and casts ---
