@@ -188,7 +188,7 @@ void floatToString(float value, char out_buffer[], uint8_t buffer_size, uint8_t 
         fpart *= 10.0F;  // NOLINT (cppcoreguidelines-avoid-magic-numbers)
     }
     //NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
-    (void)leany_snprintf(&out_buffer[written + 1], (buffer_size - written - 1U), "%u", (uint16_t)fpart);
+    (void)leany_snprintf(&out_buffer[written + 1], ((size_t)buffer_size - written - 1U), "%u", (uint16_t)fpart);
 }
 
 /**
@@ -225,7 +225,7 @@ void intToString(uint32_t value, char out_buffer[], uint8_t buffer_size) {
     uint8_t index = 0U;
     while ((index < buffer_size - 1U) && (magnitude > 0U)) {
         uint8_t digit = (uint8_t)(value / magnitude);
-        out_buffer[index] = ascii_digit_offset + (char)digit;
+        out_buffer[index] = (char)(ascii_digit_offset + digit);
         value %= magnitude;
         magnitude /= decimal_base;
         index++;

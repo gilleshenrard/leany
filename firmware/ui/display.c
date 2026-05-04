@@ -66,11 +66,11 @@ ErrorCode printLabel(const Label* label, const char* string, uint8_t string_size
         label->x_left,
         label->y_top,
         (uint8_t)(label->x_left + label->width_px - (uint8_t)1U),
-        (uint8_t)(label->y_top + character_height_px - 1U),
+        (uint8_t)(label->y_top + character_height_px - (uint8_t)1U),
         // clang-format on
     };
 
-    result = sendScreenData(display_buffer, (label->width_px * character_height_px * sizeof(Pixel)),
+    result = sendScreenData(display_buffer, ((size_t)label->width_px * character_height_px * sizeof(Pixel)),
                             kFrameBufferSize * sizeof(Pixel), &character_area);
     EXIT_ON_ERROR(result, kPrintLabel, 2)
     return kSuccessCode;
@@ -109,12 +109,12 @@ ErrorCode fillBackground(Pixel* buffer, size_t buffer_size, Orientation orientat
             chunk_height = (uint8_t)(display_height - lines_sent);
         }
 
-        const size_t nb_bytes = chunk_height * display_width * sizeof(Pixel);
+        const size_t nb_bytes = ((size_t)chunk_height * display_width * sizeof(Pixel));
         const Area chunk_area = {0, lines_sent, (uint8_t)(display_width - 1U),
-                                 (uint8_t)(lines_sent + chunk_height - 1U)};
+                                 (uint8_t)(lines_sent + chunk_height - (uint8_t)1U)};
         result = sendScreenData(buffer, nb_bytes, buffer_size * sizeof(Pixel), &chunk_area);
 
-        lines_sent += chunk_height;
+        lines_sent = (uint8_t)(lines_sent + chunk_height);
     } while ((lines_sent < display_height) && !isError(result));
 
     EXIT_ON_ERROR(result, kFillBackground, 1)
@@ -146,9 +146,9 @@ ErrorCode printRectangle(Pixel* buffer, size_t buffer_size, const Area* area, Co
     }
 
     //compute the width and height, and check the area height
-    const uint8_t width_px = (uint8_t)(area->x1 - area->x0) + 1U;
-    const uint8_t height_px = (uint8_t)(area->y1 - area->y0) + 1U;
-    const size_t size_px = (width_px * height_px);
+    const uint8_t width_px = (uint8_t)((area->x1 - area->x0) + (uint8_t)1U);
+    const uint8_t height_px = (uint8_t)((area->y1 - area->y0) + (uint8_t)1U);
+    const size_t size_px = (size_t)(width_px * height_px);
     if (size_px > buffer_size) {
         return createErrorCode(kPrintVertLine, 3, kErrorError);
     }
@@ -197,7 +197,7 @@ ErrorCode printStatusBar(uint8_t holding_status, uint8_t zeroing_status, uint8_t
     result = getBatteryStatus(&battery_status);
     EXIT_ON_ERROR(result, kSetupStatus, 3)
 
-    battery_indicator = (BatteryIndicator){.x = screen_width_px - kBatteryScreenOffset,
+    battery_indicator = (BatteryIndicator){.x = (uint8_t)(screen_width_px - kBatteryScreenOffset),
                                            .y = kStatusIconsY,
                                            .label = {
                                                .width_px = 25U,  // NOLINT (cppcoreguidelines-avoid-magic-numbers)
@@ -237,9 +237,9 @@ ErrorCode printIcon(Icon icon, uint8_t x_left_px, uint8_t y_top_px, ColourBigEnd
     EXIT_ON_ERROR(result, kPrintIcon, 1)
 
     const uint8_t icon_height_px = getIconHeight(icon);
-    const Area character_area = {x_left_px, y_top_px, (uint8_t)(x_left_px + icon_width_px - 1U),
-                                 (uint8_t)(y_top_px + icon_height_px - 1U)};
-    result = sendScreenData(display_buffer, (icon_width_px * icon_height_px * sizeof(Pixel)), kFrameBufferSize,
+    const Area character_area = {x_left_px, y_top_px, (uint8_t)(x_left_px + icon_width_px - (uint8_t)1U),
+                                 (uint8_t)(y_top_px + icon_height_px - (uint8_t)1U)};
+    result = sendScreenData(display_buffer, ((size_t)icon_width_px * icon_height_px * sizeof(Pixel)), kFrameBufferSize,
                             &character_area);
     EXIT_ON_ERROR(result, kPrintIcon, 2)
 
@@ -272,13 +272,13 @@ ErrorCode printBatteryIndicator(const BatteryStatus* status, BatteryIndicator* i
     const uint8_t icon_height_px = getIconHeight(kIconBattery);
     const Area character_area = {
         // clang-format off
-        indicator->x + kBatteryIconXoffset,
+        (uint8_t)(indicator->x + kBatteryIconXoffset),
         indicator->y,
         (uint8_t)(indicator->x + kBatteryIconXoffset + icon_width_px - (uint8_t)1U),
-        (uint8_t)(indicator->y + icon_height_px - 1U)
+        (uint8_t)(indicator->y + icon_height_px - (uint8_t)1U)
         // clang-format on
     };
-    result = sendScreenData(display_buffer, (icon_width_px * icon_height_px * sizeof(Pixel)), kFrameBufferSize,
+    result = sendScreenData(display_buffer, ((size_t)icon_width_px * icon_height_px * sizeof(Pixel)), kFrameBufferSize,
                             &character_area);
     EXIT_ON_ERROR(result, kPrintIcon, 3)
 
@@ -298,12 +298,12 @@ ErrorCode printBatteryIndicator(const BatteryStatus* status, BatteryIndicator* i
         // clang-format off
         indicator->x,
         indicator->y,
-        (uint8_t)(indicator->x + kBatteryLabelWidthPX - 1U),
-        (uint8_t)(indicator->y + label_height - 1U)
+        (uint8_t)(indicator->x + kBatteryLabelWidthPX - (uint8_t)1U),
+        (uint8_t)(indicator->y + label_height - (uint8_t)1U)
         // clang-format on
     };
-    result = sendScreenData(display_buffer, (kBatteryLabelWidthPX * label_height * sizeof(Pixel)), kFrameBufferSize,
-                            &percentage_area);
+    result = sendScreenData(display_buffer, ((size_t)kBatteryLabelWidthPX * label_height * sizeof(Pixel)),
+                            kFrameBufferSize, &percentage_area);
 
     return result;
 }

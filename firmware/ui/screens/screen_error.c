@@ -101,7 +101,7 @@ ErrorCode setupErrorScreen(const ErrorCode* error) {
     result = printStatusBar(isIMUmeasurementsHolding(), isIMUzeroed(), kDisplayWidth);
     EXIT_ON_ERROR(result, kSetup, 2)
 
-    const uint8_t warning_offset_x = (uint8_t)((kDisplayWidth - getIconWidth(kIconWarning)) / 2U);
+    const uint8_t warning_offset_x = (uint8_t)((kDisplayWidth - getIconWidth(kIconWarning)) / (uint8_t)2U);
     result = printIcon(kIconWarning, warning_offset_x, kStatusBarHeight + kWarningIconYoffsetPx, kColourCritical);
     EXIT_ON_ERROR(result, kSetup, 5)
 

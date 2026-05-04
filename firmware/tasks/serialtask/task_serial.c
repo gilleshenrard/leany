@@ -317,7 +317,7 @@ static ErrorCode dumpScpiCommandTree(void) {
 
         // if current node has no child, print it
         if (current_frame->next_child_index == 0U) {
-            error_code = sendScpiTreeLine(current_node, stack_depth - (uint8_t)1U);
+            error_code = sendScpiTreeLine(current_node, (uint8_t)(stack_depth - 1U));
             EXIT_ON_ERROR(error_code, kDumpTree, 2)
         }
 

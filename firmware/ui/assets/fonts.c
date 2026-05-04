@@ -149,7 +149,7 @@ uint8_t uncompressCharacter(const FontMetadata* font, uint8_t character_index, C
     bitmap_metadata->height_px = font->height_px;
 
     //retrieve the character bitmap
-    const uint16_t pool_offset = (character_index * font->height_px);
+    const uint16_t pool_offset = (uint16_t)(character_index * font->height_px);
     const BitmapRow* character_bitmap = &font->bitmaps[pool_offset];
 
     //uncompress the final bitmap

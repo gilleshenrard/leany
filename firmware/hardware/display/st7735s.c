@@ -88,13 +88,13 @@ static DMA dma_descriptor =  ///< Descriptor of the DMA channel used to send dat
 //NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 ErrorCode setWindow(uint8_t x_start, uint8_t y_start, uint8_t width, uint8_t height) {
     //set the data window columns count
-    const uint8_t columns[4] = {0, x_start + kOffsets[0].x_offset_px, 0,
+    const uint8_t columns[4] = {0, (uint8_t)(x_start + kOffsets[0].x_offset_px), 0,
                                 (uint8_t)(x_start + kOffsets[0].x_offset_px + width - (uint8_t)1U)};
     result = writeRegisters(&dma_descriptor.spi, kCASET, columns, 4);
     EXIT_ON_ERROR(result, kSetWindow, 1)
 
     //set the data window rows count
-    const uint8_t rows[4] = {0, y_start + kOffsets[0].y_offset_px, 0,
+    const uint8_t rows[4] = {0, (uint8_t)(y_start + kOffsets[0].y_offset_px), 0,
                              (uint8_t)(y_start + kOffsets[0].y_offset_px + height - (uint8_t)1U)};
     result = writeRegisters(&dma_descriptor.spi, kRASET, rows, 4);
     EXIT_ON_ERROR(result, kSetWindow, 2)
