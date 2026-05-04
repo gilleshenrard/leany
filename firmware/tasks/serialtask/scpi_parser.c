@@ -45,7 +45,7 @@ typedef enum {
 static void stateWaitingForStartChararcter(char new_char);
 static uint8_t stateBufferingCharacters(char new_char, GenericCommand* command_received);
 static uint8_t stateBufferingParameter(char new_char, GenericCommand* command_received);
-static Node* searchMatchingChildNode(const Node* tree_node, const char* command, uint8_t command_size);
+static const Node* searchMatchingChildNode(const Node* tree_node, const char* command, uint8_t command_size);
 static uint8_t populateCommand(const Node* scpi_node, GenericCommand* command);
 
 //constants
@@ -224,7 +224,7 @@ static uint8_t stateBufferingParameter(char new_char, GenericCommand* command_re
  * @param command_size  Number of characters in the command
  * @return Address of the node if found, NULL otherwise
  */
-static Node* searchMatchingChildNode(const Node* tree_node, const char* command, const uint8_t command_size) {
+static const Node* searchMatchingChildNode(const Node* tree_node, const char* command, const uint8_t command_size) {
     //no node or node does not have any children
     if (!tree_node || !tree_node->children) {
         return NULL;
@@ -244,7 +244,7 @@ static Node* searchMatchingChildNode(const Node* tree_node, const char* command,
         //if command matches either the short or the long name, return the node's address
         if (!compareString(child_command->short_name, short_length, command, short_length) ||
             !compareString(child_command->long_name, short_length, command, long_length)) {
-            return (Node*)&tree_node->children[index];
+            return &tree_node->children[index];
         }
     }
 

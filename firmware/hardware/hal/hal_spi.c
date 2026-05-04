@@ -247,7 +247,7 @@ ErrorCode writeRegisters(SPI* descriptor, SPIregister register_number, const SPI
  * @retval 2 Timeout while waiting for the DMA transmit complete interrupt
  * @retval 3 DMA error
  */
-ErrorCode sendDMA(DMA* dma, uint8_t* buffer, size_t nb_bytes, size_t max_bytes) {
+ErrorCode sendDMA(DMA* dma, const uint8_t* buffer, size_t nb_bytes, size_t max_bytes) {
     ErrorCode result;
 
     if (nb_bytes > max_bytes) {

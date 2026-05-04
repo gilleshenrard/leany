@@ -229,7 +229,7 @@ ErrorCode sendScreenData(const uint16_t data[], size_t nb_bytes, size_t max_byte
     result = writeRegistersAndContinue(&dma_descriptor.spi, kRAMWR, NULL, 0);
     EXIT_ON_ERROR(result, kSendData, 2)
 
-    result = sendDMA(&dma_descriptor, (uint8_t*)data, nb_bytes, max_bytes);
+    result = sendDMA(&dma_descriptor, (const uint8_t*)data, nb_bytes, max_bytes);
     EXIT_ON_ERROR(result, kSendData, 3)
 
     return kSuccessCode;

@@ -56,7 +56,7 @@ ErrorCode writeRegistersAndContinue(SPI* descriptor, SPIregister register_number
                                     size_t size);
 ErrorCode writeRegistersBunch(SPI* descriptor, const uint8_t registers[][2], uint8_t nb_registers);
 void closeTransmission(const SPI* descriptor);
-ErrorCode sendDMA(DMA* dma, uint8_t* buffer, size_t nb_bytes, size_t max_bytes);
+ErrorCode sendDMA(DMA* dma, const uint8_t* buffer, size_t nb_bytes, size_t max_bytes);
 void st7735sDMAinterruptHandler(void);
 
 #endif

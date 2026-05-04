@@ -94,7 +94,7 @@ typedef struct {
 //machine state
 static void updateTemperature(int16_t lsb_value);
 static ErrorCode getAverageMeasures(SPIregister first_register, SPIregister available_mask, int16_t measures[kNBaxis]);
-static ErrorCode waitAndRead(SPIregister first_register, SPIregister available_mask, const int16_t measures[kNBaxis]);
+static ErrorCode waitAndRead(SPIregister first_register, SPIregister available_mask, int16_t measures[kNBaxis]);
 static uint8_t isAccelSelfTestValid(const int16_t self_test_off[kNBaxis], const int16_t self_test_on[kNBaxis]);
 static uint8_t isGyroSelfTestValid(const int16_t self_test_off[kNBaxis], const int16_t self_test_on[kNBaxis]);
 
@@ -487,7 +487,7 @@ static ErrorCode getAverageMeasures(SPIregister first_register, SPIregister avai
 
     //read 5 values for each axis
     int16_t raw[kNbAverage][kNBaxis];
-    for (uint8_t data_set = 0; data_set < kNbAverage; data_set++) {
+    for (uint8_t data_set = 0; data_set < (uint8_t)kNbAverage; data_set++) {
         result = waitAndRead(first_register, available_mask, raw[data_set]);
         EXIT_ON_ERROR(result, kAverageMeasures, 2)
     }
@@ -514,7 +514,7 @@ static ErrorCode getAverageMeasures(SPIregister first_register, SPIregister avai
  * @retval 3 Error while reading the data registers
  */
 //NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
-static ErrorCode waitAndRead(SPIregister first_register, SPIregister available_mask, const int16_t measures[kNBaxis]) {
+static ErrorCode waitAndRead(SPIregister first_register, SPIregister available_mask, int16_t measures[kNBaxis]) {
     //wait until DATA_AXL_AVAIL bit is up
     SPIregister status = 0;
     SPIregister available = 0;

@@ -104,8 +104,8 @@ static const Layout kVerticalLayout =  ///< Vertical layout values
                            .y1 = 22U + ((kDisplayWidth - 22U) / 2U)},
 };
 
-static Label axis_labels[kNBaxis - 1U];                       ///< Labels representing the angles
-static Layout* current_layout = (Layout*)&kHorizontalLayout;  ///< Layout currently used
+static Label axis_labels[kNBaxis - 1U];                    ///< Labels representing the angles
+static const Layout* current_layout = &kHorizontalLayout;  ///< Layout currently used
 
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
@@ -235,14 +235,14 @@ ErrorCode changeLayoutOrientation(Orientation new_orientation) {
     switch (new_orientation) {
         case kPortrait:
         case kPortrait180:
-            current_layout = (Layout*)&kVerticalLayout;
+            current_layout = &kVerticalLayout;
             break;
 
         case kLandscape:
         case kLandscape180:
         case kNBorientations:
         default:
-            current_layout = (Layout*)&kHorizontalLayout;
+            current_layout = &kHorizontalLayout;
             break;
     }
 
