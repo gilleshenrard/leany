@@ -151,7 +151,7 @@ jobs:
               sudo pip install lizard reuse
 
       - name: Cleanup compile_commands.json for clang-tidy
-        run: sed -i 's/-fanalyzer//g' ${{github.workspace}}/firmware/build/Debug/compile_commands.json
+        run: sed -i '/-fanalyzer/g;/-fmax-errors=0/g' ${{github.workspace}}/firmware/build/Debug/compile_commands.json
 
       - name: Create CPPcheck build directory
         run: mkdir -p ${{github.workspace}}/firmware/config-cppcheck-build-dir/
