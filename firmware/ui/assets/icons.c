@@ -59,7 +59,7 @@ ErrorCode uncompressIcon(Icon icon, Bitmap* bitmap_metadata, ColourBigEndian for
         return createErrorCode(1, 2, kErrorError);
     }
 
-    const IconMetadata* icon_metadata = (IconMetadata*)&kDescriptors[icon];
+    const IconMetadata* icon_metadata = &kDescriptors[icon];
     const void* icon_bitmap = NULL;
     if (icon == kIconWarning) {
         icon_bitmap = &kLargeIconsPool[icon_metadata->pool_offset];

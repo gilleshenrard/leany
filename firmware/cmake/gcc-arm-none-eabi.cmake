@@ -84,7 +84,7 @@ set(WARNING_FLAGS
 
 # --- Pointers and casts ---
 -Wbad-function-cast
-#-Wcast-qual                       # cast removes const/volatile qualifier
+-Wcast-qual                       # cast removes const/volatile qualifier
 -Wcast-align=strict               # pointer cast increases alignment requirement
 -Wpointer-arith                   # arithmetic on void* or function pointers
 -Wnull-dereference
