@@ -93,7 +93,7 @@ jobs:
       #Only for Linux
       - name: Save the Debug CMake configuration folder
         if: ${{ matrix.os == 'ubuntu-latest' }}
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: build-Debug
           path: |
@@ -121,7 +121,7 @@ jobs:
             lfs: false
 
       - name: Download the saved CMake configuration folder
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8
         with:
           name: build-Debug
           path: ${{github.workspace}}/firmware
@@ -151,7 +151,7 @@ jobs:
               sudo pip install lizard reuse
 
       - name: Cleanup compile_commands.json for clang-tidy
-        run: sed -i '/-fanalyzer/g;/-fmax-errors=0/g' ${{github.workspace}}/firmware/build/Debug/compile_commands.json
+        run: sed -i 's/-fanalyzer//g; s/-fmax-errors=0//g' ${{github.workspace}}/firmware/build/Debug/compile_commands.json
 
       - name: Create CPPcheck build directory
         run: mkdir -p ${{github.workspace}}/firmware/config-cppcheck-build-dir/
