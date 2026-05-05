@@ -44,7 +44,7 @@ jobs:
 
         steps:
           - name: Checkout repository
-            uses: actions/checkout@v4
+            uses: actions/checkout@v6
             with:
               lfs: true
 
@@ -124,7 +124,7 @@ jobs:
                   echo "==================================="
 
           - name: Upload ERC report if ERC failed
-            uses: actions/upload-artifact@v4
+            uses: actions/upload-artifact@v7
             if: steps.erc.outcome == 'failure'
             with:
               name: ${{env.ERC_FILE}}
@@ -159,7 +159,7 @@ jobs:
                   echo "==================================="
 
           - name: Upload DRC report if DRC failed
-            uses: actions/upload-artifact@v4
+            uses: actions/upload-artifact@v7
             if: steps.drc.outcome == 'failure'
             with:
               name: ${{env.DRC_FILE}}
@@ -193,7 +193,7 @@ jobs:
 
           # Upload the production files as an artifact
           - name: Save the production files
-            uses: actions/upload-artifact@v6
+            uses: actions/upload-artifact@v7
             with:
               name: production-files
               if-no-files-found: error
