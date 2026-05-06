@@ -133,6 +133,7 @@ void updateMahonyFilter(MahonyContext* context, const IMUsample* sample) {
     const float period_sec = getDT(&context->dt);
     if (!isDTvalid(period_sec)) {
         resetMahonyFilter(context);
+        return;
     }
 
     //estimate the current body frame gravity vectors from the current orientation quaternion
