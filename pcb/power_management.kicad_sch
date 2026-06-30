@@ -7850,7 +7850,7 @@
 		(dnp no)
 		(uuid "3aaa5ad1-cb75-4653-8dbc-b150ef685702")
 		(property "Reference" "C21"
-			(at 213.614 40.132 0)
+			(at 213.36 40.005 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -7861,7 +7861,7 @@
 			)
 		)
 		(property "Value" "100n"
-			(at 213.36 43.688 0)
+			(at 213.36 43.815 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -9229,13 +9229,14 @@
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
-		(in_bom yes)
+		(in_bom no)
 		(on_board yes)
-		(in_pos_files yes)
+		(in_pos_files no)
 		(dnp yes)
 		(uuid "6dbb5aa0-ca57-4aee-b32c-c8f9f599b73a")
 		(property "Reference" "TP3"
-			(at 78.74 36.83 0)
+			(at 74.93 34.925 90)
+			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -9245,8 +9246,7 @@
 			)
 		)
 		(property "Value" "VBUS"
-			(at 73.6601 35.56 0)
-			(hide yes)
+			(at 72.39 34.925 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -9279,17 +9279,6 @@
 			)
 		)
 		(property "Description" "test point"
-			(at 74.93 36.83 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "LCSC" ""
 			(at 74.93 36.83 0)
 			(hide yes)
 			(show_name no)
@@ -9739,13 +9728,14 @@
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
-		(in_bom yes)
+		(in_bom no)
 		(on_board yes)
-		(in_pos_files yes)
+		(in_pos_files no)
 		(dnp yes)
 		(uuid "8b9c92cd-3361-4fbe-86f8-32cf5558263a")
 		(property "Reference" "TP5"
 			(at 194.31 114.3 0)
+			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -9755,8 +9745,7 @@
 			)
 		)
 		(property "Value" "+BATT"
-			(at 195.58 118.1099 0)
-			(hide yes)
+			(at 193.04 114.935 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -9789,17 +9778,6 @@
 			)
 		)
 		(property "Description" "test point"
-			(at 194.31 116.84 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "LCSC" ""
 			(at 194.31 116.84 0)
 			(hide yes)
 			(show_name no)
@@ -11592,13 +11570,14 @@
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
-		(in_bom yes)
+		(in_bom no)
 		(on_board yes)
-		(in_pos_files yes)
+		(in_pos_files no)
 		(dnp yes)
 		(uuid "d3be2106-c3ab-47f7-a3ea-9ed8df8f6322")
 		(property "Reference" "TP4"
 			(at 90.17 149.86 0)
+			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -11607,9 +11586,8 @@
 				)
 			)
 		)
-		(property "Value" "BATT"
-			(at 85.0901 151.13 0)
-			(hide yes)
+		(property "Value" "VBATT"
+			(at 87.63 149.86 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -11642,17 +11620,6 @@
 			)
 		)
 		(property "Description" "test point"
-			(at 86.36 149.86 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "LCSC" ""
 			(at 86.36 149.86 0)
 			(hide yes)
 			(show_name no)
@@ -11698,7 +11665,7 @@
 			)
 		)
 		(property "Value" "1u"
-			(at 218.694 43.688 0)
+			(at 220.345 41.91 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -12053,7 +12020,7 @@
 		(dnp no)
 		(uuid "ea206d4c-4021-44ea-9b95-eaa6e622d704")
 		(property "Reference" "C20"
-			(at 208.534 40.132 0)
+			(at 203.835 40.005 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -12064,7 +12031,7 @@
 			)
 		)
 		(property "Value" "22n"
-			(at 203.2 43.688 0)
+			(at 203.835 43.815 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -12140,13 +12107,14 @@
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
-		(in_bom yes)
+		(in_bom no)
 		(on_board yes)
-		(in_pos_files yes)
+		(in_pos_files no)
 		(dnp yes)
 		(uuid "ebc277c9-5694-443f-bb07-ce54c290f0d3")
 		(property "Reference" "TP2"
 			(at 58.42 77.47 0)
+			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -12156,8 +12124,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 53.3401 76.2 0)
-			(hide yes)
+			(at 55.245 77.47 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -12190,17 +12157,6 @@
 			)
 		)
 		(property "Description" "test point"
-			(at 54.61 77.47 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "LCSC" ""
 			(at 54.61 77.47 0)
 			(hide yes)
 			(show_name no)
@@ -12229,13 +12185,14 @@
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
-		(in_bom yes)
+		(in_bom no)
 		(on_board yes)
-		(in_pos_files yes)
+		(in_pos_files no)
 		(dnp yes)
 		(uuid "ec02fa99-14ef-4bad-a7da-4c2e7bab954e")
 		(property "Reference" "TP6"
 			(at 217.17 31.75 0)
+			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -12245,8 +12202,7 @@
 			)
 		)
 		(property "Value" "Vin"
-			(at 218.44 35.5599 0)
-			(hide yes)
+			(at 215.9 32.385 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -12279,17 +12235,6 @@
 			)
 		)
 		(property "Description" "test point"
-			(at 217.17 34.29 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "LCSC" ""
 			(at 217.17 34.29 0)
 			(hide yes)
 			(show_name no)
@@ -12776,13 +12721,14 @@
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
-		(in_bom yes)
+		(in_bom no)
 		(on_board yes)
-		(in_pos_files yes)
+		(in_pos_files no)
 		(dnp yes)
 		(uuid "f9645585-df0c-4ed7-af99-b4046b5f6624")
 		(property "Reference" "TP7"
 			(at 256.54 36.83 0)
+			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -12792,8 +12738,7 @@
 			)
 		)
 		(property "Value" "3.3V"
-			(at 251.4601 38.1 0)
-			(hide yes)
+			(at 254.635 34.925 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -12826,17 +12771,6 @@
 			)
 		)
 		(property "Description" "test point"
-			(at 252.73 36.83 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "LCSC" ""
 			(at 252.73 36.83 0)
 			(hide yes)
 			(show_name no)
