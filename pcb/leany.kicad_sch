@@ -11207,13 +11207,13 @@
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
-		(in_bom yes)
+		(in_bom no)
 		(on_board yes)
-		(in_pos_files yes)
+		(in_pos_files no)
 		(dnp yes)
 		(uuid "b0f0a6a0-d54a-4702-b0e5-740fd4f1d212")
 		(property "Reference" "TP1"
-			(at 39.37 173.99 0)
+			(at 37.465 173.99 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -11257,17 +11257,6 @@
 			)
 		)
 		(property "Description" "test point"
-			(at 35.56 173.99 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "LCSC" ""
 			(at 35.56 173.99 0)
 			(hide yes)
 			(show_name no)
