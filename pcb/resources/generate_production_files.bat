@@ -42,8 +42,8 @@ kicad-cli pcb export drill --output %PROD_PATH% %PROJECT_NAME%.kicad_pcb
 if errorlevel 1 exit /b 1
 
 echo Zipping the gerber and drill files
-tar -cvf JCLPCB_gerber.zip %PROD_PATH%
-move JCLPCB_gerber.zip %PROD_PATH%
+tar -cvf JLCPCB_gerber.zip %PROD_PATH%
+move JLCPCB_gerber.zip %PROD_PATH%
 del %PROD_PATH%\*.g* %PROD_PATH%\*.drl
 
 rem -------------------------------------------------------------------------------------------
@@ -104,8 +104,19 @@ echo %kicadCPLfile% replaced by %jlcpcbCPLfile%
 endlocal
 
 rem -------------------------------------------------------------------------------------------
-rem Create the STL file
+rem Create the PDF files
 rem -------------------------------------------------------------------------------------------
-echo Creating STL file
-kicad-cli pcb export stl --output %PROD_PATH%\%PROJECT_NAME%.stl --force --subst-models --no-dnp --drill-origin %PROJECT_NAME%.kicad_pcb
+echo Creating PDF files
+
+rm .%PROD_PATH%\%PROJECT_NAME%_schematic.pdf %PROD_PATH%\%PROJECT_NAME%_pcb_front.pdf %PROD_PATH%\%PROJECT_NAME%_pcb_back.pdf -ErrorAction SilentlyContinue
+kicad-cli sch export pdf --output %PROD_PATH%\%PROJECT_NAME%_schematic.pdf %PROJECT_NAME%.kicad_sch
+kicad-cli pcb export pdf --mode-single --layers "F.Cu,F.Paste,F.Silkscreen,F.Mask,Edge.Cuts" --output %PROD_PATH%\%PROJECT_NAME%_pcb_front.pdf %PROJECT_NAME%.kicad_pcb
+kicad-cli pcb export pdf --mirror --mode-single --layers "B.Cu,B.Paste,B.Silkscreen,B.Mask,Edge.Cuts" --output %PROD_PATH%\%PROJECT_NAME%_pcb_back.pdf %PROJECT_NAME%.kicad_pcb
+if errorlevel 1 exit /b 1
+
+rem -------------------------------------------------------------------------------------------
+rem Create the STEP file
+rem -------------------------------------------------------------------------------------------
+echo Creating STEP file
+kicad-cli pcb export step --output %PROD_PATH%\%PROJECT_NAME%.step --force --subst-models --drill-origin %PROJECT_NAME%.kicad_pcb
 if errorlevel 1 exit /b 1

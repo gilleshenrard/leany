@@ -22,7 +22,7 @@ kicad-cli pcb export gerbers --output $PROD_PATH/ --board-plot-params $PROJECT_N
 kicad-cli pcb export drill --output $PROD_PATH/ $PROJECT_NAME.kicad_pcb
 echo " "
 echo Zipping the gerber and drill files
-zip -jmv $PROD_PATH/JCLPCB_gerber.zip $PROD_PATH/*
+zip -jmv $PROD_PATH/JLCPCB_gerber.zip $PROD_PATH/*
 
 echo " "
 echo "Create BOM file and trim libraries names from footprints"
@@ -36,6 +36,14 @@ kicad-cli pcb export pos --output $PROD_PATH/CPL-JLCPCB.csv --side front --forma
 sed -i "s/$KICAD_HEADER/$JLCPCB_HEADER/g" $PROD_PATH/CPL-JLCPCB.csv
 
 echo " "
-echo "Creating STL file"
+echo Create the PDF files
+rm -f "$PROD_PATH/${PROJECT_NAME}_schematic.pdf" "$PROD_PATH/${PROJECT_NAME}_pcb_front.pdf" "$PROD_PATH/${PROJECT_NAME}_pcb_back.pdf"
+kicad-cli sch export pdf --output "$PROD_PATH/${PROJECT_NAME}_schematic.pdf" ${PROJECT_NAME}.kicad_sch
+kicad-cli pcb export pdf --mode-single --layers "F.Cu,F.Paste,F.Silkscreen,F.Mask,Edge.Cuts" --output "$PROD_PATH/${PROJECT_NAME}_pcb_front.pdf" ${PROJECT_NAME}.kicad_pcb
+kicad-cli pcb export pdf --mirror --mode-single --layers "B.Cu,B.Paste,B.Silkscreen,B.Mask,Edge.Cuts" --output "$PROD_PATH/${PROJECT_NAME}_pcb_back.pdf" ${PROJECT_NAME}.kicad_pcb
+pdfunite "$PROD_PATH/${PROJECT_NAME}_schematic.pdf" "$PROD_PATH/${PROJECT_NAME}_pcb_front.pdf" "$PROD_PATH/${PROJECT_NAME}_pcb_back.pdf" "$PROD_PATH/${PROJECT_NAME}.pdf"
+
+echo " "
+echo "Creating STEP file"
 export KICAD9_3DMODEL_DIR="/usr/share/kicad/3dmodels"
-kicad-cli pcb export stl --output $PROD_PATH/$PROJECT_NAME.stl --force --subst-models --no-dnp --drill-origin $PROJECT_NAME.kicad_pcb
+kicad-cli pcb export step --output $PROD_PATH/$PROJECT_NAME.step --force --subst-models --drill-origin $PROJECT_NAME.kicad_pcb
