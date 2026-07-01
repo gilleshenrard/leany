@@ -31,9 +31,10 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "hardware_events.h"
+#include "systick.h"
 #include "task_dispatcher.h"
 #include "task_gpio.h"
-#include "hardware_events.h"
 #include "task_imu.h"
 #include "task_ui.h"
 #include "task_serial.h"
@@ -97,7 +98,7 @@ int main(void)
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-
+  primeHSEOscillator();
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
