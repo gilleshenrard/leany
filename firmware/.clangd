@@ -4,3 +4,10 @@
 
 CompileFlags:
     Remove: -fanalyzer
+---
+If:
+  PathMatch: ".*(Middlewares|Drivers|Core)/.*"
+Diagnostics:
+  Suppress: ["*"]
+  ClangTidy:
+    Remove: ["*"]
