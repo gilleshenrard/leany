@@ -54,18 +54,19 @@ static void stateIdle(void);
 static void stateAcquiring(void);
 
 //state variables
-static volatile SemaphoreHandle_t adcdone_binsemaphore = NULL;  ///< Binary semaphore indicating whether done updating
-static StaticSemaphore_t adcdone_binsemaphore_state;            ///< ADC done semaphore state
-static QueueHandle_t adc_queue = NULL;                          ///< ADC requests queue
-static StaticQueue_t adc_queue_state;                           ///< ADC requests queue state
-static TickType_t last_tick = 0;                                ///< System tick at the start of a request
-static const TickType_t kNoWait = 0;                            ///< Used instead of 0 for readability
-static ADCstate state = kStateIdle;                             ///< Current state machine state
-static RequestIDType latest_request = 0;                        ///< Latest request ID received
-static RequestIDType requests[kRequestsLength] = {0};           ///< Buffer for the requests queue
-static uint16_t dma1_latest_values[kADC1nbChannels] = {0};      ///< Buffer of the latest values read by DMA1
-static uint16_t dma1_update_values[kADC1nbChannels] = {0};      ///< Buffer of the copy of values read by DMA1
-static ADCmapping devices[kADCnbDevices] =                      ///< ADC device mappings
+static volatile SemaphoreHandle_t adcdone_binsemaphore =
+    nullptr;                                                ///< Binary semaphore indicating whether done updating
+static StaticSemaphore_t adcdone_binsemaphore_state;        ///< ADC done semaphore state
+static QueueHandle_t adc_queue = nullptr;                   ///< ADC requests queue
+static StaticQueue_t adc_queue_state;                       ///< ADC requests queue state
+static TickType_t last_tick = 0;                            ///< System tick at the start of a request
+static const TickType_t kNoWait = 0;                        ///< Used instead of 0 for readability
+static ADCstate state = kStateIdle;                         ///< Current state machine state
+static RequestIDType latest_request = 0;                    ///< Latest request ID received
+static RequestIDType requests[kRequestsLength] = {0};       ///< Buffer for the requests queue
+static uint16_t dma1_latest_values[kADC1nbChannels] = {0};  ///< Buffer of the latest values read by DMA1
+static uint16_t dma1_update_values[kADC1nbChannels] = {0};  ///< Buffer of the copy of values read by DMA1
+static ADCmapping devices[kADCnbDevices] =                  ///< ADC device mappings
     {
         [kADC1] = {.dma_handle = DMA1,
                    .adc_handle = ADC1,

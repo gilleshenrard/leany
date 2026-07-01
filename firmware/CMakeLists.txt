@@ -60,4 +60,6 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
     tasks
     scpi
     sensorfusion
+    utils
+    stm32cubemx
 )

@@ -37,4 +37,5 @@ target_link_libraries(IMU PRIVATE
 	hal
 	${IMULIB}
 	sensorfusion
+	stm32cubemx
 )

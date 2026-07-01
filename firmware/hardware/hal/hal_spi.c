@@ -44,7 +44,7 @@ typedef enum {
 
 static inline void setDataCommandGPIO(const SPI* descriptor, DCgpio function);
 static void sendSPIbyte(SPI* descriptor, uint8_t byte_to_transmit, uint32_t tx_start_tick);
-static volatile TaskHandle_t latest_task = NULL;  ///< Handle used by the FreeRTOS task
+static volatile TaskHandle_t latest_task = nullptr;  ///< Handle used by the FreeRTOS task
 
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
@@ -122,7 +122,7 @@ static void sendSPIbyte(SPI* descriptor, uint8_t byte_to_transmit, uint32_t tx_s
  * @param[out] value Registers value array
  * @param size Number of registers to read
  * @return   Success
- * @retval 1 SPI handle or value buffer NULL
+ * @retval 1 SPI handle or value buffer nullptr
  * @retval 2 Timeout
  */
 ErrorCode readRegisters(SPI* descriptor, SPIregister first_register, SPIregister value[], size_t size) {
@@ -133,7 +133,7 @@ ErrorCode readRegisters(SPI* descriptor, SPIregister first_register, SPIregister
         return kSuccessCode;
     }
 
-    //make sure neither the handle nor the buffer are NULL
+    //make sure neither the handle nor the buffer are nullptr
     if (!descriptor->handle || !value) {
         return (createErrorCode(kSPIreadRegisters, 1, kErrorCritical));
     }

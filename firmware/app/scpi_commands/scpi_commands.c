@@ -147,7 +147,7 @@ static const Node kRootCommands[] = {
      .children = kErrorCommands,
      .nb_children = (sizeof(kErrorCommands) / sizeof(Node))},
     {.scpi = {.code = kCmdHelp, .short_name = "HELP", .long_name = "HELP", .mode = kRO},
-     .children = NULL,
+     .children = nullptr,
      .nb_children = 0},
 
     /*

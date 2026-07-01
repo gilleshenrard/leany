@@ -14,6 +14,7 @@
 
 #include <FreeRTOS.h>
 #include <FreeRTOSConfig.h>
+#include <main.h>
 #include <math.h>
 #include <portmacro.h>
 #include <projdefs.h>
@@ -25,7 +26,6 @@
 #include "errorstack.h"
 #include "hardware_events.h"
 #include "imu.h"
-#include "main.h"
 #include "orientation.h"
 #include "sensorfusion.h"
 #include "task_serial.h"
@@ -64,12 +64,12 @@ static const float kRadiansToDegreesTenths = 572.957795F;   ///< One radian in t
 static const float kDegreesTenthsToRadians = 0.001745329F;  ///< One tenth of degree in radians (= (180°/PI) / 10)
 
 //state variables
-static volatile TaskHandle_t task_handle = NULL;      ///< handle of the FreeRTOS task
-static SemaphoreHandle_t angles_mutex = NULL;         ///< handle of the mutex used to protect angles measurements
-static SemaphoreHandle_t orientation_mutex = NULL;    ///< handle of the mutex used to protect display orientation
-static Orientation current_orientation = kLandscape;  ///< Current screen orientation
-static FunctionCode imu_state = kStateStartup;        ///< Current IMU state
-static ErrorCode result;                              ///< Variable used to receive the functions' result codes
+static volatile TaskHandle_t task_handle = nullptr;    ///< handle of the FreeRTOS task
+static SemaphoreHandle_t angles_mutex = nullptr;       ///< handle of the mutex used to protect angles measurements
+static SemaphoreHandle_t orientation_mutex = nullptr;  ///< handle of the mutex used to protect display orientation
+static Orientation current_orientation = kLandscape;   ///< Current screen orientation
+static FunctionCode imu_state = kStateStartup;         ///< Current IMU state
+static ErrorCode result;                               ///< Variable used to receive the functions' result codes
 static volatile uint8_t task_notifiable = 0;  ///< Flag indicating whether the task is ready to treat notifications
 static float angles_zeroing_rad[kNBaxis - 1] = {0, 0};  ///< Angles used to zero out the measurements
 static uint8_t holding = 0;                             ///< Flag indicating whether the measurements are held
@@ -103,13 +103,16 @@ void IMUinterruptTriggered(uint8_t interrupt_pin) {
  * Create the FreeRTOS static task taking care of the IMU sensor
  */
 void createIMUtask(void) {
+    // NOLINTBEGIN (hicpp-use-nullptr)
     static StackType_t task_stack[kStackSize] = {0};         ///< Buffer used as the task stack
     static StaticTask_t task_state = {0};                    ///< Task state variables
     static StaticSemaphore_t measure_mutex_state = {0};      ///< Angles value mutex state variables
     static StaticSemaphore_t orientatino_mutex_state = {0};  ///< orientation mutex state variables
+    // NOLINTEND
 
     //create the static task
-    task_handle = xTaskCreateStatic(taskIMU, "IMU task", kStackSize, NULL, kTaskLowPriority, task_stack, &task_state);
+    task_handle =
+        xTaskCreateStatic(taskIMU, "IMU task", kStackSize, nullptr, kTaskLowPriority, task_stack, &task_state);
     configASSERT(task_handle);
 
     //create a semaphore to protect mearurements
@@ -377,7 +380,7 @@ ErrorCode setDisplayOrientation(Orientation new_orientation) {
  *
  * @param[out] orientation Display orientation
  * @retval 0 Success
- * @retval 1 The mutex is not initialised yet or orientation is NULL
+ * @retval 1 The mutex is not initialised yet or orientation is nullptr
  * @retval 2 Unable to take the orientation mutex
  */
 ErrorCode getDisplayOrientation(Orientation* orientation) {

@@ -38,7 +38,7 @@ static void wipeLabelLeftRight(const Label* label, Pixel* buffer, uint8_t x_offs
  * @param string_length Number of characters in the string
  * @param foreground_colour Foreground colour of the label
  * @retval 0 Success
- * @retval 1 NULL pointer provided
+ * @retval 1 nullptr pointer provided
  * @return Bitmap uncompressing return value
  */
 ErrorCode uncompressLabel(const Label* label, Pixel* buffer, const char string[], uint8_t string_length,
@@ -100,7 +100,7 @@ ErrorCode uncompressLabel(const Label* label, Pixel* buffer, const char string[]
  * @param foreground_colour Foreground to apply to the string
  * @param label_metadata Metadata representing each bitmap in a string
  * @retval 0 Success
- * @retval 1 NULL pointer provided
+ * @retval 1 nullptr pointer provided
  * @retval 2 Character decompression returned 0 px width
  */
 static ErrorCode uncompressStringBitmaps(const uint8_t indexes[kStringMaxLength], size_t string_length,

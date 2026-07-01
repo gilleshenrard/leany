@@ -92,17 +92,19 @@ static ErrorCode last_error = {.dword = 0};       ///< Last error detected
  * @return Success
  */
 ErrorCode createMessageDispatchertask(void) {
+    // NOLINTBEGIN (hicpp-use-nullptr)
     static StackType_t task_stack[kStackSize] = {0};    // Buffer used as the task stack
     static StaticTask_t task_state = {0};               // Task state variables
     static StaticSemaphore_t events_mutex_state = {0};  ///< UI mutex state variables
+    // NOLINTEND
 
     //create a semaphore to protect events
     events_mutex = xSemaphoreCreateMutexStatic(&events_mutex_state);
     configASSERT(events_mutex);
 
     // create the static task
-    TaskHandle_t task_handle = xTaskCreateStatic(runDispatchertask, "Dispatch task", kStackSize, NULL, kTaskLowPriority,
-                                                 task_stack, &task_state);
+    TaskHandle_t task_handle = xTaskCreateStatic(runDispatchertask, "Dispatch task", kStackSize, nullptr,
+                                                 kTaskLowPriority, task_stack, &task_state);
     configASSERT(task_handle);
 
     return kSuccessCode;

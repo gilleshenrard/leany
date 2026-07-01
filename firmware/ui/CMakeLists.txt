@@ -16,8 +16,6 @@ target_include_directories(UI PUBLIC
 	assets
 	screens
 )
-target_compile_definitions(UI PRIVATE $<TARGET_PROPERTY:stm32cubemx,INTERFACE_COMPILE_DEFINITIONS>)
-target_include_directories(UI SYSTEM PRIVATE $<TARGET_PROPERTY:stm32cubemx,INTERFACE_INCLUDE_DIRECTORIES>)
 target_link_libraries(UI PRIVATE
 	st7735s
 	BATTERY
@@ -25,5 +23,6 @@ target_link_libraries(UI PRIVATE
 	utils
 	tasks
 	sensorfusion
+	stm32cubemx
 )
 target_compile_options(UI PRIVATE ${WARNING_FLAGS})

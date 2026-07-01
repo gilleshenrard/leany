@@ -59,11 +59,11 @@ static uint8_t copyEvents(uint8_t message_flags[kNbEvents]);
 static ErrorCode treatToggleScreenMessage(const uint8_t message_flags[kNbEvents]);
 static ErrorCode treatErrorCodeMessage(const uint8_t message_flags[kNbEvents]);
 
-static volatile TaskHandle_t task_handle = NULL;  ///< handle of the FreeRTOS task
-static uint8_t message_received[kNbEvents];       ///< Flag indicating whether a UI message was received
-static Screen current_screen = kScreenMain;       ///< Current screen displayed and updated
-static SemaphoreHandle_t ui_mutex = NULL;         ///< Mutex used to protect UI resources
-static SemaphoreHandle_t events_mutex = NULL;     ///< Mutex used to protect events coming from the dispatcher
+static volatile TaskHandle_t task_handle = nullptr;  ///< handle of the FreeRTOS task
+static uint8_t message_received[kNbEvents];          ///< Flag indicating whether a UI message was received
+static Screen current_screen = kScreenMain;          ///< Current screen displayed and updated
+static SemaphoreHandle_t ui_mutex = nullptr;         ///< Mutex used to protect UI resources
+static SemaphoreHandle_t events_mutex = nullptr;     ///< Mutex used to protect events coming from the dispatcher
 
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
@@ -74,10 +74,12 @@ static SemaphoreHandle_t events_mutex = NULL;     ///< Mutex used to protect eve
  * @return Success
  */
 ErrorCode createUItask(void) {
+    // NOLINTBEGIN (hicpp-use-nullptr)
     static StackType_t task_stack[kStackSize] = {0};    ///< Buffer used as the task stack
     static StaticTask_t task_state = {0};               ///< Task state variables}
     static StaticSemaphore_t ui_mutex_state = {0};      ///< UI mutex state variables
     static StaticSemaphore_t events_mutex_state = {0};  ///< UI mutex state variables
+    // NOLINTEND
 
     //create a semaphore to protect UI resources
     ui_mutex = xSemaphoreCreateMutexStatic(&ui_mutex_state);
@@ -88,7 +90,8 @@ ErrorCode createUItask(void) {
     configASSERT(events_mutex);
 
     // create the static task
-    task_handle = xTaskCreateStatic(runUItask, "UI task", kStackSize, NULL, kTaskLowPriority, task_stack, &task_state);
+    task_handle =
+        xTaskCreateStatic(runUItask, "UI task", kStackSize, nullptr, kTaskLowPriority, task_stack, &task_state);
     configASSERT(task_handle);
 
     return kSuccessCode;
