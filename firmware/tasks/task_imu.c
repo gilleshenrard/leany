@@ -59,6 +59,9 @@ static ErrorCode stateConfiguring(void);
 static ErrorCode ignoreSamples(void);
 static ErrorCode stateMeasuring(void);
 
+// Utility functions
+static void consumeStateMachineError(ErrorCode code);
+
 // constants
 static const float kRadiansToDegreesTenths = 572.957795F;   ///< One radian in tenths of degrees (= 10 * (180°/PI))
 static const float kDegreesTenthsToRadians = 0.001745329F;  ///< One tenth of degree in radians (= (180°/PI) / 10)
@@ -423,9 +426,6 @@ static void taskIMU(void* argument) {
 
             case kStateMeasuring:
                 result = stateMeasuring();
-                if (anglesChanged()) {
-                    triggerHardwareEvent(kEventAngle);
-                }
                 break;
 
             case kStateError:
@@ -441,11 +441,7 @@ static void taskIMU(void* argument) {
                 break;
         }
 
-        //if an error occurred, get to the error state
-        if (isError(result)) {
-            logSerial(result.level, "IMU Error %x", result.dword);
-            imu_state = kStateError;
-        }
+        consumeStateMachineError(result);
     };
 }
 
@@ -569,5 +565,23 @@ static ErrorCode stateMeasuring(void) {
         (void)xSemaphoreGive(angles_mutex);
     }
 
+    if (anglesChanged()) {
+        triggerHardwareEvent(kEventAngle);
+    }
+
     return kSuccessCode;
+}
+
+/**
+ * Check if an error occurred in the state machine, log it and set machine error
+ *
+ * @param code Error code of the last state called
+ */
+static void consumeStateMachineError(ErrorCode code) {
+    if (!isError(code)) {
+        return;
+    }
+
+    logSerial(code.level, "IMU Error %x", code.dword);
+    imu_state = kStateError;
 }
