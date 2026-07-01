@@ -15,12 +15,6 @@
             "toolchainFile": "${sourceDir}/cmake/gcc-arm-none-eabi.cmake"
         },
         {
-            "name": "ARMclang",
-            "hidden": true,
-            "inherits": "default",
-            "toolchainFile": "${sourceDir}/cmake/starm-clang.cmake"
-        },
-        {
             "name": "HOSTgcc",
             "inherits": "default",
             "toolchainFile": "${sourceDir}/cmake/gcc.cmake",

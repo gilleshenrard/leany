@@ -14,6 +14,9 @@ set(CMAKE_C_EXTENSIONS ON)
 set(CMAKE_C_COMPILER_FORCED TRUE)
 set(CMAKE_CXX_COMPILER_FORCED TRUE)
 
+# Enable compile command to ease indexing with e.g. clangd
+set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
+
 # Define the build type
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Debug")
@@ -25,9 +28,6 @@ if(UNIT_TESTING)
     add_subdirectory(tests)
     return()
 endif()
-
-# Enable compile command to ease indexing with e.g. clangd
-set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 
 # Enable CMake support for ASM and C languages
 enable_language(C ASM)

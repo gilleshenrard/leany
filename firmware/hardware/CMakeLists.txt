@@ -12,6 +12,7 @@ add_library(hal
 	hal/hal_adc.c
 	hal/hal_i2c.c
 )
+target_compile_options(hal PRIVATE ${WARNING_FLAGS})
 target_include_directories(hal PUBLIC hal)
 target_link_libraries(hal PRIVATE utils)
 
@@ -22,15 +23,21 @@ add_library(st7735s
 	display/st7735_registers.inc
 	display/st7735s.c
 	display/st7735_initialisation.c)
-target_include_directories(st7735s PUBLIC display)
-target_include_directories(st7735s PUBLIC imu/)
-target_link_libraries(st7735s PRIVATE utils)
-target_link_libraries(st7735s PRIVATE hal)
+target_compile_options(st7735s PRIVATE ${WARNING_FLAGS})
+target_include_directories(st7735s PUBLIC
+	display
+)
+target_link_libraries(st7735s PRIVATE
+	IMU
+	utils
+	hal
+)
 
 #create the buttons library, taking care of the control buttons
 add_library(gpio
 	gpio/buttons.c
 	gpio/led.c)
+target_compile_options(gpio PRIVATE ${WARNING_FLAGS})
 target_include_directories(gpio PUBLIC gpio)
 target_link_libraries(gpio PRIVATE
 	utils
@@ -43,6 +50,9 @@ target_link_libraries(gpio PRIVATE
 add_library(BATTERY
 	battery/bq25619.c
 )
+target_compile_options(BATTERY PRIVATE ${WARNING_FLAGS})
 target_include_directories(BATTERY PUBLIC battery)
-target_link_libraries(BATTERY PRIVATE utils)
-target_link_libraries(BATTERY PRIVATE hal)
+target_link_libraries(BATTERY PRIVATE
+	utils
+	hal
+)
