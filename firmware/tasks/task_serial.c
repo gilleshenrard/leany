@@ -26,41 +26,27 @@
 #include "errorstack.h"
 #include "hardware_events.h"
 #include "leany_std.h"
-#include "scpi_commands.h"
 #include "scpi_parser.h"
 #include "serial_command_types.h"
 #include "systick.h"
 
 enum {
     kOutboundSize = 64U,       ///< Maximum length of a message sent via serial
-    kStackSize = 200U,         ///< Amount of words in the task stack
+    kStackSize = 100U,         ///< Amount of words in the task stack
     kTaskLowPriority = 3U,     ///< FreeRTOS number for a low priority task
     kSerialTimeoutMS = 10U,    ///< Maximum number before considering a serial timeout
     kOutboundQueueSize = 15U,  ///< Number of messages the outbound queue can fit
     kCommandsQueueSize = 10U,  ///< Number of codes the commands queue can fit
     kInboundQueueSize = 100U,  ///< Number of characters the inbound queue can fit
     kInboundTimeoutMS = 5U,    ///< Maximum number of milliseconds to wait for rx data
-    kSCPImaxTreeDepth = 16U,   ///< Maximum depth of the command tree traversal
-    kExampleStringSize = 32U,  ///< Maximum characters in the example string
 };
-
-/**
- * Structure defining an SCPI node tree traversal frame
- */
-typedef struct {
-    const Node* node;          ///< Node traversed
-    uint8_t next_child_index;  ///< Depth of the next child
-} TraversalFrame;
 
 /**
  * Enumeration of the IDs of the functions used by the BMI270 implementation
  */
 typedef enum {
-    kFunctionTask = 1,     ///< taskSerial() : Function running the serial state machine
-    kSerialSend = 2,       ///< serialSend() : Function used to send data via serial
-    kDumpTree = 3,         ///< dumpScpiCommandTree(): Function used to send the command tree to serial line
-    kSendLine = 4,         ///< sendScpiTreeLine(): Function used to send a command node
-    kSendIndentation = 5,  ///< sendIndentation(): Function used to send indentation over serial
+    kFunctionTask = 1,  ///< taskSerial() : Function running the serial state machine
+    kSerialSend = 2,    ///< serialSend() : Function used to send data via serial
 } FunctionCode;
 
 /**
@@ -72,11 +58,13 @@ typedef struct {
 } __attribute((packed())) OutboundMessage;
 
 //private functions
-static void taskSerial(void* argument);
+static void runInboundTask(void* argument);
+static void runOutboundTask(void* argument);
 static ErrorCode serialSend(const char msg[], size_t length);
 
 //state variables
-static TaskHandle_t task_handle = nullptr;                      ///< handle of the FreeRTOS task
+static TaskHandle_t inbound_task_handle = nullptr;              ///< handle of the inbound FreeRTOS task
+static TaskHandle_t outbound_task_handle = nullptr;             ///< handle of the outbound FreeRTOS task
 static QueueHandle_t queue_outbound = nullptr;                  ///< handle of the outbound message queue
 static QueueHandle_t queue_commands = nullptr;                  ///< handle of the parsed commands queue
 static volatile StreamBufferHandle_t stream_inbound = nullptr;  ///< First stream of the dual-buffer reception
@@ -108,21 +96,25 @@ void uartInterruptTriggered(void) {
  * Create the FreeRTOS serial communication task
  */
 void createSerialtask(void) {
-    // NOLINTBEGIN (hicpp-use-nullptr)
-    static StackType_t task_stack[kStackSize] = {0};  ///< Buffer used as the task stack
-    static StaticTask_t task_state = {0};             ///< Task state variables
+    static StackType_t inbound_task_stack[kStackSize] = {0};          ///< Buffer used as the task stack
+    static StaticTask_t inbound_task_state = {.pxDummy1 = nullptr};   ///< Task state variables
+    static StackType_t outbound_task_stack[kStackSize] = {0};         ///< Buffer used as the task stack
+    static StaticTask_t outbound_task_state = {.pxDummy1 = nullptr};  ///< Task state variables
     static OutboundMessage outbound_buffer[kOutboundQueueSize];
     static char inbound_buffer[kInboundQueueSize];
     static SerialCommand commands_buffer[kCommandsQueueSize];
     static StaticQueue_t outbound_state;
     static StaticQueue_t commands_state;
     static StaticStreamBuffer_t inbound_state;
-    // NOLINTEND
 
     //create the static task
-    task_handle =
-        xTaskCreateStatic(taskSerial, "Serial task", kStackSize, nullptr, kTaskLowPriority, task_stack, &task_state);
-    configASSERT(task_handle);
+    inbound_task_handle = xTaskCreateStatic(runInboundTask, "Inbound serial task", kStackSize, nullptr,
+                                            kTaskLowPriority, inbound_task_stack, &inbound_task_state);
+    configASSERT(inbound_task_handle);
+
+    outbound_task_handle = xTaskCreateStatic(runOutboundTask, "Outbound serial task", kStackSize, nullptr,
+                                             kTaskLowPriority, outbound_task_stack, &outbound_task_state);
+    configASSERT(outbound_task_handle);
 
     queue_outbound =
         xQueueCreateStatic(kOutboundQueueSize, sizeof(OutboundMessage), (uint8_t*)outbound_buffer, &outbound_state);
@@ -134,6 +126,9 @@ void createSerialtask(void) {
     queue_commands =
         xQueueCreateStatic(kCommandsQueueSize, sizeof(SerialCommand), (uint8_t*)commands_buffer, &commands_state);
     configASSERT(queue_commands);
+
+    LL_USART_Enable(USART1);
+    LL_USART_EnableIT_RXNE(USART1);
 }
 
 /**
@@ -215,36 +210,42 @@ ErrorLevel getLogLevel(void) { return log_level; }
  *
  * @param argument Unused 
  */
-static void taskSerial(void* argument) {
-    char message[kOutboundSize];
-
+static void runInboundTask(void* argument) {
     (void)argument;
-
-    LL_USART_Enable(USART1);
-    LL_USART_EnableIT_RXNE(USART1);
 
     SerialCommand command_received = {0};
     resetSCPIparser();
 
     char received = 0;
     while (1) {
-        //wait for a while until either data ready or timeout
-        if (xStreamBufferReceive(stream_inbound, &received, 1U, pdMS_TO_TICKS(kInboundTimeoutMS)) > 0) {
-            const uint8_t done = pushSCPIcharacter(received, &command_received);
-            if (!done) {
-                continue;
-            }
+        (void)xStreamBufferReceive(stream_inbound, &received, 1U, portMAX_DELAY);
 
-            (void)xQueueSend(queue_commands, &command_received, kSerialTimeoutMS);
-            triggerHardwareEvent(kEventSerialCommand);
-            resetCommand(&command_received);
+        const uint8_t done = pushSCPIcharacter(received, &command_received);
+        if (!done) {
             continue;
         }
 
-        //if there are messages to send, pull a one and send it
-        if (xQueueReceive(queue_outbound, message, 0U) == pdTRUE) {
-            result = serialSend(message, getStringLength(message, kOutboundSize));
+        (void)xQueueSend(queue_commands, &command_received, kSerialTimeoutMS);
+        triggerHardwareEvent(kEventSerialCommand);
+        resetCommand(&command_received);
+    }
+}
+
+/**
+ * Run the serial communication task state machine
+ *
+ * @param argument Unused 
+ */
+static void runOutboundTask(void* argument) {
+    (void)argument;
+
+    char message[kOutboundSize];
+    while (1) {
+        if (xQueueReceive(queue_outbound, message, pdMS_TO_TICKS(5U)) != pdTRUE) {
+            continue;
         }
+
+        result = serialSend(message, getStringLength(message, kOutboundSize));
     }
 }
 
