@@ -34,7 +34,7 @@
 enum {
     kOutboundSize = 64U,       ///< Maximum length of a message sent via serial
     kStackSize = 200U,         ///< Amount of words in the task stack
-    kTaskLowPriority = 8U,     ///< FreeRTOS number for a low priority task
+    kTaskLowPriority = 3U,     ///< FreeRTOS number for a low priority task
     kSerialTimeoutMS = 10U,    ///< Maximum number before considering a serial timeout
     kOutboundQueueSize = 15U,  ///< Number of messages the outbound queue can fit
     kCommandsQueueSize = 10U,  ///< Number of codes the commands queue can fit

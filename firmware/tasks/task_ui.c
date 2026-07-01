@@ -32,7 +32,7 @@
 
 enum {
     kStackSize = 300U,       ///< Amount of words in the task stack
-    kTaskLowPriority = 8U,   ///< FreeRTOS number for a low priority task
+    kTaskLowPriority = 3U,   ///< FreeRTOS number for a low priority task
     kUIqueueLength = 50U,    ///< Number of slots available in the UI queue
     kUImessageDelayMS = 2U,  ///< Number of milliseconds for ui messages delays
     kFillBackground = 1U,    ///< fillBackground() function code

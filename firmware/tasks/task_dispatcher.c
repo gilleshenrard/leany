@@ -40,7 +40,7 @@
 
 enum : uint8_t {
     kStackSize = 150U,           ///< Amount of words in the task stack
-    kTaskLowPriority = 8U,       ///< FreeRTOS number for a low priority task
+    kTaskLowPriority = 3U,       ///< FreeRTOS number for a low priority task
     kEventDelayMS = 20U,         ///< Number of milliseconds for hardware events delay
     kMutexTimeoutMs = 10U,       ///< Maximum number of milliseconds before considering a mutex timeout
     kSCPImaxTreeDepth = 16U,     ///< Maximum depth of the command tree traversal
