@@ -10,11 +10,11 @@ execute_process(
     OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
-# Populate softVersion.c with the softVersion.c.in template
-message("Populating softversion.c with CMake values")
+# Populate softVersion.h with the softVersion.h.in template
+message("Populating softversion.h with CMake values")
 configure_file(
-    softversion.c.in
-    ${PROJECT_SOURCE_DIR}/utils/softversion.c
+    softversion.h.in
+    ${PROJECT_SOURCE_DIR}/utils/softversion.h
     @ONLY
 )
 

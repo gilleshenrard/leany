@@ -5,6 +5,7 @@
  * @file softversion.h
  * @author Gilles Henrard
  */
+// clang-format off
 #ifndef INC_SOFTWARE_VERSION_H
 #define INC_SOFTWARE_VERSION_H
 
@@ -13,7 +14,10 @@ enum {
     kCommitHashSize = 7U,       ///< Maximum size of the Git commit hash code
 };
 
-extern const char kGitCommitHash[kCommitHashSize + 1U];
-extern const char kFirmwareVersion[kFirmwareVersionSize + 1U];
+// NOLINTBEGIN (-Wexcess-initializers)
+static constexpr char kGitCommitHash[kCommitHashSize + 1U] = "@COMMIT_HASH@";  ///< Short hash code of the latest git commit
+static constexpr char kFirmwareVersion[kFirmwareVersionSize + 1U] = "@PROJECT_VERSION@";  ///< Firmware version set in CMake
+// NOLINTEND
 
+// clang-format on
 #endif
