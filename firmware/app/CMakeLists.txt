@@ -16,3 +16,9 @@ target_link_libraries(scpi PRIVATE
 	tasks
 	utils
 )
+
+add_library(sensorfusion
+	sensor_fusion/sensorfusion.c
+)
+target_include_directories(sensorfusion PUBLIC sensor_fusion)
+target_compile_options(sensorfusion PRIVATE ${WARNING_FLAGS})

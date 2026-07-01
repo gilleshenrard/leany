@@ -29,13 +29,12 @@ elseif(IMU_MODEL EQUAL IMU_LSM6)
 endif()
 
 #declare the library
-add_library(IMU
-	${IMUSRC}
-	sensorfusion.c)
+add_library(IMU ${IMUSRC})
 target_compile_options(IMU PRIVATE ${WARNING_FLAGS})
 target_include_directories(IMU PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(IMU PRIVATE
 	utils
 	hal
 	${IMULIB}
+	sensorfusion
 )

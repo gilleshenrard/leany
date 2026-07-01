@@ -28,7 +28,6 @@ target_include_directories(st7735s PUBLIC
 	display
 )
 target_link_libraries(st7735s PRIVATE
-	IMU
 	utils
 	hal
 )

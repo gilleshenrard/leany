@@ -24,5 +24,6 @@ target_link_libraries(tasks PRIVATE
 	hal
 	UI
 	scpi
+	sensorfusion
 )
 target_compile_options(tasks PRIVATE ${WARNING_FLAGS})

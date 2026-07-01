@@ -23,6 +23,7 @@ target_link_libraries(UI PRIVATE
 	BATTERY
 	hal
 	utils
-	IMU
-	tasks)
+	tasks
+	sensorfusion
+)
 target_compile_options(UI PRIVATE ${WARNING_FLAGS})
