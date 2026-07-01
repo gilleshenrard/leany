@@ -30,7 +30,7 @@
 
 enum {
     kStackSize = 150U,              ///< Amount of words in the task stack
-    kTaskLowPriority = 8U,          ///< FreeRTOS number for a low priority task
+    kTaskLowPriority = 3U,          ///< FreeRTOS number for a low priority task
     kTemperatureRefreshMs = 2000U,  ///< Timespan between two readings in [ms]
     kADCrefreshMs = 1000U,          ///< Timespan between two ADC readings in [ms]
     kMutexMS = 5U,                  ///< Max number of milliseconds to wait for a mutex

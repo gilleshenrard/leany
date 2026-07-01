@@ -31,7 +31,7 @@
 
 enum {
     kStackSize = 250U,                  ///< Amount of words in the task stack
-    kTaskLowPriority = 8U,              ///< FreeRTOS number for a low priority task
+    kTaskLowPriority = 3U,              ///< FreeRTOS number for a low priority task
     kChipIDtimeout = 1000U,             ///< Maximum number of milliseconds to attempt reading the chip ID
     kNbChipIDtests = 5U,                ///< Number of times chip ID reading must be tested
     kUpdatePeriodMS = 200U,             ///< Period between two status updates in [ms]

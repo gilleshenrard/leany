@@ -32,7 +32,7 @@
 
 enum {
     kStackSize = 350U,      ///< Amount of words in the task stack
-    kTaskLowPriority = 8U,  ///< FreeRTOS number for a low priority task
+    kTaskLowPriority = 3U,  ///< FreeRTOS number for a low priority task
     kStartupTimeMS = 10U,   ///< Number of milliseconds to wait after a reset
     kTimeoutMS = 1000U,     ///< Max number of milliseconds to wait for a notification
     kMutexMS = 100U,        ///< Max number of milliseconds to wait for a mutex
