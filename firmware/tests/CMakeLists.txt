@@ -12,11 +12,11 @@ target_include_directories(Unity PUBLIC
 # tests/CMakeLists.txt
 add_executable(${CMAKE_PROJECT_NAME}
     test_sensorfusion.c
-    ${CMAKE_SOURCE_DIR}/hardware/imu/sensorfusion.c
+    ${CMAKE_SOURCE_DIR}/app/sensor_fusion/sensorfusion.c
 )
 
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
-    ${CMAKE_SOURCE_DIR}/hardware/imu/
+    ${CMAKE_SOURCE_DIR}/app/sensor_fusion
 )
 
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE
