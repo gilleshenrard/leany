@@ -340,6 +340,9 @@ static void handleBatteryStatusEvent(const SerialCommand* command) {
  * @param command Serial Read command to run
  */
 static void handleSerialReadCommandEvent(const SerialCommand* command) {
+    // A large switch is the most straightforward way to handle serial read commands.
+    // Therefore, Lizard linter can ignore this function's length
+    // #lizard forgives(cyclomatic_complexity)
     uint8_t orientation = 0;
 
     switch (command->code) {
@@ -394,7 +397,7 @@ static void handleSerialReadCommandEvent(const SerialCommand* command) {
 static void handleSerialWriteCommandEvent(const SerialCommand* command) {
     // A large switch is the most straightforward way to handle serial write commands.
     // Therefore, Lizard linter can ignore this function's length
-    // #lizard forgives(length)
+    // #lizard forgives(length, cyclomatic_complexity)
     ErrorCode error;
 
     switch (command->code) {
