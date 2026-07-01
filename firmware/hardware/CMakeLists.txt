@@ -41,7 +41,6 @@ target_compile_options(gpio PRIVATE ${WARNING_FLAGS})
 target_include_directories(gpio PUBLIC gpio)
 target_link_libraries(gpio PRIVATE
 	utils
-	serial
 )
 
 #

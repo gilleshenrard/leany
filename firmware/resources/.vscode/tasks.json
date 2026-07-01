@@ -64,7 +64,7 @@
             "linux": {
                 "args": [
                     "${command:cmake.buildDirectory}/compile_commands.json",
-                    "${command:cmake.buildDirectory}/compile_commands.json.backup"
+                    "/tmp"
                 ]
             },
             "options": {
@@ -87,7 +87,7 @@
                 "command": "sed",
                 "args": [
                     "-i",
-                    "/-fanalyzer/g;/-fmax-errors=0/g",
+                    "s/-fanalyzer//g; s/-fmax-errors=0//g",
                     "${command:cmake.buildDirectory}/compile_commands.json"
                 ]
             },
@@ -107,7 +107,7 @@
                     "-quiet",
                     "-p${command:cmake.buildDirectory}",
                     "-extra-arg=--sysroot=C:/msys64/ucrt64/arm-none-eabi",
-                    ".*(hardware^|ui^|tasks^|utils^|tests)\\\\.*\\.(c^|h^|inc)$"
+                    ".*(hardware^|ui^|tasks^|utils^|tests^|app)\\\\.*\\.(c^|h^|inc)$"
                 ],
                 "options": {
                     "shell": {
@@ -122,7 +122,7 @@
                     "-quiet",
                     "-p${command:cmake.buildDirectory}",
                     "-extra-arg=--sysroot=/opt/arm-none-eabi/arm-none-eabi/",
-                    "\".*(hardware|ui|tasks|utils|tests)/.*\\.(c|h|inc)$\""
+                    "\".*(hardware|ui|tasks|utils|tests|app)/.*\\.(c|h|inc)$\""
                 ]
             },
             "options": {
@@ -151,7 +151,7 @@
             "linux": {
                 "command": "mv",
                 "args": [
-                    "${command:cmake.buildDirectory}/compile_commands.json.backup",
+                    "/tmp/compile_commands.json",
                     "${command:cmake.buildDirectory}/compile_commands.json"
                 ]
             },
@@ -177,10 +177,26 @@
             "type": "shell",
             "label": "Run clang-format validation",
             "windows": {
-                "command": "Get-ChildItem -Path hardware,ui,tasks,utils,tests -Recurse -Include *.c,*.h,*.inc -File | ForEach-Object {clang-format --style=file --dry-run --Werror --verbose $_.FullName }"
+                "command": "Get-ChildItem -Path hardware,ui,tasks,utils,tests,app -Recurse -Include *.c,*.h,*.inc -File | ForEach-Object {clang-format --style=file --dry-run --Werror --verbose $_.FullName }"
             },
             "linux": {
-                "command": "find hardware ui tasks utils tests -name '*.c' -o -name '*.h'-o -name '*.inc' | xargs clang-format --style=file --dry-run --Werror --verbose"
+                "command": "find . -type f  -name '*.c' -o -name '*.h' -o -name '*.inc' -print | xargs clang-format --style=file --dry-run --Werror --verbose"
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        
+
+        {
+            "type": "shell",
+            "label": "Format all code",
+            "windows": {
+                "command": "Get-ChildItem -Recurse -Include *.c,*.h,*.inc | ForEach-Object {clang-format -i --style=file --verbose $_.FullName }"
+            },
+            "linux": {
+                "command": "find . -type f  -name '*.c' -o -name '*.h' -o -name '*.inc' | xargs clang-format -i --style=file --verbose"
             },
             "options": {
                 "cwd": "${workspaceFolder}"
@@ -234,21 +250,21 @@
             "command": "cppcheck",
             "args": [
                 "--enable=all",
+                "--safety",
                 "--language=c",
                 "--inconclusive",
                 "--inline-suppr",
-                "--error-exitcode=2",
-                "--project=${command:cmake.launchTargetDirectory}/compile_commands.json",
-                "--cppcheck-build-dir=config-cppcheck-build-dir/",
                 "--check-level=exhaustive",
-                "-ibuild/",
-                "-iDrivers/",
-                "-iMiddlewares/",
-                "-iCore/",
+                "--checkers-report=/tmp/cppcheck-checkers.txt",
+                "--project=build/Debug/compile_commands.json",
+                "--cppcheck-build-dir=config-cppcheck-build-dir/",
+                "--include=Core/Inc/FreeRTOSConfig.h",
                 "--suppress=missingIncludeSystem",
-                "--suppress=missingInclude",
-                "--suppress=unusedFunction",
-                "--suppress=unknownMacro"
+                "--suppress=unmatchedSuppression",
+                "--suppress=*:Core/**",
+                "--suppress=*:Drivers/**",
+                "--suppress=*:Middlewares/**",
+                "-ibuild/"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"
@@ -274,7 +290,7 @@
 
         {
             "type": "shell",
-            "label": "Check enums and strucs documentation",
+            "label": "Check enums and structs documentation",
             "command": "python",
             "args": [
                 "resources/check_enum_struct_members_doc.py",
@@ -298,12 +314,12 @@
                 "-Tparameter_count=5",
                 "-Tcyclomatic_complexity=10",
                 "-Eduplicate",
-                "-m",
                 "hardware/",
-                "ui/",
                 "tasks/",
                 "utils/",
-                "tests/"
+                "app/",
+                "tests/",
+                "ui/"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"

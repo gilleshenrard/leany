@@ -22,9 +22,9 @@
 #include <string.h>
 
 #include "errorstack.h"
-#include "generic_command.inc"
 #include "leany_std.h"
 #include "scpi_commands.h"
+#include "serial_command_types.h"
 #include "task_serial.h"
 
 enum {
@@ -43,10 +43,12 @@ typedef enum {
 
 //internal functions
 static void stateWaitingForStartChararcter(char new_char);
-static uint8_t stateBufferingCharacters(char new_char, GenericCommand* command_received);
-static uint8_t stateBufferingParameter(char new_char, GenericCommand* command_received);
+static uint8_t stateBufferingCharacters(char new_char, SerialCommand* command_received);
+static uint8_t stateBufferingParameter(char new_char, SerialCommand* command_received);
 static const Node* searchMatchingChildNode(const Node* tree_node, const char* command, uint8_t command_size);
-static uint8_t populateCommand(const Node* scpi_node, GenericCommand* command);
+static uint8_t populateCommand(const Node* scpi_node, SerialCommand* command);
+static uint8_t finaliseCommand(const Node* node, const char buffer[kReceiveBufferSize], uint8_t index,
+                               SerialCommand* command_received);
 
 //constants
 static const char kNewBranch = ':';    ///< Character used to indicate a new hierarchy branch
@@ -55,12 +57,12 @@ static const char kConcatenate = ';';  ///< Character used to concatenate comman
 static const char kParameter = ' ';    ///< Character used to indicate a parameter
 static const char kEndLine = '\n';     ///< Character used to indicate an end of line
 static const char kUnknownMessage[] =  ///< Message indicating "unknown command"
-    "Unknown command. Type ':help' for more info";
+    "Unknown command. Type ':help?' for more info";
 
 static char reception_buffer[kReceiveBufferSize];  ///< Buffer used to store bytes for slower computations
 static uint8_t buffer_index;                       ///< Current index in the reception buffer
 static ParserState state;                          ///< Current parser state
-static const Node* current_node = NULL;            ///< Current command tree node being parsed
+static const Node* current_node = nullptr;         ///< Current command tree node being parsed
 static char parameter[kParameterSize];             ///< Buffer used to store a parameter
 static uint8_t parameter_index = 0;                ///< Index of the current character saved as parameter
 
@@ -85,7 +87,7 @@ void resetSCPIparser(void) {
  * @retval 0 The current command is not done parsing
  * @return Code of a command done parsing, if any
  */
-uint8_t pushSCPIcharacter(uint8_t new_char, GenericCommand* command_received) {
+uint8_t pushSCPIcharacter(uint8_t new_char, SerialCommand* command_received) {
     switch (state) {
         case kState_waiting:
             stateWaitingForStartChararcter(new_char);
@@ -136,26 +138,18 @@ static void stateWaitingForStartChararcter(char new_char) {
  * @retval 1 Command is done parsing
  * @retval 0 Command still needs parsing
  */
-static uint8_t stateBufferingCharacters(char new_char, GenericCommand* command_received) {
+static uint8_t stateBufferingCharacters(char new_char, SerialCommand* command_received) {
     (void)command_received;
-
-    const Node* found = NULL;
 
     //character indicates end of the command
     if ((new_char == kConcatenate) || (new_char == kEndLine)) {
-        found = searchMatchingChildNode(current_node, reception_buffer, buffer_index);
-        uint8_t valid = populateCommand(found, command_received);
-        resetSCPIparser();
-        if (!found) {
-            logSerial(kMaxErrorLevel, kUnknownMessage);
-        }
-        return ((found != NULL) && valid);
+        return finaliseCommand(current_node, reception_buffer, buffer_index, command_received);
     }
 
     //new hierarchy branch requested
     if (new_char == kNewBranch) {
         //if matching node found, keep parsing against its children
-        found = searchMatchingChildNode(current_node, reception_buffer, buffer_index);
+        const Node* found = searchMatchingChildNode(current_node, reception_buffer, buffer_index);
 
         command_received->is_read = 0;
         if (found) {
@@ -195,7 +189,7 @@ static uint8_t stateBufferingCharacters(char new_char, GenericCommand* command_r
  * @param[out] command_received Command to fill with parsed information
  * @return 0
  */
-static uint8_t stateBufferingParameter(char new_char, GenericCommand* command_received) {
+static uint8_t stateBufferingParameter(char new_char, SerialCommand* command_received) {
     if ((new_char == kConcatenate) || (new_char == kEndLine)) {
         return stateBufferingCharacters(new_char, command_received);
     }
@@ -222,12 +216,12 @@ static uint8_t stateBufferingParameter(char new_char, GenericCommand* command_re
  * @param tree_node     Node in which childrens search for the command
  * @param command       Command to check 
  * @param command_size  Number of characters in the command
- * @return Address of the node if found, NULL otherwise
+ * @return Address of the node if found, nullptr otherwise
  */
 static const Node* searchMatchingChildNode(const Node* tree_node, const char* command, const uint8_t command_size) {
     //no node or node does not have any children
     if (!tree_node || !tree_node->children) {
-        return NULL;
+        return nullptr;
     }
 
     //search for a match in all the children
@@ -248,7 +242,7 @@ static const Node* searchMatchingChildNode(const Node* tree_node, const char* co
         }
     }
 
-    return NULL;
+    return nullptr;
 }
 
 /**
@@ -259,7 +253,7 @@ static const Node* searchMatchingChildNode(const Node* tree_node, const char* co
  * @retval 1 Success
  * @retval 0 Failure
  */
-static uint8_t populateCommand(const Node* scpi_node, GenericCommand* command) {
+static uint8_t populateCommand(const Node* scpi_node, SerialCommand* command) {
     if (!command) {
         logSerial(kErrorError, "No command given to populate");
         return 0;
@@ -292,4 +286,25 @@ static uint8_t populateCommand(const Node* scpi_node, GenericCommand* command) {
     }
 
     return 1;
+}
+
+/**
+ * Check a matching command node and populate the command if so
+ *
+ * @param node Current node
+ * @param buffer Serial command reception buffer
+ * @param index Index in the reception buffer
+ * @param command_received Command received
+ * @retval 1 Command valid
+ * @retval 0 Command invalid
+ */
+static uint8_t finaliseCommand(const Node* node, const char buffer[kReceiveBufferSize], const uint8_t index,
+                               SerialCommand* command_received) {
+    const Node* found = searchMatchingChildNode(node, buffer, index);
+    const bool valid = (populateCommand(found, command_received) == 1U);
+    resetSCPIparser();
+    if (!found) {
+        logSerial(kMaxErrorLevel, kUnknownMessage);
+    }
+    return ((found != nullptr) && valid);
 }

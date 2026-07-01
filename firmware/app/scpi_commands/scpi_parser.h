@@ -5,13 +5,13 @@
  * @file scpi_parser.h
  * @author Gilles Henrard
  */
-#ifndef HARDWARE_SERIAL_SCPI_PARSER_H
-#define HARDWARE_SERIAL_SCPI_PARSER_H
+#ifndef APP_SCPI_COMMANDS_SCPI_PARSER_H
+#define APP_SCPI_COMMANDS_SCPI_PARSER_H
 #include <stdint.h>
 
-#include "generic_command.inc"
+#include "serial_command_types.h"
 
 void resetSCPIparser(void);
-uint8_t pushSCPIcharacter(uint8_t new_char, GenericCommand* command_received);
+uint8_t pushSCPIcharacter(uint8_t new_char, SerialCommand* command_received);
 
 #endif

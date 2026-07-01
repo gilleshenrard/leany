@@ -1,7 +1,7 @@
 {
     //
     //
-    //Editor settings
+    //Editor and debugger settings
     "files.defaultLanguage": "c",
     "files.associations": {
         "*.h": "c",
@@ -9,6 +9,7 @@
     },
     "editor.insertSpaces": true,
     "editor.detectIndentation": true,
+    "cortex-debug.variableUseNaturalFormat": true,
     //
     //
     //Clangd (llvm-vs-code-extensions.vscode-clangd)
@@ -17,7 +18,7 @@
     "clangd.detectExtensionConflicts": true,
     "clangd.onConfigChanged": "restart",
     "clangd.arguments": [
-        "-compile-commands-dir=build/Debug",
+        "-compile-commands-dir=build",
         "--query-driver=**arm-none-eabi-gcc**", //extracted from compile_commands.json
         "--clang-tidy",
         "--fallback-style=Google",
@@ -36,16 +37,19 @@
         "-Tparameter_count=5",
         "-Tcyclomatic_complexity=10",
         "-m",
-        "firmware/hardware/",
         "firmware/ui/",
-        "firmware/utilities/",
-        "firmware/tasks/"
+        "firmware/tasks/",
+        "firmware/hardware/",
+        "firmware/utils/",
+        "firmware/app/",
+        "firmware/tests/"
     ],
     "c-cpp-flylint.cppcheck.language": "C",
     "c-cpp-flylint.cppcheck.inconclusive": true,
     "c-cpp-flylint.cppcheck.verbose": false,
     "c-cpp-flylint.cppcheck.extraArgs": [
-        "--check-level=exhaustive"
+        "--check-level=exhaustive",
+        "--safety"
     ],
     "c-cpp-flylint.cppcheck.suppressions": [
         "unusedFunction",
@@ -79,5 +83,8 @@
             "statusBarVisibility": "hidden"
         }
     },
-    "cortex-debug.variableUseNaturalFormat": true,
+    "cmake.ctestArgs": [
+        "--verbose"
+    ],
+    "cmake.copyCompileCommands": "${workspaceFolder}/build/compile_commands.json"
 }
