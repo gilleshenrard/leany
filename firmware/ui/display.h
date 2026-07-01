@@ -10,7 +10,7 @@
 #include "bitmap.h"
 #include "icons.h"
 #include "label.h"
-#include "orientation.inc"
+#include "orientation.h"
 #include "task_battery.h"
 
 enum {

@@ -7,7 +7,7 @@
  */
 #ifndef HARDWARE_BATTERY_BQ25619_H
 #define HARDWARE_BATTERY_BQ25619_H
-#include "bq25619_registers.inc"
+#include "bq25619_registers.h"
 #include "errorstack.h"
 
 ErrorCode testBQ25619identifier(void);

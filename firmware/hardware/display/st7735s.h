@@ -12,7 +12,7 @@
 #include <task.h>
 
 #include "errorstack.h"
-#include "orientation.inc"
+#include "orientation.h"
 
 enum {
     kDisplayWidth = 160U,      ///< Number of pixels in width

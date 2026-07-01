@@ -2,7 +2,7 @@
  * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
  * SPDX-License-Identifier: MIT
  *
- * @file bq25619_registers.inc
+ * @file bq25619_registers.h
  * @details Describe BQ25619 registers and bit values
  * @author Gilles Henrard
  *

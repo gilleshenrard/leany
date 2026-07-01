@@ -22,7 +22,7 @@
 #include <task.h>
 
 #include "bq25619.h"
-#include "bq25619_registers.inc"
+#include "bq25619_registers.h"
 #include "hal_adc.h"
 #include "hal_i2c.h"
 #include "hardware_events.h"

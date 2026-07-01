@@ -30,7 +30,7 @@
 #include "errorstack.h"
 #include "hardware_events.h"
 #include "led.h"
-#include "orientation.inc"
+#include "orientation.h"
 #include "scpi_commands.h"
 #include "serial_command_types.h"
 #include "task_battery.h"

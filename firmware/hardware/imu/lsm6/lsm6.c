@@ -30,8 +30,8 @@
 #include "errorstack.h"
 #include "hal_spi.h"
 #include "imu.h"
-#include "lsm6_registers.inc"
-#include "lsm6dsr_registers.inc"
+#include "lsm6_registers.h"
+#include "lsm6dsr_registers.h"
 #include "sensorfusion.h"
 #include "systick.h"
 

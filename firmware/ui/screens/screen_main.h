@@ -11,7 +11,7 @@
 
 #include "errorstack.h"
 #include "hardware_events.h"
-#include "orientation.inc"
+#include "orientation.h"
 
 ErrorCode setupMainScreen(void);
 ErrorCode treatMainScreenMessages(uint8_t message_flags[kNbEvents]);

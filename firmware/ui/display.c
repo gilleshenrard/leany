@@ -17,7 +17,7 @@
 #include "icons.h"
 #include "label.h"
 #include "leany_std.h"
-#include "orientation.inc"
+#include "orientation.h"
 #include "st7735s.h"
 #include "task_battery.h"
 
