@@ -102,6 +102,12 @@ precedence = "aggregate"
 SPDX-FileCopyrightText = "2023 Bosch Sensortec GmbH. All rights reserved."
 SPDX-License-Identifier = "BSD-3-Clause"
 
+[[annotations]]
+path = "firmware/build/**"
+precedence = "override"
+SPDX-FileCopyrightText = "2026 Gilles Henrard <contact@gilleshenrard.com>"
+SPDX-License-Identifier = "MIT"
+
 #
 # GrabCAD files do not come with an explicit license and are therefore to be considered as restricted
 #
