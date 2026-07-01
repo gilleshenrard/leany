@@ -2,8 +2,6 @@
 #
 # SPDX-License-Identifier: MIT
 
-include_directories(${CMAKE_SOURCE_DIR}/tasks)
-
 add_library(UI STATIC
 	assets/bitmap.c
 	assets/icons.c
@@ -24,5 +22,7 @@ target_link_libraries(UI PRIVATE
 	st7735s
 	BATTERY
 	hal
-	utils)
+	utils
+	IMU
+	tasks)
 target_compile_options(UI PRIVATE ${WARNING_FLAGS})

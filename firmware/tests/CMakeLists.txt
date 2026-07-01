@@ -23,7 +23,7 @@ target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE
     Unity
     m
 )
-target_compile_options(${CMAKE_PROJECT_NAME} PUBLIC ${WARNING_FLAGS})
+target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE ${WARNING_FLAGS})
 
 enable_testing()
 add_test(NAME sensorfusion_tests COMMAND ${CMAKE_PROJECT_NAME})

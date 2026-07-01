@@ -17,4 +17,4 @@ add_library(utils
 target_include_directories(utils PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_compile_definitions(utils PUBLIC $<TARGET_PROPERTY:stm32cubemx,INTERFACE_COMPILE_DEFINITIONS>)
 target_include_directories(utils SYSTEM PUBLIC $<TARGET_PROPERTY:stm32cubemx,INTERFACE_INCLUDE_DIRECTORIES>)
-target_compile_options(utils PUBLIC ${WARNING_FLAGS})
+target_compile_options(utils PRIVATE ${WARNING_FLAGS})
