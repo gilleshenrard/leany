@@ -11,7 +11,6 @@ target_include_directories(stm32cubemx INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 add_library(utils
 	errorstack.c
 	hardware_events.c
-	softversion.c
 	leany_std.c
 	systick.c)
 target_include_directories(utils PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
