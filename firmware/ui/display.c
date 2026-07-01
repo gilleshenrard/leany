@@ -130,7 +130,7 @@ ErrorCode fillBackground(Pixel* buffer, size_t buffer_size, Orientation orientat
  * @param area Area to print on the display
  * @param colour Colour of the rectangle
  * @retval 0 Success
- * @retval 1 Area is NULL
+ * @retval 1 Area is nullptr
  * @retval 2 Area goes either right to left, or bottom to top
  * @retval 3 Area larger than the buffer
  * @retval 4 Error while sending the buffer to the display

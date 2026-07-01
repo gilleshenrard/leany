@@ -169,14 +169,14 @@ static ErrorCode restartScreen(void) {
     static const uint8_t kSleepoutDelayMS = 255U;  ///< Number of milliseconds to wait sleep out
 
     //send the reset command and, if error, exit
-    result = writeRegisters(&dma_descriptor.spi, kSWRESET, NULL, 0);
+    result = writeRegisters(&dma_descriptor.spi, kSWRESET, nullptr, 0);
     EXIT_ON_ERROR(result, kStartup, 1)
 
     //wait for a while after software reset
     vTaskDelay(pdMS_TO_TICKS(kResetDelayMS));
 
     //send the reset command and, if error, exit
-    result = writeRegisters(&dma_descriptor.spi, kSLPOUT, NULL, 0);
+    result = writeRegisters(&dma_descriptor.spi, kSLPOUT, nullptr, 0);
     EXIT_ON_ERROR(result, kStartup, 2)
 
     //wait for a while after sleepout
@@ -226,7 +226,7 @@ ErrorCode sendScreenData(const uint16_t data[], size_t nb_bytes, size_t max_byte
     result = setWindow(screen_area->x0, screen_area->y0, getAreaWidth(screen_area), getAreaHeight(screen_area));
     EXIT_ON_ERROR(result, kSendData, 1)
 
-    result = writeRegistersAndContinue(&dma_descriptor.spi, kRAMWR, NULL, 0);
+    result = writeRegistersAndContinue(&dma_descriptor.spi, kRAMWR, nullptr, 0);
     EXIT_ON_ERROR(result, kSendData, 2)
 
     result = sendDMA(&dma_descriptor, (const uint8_t*)data, nb_bytes, max_bytes);

@@ -32,7 +32,7 @@ static void uncompressRow32(const Bitmap* metadata, Pixel* output_buffer, const 
  * @param bitmap Pointer to the metadata bitmap data (row-major, MSB-first)
  * @param foreground_colour Colour to use for foreground pixels (1 bits)
  * @retval 0 Success
- * @retval 1 NULL pointer provided
+ * @retval 1 nullptr pointer provided
  * @retval 2 X offset and metadata width out of container width range
  */
 // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)

@@ -14,7 +14,7 @@ add_library(hal
 )
 target_compile_options(hal PRIVATE ${WARNING_FLAGS})
 target_include_directories(hal PUBLIC hal)
-target_link_libraries(hal PRIVATE utils)
+target_link_libraries(hal PRIVATE utils stm32cubemx)
 
 #
 # declare the ST7735 library, taking care of the display
@@ -30,6 +30,7 @@ target_include_directories(st7735s PUBLIC
 target_link_libraries(st7735s PRIVATE
 	utils
 	hal
+	stm32cubemx
 )
 
 #create the buttons library, taking care of the control buttons
@@ -40,6 +41,7 @@ target_compile_options(gpio PRIVATE ${WARNING_FLAGS})
 target_include_directories(gpio PUBLIC gpio)
 target_link_libraries(gpio PRIVATE
 	utils
+	stm32cubemx
 )
 
 #
@@ -53,4 +55,5 @@ target_include_directories(BATTERY PUBLIC battery)
 target_link_libraries(BATTERY PRIVATE
 	utils
 	hal
+	stm32cubemx
 )

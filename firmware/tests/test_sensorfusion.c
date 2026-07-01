@@ -113,17 +113,17 @@ void tearDown(void) {}
 /*********************************************************************************************************************************/
 
 /**
- * Test that NULL parameters do not modify the filter context.
+ * Test that nullptr parameters do not modify the filter context.
  *
  * @details
  * This is achieved by calling updateMahonyFilter() three times: once with a
- * NULL context, once with a NULL sample, and once with valid parameters. Under
+ * nullptr context, once with a nullptr sample, and once with valid parameters. Under
  * the first two conditions the context must remain bit-identical to its initial
  * state; under the third it must differ, proving the valid path does update.
- * Example: updateMahonyFilter(NULL, &sample) → context unchanged.
+ * Example: updateMahonyFilter(nullptr, &sample) → context unchanged.
  *
  * @internal
- * Exercises the NULL guard at the entry of updateMahonyFilter(). The third
+ * Exercises the nullptr guard at the entry of updateMahonyFilter(). The third
  * call verifies the guard does not over-reject valid input, making it a
  * combined positive and negative test.
  */
@@ -134,17 +134,17 @@ static void test_null_pointer_guards(void) {
         .gyroscope_radps[kYaxis] = kStrongGyro_radps,
     };
 
-    //test with a NULL context
-    updateMahonyFilter(NULL, &violent_pitch);
+    //test with a nullptr context
+    updateMahonyFilter(nullptr, &violent_pitch);
     // NOLINTNEXTLINE (DeprecatedOrUnsafeBufferHandling)
     uint8_t equals = (memcmp(&old_context, &context, sizeof(MahonyContext)) == 0);
-    TEST_ASSERT_TRUE_MESSAGE(equals, "NULL context failed");
+    TEST_ASSERT_TRUE_MESSAGE(equals, "nullptr context failed");
 
-    //test with a NULL sample
-    updateMahonyFilter(&context, NULL);
+    //test with a nullptr sample
+    updateMahonyFilter(&context, nullptr);
     // NOLINTNEXTLINE (DeprecatedOrUnsafeBufferHandling)
     equals = (memcmp(&old_context, &context, sizeof(MahonyContext)) == 0);
-    TEST_ASSERT_TRUE_MESSAGE(equals, "NULL sample failed");
+    TEST_ASSERT_TRUE_MESSAGE(equals, "nullptr sample failed");
 
     //test in normal conditions
     context.dt.current_tick++;
@@ -153,9 +153,9 @@ static void test_null_pointer_guards(void) {
     equals = (memcmp(&old_context, &context, sizeof(MahonyContext)) == 0);
     TEST_ASSERT_FALSE_MESSAGE(equals, "Normal update condition failed");
 
-    //test getting an angles with a NULL context
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, angleAlongAxis(NULL, kXaxis));
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, getAttitudeAngle(NULL));
+    //test getting an angles with a nullptr context
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, angleAlongAxis(nullptr, kXaxis));
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, getAttitudeAngle(nullptr));
 }
 
 /**

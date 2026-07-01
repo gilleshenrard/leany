@@ -18,6 +18,7 @@
 #include <FreeRTOS.h>  //NOLINT(*-include-cleaner)
 #include <bmi270.h>
 #include <bmi2_defs.h>
+#include <main.h>
 #include <portmacro.h>
 #include <projdefs.h>
 #include <stdint.h>
@@ -29,7 +30,6 @@
 #include "errorstack.h"
 #include "hal_spi.h"
 #include "imu.h"
-#include "main.h"
 #include "sensorfusion.h"
 #include "systick.h"
 

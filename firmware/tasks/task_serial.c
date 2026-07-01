@@ -108,6 +108,7 @@ void uartInterruptTriggered(void) {
  * Create the FreeRTOS serial communication task
  */
 void createSerialtask(void) {
+    // NOLINTBEGIN (hicpp-use-nullptr)
     static StackType_t task_stack[kStackSize] = {0};  ///< Buffer used as the task stack
     static StaticTask_t task_state = {0};             ///< Task state variables
     static OutboundMessage outbound_buffer[kOutboundQueueSize];
@@ -116,6 +117,7 @@ void createSerialtask(void) {
     static StaticQueue_t outbound_state;
     static StaticQueue_t commands_state;
     static StaticStreamBuffer_t inbound_state;
+    // NOLINTEND
 
     //create the static task
     task_handle =
@@ -152,6 +154,7 @@ void logSerial(ErrorLevel level, const char format[], ...) {
         return;
     }
 
+    // NOLINTBEGIN (clang-analyzer-security.VAList)
     OutboundMessage packed_message;
     va_list args;
     va_start(args, format);
@@ -168,6 +171,7 @@ void logSerial(ErrorLevel level, const char format[], ...) {
     packed_message.message[length + 1U] = '\0';
 
     va_end(args);
+    // NOLINTEND
 
     //try adding the item to the queue
     (void)xQueueSend(queue_outbound, (void*)&packed_message, pdMS_TO_TICKS(kSerialTimeoutMS));

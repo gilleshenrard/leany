@@ -10,8 +10,6 @@ add_library(tasks STATIC
 	task_battery.c
 	task_serial.c
 )
-target_compile_definitions(tasks PRIVATE $<TARGET_PROPERTY:stm32cubemx,INTERFACE_COMPILE_DEFINITIONS>)
-target_include_directories(tasks SYSTEM PRIVATE $<TARGET_PROPERTY:stm32cubemx,INTERFACE_INCLUDE_DIRECTORIES>)
 target_include_directories(tasks PUBLIC
 	${CMAKE_CURRENT_SOURCE_DIR}
 )
@@ -25,5 +23,6 @@ target_link_libraries(tasks PRIVATE
 	UI
 	scpi
 	sensorfusion
+	stm32cubemx
 )
 target_compile_options(tasks PRIVATE ${WARNING_FLAGS})

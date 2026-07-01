@@ -107,11 +107,12 @@ static const uint16_t kBatteryLevelsLookupTable[kNbBatteryLevelSteps] = {
     kBatteryMaxMv,  // 100%
 };
 
-static volatile TaskHandle_t task_handle = NULL;                 ///< handle of the FreeRTOS task
+// NOLINTBEGIN (hicpp-use-nullptr)
+static volatile TaskHandle_t task_handle = nullptr;              ///< handle of the FreeRTOS task
 static volatile FunctionCode state = kStateStartup;              ///< Current state machine state
 static StackType_t task_stack[kStackSize] = {0};                 ///< Buffer used as the task stack
 static StaticTask_t task_state = {0};                            ///< Task state variables
-static SemaphoreHandle_t battery_mutex = NULL;                   ///< Mutex used to protect the battery status
+static SemaphoreHandle_t battery_mutex = nullptr;                ///< Mutex used to protect the battery status
 static ErrorCode result = {0};                                   ///< Buffer used to store the latest error code
 static I2C_TypeDef* i2c_handle = I2C1;                           ///< I²C handle to use with all transmissons
 static uint8_t battery_percentage = kBatteryFullPercent;         ///< Current battery percentage
@@ -125,6 +126,7 @@ static uint8_t battery_average_nbsamples = 0;                    ///< Number of 
 static uint8_t battery_average_index = 0;                        ///< Index of the current buffer head
 static uint32_t battery_average_total = 0;                       ///< Total value used to calculate battery average
 static uint16_t battery_voltage_mv = 0;                          ///< Current battery voltage in [mV]
+// NOLINTEND
 
 /****************************************************************************************************************/
 /****************************************************************************************************************/
@@ -135,14 +137,16 @@ static uint16_t battery_voltage_mv = 0;                          ///< Current ba
  * @return Success
  */
 ErrorCode createBatteryTask(void) {
+    // NOLINTBEGIN (hicpp-use-nullptr)
     static StaticSemaphore_t battery_mutex_state = {0};  ///< battery mutex state variables
+    // NOLINTEND
 
     //create a semaphore to protect battery status
     battery_mutex = xSemaphoreCreateMutexStatic(&battery_mutex_state);
     configASSERT(battery_mutex);
 
     //create the static task
-    task_handle = xTaskCreateStatic(taskBatteryManagement, "Battery management task", kStackSize, NULL,
+    task_handle = xTaskCreateStatic(taskBatteryManagement, "Battery management task", kStackSize, nullptr,
                                     kTaskLowPriority, task_stack, &task_state);
     if (!task_handle) {
         Error_Handler();

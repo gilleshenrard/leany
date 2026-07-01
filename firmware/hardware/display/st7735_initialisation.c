@@ -125,10 +125,10 @@ const ST7735command kST7735configurationScript[kST7735nbCommands] = {
     {kPWCTR4, 2, kPowerControl4args},             //set power control 4 in idle mode
     {kPWCTR5, 2, kPowerControl5args},             //set power control 5 in partial mode
     {kVMCTR1, 1, &kVmCtr1arg},                    //set VCOM voltage
-    {kINVOFF, 0, NULL},                           //no display inversion
+    {kINVOFF, 0, nullptr},                        //no display inversion
     {kCOLMOD, 1, &kColorModeArg},                 //color mode
     {kGAMCTRP1, 16, kGammaControlPositiveArgs},   //Gamma adjustments (positive polarity)
     {kGAMCTRN1, 16, kGammaControlNegativeArgs},   //Gamma adjustments (negative polarity)
-    {kNORON, 0, NULL},                            //normal mode ON
-    {kDISPON, 0, NULL},                           //display ON
+    {kNORON, 0, nullptr},                         //normal mode ON
+    {kDISPON, 0, nullptr},                        //display ON
 };

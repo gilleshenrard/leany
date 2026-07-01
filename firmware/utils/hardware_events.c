@@ -23,8 +23,8 @@ _Static_assert((kNbEvents < 31U), "Too many events declared");  // NOLINT (cppco
 
 static inline EventBits_t eventToBitmask(Event event);
 
-static EventGroupHandle_t hardware_events_group = NULL;  ///< Hardware events group handle
-static EventBits_t latest_events = 0;                    ///< Latest hardware events monitored
+static EventGroupHandle_t hardware_events_group = nullptr;  ///< Hardware events group handle
+static EventBits_t latest_events = 0;                       ///< Latest hardware events monitored
 
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/

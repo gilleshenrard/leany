@@ -51,13 +51,13 @@ static void updateInternalTemperature(void);
 static int32_t adcToInternalTemperature(uint16_t adc_raw);
 
 //state variables
-static volatile TaskHandle_t task_handle = NULL;    ///< handle of the FreeRTOS task
-static SemaphoreHandle_t temperature_mutex = NULL;  ///< Mutex which protects the temperature readings
-static SemaphoreHandle_t reference_mutex = NULL;    ///< Mutex which protects the ADC reference voltage readings
-static int32_t internal_temperature_celsius = 0;    ///< Latest MCU internal temperature in [°C]
-static uint32_t adc_vref_mv;                        ///< Current ADC Vref voltage in [mV]
-static uint32_t last_temperature_update_tick = 0;   ///< Last tick at which temperature was updated
-static uint32_t last_adc_update_tick = 0;           ///< Last tick at which ADC was updated
+static volatile TaskHandle_t task_handle = nullptr;    ///< handle of the FreeRTOS task
+static SemaphoreHandle_t temperature_mutex = nullptr;  ///< Mutex which protects the temperature readings
+static SemaphoreHandle_t reference_mutex = nullptr;    ///< Mutex which protects the ADC reference voltage readings
+static int32_t internal_temperature_celsius = 0;       ///< Latest MCU internal temperature in [°C]
+static uint32_t adc_vref_mv;                           ///< Current ADC Vref voltage in [mV]
+static uint32_t last_temperature_update_tick = 0;      ///< Last tick at which temperature was updated
+static uint32_t last_adc_update_tick = 0;              ///< Last tick at which ADC was updated
 
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
@@ -66,10 +66,12 @@ static uint32_t last_adc_update_tick = 0;           ///< Last tick at which ADC 
  * @brief Create FreeRTOS static task for the GPIO modules
  */
 void createGPIOtask(void) {
+    // NOLINTBEGIN (hicpp-use-nullptr)
     static StackType_t task_stack[kStackSize] = {0};         ///< Buffer used as the task stack
     static StaticTask_t task_state = {0};                    ///< Task state variables
     static StaticSemaphore_t temperature_mutex_state = {0};  ///< internal temperature mutex state variables
     static StaticSemaphore_t reference_mutex_state = {0};    ///< ADC reference voltage mutex state variables
+    // NOLINTEND
 
     //create a mutex to protect temperature measurements
     temperature_mutex = xSemaphoreCreateMutexStatic(&temperature_mutex_state);
@@ -80,7 +82,8 @@ void createGPIOtask(void) {
     configASSERT(reference_mutex);
 
     //create the static task
-    task_handle = xTaskCreateStatic(taskGPIO, "GPIO task", kStackSize, NULL, kTaskLowPriority, task_stack, &task_state);
+    task_handle =
+        xTaskCreateStatic(taskGPIO, "GPIO task", kStackSize, nullptr, kTaskLowPriority, task_stack, &task_state);
     configASSERT(task_handle);
 }
 
@@ -91,7 +94,7 @@ void createGPIOtask(void) {
  * @retval 0 Mutex timeout occurred
  */
 uint8_t getInternalTemperatureCelsius(int32_t* temperature_celsius) {
-    if (temperature_celsius == NULL) {
+    if (temperature_celsius == nullptr) {
         return 0;
     }
 
