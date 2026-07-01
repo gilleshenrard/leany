@@ -58,7 +58,7 @@ CheckOptions:
   - key: readability-function-cognitive-complexity.IgnoreMacros           #Limit the cognitive complexity threshold to 10
     value: 'true'                                                         #
   - key: readability-function-cognitive-complexity.Threshold              #
-    value: '15'                                                           #
+    value: '10'                                                           #
 
   #Formatting options
   # Google style guide : https://google.github.io/styleguide/cppguide.html

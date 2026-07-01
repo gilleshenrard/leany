@@ -9,3 +9,4 @@ Standard: Latest
 IndentWidth: 4
 ColumnLimit: 120
 ReflowComments: false
+InsertNewlineAtEOF: true
