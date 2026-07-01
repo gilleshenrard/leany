@@ -20,7 +20,7 @@ target_link_libraries(hal PRIVATE utils)
 # declare the ST7735 library, taking care of the display
 #
 add_library(st7735s
-	display/st7735_registers.inc
+	display/st7735_registers.h
 	display/st7735s.c
 	display/st7735_initialisation.c)
 target_compile_options(st7735s PRIVATE ${WARNING_FLAGS})

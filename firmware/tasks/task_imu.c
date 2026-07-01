@@ -26,7 +26,7 @@
 #include "hardware_events.h"
 #include "imu.h"
 #include "main.h"
-#include "orientation.inc"
+#include "orientation.h"
 #include "sensorfusion.h"
 #include "task_serial.h"
 

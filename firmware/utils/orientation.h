@@ -2,7 +2,7 @@
  * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
  * SPDX-License-Identifier: MIT
  *
- * @file orientation.inc
+ * @file orientation.h
  * @details Describe the different device orientations
  * @author Gilles Henrard
  */

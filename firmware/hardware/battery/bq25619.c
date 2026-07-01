@@ -13,7 +13,7 @@
 #include <stdint.h>
 #include <stm32f103xb.h>
 
-#include "bq25619_registers.inc"
+#include "bq25619_registers.h"
 #include "errorstack.h"
 #include "hal_i2c.h"
 #include "systick.h"

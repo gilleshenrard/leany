@@ -9,8 +9,8 @@
 #define INC_HARDWARE_SCREEN_ST7735S_INITIALISATION_H
 #include <stdint.h>
 
-#include "orientation.inc"
-#include "st7735_registers.inc"
+#include "orientation.h"
+#include "st7735_registers.h"
 
 enum {
     kST7735nbCommands = 16U,  ///< Number of commands to send during initialisation

@@ -2,7 +2,7 @@
  * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
  * SPDX-License-Identifier: MIT
  *
- * @file lsm6_registers.inc
+ * @file lsm6_registers.h
  * @details Describe LSM6XXX registers and bit values
  * @author Gilles Henrard
  *

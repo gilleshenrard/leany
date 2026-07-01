@@ -19,7 +19,7 @@
 #include "fonts.h"
 #include "icons.h"
 #include "label.h"
-#include "orientation.inc"
+#include "orientation.h"
 #include "st7735s.h"
 #include "systick.h"
 #include "task_imu.h"

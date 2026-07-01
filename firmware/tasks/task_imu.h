@@ -10,7 +10,7 @@
 #include <stdint.h>
 
 #include "errorstack.h"
-#include "orientation.inc"
+#include "orientation.h"
 #include "sensorfusion.h"
 
 // IMU functions

@@ -24,9 +24,9 @@
 
 #include "errorstack.h"
 #include "hal_spi.h"
-#include "orientation.inc"
+#include "orientation.h"
 #include "st7735_initialisation.h"
-#include "st7735_registers.inc"
+#include "st7735_registers.h"
 
 /**
  * @brief Enumeration of the function IDs of the SSD1306

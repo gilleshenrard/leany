@@ -11,8 +11,8 @@
 
 #include <stddef.h>
 
-#include "orientation.inc"
-#include "st7735_registers.inc"
+#include "orientation.h"
+#include "st7735_registers.h"
 
 /**
  * @brief Arguments sent when configuring the frame rate
