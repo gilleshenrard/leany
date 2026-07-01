@@ -10,7 +10,7 @@
 
 #include <stddef.h>
 
-#include "generic_command.inc"
+#include "serial_command_types.h"
 
 static const Node kRootNode;  ///< Root node of the SCPI commands tree
 

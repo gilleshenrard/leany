@@ -5,11 +5,11 @@
  * @file scpi_commands.h
  * @author Gilles Henrard
  */
-#ifndef HARDWARE_SERIAL_SCPI_COMMANDS_H
-#define HARDWARE_SERIAL_SCPI_COMMANDS_H
+#ifndef APP_SCPI_COMMANDS_SCPI_COMMANDS_H
+#define APP_SCPI_COMMANDS_SCPI_COMMANDS_H
 #include <stdint.h>
 
-#include "generic_command.inc"
+#include "serial_command_types.h"
 
 enum {
     kSCPImaxCommandSize = 25U,  ///< Maximum size of a SCPI command
@@ -29,11 +29,11 @@ typedef enum {
  * Structure defining a SCPI wrapper of a command
  */
 typedef struct {
-    char* short_name;          ///< Short command name
-    char* long_name;           ///< Long command name
-    Mode mode;                 ///< Command mode (read-only / read-write)
-    ParameterType param_type;  ///< Type of the parameter value
-    CommandCode code;          ///< Command code
+    char* short_name;                ///< Short command name
+    char* long_name;                 ///< Long command name
+    Mode mode;                       ///< Command mode (read-only / read-write)
+    SerialParameterType param_type;  ///< Type of the parameter value
+    SerialCommandCode code;          ///< Command code
 } SCPIcommand;
 
 /**

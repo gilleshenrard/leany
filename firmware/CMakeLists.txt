@@ -8,11 +8,10 @@ cmake_minimum_required(VERSION 3.22)
 project(Leany VERSION 0.1.0)
 
 # Compiler settings
-set(CMAKE_C_STANDARD 17)
+set(CMAKE_C_STANDARD 23)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS ON)
 set(CMAKE_C_COMPILER_FORCED TRUE)
-set(CMAKE_CXX_COMPILER_FORCED TRUE)
 
 # Enable compile command to ease indexing with e.g. clangd
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
@@ -51,12 +50,13 @@ add_subdirectory(hardware)
 add_subdirectory(ui)
 add_subdirectory(utils)
 add_subdirectory(tasks)
+add_subdirectory(app)
 
 # Add linked libraries
 target_link_libraries(${CMAKE_PROJECT_NAME}
     IMU
     gpio
-    serial
     hal
     tasks
+    scpi
 )

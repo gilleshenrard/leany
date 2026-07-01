@@ -17,93 +17,102 @@ on:
   schedule:
     - cron: "0 3 1 * *" #Automatically run at 03:00 every 1st of the month
 
-env:
-  CLANG-VERSION: 22
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-
-
 #
 # Build the firmware on Linux and Windows
 #
-  build:
-    name: Build the firmware
-    runs-on: ${{ matrix.os }}
+  build-linux:
+    name: Build the firmware on Linux
+    runs-on: ubuntu-latest
     timeout-minutes: 10
-    strategy:
-       matrix:
-          os: [ubuntu-latest, windows-latest]
-          include:
-            - os: windows-latest
-              sys: ucrt64
-              env: ucrt-x86_64
 
     steps:
       - name: Checkout the repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
             submodules: recursive
             lfs: false
 
-      #Only for Linux
       - name: Install GNU Arm Embedded Toolchain - latest
-        if: ${{ matrix.os == 'ubuntu-latest' }}
         uses: carlosperate/arm-none-eabi-gcc-action@v1
         id: arm-none-eabi-gcc-action
         with:
           release: 'latest'
 
-      #Only for Linux
-      - name: Install Ninja Build
-        if: ${{ matrix.os == 'ubuntu-latest' }}
-        uses: turtlesec-no/get-ninja@main
+      - name: Configure CMake and build (Debug)
+        working-directory: ${{ github.workspace }}/firmware
+        run:  |
+              cmake --preset Debug
+              cmake --build --preset Debug
 
-      #Only for Windows
+      - name: Configure CMake and build (Release)
+        working-directory: ${{ github.workspace }}/firmware
+        run:  |
+              cmake --preset Release
+              cmake --build --preset Release
+
+      - name: Configure CMake and build (Unit-tests)
+        working-directory: ${{ github.workspace }}/firmware
+        run:  |
+              cmake --preset HOSTgcc
+              cmake --build --preset Tests
+
+      - name: Save the Debug CMake configuration folder
+        uses: actions/upload-artifact@v7
+        with:
+          name: build-Debug
+          path: |
+                ${{ github.workspace }}/firmware/build/Debug/compile_commands.json
+                ${{ github.workspace }}/firmware/build/HOSTgcc/tests/Leany
+                ${{ github.workspace }}/firmware/utils/softversion.h
+                ${{ github.workspace }}/firmware/README.md
+                ${{ github.workspace }}/firmware/Doxyfile
+          if-no-files-found: error
+
+#
+# Test a build on a Windows machine
+#
+  testbuild-windows:
+    name: Test a build on Windows
+    runs-on: windows-latest
+    needs: build-linux
+    timeout-minutes: 10
+    env:
+      MSYS_SYS: ucrt64
+      MSYS_ENV: ucrt-x86_64
+
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v7
+        with:
+            submodules: recursive
+            lfs: false
+
       - name: Set up MSYS2
-        if: ${{ matrix.os == 'windows-latest' }}
         id: setup-msys2
         uses: msys2/setup-msys2@v2
         with:
           update: false
           cache: true
-          msystem: ${{matrix.sys}}
+          msystem: ${{env.MSYS_SYS}}
           install: >-
-            mingw-w64-${{matrix.env}}-arm-none-eabi-gcc
-            mingw-w64-${{matrix.env}}-cmake
+            mingw-w64-${{env.MSYS_ENV}}-arm-none-eabi-gcc
+            mingw-w64-${{env.MSYS_ENV}}-cmake
 
-      #Only for Windows
       - name: Save the MSYS2 install directory in %PATH%
-        if: ${{ matrix.os == 'windows-latest' }}
         shell: powershell
         run: |
-          echo "${{ steps.setup-msys2.outputs.msys2-location }}/${{matrix.sys}}/bin" >> $env:GITHUB_PATH
+          echo "${{ steps.setup-msys2.outputs.msys2-location }}/${{env.MSYS_SYS}}/bin" >> $env:GITHUB_PATH
 
       - name: Configure CMake and build (Debug)
+        working-directory: ${{ github.workspace }}/firmware
         run:  |
-              cd ${{github.workspace}}/firmware/
               cmake --preset Debug
               cmake --build --preset Debug
-
-      - name: Configure CMake and build (Release)
-        run:  |
-              cd ${{github.workspace}}/firmware/
-              cmake --preset Release
-              cmake --build --preset Release
-
-      #Only for Linux
-      - name: Save the Debug CMake configuration folder
-        if: ${{ matrix.os == 'ubuntu-latest' }}
-        uses: actions/upload-artifact@v7
-        with:
-          name: build-Debug
-          path: |
-            ${{github.workspace}}/firmware/build/Debug/compile_commands.json
-            ${{github.workspace}}/firmware/build/Debug/Leany.elf
-            ${{github.workspace}}/firmware/utils/softversion.c
-            ${{github.workspace}}/firmware/README.md
-            ${{github.workspace}}/firmware/Doxyfile
-          if-no-files-found: error
-
 
 #
 # Run code quality and documentation checks
@@ -111,11 +120,13 @@ jobs:
   code-quality:
     name: Linters and documentation tools
     runs-on: ubuntu-latest
+    container:
+      image: gilleshenrard/c-linters:latest
     timeout-minutes: 10
-    needs: build
+    needs: build-linux
     steps:
       - name: Checkout the repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
             submodules: recursive
             lfs: false
@@ -124,7 +135,7 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           name: build-Debug
-          path: ${{github.workspace}}/firmware
+          path: ${{ github.workspace }}/firmware
 
       - name: Install GNU Arm Embedded Toolchain - latest
         uses: carlosperate/arm-none-eabi-gcc-action@v1
@@ -135,68 +146,46 @@ jobs:
       - name: Check the GNU Arm Embedded Toolchain triplet
         run: ls -la ${{ steps.arm-none-eabi-gcc-action.outputs.path }}/../arm-none-eabi
 
-      - name: Install clang tools
+      - name: Prepare lint project files
+        working-directory: ${{ github.workspace }}/firmware
         run: |
-          wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc
-          sudo add-apt-repository "deb http://apt.llvm.org/$(lsb_release -cs)/ llvm-toolchain-$(lsb_release -cs)-${{env.CLANG-VERSION}} main"
-          sudo apt-get update
-          sudo apt-get install -y clang-tidy-${{env.CLANG-VERSION}} clang-format-${{env.CLANG-VERSION}}
-          sudo update-alternatives --install /usr/bin/clang-tidy clang-tidy /usr/bin/clang-tidy-${{env.CLANG-VERSION}} 100
-          sudo update-alternatives --install /usr/bin/run-clang-tidy run-clang-tidy /usr/bin/run-clang-tidy-${{env.CLANG-VERSION}} 100
-          sudo update-alternatives --install /usr/bin/clang-format clang-format /usr/bin/clang-format-${{env.CLANG-VERSION}} 100
-
-      - name: Install other linters
-        run: |
-              sudo apt-get update && sudo apt-get install -y cppcheck doxygen
-              sudo pip install lizard reuse
-
-      - name: Cleanup compile_commands.json for clang-tidy
-        run: sed -i 's/-fanalyzer//g; s/-fmax-errors=0//g' ${{github.workspace}}/firmware/build/Debug/compile_commands.json
-
-      - name: Create CPPcheck build directory
-        run: mkdir -p ${{github.workspace}}/firmware/config-cppcheck-build-dir/
-
-      - name: check clang-tidy configuration
-        id: clang-tidy-config
-        continue-on-error: true
-        working-directory: ${{github.workspace}}/firmware
-        run:  >
-              clang-tidy-${{env.CLANG-VERSION}}
-              --dump-config
+             sed -i 's/-fanalyzer//g; s/-fmax-errors=0//g' build/Debug/compile_commands.json
+             sed -i "s,${{ github.workspace }}/firmware/,$PWD/,g" build/Debug/compile_commands.json
+             mkdir -p /tmp/config-cppcheck-build-dir/
 
       - name: run clang-tidy
         id: clang-tidy
+        working-directory: ${{ github.workspace }}/firmware
         continue-on-error: true
-        working-directory: ${{github.workspace}}/firmware
         run:  >
-              run-clang-tidy-${{env.CLANG-VERSION}}
+              run-clang-tidy
               -quiet
-              -p ${{github.workspace}}/firmware/build/Debug/
+              -p build/Debug/
               -extra-arg=--sysroot=${{ steps.arm-none-eabi-gcc-action.outputs.path }}/../arm-none-eabi
-              ".*(hardware|ui|tasks|utils|tests)/.*\\.(c|h|inc)$"
+              ".*(hardware|tasks|utils|tests|app|ui)/.*\\.(c|h|inc)$"
 
       - name: Run CppCheck
         id: cppcheck
+        working-directory: ${{ github.workspace }}/firmware
         continue-on-error: true
         run:  >
               cppcheck
               --enable=all
+              --safety
               --language=c
               --inconclusive
               --inline-suppr
-              --error-exitcode=2
               --check-level=exhaustive
-              --project=${{github.workspace}}/firmware/build/Debug/compile_commands.json
-              --cppcheck-build-dir=${{github.workspace}}/firmware/config-cppcheck-build-dir/
-              -i${{github.workspace}}/firmware/build/
-              -i${{github.workspace}}/firmware/Drivers/
-              -i${{github.workspace}}/firmware/Middlewares/
-              -i${{github.workspace}}/firmware/schematics/
-              -i${{github.workspace}}/firmware/Core/
+              --error-exitcode=2
+              --project=build/Debug/compile_commands.json
+              --cppcheck-build-dir=/tmp/config-cppcheck-build-dir/
+              --include=Core/Inc/FreeRTOSConfig.h
               --suppress=missingIncludeSystem
-              --suppress=missingInclude
-              --suppress=unusedFunction
-              --suppress=unknownMacro
+              --suppress=unmatchedSuppression
+              --suppress=*:Core/**
+              --suppress=*:Drivers/**
+              --suppress=*:Middlewares/**
+              -ibuild/
 
       - name: Run Lizard
         id: lizard
@@ -208,12 +197,12 @@ jobs:
           -Tparameter_count=5
           -Tcyclomatic_complexity=10
           -Eduplicate
-          -m
           firmware/hardware/
-          firmware/ui/
           firmware/tasks/
           firmware/utils/
+          firmware/app/
           firmware/tests/
+          firmware/ui/
 
       - name: Run Doxygen
         id: doxygen
@@ -224,31 +213,38 @@ jobs:
         id: enum_struct_check
         continue-on-error: true
         run: |
-            python firmware/resources/check_enum_struct_members_doc.py firmware --ignore Core,Drivers,Middlewares
-
+            python3 firmware/resources/check_enum_struct_members_doc.py firmware --ignore Core,Drivers,Middlewares
+      
       - name: Check Clang-format
         id: clang-format
         continue-on-error: true
-        run: >
-          find firmware/hardware firmware/ui firmware/tasks firmware/utils firmware/tests -name '*.c' -o -name '*.h' -o -name '*.inc'
-          | xargs clang-format-${{env.CLANG-VERSION}} --style=file --dry-run --Werror --verbose
+        working-directory: ${{ github.workspace }}/firmware
+        run: |
+          find . -type f \( -name '*.c' -o -name '*.h' -o -name '*.inc' \) -print > /tmp/clang-format-files.txt
+          clang-format \
+            --style=file \
+            --dry-run \
+            --Werror \
+            --verbose \
+            --files=/tmp/clang-format-files.txt
 
       - name: Check Doxygen @file tags
         id: doxygen-tags
-        working-directory: ${{github.workspace}}/firmware
+        working-directory: ${{ github.workspace }}/firmware
         continue-on-error: true
         run: >
-            python resources/check_doxygen_tags.py
+            python3 resources/check_doxygen_tags.py
             .
             --exclude build
             --exclude Drivers
             --exclude Middlewares
             --exclude Core
 
-      - name: Open source Copyright and Lincensing
+      - name: Open source Copyright and Licensing
         id: reuse
         continue-on-error: true
-        run: reuse --include-submodules lint
+        run: |
+          reuse --include-submodules lint
 
       #File names and paths must contain only lowercase, numbers or underscores
       - name : Check for files naming convention
@@ -263,23 +259,8 @@ jobs:
         working-directory: ${{github.workspace}}/firmware
         continue-on-error: true
         run : |
-            cmake --preset HOSTgcc
-            cmake --build --preset Tests
-            ctest --preset Tests
-
-      - name : Display symbols size
-        id : sizing
-        continue-on-error: true
-        run : >
-          arm-none-eabi-nm
-          --demangle=gnu-v3
-          --print-size
-          --size-sort
-          --reverse-sort
-          --format=sysv
-          --radix=d
-          --line-numbers
-          ${{github.workspace}}/firmware/build/Debug/Leany.elf
+              chmod +x build/HOSTgcc/tests/Leany
+              build/HOSTgcc/tests/Leany
 
       - name: Final result
         run: |
@@ -311,10 +292,6 @@ jobs:
           fi
           if [ "${{ steps.doxygen.outcome }}" != "success" ]; then
             echo "::error::doxygen failed"
-            failed=1
-          fi
-          if [ "${{ steps.sizing.outcome }}" != "success" ]; then
-            echo "::error::Displaying symbols size failed"
             failed=1
           fi
           if [ "${{ steps.enum_struct_check.outcome }}" != "success" ]; then

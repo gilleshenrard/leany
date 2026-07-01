@@ -24,11 +24,11 @@
 #include <task.h>
 
 #include "errorstack.h"
-#include "generic_command.inc"
 #include "hardware_events.h"
 #include "leany_std.h"
 #include "scpi_commands.h"
 #include "scpi_parser.h"
+#include "serial_command_types.h"
 #include "systick.h"
 
 enum {
@@ -74,18 +74,15 @@ typedef struct {
 //private functions
 static void taskSerial(void* argument);
 static ErrorCode serialSend(const char msg[], size_t length);
-static ErrorCode dumpScpiCommandTree(void);
-static ErrorCode sendIndentation(uint8_t depth);
-static ErrorCode sendScpiTreeLine(const Node* node, uint8_t depth);
 
 //state variables
-static TaskHandle_t task_handle = NULL;                      ///< handle of the FreeRTOS task
-static QueueHandle_t queue_outbound = NULL;                  ///< handle of the outbound message queue
-static QueueHandle_t queue_commands = NULL;                  ///< handle of the parsed commands queue
-static volatile StreamBufferHandle_t stream_inbound = NULL;  ///< First stream of the dual-buffer reception
-static ErrorCode result;                                     ///< Variable used to store error codes
-static uint8_t is_timed_out = 0;                             ///< Variable used to test for timeouts
-static ErrorLevel log_level = kErrorError;                   ///< Current minimum error level logging will process
+static TaskHandle_t task_handle = nullptr;                      ///< handle of the FreeRTOS task
+static QueueHandle_t queue_outbound = nullptr;                  ///< handle of the outbound message queue
+static QueueHandle_t queue_commands = nullptr;                  ///< handle of the parsed commands queue
+static volatile StreamBufferHandle_t stream_inbound = nullptr;  ///< First stream of the dual-buffer reception
+static ErrorCode result;                                        ///< Variable used to store error codes
+static uint8_t is_timed_out = 0;                                ///< Variable used to test for timeouts
+static ErrorLevel log_level = kErrorError;                      ///< Current minimum error level logging will process
 
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
@@ -115,14 +112,14 @@ void createSerialtask(void) {
     static StaticTask_t task_state = {0};             ///< Task state variables
     static OutboundMessage outbound_buffer[kOutboundQueueSize];
     static char inbound_buffer[kInboundQueueSize];
-    static GenericCommand commands_buffer[kCommandsQueueSize];
+    static SerialCommand commands_buffer[kCommandsQueueSize];
     static StaticQueue_t outbound_state;
     static StaticQueue_t commands_state;
     static StaticStreamBuffer_t inbound_state;
 
     //create the static task
     task_handle =
-        xTaskCreateStatic(taskSerial, "Serial task", kStackSize, NULL, kTaskLowPriority, task_stack, &task_state);
+        xTaskCreateStatic(taskSerial, "Serial task", kStackSize, nullptr, kTaskLowPriority, task_stack, &task_state);
     configASSERT(task_handle);
 
     queue_outbound =
@@ -133,7 +130,7 @@ void createSerialtask(void) {
     configASSERT(stream_inbound);
 
     queue_commands =
-        xQueueCreateStatic(kCommandsQueueSize, sizeof(GenericCommand), (uint8_t*)commands_buffer, &commands_state);
+        xQueueCreateStatic(kCommandsQueueSize, sizeof(SerialCommand), (uint8_t*)commands_buffer, &commands_state);
     configASSERT(queue_commands);
 }
 
@@ -182,7 +179,7 @@ void logSerial(ErrorLevel level, const char format[], ...) {
  * @param[out] command_received The command to send
  * @return Whether a command could be retrieved in a timely manner
  */
-uint8_t popSerialCommand(GenericCommand* command_received) {
+uint8_t popSerialCommand(SerialCommand* command_received) {
     return (xQueueReceive(queue_commands, command_received, 0) == pdTRUE);
 }
 
@@ -222,7 +219,7 @@ static void taskSerial(void* argument) {
     LL_USART_Enable(USART1);
     LL_USART_EnableIT_RXNE(USART1);
 
-    GenericCommand command_received = {0};
+    SerialCommand command_received = {0};
     resetSCPIparser();
 
     char received = 0;
@@ -230,14 +227,13 @@ static void taskSerial(void* argument) {
         //wait for a while until either data ready or timeout
         if (xStreamBufferReceive(stream_inbound, &received, 1U, pdMS_TO_TICKS(kInboundTimeoutMS)) > 0) {
             const uint8_t done = pushSCPIcharacter(received, &command_received);
-            if (done) {
-                if (command_received.code == kCmdHelp) {
-                    (void)dumpScpiCommandTree();
-                }
-                (void)xQueueSend(queue_commands, &command_received, kSerialTimeoutMS);
-                triggerHardwareEvent(kEventSerialCommand);
-                resetCommand(&command_received);
+            if (!done) {
+                continue;
             }
+
+            (void)xQueueSend(queue_commands, &command_received, kSerialTimeoutMS);
+            triggerHardwareEvent(kEventSerialCommand);
+            resetCommand(&command_received);
             continue;
         }
 
@@ -279,110 +275,6 @@ static ErrorCode serialSend(const char msg[], size_t length) {
 
     if (is_timed_out) {
         return createErrorCode(kSerialSend, 2, kErrorError);
-    }
-
-    return kSuccessCode;
-}
-
-/**
- * Send the whole command tree to serial
- *
- * @retval 0 Success
- * @retval 1 Root node is null
- * @retval 2 Error while sending a tree node
- */
-static ErrorCode dumpScpiCommandTree(void) {
-    TraversalFrame traversal_stack[kSCPImaxTreeDepth];
-    uint8_t stack_depth = 0U;
-    ErrorCode error_code;
-
-    const char example[kExampleStringSize] = "Example -> :imu:kp 0.5\n\n";
-    serialSend(example, kExampleStringSize);
-
-    const Node* root_node = getRootNode();
-    if (!root_node) {
-        return createErrorCode(kDumpTree, 1, kErrorError);
-    }
-
-    traversal_stack[0].node = root_node;
-    traversal_stack[0].next_child_index = 0U;
-    stack_depth = 1U;
-
-    while (stack_depth > 0U) {
-        TraversalFrame* current_frame = NULL;
-        const Node* current_node = NULL;
-
-        current_frame = &traversal_stack[stack_depth - 1U];
-        current_node = current_frame->node;
-
-        // if current node has no child, print it
-        if (current_frame->next_child_index == 0U) {
-            error_code = sendScpiTreeLine(current_node, (uint8_t)(stack_depth - 1U));
-            EXIT_ON_ERROR(error_code, kDumpTree, 2)
-        }
-
-        if (current_frame->next_child_index >= current_node->nb_children) {
-            stack_depth--;
-            continue;
-        }
-
-        if (stack_depth >= kSCPImaxTreeDepth) {
-            return createErrorCode(kDumpTree, 3, kErrorError);
-        }
-
-        const Node* child_node = &current_node->children[current_frame->next_child_index];
-        current_frame->next_child_index++;
-        traversal_stack[stack_depth].node = child_node;
-        traversal_stack[stack_depth].next_child_index = 0U;
-        stack_depth++;
-    }
-
-    return kSuccessCode;
-}
-
-/**
- * Send a command node over serial
- *
- * @param node Node to send
- * @param depth Node depth in the tree
- * @retval 0 Success
- * @retval 1 Error while sending the indentation
- * @retval 2 Error while sending the ':' character
- * @retval 3 Error while sending the node
- */
-static ErrorCode sendScpiTreeLine(const Node* node, uint8_t depth) {
-    // Ignore the node if root
-    if (depth == 0U) {
-        return kSuccessCode;
-    }
-
-    ErrorCode error_code = sendIndentation(depth);
-    EXIT_ON_ERROR(error_code, kSendLine, 1)
-
-    const size_t name_length = getStringLength(node->scpi.long_name, kSCPImaxCommandSize);
-    error_code = serialSend(":", 1U);
-    EXIT_ON_ERROR(error_code, kSendLine, 2)
-    error_code = serialSend(node->scpi.long_name, name_length);
-    EXIT_ON_ERROR(error_code, kSendLine, 3)
-
-    // error_code = serialSend(scpiCommandSuffix(&node->scpi), getStringLength(scpiCommandSuffix(&node->scpi), 64U));
-    // EXIT_ON_ERROR(error_code, 3, 4)
-
-    return serialSend("\n", 1U);
-}
-
-/**
- * Send indentation over serial depending on depth
- *
- * @param depth Node depth
- * @retval 0 Success
- * @retval 1 Error while sending the indentation
- */
-static ErrorCode sendIndentation(uint8_t depth) {
-    // Starting index at 1 to ignore root
-    for (uint8_t index = 1U; index < depth; index++) {
-        ErrorCode error_code = serialSend("    ", 4U);
-        EXIT_ON_ERROR(error_code, kSendIndentation, 1)
     }
 
     return kSuccessCode;

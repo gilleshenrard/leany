@@ -28,35 +28,60 @@
 #include <task.h>
 
 #include "errorstack.h"
-#include "generic_command.inc"
 #include "hardware_events.h"
 #include "led.h"
 #include "orientation.inc"
+#include "scpi_commands.h"
+#include "serial_command_types.h"
 #include "task_battery.h"
 #include "task_imu.h"
 #include "task_serial.h"
 #include "task_ui.h"
 
-enum {
-    kStackSize = 150U,      ///< Amount of words in the task stack
-    kTaskLowPriority = 8U,  ///< FreeRTOS number for a low priority task
-    kEventDelayMS = 20U,    ///< Number of milliseconds for hardware events delay
-    kMutexTimeoutMs = 10U,  ///< Maximum number of milliseconds before considering a mutex timeout
+enum : uint8_t {
+    kStackSize = 150U,           ///< Amount of words in the task stack
+    kTaskLowPriority = 8U,       ///< FreeRTOS number for a low priority task
+    kEventDelayMS = 20U,         ///< Number of milliseconds for hardware events delay
+    kMutexTimeoutMs = 10U,       ///< Maximum number of milliseconds before considering a mutex timeout
+    kSCPImaxTreeDepth = 16U,     ///< Maximum depth of the command tree traversal
+    kSCPIindentationWidth = 4U,  ///< Number of spaces in the SCPI indentation
+    kSCPImaxIndextation = (kSCPImaxTreeDepth * kSCPIindentationWidth),  ///< Maximum size of the indent. buffer
+    kExampleStringSize = 32U,                                           ///< Maximum characters in the example string
 };
+
+/**
+ * Function IDs
+ */
+typedef enum : uint8_t {
+    kDumpTree = 1,         ///< dumpScpiCommandTree(): Function used to send the command tree to serial line
+    kSendLine = 2,         ///< sendScpiTreeLine(): Function used to send a command node
+    kSendIndentation = 3,  ///< sendIndentation(): Function used to send indentation over serial
+} FunctionCode;
+
+/**
+ * Structure defining an SCPI node tree traversal frame
+ */
+typedef struct {
+    const Node* node;          ///< Node traversed
+    uint8_t next_child_index;  ///< Depth of the next child
+} TraversalFrame;
 
 //utility tasks
 static void runDispatchertask(void* argument);
 static void transmitEventsToUI(void);
-static void handleZeroingEvent(const GenericCommand* command);
-static void handleZeroingCancelEvent(const GenericCommand* command);
-static void handleHoldingEvent(uint8_t* holding, const GenericCommand* command);
-static uint8_t handleSerialCommandEvent(GenericCommand* command);
-static void handleSerialReadCommandEvent(const GenericCommand* command);
-static void handleSerialWriteCommandEvent(const GenericCommand* command);
-static void handleBatteryStatusEvent(const GenericCommand* command);
+static void handleZeroingEvent(const SerialCommand* command);
+static void handleZeroingCancelEvent(const SerialCommand* command);
+static void handleHoldingEvent(uint8_t* holding, const SerialCommand* command);
+static uint8_t handleSerialCommandEvent(SerialCommand* command);
+static void handleSerialReadCommandEvent(const SerialCommand* command);
+static void handleSerialWriteCommandEvent(const SerialCommand* command);
+static void handleBatteryStatusEvent(const SerialCommand* command);
+static ErrorCode dumpScpiCommandTree(void);
+static ErrorCode sendScpiTreeLine(const Node* node, uint8_t depth);
+static ErrorCode formatIndentation(uint8_t depth, char out_buffer[kSCPImaxIndextation]);
 
-static SemaphoreHandle_t events_mutex = NULL;  ///< Mutex used to protect events coming from the dispatcher
-static ErrorCode last_error = {.dword = 0};    ///< Last error detected
+static SemaphoreHandle_t events_mutex = nullptr;  ///< Mutex used to protect events coming from the dispatcher
+static ErrorCode last_error = {.dword = 0};       ///< Last error detected
 
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
@@ -138,7 +163,7 @@ uint8_t getLastErrorCode(ErrorCode* error) {
 static void runDispatchertask(void* argument) {
     (void)argument;
 
-    GenericCommand command;
+    SerialCommand command;
     uint8_t holding = 0;
 
     while (1) {
@@ -150,7 +175,7 @@ static void runDispatchertask(void* argument) {
         transmitEventsToUI();
 
         //check if a serial command has been received
-        command = (GenericCommand){0};
+        command = (SerialCommand){0};
         (void)handleSerialCommandEvent(&command);
 
         //handle hardware events which need additional behaviour
@@ -187,7 +212,7 @@ static void transmitEventsToUI(void) {
  *
  * @param command Latest command received
  */
-static void handleZeroingEvent(const GenericCommand* command) {
+static void handleZeroingEvent(const SerialCommand* command) {
     if ((command->code == kCmdToggleZero) && !command->is_read && !isIMUzeroed()) {
         triggerHardwareEvent(kEventZero);
     }
@@ -206,7 +231,7 @@ static void handleZeroingEvent(const GenericCommand* command) {
  *
  * @param command Latest command received
  */
-static void handleZeroingCancelEvent(const GenericCommand* command) {
+static void handleZeroingCancelEvent(const SerialCommand* command) {
     if ((command->code == kCmdToggleZero) && !command->is_read && isIMUzeroed()) {
         triggerHardwareEvent(kEventCancelZero);
     }
@@ -225,7 +250,7 @@ static void handleZeroingCancelEvent(const GenericCommand* command) {
  * @param[out] holding The current holding state (updated upon exiting the function)
  * @param command Latest command received
  */
-static void handleHoldingEvent(uint8_t* holding, const GenericCommand* command) {
+static void handleHoldingEvent(uint8_t* holding, const SerialCommand* command) {
     if (command->code == kCmdToggleHold) {
         if (command->is_read) {
             logSerial(kMaxErrorLevel, "%u", isIMUmeasurementsHolding());
@@ -252,7 +277,7 @@ static void handleHoldingEvent(uint8_t* holding, const GenericCommand* command) 
  * @retval 1 Command received
  * @retval 0 Command not received
  */
-static uint8_t handleSerialCommandEvent(GenericCommand* command) {
+static uint8_t handleSerialCommandEvent(SerialCommand* command) {
     if (!isHardwareEventTriggered(kEventSerialCommand)) {
         return 0;
     }
@@ -273,7 +298,7 @@ static uint8_t handleSerialCommandEvent(GenericCommand* command) {
  *
  * @param command Latest command received
  */
-static void handleBatteryStatusEvent(const GenericCommand* command) {
+static void handleBatteryStatusEvent(const SerialCommand* command) {
     if (!isHardwareEventTriggered(kEventBatteryStatus) && (command->code != kCmdBatteryPercent) &&
         (command->code != kCmdBatteryCharge)) {
         return;
@@ -312,7 +337,7 @@ static void handleBatteryStatusEvent(const GenericCommand* command) {
  *
  * @param command Serial Read command to run
  */
-static void handleSerialReadCommandEvent(const GenericCommand* command) {
+static void handleSerialReadCommandEvent(const SerialCommand* command) {
     uint8_t orientation = 0;
 
     switch (command->code) {
@@ -341,12 +366,15 @@ static void handleSerialReadCommandEvent(const GenericCommand* command) {
             logSerial(kMaxErrorLevel, "%u", orientation);
             break;
 
+        case kCmdHelp:
+            dumpScpiCommandTree();
+            break;
+
         case kCmdBatteryOff:
         case kCmdErrorCode:
         case kCmdBatteryPercent:
         case kCmdBatteryCharge:
         case kCmdToggleHold:
-        case kCmdHelp:
         case kCmdNoBehaviour:
         case kCmdToggleScreen:
         case kCmdLedColour:
@@ -361,7 +389,7 @@ static void handleSerialReadCommandEvent(const GenericCommand* command) {
  *
  * @param command Serial Write command to run
  */
-static void handleSerialWriteCommandEvent(const GenericCommand* command) {
+static void handleSerialWriteCommandEvent(const SerialCommand* command) {
     // A large switch is the most straightforward way to handle serial write commands.
     // Therefore, Lizard linter can ignore this function's length
     // #lizard forgives(length)
@@ -425,4 +453,100 @@ static void handleSerialWriteCommandEvent(const GenericCommand* command) {
         default:
             return;
     }
+}
+
+/**
+ * Send the whole command tree to serial
+ *
+ * @retval 0 Success
+ * @retval 1 Root node is nullptr
+ * @retval 2 Error while sending a tree node
+ * @retval 3 Command tree is too deep
+ */
+static ErrorCode dumpScpiCommandTree(void) {
+    TraversalFrame traversal_stack[kSCPImaxTreeDepth];
+    uint8_t stack_depth = 0U;
+
+    const char example[kExampleStringSize] = "Example -> :log:level 1\n";
+    logSerial(kMaxErrorLevel, "%s", example);
+
+    const Node* root_node = getRootNode();
+    if (!root_node) {
+        return createErrorCode(kDumpTree, 1, kErrorError);
+    }
+
+    traversal_stack[0].node = root_node;
+    traversal_stack[0].next_child_index = 0U;
+    stack_depth = 1U;
+
+    while (stack_depth > 0U) {
+        TraversalFrame* current_frame = nullptr;
+        const Node* current_node = nullptr;
+
+        current_frame = &traversal_stack[stack_depth - 1U];
+        current_node = current_frame->node;
+
+        // if current node has no child, print it
+        if (current_frame->next_child_index == 0U) {
+            ErrorCode error_code = sendScpiTreeLine(current_node, (uint8_t)(stack_depth - 1U));
+            EXIT_ON_ERROR(error_code, kDumpTree, 2)
+        }
+
+        if (current_frame->next_child_index >= current_node->nb_children) {
+            stack_depth--;
+            continue;
+        }
+
+        if (stack_depth >= kSCPImaxTreeDepth) {
+            return createErrorCode(kDumpTree, 3, kErrorError);
+        }
+
+        const Node* child_node = &current_node->children[current_frame->next_child_index];
+        current_frame->next_child_index++;
+        traversal_stack[stack_depth].node = child_node;
+        traversal_stack[stack_depth].next_child_index = 0U;
+        stack_depth++;
+    }
+
+    return kSuccessCode;
+}
+
+/**
+ * Send a command node over serial
+ *
+ * @param node Node to send
+ * @param depth Node depth in the tree
+ * @retval 0 Success
+ * @retval 1 Error while formatting the indentation
+ */
+static ErrorCode sendScpiTreeLine(const Node* node, uint8_t depth) {
+    // Ignore the node if root
+    if (depth == 0U) {
+        return kSuccessCode;
+    }
+
+    char indentation[kSCPImaxIndextation];
+    ErrorCode error_code = formatIndentation(depth, indentation);
+    EXIT_ON_ERROR(error_code, kSendLine, 1)
+
+    logSerial(kMaxErrorLevel, "%s:%s", indentation, node->scpi.long_name);
+    return kSuccessCode;
+}
+
+/**
+ * Format the buffer with the indentation corresponding of the depth in the tree
+ *
+ * @param depth Node depth
+ * @param[out] out_buffer Buffer into which store the indentation
+ * @return Success
+ */
+static ErrorCode formatIndentation(uint8_t depth, char out_buffer[kSCPImaxIndextation]) {
+    // Starting index at 1 to ignore root
+    uint8_t index = 0;
+    for (index = 0U; index < (depth * kSCPIindentationWidth); index++) {
+        out_buffer[index] = ' ';
+    }
+    out_buffer[index] = '\0';
+
+    return kSuccessCode;
 }

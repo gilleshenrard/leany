@@ -8,7 +8,7 @@
  * @file leany_std.c
  * @brief Lightweight standard functions implementation for embedded systems
  */
-
+// cppcheck-suppress-file unusedFunction
 #include "leany_std.h"
 
 #include <stdarg.h>
@@ -66,6 +66,7 @@ static void qualifyConversionSpecifier(char specifier, OutputBuffer* output, con
 static uint32_t qualifyHexCharacter(char character);
 static uint32_t qualifyLengthModifier(const char format[], uint32_t* length);
 static void applyStringJustification(OutputBuffer* output, const FormatFlags* flags, uint32_t output_len);
+static uint8_t consumeIntroductoryCharacter(const char* format, uint32_t* format_index, OutputBuffer* output);
 
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
@@ -101,17 +102,8 @@ int32_t leany_vsnprintf(char* buffer, size_t size, const char* format, va_list a
             break;
         }
 
-        if (format[format_index] != '%') {
-            outputChar(&output, format[format_index]);
-            continue;
-        }
-
-        // Skip '%'
-        format_index++;
-
-        // Handle %%
-        if (format[format_index] == '%') {
-            outputChar(&output, '%');
+        // consume either '%' or "%%"
+        if (consumeIntroductoryCharacter(format, &format_index, &output)) {
             continue;
         }
 
@@ -821,4 +813,31 @@ static void applyStringJustification(OutputBuffer* output, const FormatFlags* fl
     }
 
     output->current_index = restore_index;
+}
+
+/**
+ * Consume either '%' or '%%' from the format
+ *
+ * @param format Format from which consume the combination
+ * @param[in,out] format_index Current index in the format
+ * @param[in,out] output Buffer to which output the product
+ * @retval 1 Introductory character was consumed
+ * @retval 0 Introductory character was not consumed
+ */
+static uint8_t consumeIntroductoryCharacter(const char* format, uint32_t* format_index, OutputBuffer* output) {
+    if (format[*format_index] != '%') {
+        outputChar(output, format[*format_index]);
+        return 1;
+    }
+
+    // Skip '%'
+    *format_index += 1U;
+
+    // Handle %%
+    if (format[*format_index] == '%') {
+        outputChar(output, '%');
+        return 1;
+    }
+
+    return 0;
 }
