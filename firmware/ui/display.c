@@ -184,9 +184,8 @@ ErrorCode printRectangle(Pixel* buffer, size_t buffer_size, const Area* area, Co
  */
 // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 ErrorCode printStatusBar(uint8_t holding_status, uint8_t zeroing_status, uint8_t screen_width_px) {
-    ErrorCode result = kSuccessCode;
-
-    result = printIcon(kIconHold, kHoldIconX, kStatusIconsY, (holding_status ? kColourAccent : kColourDisabled));
+    ErrorCode result =
+        printIcon(kIconHold, kHoldIconX, kStatusIconsY, (holding_status ? kColourAccent : kColourDisabled));
     EXIT_ON_ERROR(result, kSetupStatus, 1)
 
     const Icon type_icon = (zeroing_status ? kIconRelative : kIconAbsolute);
@@ -227,13 +226,11 @@ ErrorCode printStatusBar(uint8_t holding_status, uint8_t zeroing_status, uint8_t
  * @retval 2 Error while sending the data to the screen
  */
 ErrorCode printIcon(Icon icon, uint8_t x_left_px, uint8_t y_top_px, ColourBigEndian foreground_colour) {
-    ErrorCode result = kSuccessCode;
-
     const uint8_t icon_width_px = getIconWidth(icon);
     Bitmap metadata = {
         .output_buffer = display_buffer, .x_offset_px = 0, .y_offset_px = 0, .container_width_px = icon_width_px};
 
-    result = uncompressIcon(icon, &metadata, foreground_colour);
+    ErrorCode result = uncompressIcon(icon, &metadata, foreground_colour);
     EXIT_ON_ERROR(result, kPrintIcon, 1)
 
     const uint8_t icon_height_px = getIconHeight(icon);
@@ -256,15 +253,13 @@ ErrorCode printIcon(Icon icon, uint8_t x_left_px, uint8_t y_top_px, ColourBigEnd
  * @retval 2 Error while sending the data to the screen
  */
 ErrorCode printBatteryIndicator(const BatteryStatus* status, BatteryIndicator* indicator) {
-    ErrorCode result = kSuccessCode;
-
     //compute the battery icon dimensions
     const uint8_t icon_width_px = getIconWidth(kIconBattery);
     Bitmap metadata = {
         .output_buffer = display_buffer, .x_offset_px = 0, .y_offset_px = 0, .container_width_px = icon_width_px};
 
     //uncompress the battery icon and bars
-    result = uncompressIcon(kIconBattery, &metadata, (status->charging ? kColourAccent : kColourEnabled));
+    ErrorCode result = uncompressIcon(kIconBattery, &metadata, (status->charging ? kColourAccent : kColourEnabled));
     EXIT_ON_ERROR(result, kPrintIcon, 2)
     drawBatteryLevelBars(display_buffer, status->level_percents, (bool)status->charging);
 

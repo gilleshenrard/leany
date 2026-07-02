@@ -65,7 +65,7 @@ typedef struct {
 } Section;
 
 //private functions
-static ErrorCode initialiseSections(Section sections[kNbSections]);
+static ErrorCode initialiseSections(Section sections_array[kNbSections]);
 static ErrorCode printSection(const Section* section, uint8_t index, uint8_t label_margin_px);
 static ErrorCode updateTemperature(void);
 static ErrorCode updateBatteryVoltage(void);
@@ -210,11 +210,9 @@ static ErrorCode initialiseSections(Section sections_array[kNbSections]) {
  * @retval 3 Error while printing the separator line
  */
 static ErrorCode printSection(const Section* section, uint8_t index, uint8_t label_margin_px) {
-    ErrorCode result = kSuccessCode;
-
     //print the labels and separator
-    result = printLabel(&section->title_label, section->title,
-                        (uint8_t)getStringLength(section->title, section->title_size), kColourEnabled);
+    ErrorCode result = printLabel(&section->title_label, section->title,
+                                  (uint8_t)getStringLength(section->title, section->title_size), kColourEnabled);
     EXIT_ON_ERROR(result, kPrintSection, 1)
 
     result = printLabel(&section->value_label, section->value,

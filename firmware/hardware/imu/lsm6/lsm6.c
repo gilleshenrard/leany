@@ -63,14 +63,6 @@ typedef enum {
 } FunctionCode;
 
 /**
- * @brief Structure representing a value to write at a specific register
- */
-typedef struct {
-    LSM6register register_id;  ///< Register ID to which write the value
-    uint8_t value;             ///< Value to write
-} __attribute__((aligned(kRegisterValueAlign))) RegisterValue;
-
-/**
  * @brief Union regrouping 8-bits and 16-bits arrays
  * @details
  *  This allows reading all the accelerometer and gyroscope values at once, and convert them to 16 bit instantly
@@ -225,6 +217,7 @@ ErrorCode IMUsoftReset(void) {
 ErrorCode selfTestAccelerometer(void) {
     const uint8_t selftest_config_registers[kNbSelfTestRegisters][2] = {
         // NOLINTBEGIN(misc-redundant-expression,hicpp-signed-bitwise)
+        // cppcheck-suppress-begin duplicateExpression
         {kCTRL1_XL, kODR_XL_52HZ | kFS_XL_4G | kLPF2_XL_DISABLE},
         {kCTRL2_G, kGYR_POWER_DOWN},
         {kCTRL3_C,
@@ -236,6 +229,7 @@ ErrorCode selfTestAccelerometer(void) {
         {kCTRL8_XL, kAXL_NO_HP_FILTER | k6D_NO_LP_FILTER},
         {kCTRL9_XL, kAXL_DEN_DISABLE | kLSM6_I3C_ENABLE},
         {kCTRL10_C, kLSM6_TIMESTAMP_DISABLE}
+        // cppcheck-suppress-end duplicateExpression
         // NOLINTEND(misc-redundant-expression,hicpp-signed-bitwise)
     };
 
@@ -284,6 +278,7 @@ ErrorCode selfTestAccelerometer(void) {
 ErrorCode selfTestGyroscope(void) {
     const uint8_t selftest_config_registers[kNbSelfTestRegisters][2] = {
         // NOLINTBEGIN(misc-redundant-expression,hicpp-signed-bitwise)
+        // cppcheck-suppress-begin duplicateExpression
         {kCTRL1_XL, kAXL_POWER_DOWN},
         {kCTRL2_G, kGYR_ODR_208HZ | kGYR_FS_2000_DPS},
         {kCTRL3_C,
@@ -295,6 +290,7 @@ ErrorCode selfTestGyroscope(void) {
         {kCTRL8_XL, kAXL_NO_HP_FILTER | k6D_NO_LP_FILTER},
         {kCTRL9_XL, kAXL_DEN_DISABLE | kLSM6_I3C_ENABLE},
         {kCTRL10_C, kLSM6_TIMESTAMP_DISABLE}
+        // cppcheck-suppress-end duplicateExpression
         // NOLINTEND(misc-redundant-expression,hicpp-signed-bitwise)
     };
 
@@ -351,6 +347,7 @@ ErrorCode IMUinitialise(void) { return kSuccessCode; }
 ErrorCode IMUconfigure(void) {
     const uint8_t configuration_array[][2] = {
         // NOLINTBEGIN(misc-redundant-expression,hicpp-signed-bitwise)
+        // cppcheck-suppress-begin duplicateExpression
         {kFIFO_CTRL4, kFIFO_MODE_BYPASS},
         {kINT1_CTRL, kINT1_AXL_DATA_RDY},
         {kCTRL1_XL, kFS_XL_2G | kAXL_ODR_416HZ | kLSM6_AXL_LPF2_ENABLE},
@@ -362,6 +359,7 @@ ErrorCode IMUconfigure(void) {
         {kCTRL8_XL, kAXL_NO_HP_FILTER | kAXL_LPF2_ODR_4},
         {kCTRL9_XL, kAXL_DEN_DISABLE | kLSM6_I3C_DISABLE},
         {kCTRL10_C, kLSM6_TIMESTAMP_ENABLE},
+        // cppcheck-suppress-end duplicateExpression
         // NOLINTEND(misc-redundant-expression,hicpp-signed-bitwise)
     };
 
