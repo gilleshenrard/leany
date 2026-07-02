@@ -9,7 +9,6 @@
 #include "screen_error.h"
 
 #include <FreeRTOS.h>  // NOLINT(misc-include-cleaner,-warnings-as-errors)
-#include <leany_std.h>
 #include <portmacro.h>
 #include <stdint.h>
 
@@ -19,6 +18,7 @@
 #include "fonts.h"
 #include "icons.h"
 #include "label.h"
+#include "leany_std.h"
 #include "orientation.h"
 #include "st7735s.h"
 #include "systick.h"

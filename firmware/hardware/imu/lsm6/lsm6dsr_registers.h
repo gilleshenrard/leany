@@ -12,8 +12,8 @@
 #define HARDWARE_IMU_LSM6DSR_LSM6DSR_REGISTERS_H_INCLUDED
 
 // WhoAmI register (0x0F) values
-#undef LSM6_WHOAMI
-#define LSM6_WHOAMI 0x6BU  ///< LSM6DSR Who Am I constant value
+#undef kLSM6_WHOAMI
+#define kLSM6_WHOAMI 0x6BU  ///< LSM6DSR Who Am I constant value
 
 typedef enum {
     kS4S_TPH_L = 0x04U,        ///< RW - Sensor synchronization time frame register (LSB)

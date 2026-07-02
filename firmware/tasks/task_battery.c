@@ -11,7 +11,6 @@
 #include <FreeRTOS.h>
 #include <FreeRTOSConfig.h>
 #include <assert.h>
-#include <errorstack.h>
 #include <main.h>
 #include <portmacro.h>
 #include <projdefs.h>
@@ -23,6 +22,7 @@
 
 #include "bq25619.h"
 #include "bq25619_registers.h"
+#include "errorstack.h"
 #include "hal_adc.h"
 #include "hal_i2c.h"
 #include "hardware_events.h"

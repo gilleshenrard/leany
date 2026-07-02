@@ -8,13 +8,13 @@
  */
 #include "buttons.h"
 
-#include <hardware_events.h>
 #include <main.h>
 #include <stdint.h>
 #include <stm32f103xb.h>
 #include <stm32f1xx_ll_gpio.h>
 
 #include "errorstack.h"
+#include "hardware_events.h"
 #include "systick.h"
 
 enum {

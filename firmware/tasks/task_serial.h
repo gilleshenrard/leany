@@ -5,8 +5,8 @@
  * @file task_serial.h
  * @author Gilles Henrard
  */
-#ifndef HARDWARE_SERIAL_SERIAL_H
-#define HARDWARE_SERIAL_SERIAL_H
+#ifndef TASKS_TASK_SERIAL_H
+#define TASKS_TASK_SERIAL_H
 #include <stdint.h>
 
 #include "errorstack.h"
