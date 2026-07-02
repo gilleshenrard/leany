@@ -8,13 +8,13 @@
  */
 #include "screen_main.h"
 
-#include <errorstack.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
 #include "bitmap.h"
 #include "display.h"
+#include "errorstack.h"
 #include "fonts.h"
 #include "hardware_events.h"
 #include "icons.h"

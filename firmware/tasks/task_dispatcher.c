@@ -20,6 +20,7 @@
 
 #include <FreeRTOS.h>
 #include <FreeRTOSConfig.h>
+#include <main.h>
 #include <portmacro.h>
 #include <projdefs.h>
 #include <semphr.h>
@@ -65,6 +66,9 @@ typedef struct {
     const Node* node;          ///< Node traversed
     uint8_t next_child_index;  ///< Depth of the next child
 } TraversalFrame;
+
+// NOLINTNEXTLINE(misc-use-internal-linkage,readability-identifier-naming)
+void vApplicationStackOverflowHook(TaskHandle_t xTask, signed char* pcTaskName);
 
 //utility tasks
 static void runDispatchertask(void* argument);
@@ -151,6 +155,15 @@ uint8_t getLastErrorCode(ErrorCode* error) {
     (void)xSemaphoreGive(events_mutex);
 
     return 1;
+}
+
+// cppcheck-suppress unusedFunction
+// NOLINTNEXTLINE(readability-identifier-naming,readability-non-const-parameter)
+void vApplicationStackOverflowHook(TaskHandle_t xTask, signed char* pcTaskName) {
+    (void)xTask;
+    (void)pcTaskName;
+
+    Error_Handler();
 }
 
 /********************************************************************************************************************************************/

@@ -181,16 +181,16 @@ ErrorCode IMUcheckDeviceID(void) {
     do {
         //store the bitwise-NOT value of the chip ID to make sure every bit is changed by the read command
         // clang-format off
-        device_id = (uint8_t)~((uint8_t)LSM6_WHOAMI);
+        device_id = (uint8_t)~((uint8_t)kLSM6_WHOAMI);
         // clang-format on
 
         //read the register
         result = readRegisters(&spi_descriptor, kWHO_AM_I, &device_id, 1);
         EXIT_ON_ERROR(result, kCheckDeviceID, 1)
-    } while ((device_id != LSM6_WHOAMI) && !systickTimeout(first_tick, kTimeoutMS));
+    } while ((device_id != kLSM6_WHOAMI) && !systickTimeout(first_tick, kTimeoutMS));
 
     //check the device ID
-    if (device_id != LSM6_WHOAMI) {
+    if (device_id != kLSM6_WHOAMI) {
         return (createErrorCode(kCheckDeviceID, 2, kErrorCritical));
     }
 

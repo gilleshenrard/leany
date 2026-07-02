@@ -8,7 +8,6 @@
  */
 #include "bitmap.h"
 
-#include <assert.h>
 #include <stdint.h>
 
 #include "errorstack.h"
