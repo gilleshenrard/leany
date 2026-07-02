@@ -37,6 +37,7 @@ add_executable(${CMAKE_PROJECT_NAME})
 # Populate the CMake template files
 execute_process(
     COMMAND ${CMAKE_COMMAND}
+        -DPROJECT_NAME=${PROJECT_NAME}
         -DPROJECT_VERSION=${PROJECT_VERSION}
         -DPROJECT_SOURCE_DIR=${PROJECT_SOURCE_DIR}
         -DPROJECT_BINARY_DIR=${PROJECT_BINARY_DIR}

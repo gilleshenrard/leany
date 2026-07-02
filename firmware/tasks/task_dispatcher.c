@@ -157,6 +157,13 @@ uint8_t getLastErrorCode(ErrorCode* error) {
     return 1;
 }
 
+/**
+ * Catch any task stack overflow
+ * @details This overrides FreeRTOS's default behaviour
+ *
+ * @param xTask Handle of the task overflowing
+ * @param pcTaskName Name of the task overflowing
+ */
 // cppcheck-suppress unusedFunction
 // NOLINTNEXTLINE(readability-identifier-naming,readability-non-const-parameter)
 void vApplicationStackOverflowHook(TaskHandle_t xTask, signed char* pcTaskName) {

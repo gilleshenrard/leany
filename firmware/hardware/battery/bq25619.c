@@ -97,6 +97,7 @@ ErrorCode resetBQ25619(void) {
 ErrorCode configureBQ25619(void) {
     const uint8_t config_values[][2] = {
         // NOLINTBEGIN(misc-redundant-expression,hicpp-signed-bitwise)
+        // cppcheck-suppress-begin duplicateExpression
         {kINPUT_CUR_LIMIT, kDISABLE_HIZ | kTEMPERATURE_IGNORE | kENABLE_BATSNS | kINPUT_LIMIT_1_2A},
         // {kCHG_CONTROL0, kDISABLE_WATCHDOG | kDISABLE_PMID | kENABLE_CHARGE | kVSYS_MIN_3_5V},
         {kCHG_CUR_LIMIT, kREGULATE_LOW_CURRENT | kFASTCHARGE_1180MA},
@@ -104,6 +105,7 @@ ErrorCode configureBQ25619(void) {
         // {kBATT_VOLT_LIMIT, kBATTERY_LIMIT_4_2V | kNO_TOPOFF_TIMER | kBATT_RECHG_THRESHOLD_120MV},
         // {kCHG_CONTROL1, kENABLE_CHG_TERMINATION | kDISABLE_WATCHDOG_TIMER | kENABLE_CHG_SAFETY_TIMER | kSAFETY_10H},
         {kCHG_CONTROL2, kOVERVOLTAGE_THRESHOLD_6_4V | kINPUT_VOLTAGE_DPM_4_5V},
+        // cppcheck-suppress-end duplicateExpression
         // NOLINTEND(misc-redundant-expression,hicpp-signed-bitwise)
     };
 

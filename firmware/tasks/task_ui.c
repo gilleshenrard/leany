@@ -206,7 +206,7 @@ static ErrorCode treatToggleScreenMessage(const uint8_t message_flags[kNbEvents]
         return kSuccessCode;
     }
 
-    ErrorCode result = kSuccessCode;
+    ErrorCode result;
     if (current_screen == kScreenMain) {
         current_screen = kScreenSystem;
         result = setupSystemScreen();

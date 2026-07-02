@@ -103,6 +103,7 @@ ErrorCode createErrorCode(uint8_t function_id, uint8_t new_error, ErrorLevel lev
  * @param level Error level
  * @return New code
  */
+// cppcheck-suppress unusedFunction
 //NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 ErrorCode createErrorCodeLayer1(uint8_t function_id, uint8_t new_error, uint8_t layer1_code, ErrorLevel level) {
     const uint8_t layer1_code_offset = 8U;  ///< Number of bits to shift a code to reach the layer 1
