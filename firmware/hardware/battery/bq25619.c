@@ -18,16 +18,22 @@
 #include "hal_i2c.h"
 #include "systick.h"
 
-enum {
-    kI2Ctimeout_ms = 10U,    ///< Maximum number of milliseconds an I²C transfer can last
-    kNbChipIDtests = 5U,     ///< Number of times chip ID reading must be tested
-    kChipIDtimeout = 1000U,  ///< Maximum number of milliseconds to attempt reading the chip ID
+enum : uint8_t {
+    kNbChipIDtests = 5U,  ///< Number of times chip ID reading must be tested
 };
+
+/**
+ * Timings in milliseconds
+ */
+typedef enum : uint16_t {
+    kI2Ctimeout_ms = 10U,    ///< Maximum number of milliseconds an I²C transfer can last
+    kChipIDtimeout = 1000U,  ///< Maximum number of milliseconds to attempt reading the chip ID
+} Timing;
 
 /**
  * @brief Enumeration of all the function ID used in errors
  */
-typedef enum {
+typedef enum : uint8_t {
     kTestID = 1,             ///< testBQ25619identifier() function
     kReset = 2,              ///< resetBQ25619() function
     kConfigure = 3,          ///< configureBQ25619() function

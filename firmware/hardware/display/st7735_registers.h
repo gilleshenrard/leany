@@ -9,19 +9,19 @@
 #define INC_HARDWARE_SCREEN_ST7735S_REGISTERS_H
 
 //  Frame Rate Control (In normal mode/ Full colors) (register 0xB1) values
-enum {
+enum : uint8_t {
     kOneLinePeriod1 = 0x01U,     ///< 1 line period value of 1
     kFrontPorchDefault = 0x2CU,  ///< Default front porch value after sleep out
     kBackPorchDefault = 0x2DU,   ///< Default back porch value after sleep out
 };
 
 //  Display Inversion Control (register 0xB4) values
-enum {
+enum : uint8_t {
     kAllModesNoInversion = 0x07U,  ///< Disable inversion in all screen modes
 };
 
 // Power Control 1 (register 0xC0) values
-enum {
+enum : uint8_t {
     kAVDD_5v = 0xA0U,        ///< AVDD voltage = 5V
     kGVDD_4_6v = 0x02U,      ///< GVDD voltage = 4.6V
     kGVCL_NEG_4_6V = 0x02U,  ///< GVCL voltage = -4.6V
@@ -29,14 +29,14 @@ enum {
 };
 
 // Power control 2 (register 0xC1) values
-enum {
+enum : uint8_t {
     kVGH25_2_4C = 0xC0U,  ///< VGH25 = 2.4C
     kVGL_NEG_10 = 0x04U,  ///< VGL = -10
     kVGH_3ADD = 0x01U,    ///< VGH = 3*ADD
 };
 
 // Power control 3, 4 and 5 (registers 0xC2 to 0xC4) values
-enum {
+enum : uint8_t {
     kOpAmpSAPASmallCurrent = 0x08U,  ///< OpAmp SAPA small current
     kOpAmpAPAMedLowCurrent = 0x02U,  ///< OpAmp APA medium low current
     kBoostLSBmax = 0x00U,            ///< Maximum booster value for bits 0 to 7
@@ -48,12 +48,12 @@ enum {
 };
 
 //  VCOM Control 1 (register 0xC5) values
-enum {
+enum : uint8_t {
     kVCOM_NEG_0_775V = 0x0EU,  ///< VCOM voltage = -0.775V
 };
 
 // Address control (register 0x36) values
-enum {
+enum : uint8_t {
     kRefreshTopToBottom = 0x00U,  ///< refresh top to bottom
     kRefreshBottomToTop = 0x10U,  ///< refresh bottom to top
     kRefreshLeftToRight = 0x00U,  ///< refresh left to right
@@ -67,14 +67,14 @@ enum {
 };
 
 //  Colour mode (register 0x3A) values
-enum {
+enum : uint8_t {
     kColour16bits = 0x05U,  ///< 16 bits colours
 };
 
 /**
  * @brief ST7735 System Function command List
  */
-typedef enum {
+typedef enum : uint8_t {
     kNOP = 0x00U,        ///< No Operation
     kSWRESET = 0x01U,    ///< Software reset
     kRDDID = 0x04U,      ///< Read Display ID

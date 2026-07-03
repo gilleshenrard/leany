@@ -12,7 +12,7 @@
 /**
  * @brief Enumeration of the available display kOrientations
  */
-typedef enum {
+typedef enum : uint8_t {
     kPortrait = 0,   ///< Portrait
     kPortrait180,    ///< Portrait, rotated 180°
     kLandscape,      ///< Landscape

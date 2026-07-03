@@ -30,7 +30,7 @@
 #include "serial_command_types.h"
 #include "systick.h"
 
-enum {
+enum : uint8_t {
     kOutboundSize = 64U,       ///< Maximum length of a message sent via serial
     kStackSize = 100U,         ///< Amount of words in the task stack
     kTaskLowPriority = 3U,     ///< FreeRTOS number for a low priority task
@@ -44,7 +44,7 @@ enum {
 /**
  * Enumeration of the IDs of the functions used by the BMI270 implementation
  */
-typedef enum {
+typedef enum : uint8_t {
     kFunctionTask = 1,  ///< taskSerial() : Function running the serial state machine
     kSerialSend = 2,    ///< serialSend() : Function used to send data via serial
 } FunctionCode;

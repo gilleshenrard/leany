@@ -15,7 +15,7 @@
 #include "errorstack.h"
 #include "systick.h"
 
-enum {
+enum : uint8_t {
     kI2Ctimeout_ms = 20U,  ///< Maximum number of milliseconds an I²C transfer can last
     kREAD = 0x01U,         ///< Bit value to apply to read data from the charger
     kWRITE = 0x00U,        ///< Bit value to apply to write data to the charger
@@ -24,7 +24,7 @@ enum {
 /**
  * @brief Enumeration of all the function ID used in errors
  */
-typedef enum {
+typedef enum : uint8_t {
     kReadRegisters = 1,      ///< readRegisters() function
     kInitiateReception = 2,  ///< initiateReception() function
     kWriteRegisters = 3,     ///< writeRegisters() function

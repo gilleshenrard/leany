@@ -26,7 +26,7 @@
 #include "task_battery.h"
 #include "task_imu.h"
 
-enum {
+enum : uint8_t {
     kAngleMargin = 20U,          ///< Margin used to make sure the angle labels to not overflow the display buffer size
     kAngleStringLength = 6U,     ///< Maximum number in a string representing an angle
     kBatteryFullPercent = 100U,  ///< Value used as a 100% battery level
@@ -35,7 +35,7 @@ enum {
 /**
  * Enumeration of all the UI function codes
  */
-typedef enum {
+typedef enum : uint8_t {
     kSetup = 1,              ///< setupUI() function
     kPrintIcon = 2,          ///< printIcon() function
     kPrintVertLine = 3,      ///< printVerticalLine() function

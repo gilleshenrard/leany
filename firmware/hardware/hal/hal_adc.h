@@ -12,7 +12,7 @@
 /**
  * ADC devices implemented
  */
-typedef enum {
+typedef enum : uint8_t {
     kADC1 = 0,      ///< ADC1
     kADCnbDevices,  ///< Number of ADC devices
 } ADCdevice;
@@ -20,7 +20,7 @@ typedef enum {
 /**
  * ADC channels used in the application
  */
-typedef enum {
+typedef enum : uint8_t {
     kADCchannelTemperature = 0,  ///< MCU internal temperature
     kADCchannelBattery,          ///< Battery voltage
     kADCchannelVrefInt,          ///< MCU VrefInt

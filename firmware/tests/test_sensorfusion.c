@@ -14,7 +14,7 @@
 
 #include "sensorfusion.h"
 
-enum {
+enum : uint16_t {
     kConvergenceSteps = 2000U,   ///< Number of steps for the filter to reach a stable attitude from identity
     kStepsIn1second = 100U,      ///< Steps representing exactly 1 second at 100 Hz
     kAlignmentCheckSteps = 10U,  ///< Number of steps in which alignment test is done

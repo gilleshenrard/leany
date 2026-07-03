@@ -15,7 +15,7 @@
 /**
  * Enumeration of the icons available
  */
-typedef enum {
+typedef enum : uint8_t {
     kIconHold = 0,  ///< Hold icon
     kIconAbsolute,  ///< Absolute measurements icon
     kIconRelative,  ///< Relative measurements icon

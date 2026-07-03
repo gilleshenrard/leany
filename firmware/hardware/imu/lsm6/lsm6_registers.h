@@ -11,7 +11,7 @@
 #ifndef HARDWARE_IMU_LSM6_REGISTERS_H_INCLUDED
 #define HARDWARE_IMU_LSM6_REGISTERS_H_INCLUDED
 
-enum {
+enum : uint8_t {
     kLSM6_WRITE = 0x00U,  ///< Address byte value for a write operation
     kLSM6_READ = 0x80U,   ///< Address byte value for a read operation
 
@@ -128,7 +128,7 @@ enum {
 /**
  * @brief Enumeration of the LSM6 registers table
  */
-typedef enum {
+typedef enum : uint8_t {
     kFUNC_CFG_ACCESS = 0x01U,           ///< RW - Enable embedded functions register
     kPIN_CTRL = 0x02U,                  ///< RW - SDO, OCS_AUX, SDO_AUX pins pull-up enable/disable register
     kFIFO_CTRL1 = 0x07U,                ///< RW - FIFO control register 1
@@ -211,7 +211,7 @@ typedef enum {
 /**
  * @brief Enumeration of all the embedded functions
  */
-typedef enum {
+typedef enum : uint8_t {
     kPAGE_SEL = 0x02U,                ///< RW - Enable advanced features dedicated page @attention bits 0 to 3 untouched
     kEMB_FUNC_EN_A = 0x04U,           ///< RW - Embedded functions enable register @attention all bits but 3-5 must be 0
     kEMB_FUNC_EN_B = 0x05U,           ///< RW - Embedded functions enable register @attention all but 0, 3-4 must = 0

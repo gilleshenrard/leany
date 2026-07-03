@@ -41,7 +41,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-enum {
+enum : uint8_t {
     kFloatBufferSize = 20U,  ///< Number of bytes a float to string buffer can hold
     kHexaUint32Size = 8U,    ///< Number of bytes a hexadecimal 32-bits number can hold
 };

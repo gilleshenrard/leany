@@ -12,7 +12,7 @@
 #include "orientation.h"
 #include "st7735_registers.h"
 
-enum {
+enum : uint8_t {
     kST7735nbCommands = 16U,  ///< Number of commands to send during initialisation
 };
 

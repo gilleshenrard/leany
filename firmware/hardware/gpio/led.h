@@ -30,7 +30,7 @@ typedef union {
 /**
  * Enumeration of the LED effects
  */
-typedef enum {
+typedef enum : uint8_t {
     kOFF = 0,   ///< OFF
     kSOLID,     ///< Solidly ON
     kBLINKING,  ///< Blinking

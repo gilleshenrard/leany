@@ -19,7 +19,7 @@
 #include "bitmap.h"
 #include "errorstack.h"
 
-enum {
+enum : uint8_t {
     kPoolSize = 47U,       ///< Number of rows (uint16_t) comprising the bitmaps pool
     kLargePoolSize = 20U,  ///< Number of rows (uint32_t) comprising the large bitmaps pool
 };

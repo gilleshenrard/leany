@@ -15,7 +15,7 @@
  * Enumeration of hardware events
  */
 // NOLINTBEGIN (readability-enum-initial-value)
-typedef enum {
+typedef enum : uint8_t {
     kEventAngle = 0U,          ///< Event : Angle value change
     kEventZero = 1U,           ///< Event : Zero down measurements
     kEventCancelZero = 2U,     ///< Event : Cancel measurements zeroing

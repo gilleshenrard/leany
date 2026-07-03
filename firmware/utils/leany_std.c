@@ -15,7 +15,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-enum {
+enum : uint8_t {
     kMaxPrefixLength = 8U,                       ///< Maximum format prefix length to prevent infinite loops
     kMaxFormatLength = 256U - kMaxPrefixLength,  ///< Maximum format string length to prevent infinite loops
     kMaxIntBuffer = 65U,                         ///< Maximum integer conversion buffer size (64-bit in binary + sign)

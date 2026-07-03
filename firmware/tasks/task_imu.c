@@ -30,18 +30,24 @@
 #include "sensorfusion.h"
 #include "task_serial.h"
 
-enum {
+enum : uint16_t {
     kStackSize = 350U,      ///< Amount of words in the task stack
     kTaskLowPriority = 3U,  ///< FreeRTOS number for a low priority task
-    kStartupTimeMS = 10U,   ///< Number of milliseconds to wait after a reset
-    kTimeoutMS = 1000U,     ///< Max number of milliseconds to wait for a notification
-    kMutexMS = 100U,        ///< Max number of milliseconds to wait for a mutex
 };
+
+/**
+ * Timings in milliseconds
+ */
+typedef enum : uint16_t {
+    kStartupTimeMS = 10U,  ///< Number of milliseconds to wait after a reset
+    kTimeoutMS = 1000U,    ///< Max number of milliseconds to wait for a notification
+    kMutexMS = 100U,       ///< Max number of milliseconds to wait for a mutex
+} Timing;
 
 /**
  * Enumeration of the IDs of the functions used by the BMI270 implementation
  */
-typedef enum {
+typedef enum : uint8_t {
     kFunctionTask = 1,      ///< taskIMU() : Function running the IMU state machine
     kStateStartup = 2,      ///< stateStartup() : State in which the IMU is restarted
     kstateConfiguring = 3,  ///< stateConfiguring() : State in which the IMU is being initialised

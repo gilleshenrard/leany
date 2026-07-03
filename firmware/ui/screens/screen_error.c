@@ -24,7 +24,7 @@
 #include "systick.h"
 #include "task_imu.h"
 
-enum {
+enum : uint8_t {
     kErrorLabelSize = 8U,               ///< Number of characters in the error code string
     kErrorLabelWidthPx = 100U,          ///< Width of the error code label in [px]
     kErrorLabelYoffsetPx = 42U,         ///< Y offset of the error code label, relative to top bar, in [px]
@@ -40,7 +40,7 @@ enum {
 /**
  * Function IDs
  */
-typedef enum {
+typedef enum : uint8_t {
     kSetup = 1,                ///< setupErrorScreen() function
     kPrintErrorLabel = 2,      ///< printErrorCodeLabel() function
     kPrintErrorCodeLabel = 3,  ///< printErrorCodeLabel() function

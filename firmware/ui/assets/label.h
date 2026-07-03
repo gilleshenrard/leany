@@ -16,7 +16,7 @@
 /**
  * Label string horizontal alignment
  */
-typedef enum {
+typedef enum : uint8_t {
     kAlignmentCentered = 0,  ///< Centered (default)
     kAlignmentLeft,          ///< Left
     kAlignmentRight,         ///< Right

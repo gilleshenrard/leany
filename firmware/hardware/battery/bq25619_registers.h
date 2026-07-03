@@ -12,11 +12,11 @@
 #define HARDWARE_BATTERY_MANAGEMENT_BQ25619_REGISTERS_H
 #include <stdint.h>
 
-enum {
+enum : uint8_t {
     kStatus_struct_align = 32U,  ///< Status structure memory alignment
 };
 
-enum {
+enum : uint8_t {
     // General values
     kDEFAULT_SLAVEADDR = 0x6AU,  ///< Default I²C slave address
     kNB_STATUS_BYTES = 3U,       ///< Number of status bytes
@@ -71,7 +71,7 @@ enum {
 /**
  * Enumeration of the general charge faults
  */
-typedef enum {
+typedef enum : uint8_t {
     kChgFaultNormal = 0x00U,       ///< Normal state
     kChgFaultInput = 0x01U,        ///< Input fault
     kChgFaultThermal = 0x02U,      ///< Thermal shutdown
@@ -81,7 +81,7 @@ typedef enum {
 /**
  * Enumeration of the NTC states
  */
-typedef enum {
+typedef enum : uint8_t {
     kNTCnormal = 0x00U,  ///< Thermistor is OK
     kNTCwarm = 0x02U,    ///< Thermistor is warm
     kNTCcool = 0x03U,    ///< Thermistor is cool
@@ -92,7 +92,7 @@ typedef enum {
 /**
  * Enumeration of the VBUS statuses
  */
-typedef enum {
+typedef enum : uint8_t {
     kSTATnoInput = 0x00U,      ///< No input
     kSTATnoUSBhost = 0x01U,    ///<  USB host SDP (500 mA) -> PSEL pin HIGH
     kSTATadapter2_4A = 0x03U,  ///< Adapter 2.4 A -> PSEL pin LOW
@@ -102,7 +102,7 @@ typedef enum {
 /**
  * Enumeration of the charge statuses
  */
-typedef enum {
+typedef enum : uint8_t {
     kChargeNotCharging = 0x00U,  ///< Not charging
     kChargeTrickle = 0x01U,      ///< Precharge or trickle charge (< VBATLOWV)
     kChargeFast = 0x02U,         ///< Fast charging
@@ -112,7 +112,7 @@ typedef enum {
 /**
  * Enumeration of the device modes due to watchdog status
  */
-typedef enum {
+typedef enum : uint8_t {
     kCHGmodeHost = 0x00U,     ///< Normal, device is in host mode
     kCHGmodeDefault = 0x01U,  ///< Watchdog timer expiration, device is in default mode
 } DeviceMode;
@@ -157,7 +157,7 @@ typedef union {
 /**
  * Enumeration of the BQ25619 registers
  */
-typedef enum {
+typedef enum : uint8_t {
     kINPUT_CUR_LIMIT = 0x00U,      ///< rw - REG00 : Input Current Limit
     kCHG_CONTROL0 = 0x01U,         ///< rw - REG01 : Charger Control 0
     kCHG_CUR_LIMIT = 0x02U,        ///< rw - REG02 : Charge Current Limit

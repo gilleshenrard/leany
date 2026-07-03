@@ -21,7 +21,7 @@
 #include "st7735s.h"
 #include "task_battery.h"
 
-enum {
+enum : uint8_t {
     kPercentLength = 4U,         ///< Maximum number in a string representing a percentage
     kBatteryIconXoffset = 26U,   ///< Battery icon offset from the indicator X coordinate
     kBatteryLabelWidthPX = 25U,  ///< Battery level label width
@@ -31,7 +31,7 @@ enum {
 /**
  * Display module function IDs
  */
-typedef enum {
+typedef enum : uint8_t {
     kFillBackground = 1U,  ///< fillBackground() function code
     kPrintVertLine = 2U,   ///< printRectangle() function code
     kPrintLabel = 3,       ///< printLabel() function

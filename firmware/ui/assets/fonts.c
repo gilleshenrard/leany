@@ -37,7 +37,7 @@
 
 #include "bitmap.h"
 
-enum {
+enum : uint8_t {
     kNbSmallCharacters = 47U,  ///< Number of characters in the small font
     kSmallHeightPx = 8U,       ///< Height of the small font in [px]
     kNbLargeCharacters = 20U,  ///< Number of characters in the large font

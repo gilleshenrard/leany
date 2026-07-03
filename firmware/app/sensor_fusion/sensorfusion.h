@@ -9,7 +9,7 @@
 #define HARDWARE_SENSOR_SENSORFUSION_H
 #include <stdint.h>
 
-enum {
+enum : uint8_t {
     kQuaternionAlignment = 16U,    ///< Memory alignment of the quaternion structure
     kContextAlignment = 64U,       ///< Memory alignment of the mahony context structure
     kTimeDeltaAlignment = 16U,     ///< Memory alignment of the time delta structure
@@ -19,7 +19,7 @@ enum {
 /**
  * Enumeration of the axis of which to get measurements
  */
-typedef enum {
+typedef enum : uint8_t {
     kXaxis = 0,  ///< X axis
     kYaxis,      ///< Y axis
     kZaxis,      ///< Z axis

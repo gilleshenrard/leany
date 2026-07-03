@@ -35,9 +35,7 @@
 #include "sensorfusion.h"
 #include "systick.h"
 
-enum {
-    kBootTimeMS = 100U,          ///< Number of milliseconds to wait for the MEMS to boot
-    kTimeoutMS = 1000U,          ///< Max number of milliseconds to wait for the device ID
+enum : uint8_t {
     kRegisterValueAlign = 8,     ///< Memory alignment of the RegisterValue struct
     kNbRegistersToRead = 14U,    ///< Numbers of data registers to read
     kNbTickRegisters = 4U,       ///< Number of sensor tick registers
@@ -47,9 +45,17 @@ enum {
 };
 
 /**
+ * Timings in milliseconds
+ */
+typedef enum : uint16_t {
+    kBootTimeMS = 100U,  ///< Number of milliseconds to wait for the MEMS to boot
+    kTimeoutMS = 1000U,  ///< Max number of milliseconds to wait for the device ID
+} Timing;
+
+/**
  * @brief Enumeration of all the function ID used in errors
  */
-typedef enum {
+typedef enum : uint8_t {
     kResetting = 1,              ///< IMUsoftReset() function
     kCheckDeviceID = 2,          ///< stateStartup() state
     kConfiguring = 3,            ///< stateConfiguring() state

@@ -27,7 +27,7 @@
 #include "serial_command_types.h"
 #include "task_serial.h"
 
-enum {
+enum : uint8_t {
     kReceiveBufferSize = 32U,  ///< Number of bytes the reception buffer can hold
     kParameterSize = 20U,      ///< Maximum number of characters a parameter can span
 };
@@ -35,7 +35,7 @@ enum {
 /**
  * Enumeration of the possible SCPI parser states
  */
-typedef enum {
+typedef enum : uint8_t {
     kState_waiting = 0,    ///< Waiting for a sequence start character
     kState_buffering = 1,  ///< Buffering characters received
     kState_parameter = 2,  ///< Buffering parameter characters

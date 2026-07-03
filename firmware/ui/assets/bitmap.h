@@ -11,18 +11,9 @@
 
 #include "errorstack.h"
 
-enum {
+enum : uint8_t {
     kBitmapAlign = 16U,  ///< Memory alignment for the Bitmap structure
 };
-
-/**
- * Colour compensation offsets for RGB565 conversion.
- * These offsets adjust colours to better match designer intent
- * within RGB565 constraints, compensating for bit depth loss.
- */
-typedef enum {
-    kBluePerceptionOffset = 0x0002U,  ///< Bright blue compensation
-} ColourShift;
 
 /**
  * @brief Pixel type definition
@@ -35,9 +26,18 @@ typedef uint16_t Pixel;
 typedef uint16_t BitmapRow;
 
 /**
+ * Colour compensation offsets for RGB565 conversion.
+ * These offsets adjust colours to better match designer intent
+ * within RGB565 constraints, compensating for bit depth loss.
+ */
+typedef enum : Pixel {
+    kBluePerceptionOffset = 0x0002U,  ///< Bright blue compensation
+} ColourShift;
+
+/**
  * Enumeration of all the colours used
  */
-typedef enum {
+typedef enum : Pixel {
     kColourForeground = 0xFFFFU,                     ///< 0xFFFFFF in RGB565 big endian
     kColourBackground = 0xA210U,                     ///< 0x131313 in RGB565 big endian
     kColourEnabled = 0x518CU,                        ///< 0x898989 in RGB565 big endian

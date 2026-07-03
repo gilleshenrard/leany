@@ -28,21 +28,31 @@
 #include "led.h"
 #include "systick.h"
 
-enum {
-    kStackSize = 150U,              ///< Amount of words in the task stack
-    kTaskLowPriority = 3U,          ///< FreeRTOS number for a low priority task
+enum : uint8_t {
+    kStackSize = 150U,      ///< Amount of words in the task stack
+    kTaskLowPriority = 3U,  ///< FreeRTOS number for a low priority task
+};
+
+/**
+ * Timings in milliseconds
+ */
+typedef enum : uint16_t {
     kTemperatureRefreshMs = 2000U,  ///< Timespan between two readings in [ms]
     kADCrefreshMs = 1000U,          ///< Timespan between two ADC readings in [ms]
     kMutexMS = 5U,                  ///< Max number of milliseconds to wait for a mutex
     kVrefUpdatePeriodMs = 1000U,    ///< Period in [ms] between two Vref updates
+} Timing;
 
-    // STM32F103 temperature sensor calibration parameters (from datasheet)
+/**
+ * STM32F103 temperature sensor calibration parameters (from datasheet)
+ */
+typedef enum : uint16_t {
     kTempSensorAvgSlope_uV_C = 4300,  ///< Avg slope: 4.3 mV/°C (scaled to uV/°C)
     kTempSensorV25_mV = 1430,         ///< Voltage at 25°C: 1.43V (in mV)
     kTempSensorCalibTemp_C = 25,      ///< Calibration temperature: 25°C
     kAdcMaxValue = 4095,              ///< Maximum ADC LSB value (12-bits -> [0 ... 4095])
     kMCUvrefInt_mV = 1200,            ///< MCU VrefInt voltage in [mV]
-};
+} Voltage;
 
 //task functions
 static void taskGPIO(void* argument);

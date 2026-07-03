@@ -30,7 +30,7 @@
 #include "st7735s.h"
 #include "task_dispatcher.h"
 
-enum {
+enum : uint16_t {
     kStackSize = 300U,       ///< Amount of words in the task stack
     kTaskLowPriority = 3U,   ///< FreeRTOS number for a low priority task
     kUIqueueLength = 50U,    ///< Number of slots available in the UI queue
@@ -45,7 +45,7 @@ enum {
 /**
  * Screens
  */
-typedef enum {
+typedef enum : uint8_t {
     kScreenMain = 0,  ///< Main screen
     kScreenSystem,    ///< System information screen
     kScreenError,     ///< Error screen

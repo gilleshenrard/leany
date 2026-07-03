@@ -17,16 +17,19 @@
 #include "hardware_events.h"
 #include "systick.h"
 
-enum {
+/**
+ * Timings in milliseconds
+ */
+typedef enum : uint16_t {
     kDebounceTimeMS = 50U,       ///< Number of milliseconds to wait for debouncing
     kHoldingTimeMS = 1000U,      ///< Number of milliseconds to wait before considering a button is held down
     kEdgeDetectionTimeMS = 40U,  ///< Number of milliseconds during which a button state change can be detected
-};
+} Timing;
 
 /**
  * @brief Enumeration of all the managed buttons
  */
-typedef enum {
+typedef enum : uint8_t {
     kButtonZero = 0,  ///< Zero button
     kButtonHold,      ///< Hold button
     kNBbuttons        ///< Number of buttons defined
@@ -36,7 +39,7 @@ _Static_assert((kNBbuttons <= UINT8_MAX), "The application supports maximum 255 
 /**
  * Enumeration of the different button states
  */
-typedef enum {
+typedef enum : uint8_t {
     kButtonReleased = 0,  ///< stateReleased() : Button is released
     kButtonPressed,       ///< statePressed() : Button is pressed, but not held
     kButtonHeld,          ///< stateHeldDown() : Button is held down
