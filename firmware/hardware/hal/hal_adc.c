@@ -21,7 +21,7 @@
 
 #include "systick.h"
 
-enum {
+enum : uint8_t {
     kADCtimeoutMs = 100U,   ///< Maximum number of milliseconds to wait for ADC reading
     kADCcalibWaitMs = 10U,  ///< Number of milliseconds to wait between calibration stages
     kRequestsLength = 5U,   ///< Maximum number of ADC requests in the queue
@@ -30,7 +30,7 @@ enum {
 /**
  * ADC states
  */
-typedef enum {
+typedef enum : uint8_t {
     kStateIdle = 0,       ///< No update ongoing
     kStateAcquiring = 1,  ///< ADC is updating
 } ADCstate;

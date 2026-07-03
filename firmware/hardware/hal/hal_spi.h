@@ -15,7 +15,7 @@
 
 #include "errorstack.h"
 
-enum {
+enum : uint8_t {
     kSPItimeoutMS = 100U,  ///< Number of milliseconds beyond which SPI is in timeout
 };
 

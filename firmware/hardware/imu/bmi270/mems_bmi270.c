@@ -33,20 +33,25 @@
 #include "sensorfusion.h"
 #include "systick.h"
 
-enum {
-    kTimeoutMS = 1000U,            ///< Max number of milliseconds to wait for the device ID
-    kConfigTimeoutMS = 20U,        ///< Max number of milliseconds after which the configuration should be ok
-    kConfigFileSize = 8192U,       ///< Size of the config file in bytes
+enum : uint8_t {
     kNBpositionRegisters = 16U,    ///< Number of registers holding Accelerometer and Gyroscope data
     kNBTemperatureRegisters = 2U,  ///< Number of registers holding Temperature data
-    kTemperatureRefreshMS = 10U,   ///< Number of milliseconds between temperature value refreshes
     kConfigCheckAttempts = 3U,     ///< Maximum number of attempts to re-read a correct config file
 };
 
 /**
+ * Timings in milliseconds
+ */
+typedef enum : uint16_t {
+    kTimeoutMS = 1000U,           ///< Max number of milliseconds to wait for the device ID
+    kConfigTimeoutMS = 20U,       ///< Max number of milliseconds after which the configuration should be ok
+    kTemperatureRefreshMS = 10U,  ///< Number of milliseconds between temperature value refreshes
+} Timing;
+
+/**
  * Enumeration of the IDs of the functions used by the BMI270 implementation
  */
-typedef enum {
+typedef enum : uint8_t {
     kBMI270readRegisters = 2,        ///< readRegisters() : Function reading several registers
     kBMI270writeRegisters = 3,       ///< burstWriteRegisters() : Function writing multiple registers
     kBMI270stateStartup = 4,         ///< stateStartup() : State in which the startup time is waited for
@@ -79,6 +84,7 @@ _Static_assert(((uint8_t)kNBpositionRegisters & (kNBpositionRegisters - 1U)) == 
 typedef uint8_t BMI270register;  ///< type definition for BMI270 registers
 
 // Read/Write bit value
+static constexpr uint16_t kConfigFileSize = 8192U;         ///< Size of the config file in bytes
 static const BMI270register kBMIwrite = 0x00U;             ///< Address byte value for a write operation
 static const BMI270register kBMIread = 0x80U;              ///< Address byte value for a read operation
 const uint32_t kMaxSensorTimeTicks = 0xFFFFFFU;            ///< The maximum tick value before it wraps around to 0

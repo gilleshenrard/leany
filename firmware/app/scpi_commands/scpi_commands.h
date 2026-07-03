@@ -11,14 +11,14 @@
 
 #include "serial_command_types.h"
 
-enum {
+enum : uint8_t {
     kSCPImaxCommandSize = 25U,  ///< Maximum size of a SCPI command
 };
 
 /**
  * Enumeration of command modes
  */
-typedef enum {
+typedef enum : uint8_t {
     kNA = 0,  ///< Access mode is not applicable
     kRO = 1,  ///< Read-only command
     kRW = 2,  ///< Read/write command

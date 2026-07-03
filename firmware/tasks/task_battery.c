@@ -29,33 +29,39 @@
 #include "systick.h"
 #include "task_gpio.h"
 
-enum {
-    kStackSize = 250U,                  ///< Amount of words in the task stack
-    kTaskLowPriority = 3U,              ///< FreeRTOS number for a low priority task
-    kChipIDtimeout = 1000U,             ///< Maximum number of milliseconds to attempt reading the chip ID
-    kNbChipIDtests = 5U,                ///< Number of times chip ID reading must be tested
-    kUpdatePeriodMS = 200U,             ///< Period between two status updates in [ms]
-    kBatteryFullPercent = 100U,         ///< Value used as a 100% battery level
-    kMutexTimeoutMs = 10U,              ///< Maximum number of milliseconds before considering a mutex timeout
-    kNbRetries = 5U,                    ///< Maximum number of retries upon I²C lack of ACK
-    kNbAverageSamples = 16U,            ///< Maximum number of elements in the average buffer
-    kBatteryLvlUpdatePeriodMs = 1000U,  ///< Period in [ms] between two battery level updates
-    kMutexMS = 5U,                      ///< Max number of milliseconds to wait for a mutex
-    kAdcMaxValue = 4095U,               ///< Maximum ADC LSB value (12-bits -> [0 ... 4095])
-    kBatteryMaxMv = 4200U,              ///< Maximum voltage of a typical lithium cell in [mV]
-    kBatteryMinMv = 3500U,              ///< Minimum voltage of a typical lithium cell in [mV]
-    kBatteryMinDetectionMv = 2500U,     ///< Minimum voltage detection threshold in [mV]
-    kNbBatteryLevelSteps = 21U,         ///< Number of battery level steps in the lookup table
-    kBatteryLevelPercentStep = 5U,      ///< Number of percents between two steps
+enum : uint16_t {
+    kStackSize = 250U,               ///< Amount of words in the task stack
+    kTaskLowPriority = 3U,           ///< FreeRTOS number for a low priority task
+    kNbChipIDtests = 5U,             ///< Number of times chip ID reading must be tested
+    kBatteryFullPercent = 100U,      ///< Value used as a 100% battery level
+    kNbRetries = 5U,                 ///< Maximum number of retries upon I²C lack of ACK
+    kNbAverageSamples = 16U,         ///< Maximum number of elements in the average buffer
+    kAdcMaxValue = 4095U,            ///< Maximum ADC LSB value (12-bits -> [0 ... 4095])
+    kBatteryMaxMv = 4200U,           ///< Maximum voltage of a typical lithium cell in [mV]
+    kBatteryMinMv = 3500U,           ///< Minimum voltage of a typical lithium cell in [mV]
+    kBatteryMinDetectionMv = 2500U,  ///< Minimum voltage detection threshold in [mV]
+    kNbBatteryLevelSteps = 21U,      ///< Number of battery level steps in the lookup table
+    kBatteryLevelPercentStep = 5U,   ///< Number of percents between two steps
 };
 
 static_assert(((uint8_t)kNbAverageSamples & ((uint8_t)kNbAverageSamples - 1U)) == 0U,
               "kNbAverageSamples must be a power of 2");
 
 /**
+ * Timings in milliseconds
+ */
+typedef enum : uint16_t {
+    kBatteryLvlUpdatePeriodMs = 1000U,  ///< Period in [ms] between two battery level updates
+    kMutexTimeoutMs = 10U,              ///< Maximum number of milliseconds before considering a mutex timeout
+    kChipIDtimeout = 1000U,             ///< Maximum number of milliseconds to attempt reading the chip ID
+    kUpdatePeriodMS = 200U,             ///< Period between two status updates in [ms]
+    kMutexMS = 5U,                      ///< Max number of milliseconds to wait for a mutex
+} Timing;
+
+/**
  * @brief Enumeration of all the function ID used in errors
  */
-typedef enum {
+typedef enum : uint8_t {
     kTaskLoop = 1,          ///< taskBatteryManagement() function
     kStateStartup = 3,      ///< stateStartup() state function
     kStateIdle = 4,         ///< stateIdle() state function

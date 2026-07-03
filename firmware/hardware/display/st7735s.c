@@ -31,7 +31,7 @@
 /**
  * @brief Enumeration of the function IDs of the SSD1306
  */
-typedef enum {
+typedef enum : uint8_t {
     kSetWindow = 0,  ///< setWindow()
     kSendData,       ///< sendScreenData()
     kPrintChar,      ///< printCharacter()

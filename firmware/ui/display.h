@@ -13,7 +13,7 @@
 #include "orientation.h"
 #include "task_battery.h"
 
-enum {
+enum : uint8_t {
     kStatusIconsY = 6U,      ///< Y coordinate of the status icons on screen
     kHoldIconX = 6U,         ///< X coordinate of the Hold icon
     kModeIconX = 21U,        ///< X coordinate of the Mode icon

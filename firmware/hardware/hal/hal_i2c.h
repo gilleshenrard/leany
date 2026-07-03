@@ -16,7 +16,7 @@
 /**
  * I²C errors
  */
-typedef enum {
+typedef enum : uint8_t {
     kErrorAcknowledgeFailure = 1,  ///< AF : Acknowledge failure
     kErrorArbitrationLost = 2,     ///< ARLO : Arbitration Lost
     kErrorBusError = 3,            ///< BERR : Bus error

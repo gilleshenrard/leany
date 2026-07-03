@@ -15,7 +15,7 @@
 #include "errorstack.h"
 #include "fonts.h"
 
-enum {
+enum : uint8_t {
     kStringMaxLength = 20U,  ///< Maximum number of characters
 };
 

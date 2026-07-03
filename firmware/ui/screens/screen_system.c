@@ -24,7 +24,7 @@
 #include "task_battery.h"
 #include "task_gpio.h"
 
-enum {
+enum : uint8_t {
     kTitleSectionHeightPx = 23U,  ///< Height of the title section in [px]
     kSectionHeightPx = 34U,       ///< Height of the info sections in [px]
     kMaxTemperatureSize = 6U,     ///< Maximum number of characters to format temperature
@@ -35,7 +35,7 @@ enum {
 /**
  * Enumeration of all the UI function codes
  */
-typedef enum {
+typedef enum : uint8_t {
     kSetup = 1,         ///< setupUI() function
     kInitSections = 3,  ///< initialiseSections() function
     kPrintSection = 4,  ///< printSection() function
@@ -44,7 +44,7 @@ typedef enum {
 /**
  * Section types
  */
-typedef enum {
+typedef enum : uint8_t {
     kFirmware = 0,    ///< Firmware version section
     kGitHash,         ///< Git commit hash section
     kTemperature,     ///< MCU internal temperature section

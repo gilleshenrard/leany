@@ -10,7 +10,7 @@
 #include <stdint.h>
 
 //definitions
-enum {
+enum : uint8_t {
     kErrorLayerNbBits = 4U,  ///< Amount of bits in a return code layer field
     kErrorIDnbBits = 7U,     ///< Amount of bits in function ID and module ID fields
     kErrorLevelNbBits = 2U,  ///< Amount of level bits
@@ -19,7 +19,7 @@ enum {
 /**
  * @brief Error levels possible
  */
-typedef enum {
+typedef enum : uint8_t {
     kErrorDebug = 0,  ///< Debug information (not advised, very verbose)
     kErrorInfo,       ///< Simple information
     kErrorWarning,    ///< Warning

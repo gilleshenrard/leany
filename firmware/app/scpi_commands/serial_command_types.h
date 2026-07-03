@@ -10,14 +10,14 @@
 #define APPS_SCPI_COMMANDS_SERIAL_COMMAND_TYPES_H
 #include <stdint.h>
 
-enum {
+enum : uint8_t {
     kCommandAlignment = 16U,  ///< Memory alignment of the Command structure
 };
 
 /**
  * Enumeration of the command codes available
  */
-typedef enum {
+typedef enum : uint8_t {
     kCmdNoBehaviour = 0,      ///< Command node has no behaviour (default)
     kCmdKP = 1,               ///< Set/Get the filter kP value
     kCmdKI = 2,               ///< Set/Get the filter kI value
@@ -39,7 +39,7 @@ typedef enum {
 /**
  * Enumeration of the parameter types
  */
-typedef enum {
+typedef enum : uint8_t {
     kParamInteger = 0,  ///< Parameter is a decimal integer
     kParamHexa,         ///< Parameter is a hexadecimal integer
     kParamFloat,        ///< Parameter is a float

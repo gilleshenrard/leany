@@ -12,7 +12,7 @@
 
 #include "errorstack.h"
 
-enum {
+enum : uint8_t {
     kSmallRowWidthPx = 16U,  ///< Maximum number of pixels in a small icon row
 };
 

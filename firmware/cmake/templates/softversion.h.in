@@ -9,7 +9,7 @@
 #ifndef INC_SOFTWARE_VERSION_H
 #define INC_SOFTWARE_VERSION_H
 
-enum {
+enum : uint8_t {
     kFirmwareVersionSize = 7U,  ///< Maximum size of the firmware version string
     kCommitHashSize = 7U,       ///< Maximum size of the Git commit hash code
 };

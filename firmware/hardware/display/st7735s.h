@@ -14,7 +14,7 @@
 #include "errorstack.h"
 #include "orientation.h"
 
-enum {
+enum : uint16_t {
     kDisplayWidth = 160U,      ///< Number of pixels in width
     kDisplayHeight = 128U,     ///< Number of pixels in height
     kScreenSizeDivider = 12U,  ///< Number of times the buffer fits in the display

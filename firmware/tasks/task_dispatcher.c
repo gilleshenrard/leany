@@ -434,7 +434,7 @@ static void handleSerialWriteCommandEvent(const SerialCommand* command) {
             break;
 
         case kCmdLogLevel:
-            setLogLevel(command->parameter.int_value);
+            setLogLevel((ErrorLevel)command->parameter.int_value);
             break;
 
         case kCmdOrientation:

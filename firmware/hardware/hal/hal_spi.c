@@ -25,7 +25,7 @@
 /**
  * @brief SPI Data/command pin status enumeration
  */
-typedef enum {
+typedef enum : uint8_t {
     kCommand = 0,  ///< Command is to be sent
     kData,         ///< Data is to be sent
 } DCgpio;
@@ -33,7 +33,7 @@ typedef enum {
 /**
  * Enumeration of the function IDs
  */
-typedef enum {
+typedef enum : uint8_t {
     kSPIreadRegisters = 1U,           ///< Function ID for the readRegisters()
     kSPIwriteRegistersContinue = 2U,  ///< Function ID for the writeRegistersAndContinue()
     kSPIdmaSend = 3U,                 ///< Function ID for the sendDMA()
