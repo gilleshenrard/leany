@@ -63,8 +63,8 @@ static void reactToButtons(void);
 static void stateReleased(ButtonType button);
 static void statePressed(ButtonType button);
 static void stateHeld(ButtonType button);
-static uint8_t consumeClickEvent(ButtonType button);
-static uint8_t consumeHoldEvent(ButtonType button);
+static bool consumeClickEvent(ButtonType button);
+static bool consumeHoldEvent(ButtonType button);
 
 /**
  * @brief Buttons initialisation array
@@ -84,7 +84,7 @@ static Button buttons[kNBbuttons] = {
  * @retval 1 Invalid button state reached
  */
 ErrorCode runButtonsStateMachine(void) {
-    for (uint8_t i = 0; i < (uint8_t)kNBbuttons; i++) {
+    for (uint8_t i = 0; i < kNBbuttons; i++) {
         switch (buttons[i].state) {
             case kButtonReleased:
                 stateReleased((ButtonType)i);
@@ -211,17 +211,17 @@ static void stateHeld(ButtonType button) {
  * @note This will reset the click detection timer
  *
  * @param button Button to check
- * @retval 1 Click detected
- * @retval 0 No click detected
+ * @retval true Click detected
+ * @retval false No click detected
  */
-static uint8_t consumeClickEvent(ButtonType button) {
+static bool consumeClickEvent(ButtonType button) {
     //avoid a false detection at boot
     if (getCurrentTick() <= kEdgeDetectionTimeMS) {
-        return 0;
+        return false;
     }
 
-    const uint8_t clicked = ((buttons[button].state == kButtonReleased) &&
-                             !systickTimeout(buttons[button].detect_click_tick, kEdgeDetectionTimeMS));
+    const bool clicked = (bool)((buttons[button].state == kButtonReleased) &&
+                                !systickTimeout(buttons[button].detect_click_tick, kEdgeDetectionTimeMS));
 
     //reset the timer so the same event cannot trigger a positive more than once
     buttons[button].detect_click_tick = 0;
@@ -233,17 +233,17 @@ static uint8_t consumeClickEvent(ButtonType button) {
  * @note This will reset the hold detection timer
  *
  * @param button Button to check
- * @retval 1 Hold detected
- * @retval 0 No hold detected
+ * @retval true Hold detected
+ * @retval false No hold detected
  */
-static uint8_t consumeHoldEvent(ButtonType button) {
+static bool consumeHoldEvent(ButtonType button) {
     //avoid a false detection at boot
     if (getCurrentTick() <= kEdgeDetectionTimeMS) {
-        return 0;
+        return false;
     }
 
-    const uint8_t held = ((buttons[button].state == kButtonHeld) &&
-                          !systickTimeout(buttons[button].detect_hold_tick, kEdgeDetectionTimeMS));
+    const bool held = (bool)((buttons[button].state == kButtonHeld) &&
+                             !systickTimeout(buttons[button].detect_hold_tick, kEdgeDetectionTimeMS));
 
     //reset the timer so the same event cannot trigger a positive more than once
     buttons[button].detect_hold_tick = 0;

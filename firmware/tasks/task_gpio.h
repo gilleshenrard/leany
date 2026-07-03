@@ -10,6 +10,6 @@
 #include <stdint.h>
 
 void createGPIOtask(void);
-uint8_t getInternalTemperatureCelsius(int32_t* temperature_celsius);
-uint8_t getADCreference_mV(uint32_t* voltage_mv);
+bool getInternalTemperatureCelsius(int32_t* temperature_celsius);
+bool getADCreference_mV(uint32_t* voltage_mv);
 #endif

@@ -65,7 +65,7 @@ typedef struct {
 } Layout;
 
 //private functions
-static void treatHoldMessage(uint8_t message_flags[kNbEvents], uint8_t holding);
+static void treatHoldMessage(bool message_flags[kNbEvents], bool holding);
 static ErrorCode printMeasurements(ColourBigEndian foreground_colour);
 static void getAngleComponents(Axis axis, int16_t* angle_degrees, int16_t* angle_tenths);
 
@@ -167,18 +167,18 @@ ErrorCode setupMainScreen(void) {
  * @param message_flags Array of flags indicating which new messages are to be treated
  * @return Any print function return code, or success if no failure
  */
-ErrorCode treatMainScreenMessages(uint8_t message_flags[kNbEvents]) {
-    uint8_t holding = isIMUmeasurementsHolding();  //holding is used throughout the whole function
+ErrorCode treatMainScreenMessages(bool message_flags[kNbEvents]) {
+    bool holding = isIMUmeasurementsHolding();  //holding is used throughout the whole function
     BatteryStatus battery_status;
     Orientation current_orientation = kLandscape;
 
     //if a measurement hold message is provided, update the icon
     treatHoldMessage(message_flags, holding);
 
-    const ColourBigEndian foreground = (holding ? kColourAccent : kColourForeground);
+    const ColourBigEndian foreground = ((uint8_t)holding ? kColourAccent : kColourForeground);
 
     ErrorCode result = kSuccessCode;
-    for (uint8_t message = 0; message < (uint8_t)kNbEvents; message++) {
+    for (uint8_t message = 0; message < kNbEvents; message++) {
         if (!message_flags[message]) {
             continue;
         }
@@ -261,7 +261,7 @@ ErrorCode changeLayoutOrientation(Orientation new_orientation) {
  * @param[out] message_flags Flags array to update if necessary
  * @param holding Measurements holding status
  */
-static void treatHoldMessage(uint8_t message_flags[kNbEvents], uint8_t holding) {
+static void treatHoldMessage(bool message_flags[kNbEvents], bool holding) {
     if (!message_flags) {
         return;
     }
@@ -270,8 +270,8 @@ static void treatHoldMessage(uint8_t message_flags[kNbEvents], uint8_t holding) 
         return;
     }
 
-    message_flags[kEventAngle] = 1;
-    const ColourBigEndian colour = (holding ? kColourAccent : kColourDisabled);
+    message_flags[kEventAngle] = true;
+    const ColourBigEndian colour = ((uint8_t)holding ? kColourAccent : kColourDisabled);
     (void)printIcon(kIconHold, kHoldIconX, kStatusIconsY, colour);
 }
 

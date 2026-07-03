@@ -183,12 +183,12 @@ ErrorCode printRectangle(Pixel* buffer, size_t buffer_size, const Area* area, Co
  * @retval 5 Error while printing the status bar separator
  */
 // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
-ErrorCode printStatusBar(uint8_t holding_status, uint8_t zeroing_status, uint8_t screen_width_px) {
+ErrorCode printStatusBar(bool holding_status, bool zeroing_status, uint8_t screen_width_px) {
     ErrorCode result =
-        printIcon(kIconHold, kHoldIconX, kStatusIconsY, (holding_status ? kColourAccent : kColourDisabled));
+        printIcon(kIconHold, kHoldIconX, kStatusIconsY, ((uint8_t)holding_status ? kColourAccent : kColourDisabled));
     EXIT_ON_ERROR(result, kSetupStatus, 1)
 
-    const Icon type_icon = (zeroing_status ? kIconRelative : kIconAbsolute);
+    const Icon type_icon = ((uint8_t)zeroing_status ? kIconRelative : kIconAbsolute);
     result = printIcon(type_icon, kModeIconX, kStatusIconsY, kColourEnabled);
     EXIT_ON_ERROR(result, kSetupStatus, 2)
 

@@ -79,11 +79,11 @@ static SemaphoreHandle_t orientation_mutex = nullptr;  ///< handle of the mutex 
 static Orientation current_orientation = kLandscape;   ///< Current screen orientation
 static FunctionCode imu_state = kStateStartup;         ///< Current IMU state
 static ErrorCode result;                               ///< Variable used to receive the functions' result codes
-static volatile uint8_t task_notifiable = 0;  ///< Flag indicating whether the task is ready to treat notifications
+static volatile bool task_notifiable = false;  ///< Flag indicating whether the task is ready to treat notifications
 static float angles_zeroing_rad[kNBaxis - 1] = {0, 0};  ///< Angles used to zero out the measurements
-static uint8_t holding = 0;                             ///< Flag indicating whether the measurements are held
+static bool holding = false;                            ///< Flag indicating whether the measurements are held
 static MahonyContext filter_context = {
-    .ki = kIntegralGain, .kp = kProportionalGain, .align_check_enabled = 1};  ///< Current Mahony filter context
+    .ki = kIntegralGain, .kp = kProportionalGain, .align_check_enabled = true};  ///< Current Mahony filter context
 
 /****************************************************************************************************************/
 /****************************************************************************************************************/
@@ -155,19 +155,19 @@ int16_t getAngleDegreesTenths(Axis axis) {
 /**
  * @brief Check if angle measurements have changed
  *
- * @retval 0 No new values available
- * @retval 1 New values are available
+ * @retval false No new values available
+ * @retval true New values are available
  */
-uint8_t anglesChanged(void) {
+bool anglesChanged(void) {
     if (xSemaphoreTake(angles_mutex, pdMS_TO_TICKS(kMutexMS)) == pdFALSE) {
-        return 0;
+        return false;
     }
     const float current_angle_rad = getAttitudeAngle(&filter_context);
     (void)xSemaphoreGive(angles_mutex);
 
     //check if angle changed above minimum threshold (0.1° in any direction)
     static float previous_angle_rad = 0.0F;
-    uint8_t changed = (fabsf(previous_angle_rad - current_angle_rad) > kDegreesTenthsToRadians);
+    const bool changed = (fabsf(previous_angle_rad - current_angle_rad) > kDegreesTenthsToRadians);
     if (changed) {
         previous_angle_rad = current_angle_rad;
     }
@@ -206,17 +206,17 @@ void IMUcancelZeroing(void) {
 /**
  * Check if the IMU has been zeroed (relative mode)
  *
- * @retval 1 IMU is in relative mode
- * @retval 0 IMU is in absolute mode 
+ * @retval true IMU is in relative mode
+ * @retval false IMU is in absolute mode 
  */
-uint8_t isIMUzeroed(void) {
+bool isIMUzeroed(void) {
     const float close_to_zero = 1e-3F;
-    uint8_t current_zeroing = 0;
+    bool current_zeroing = false;
 
     if (xSemaphoreTake(angles_mutex, pdMS_TO_TICKS(kMutexMS)) == pdTRUE) {
         current_zeroing =
-            (((angles_zeroing_rad[kXaxis] > close_to_zero) || (angles_zeroing_rad[kXaxis] < -close_to_zero)) &&
-             ((angles_zeroing_rad[kYaxis] > close_to_zero) || (angles_zeroing_rad[kYaxis] < -close_to_zero)));
+            (bool)(((angles_zeroing_rad[kXaxis] > close_to_zero) || (angles_zeroing_rad[kXaxis] < -close_to_zero)) &&
+                   ((angles_zeroing_rad[kYaxis] > close_to_zero) || (angles_zeroing_rad[kYaxis] < -close_to_zero)));
         (void)xSemaphoreGive(angles_mutex);
     }
 
@@ -294,10 +294,10 @@ void setIMU_KP(float value) {
  *
  * @return New Holding value
  */
-uint8_t toggleIMU_hold(void) {
-    uint8_t new_holding = 0;
+bool toggleIMU_hold(void) {
+    bool new_holding = false;
     if (xSemaphoreTake(angles_mutex, pdMS_TO_TICKS(kMutexMS)) == pdTRUE) {
-        holding = !holding;
+        holding = (bool)!holding;
         new_holding = holding;
         (void)xSemaphoreGive(angles_mutex);
     }
@@ -311,8 +311,8 @@ uint8_t toggleIMU_hold(void) {
  * @retval 1 IMU is in hold mode
  * @retval 0 IMU is running normally
  */
-uint8_t isIMUmeasurementsHolding(void) {
-    uint8_t current_holding = 0;
+bool isIMUmeasurementsHolding(void) {
+    bool current_holding = false;
 
     if (xSemaphoreTake(angles_mutex, pdMS_TO_TICKS(kMutexMS)) == pdTRUE) {
         current_holding = holding;
@@ -327,9 +327,9 @@ uint8_t isIMUmeasurementsHolding(void) {
  *
  * @param value 1 if check enabled, 0 otherwise
  */
-void setIMUalignmentCheckEnabled(uint8_t value) {
+void setIMUalignmentCheckEnabled(bool value) {
     if (xSemaphoreTake(angles_mutex, pdMS_TO_TICKS(kMutexMS)) == pdTRUE) {
-        filter_context.align_check_enabled = (value != 0);
+        filter_context.align_check_enabled = value;
         resetMahonyFilter(&filter_context);
         (void)xSemaphoreGive(angles_mutex);
     }
@@ -338,11 +338,11 @@ void setIMUalignmentCheckEnabled(uint8_t value) {
 /**
  * Check whether the estimated and actual vectors alignment validity is checked
  *
- * @retval 1 Enabled
- * @retval 0 Disabled
+ * @retval true Enabled
+ * @retval false Disabled
  */
-uint8_t isIMUalignmentCheckEnabled(void) {
-    uint8_t enabled = 0;
+bool isIMUalignmentCheckEnabled(void) {
+    bool enabled = false;
 
     if (xSemaphoreTake(angles_mutex, pdMS_TO_TICKS(kMutexMS)) == pdTRUE) {
         enabled = filter_context.align_check_enabled;
@@ -459,7 +459,7 @@ static void taskIMU(void* argument) {
  * @retval 2 Error while requesting the soft reset
  */
 static ErrorCode stateStartup(void) {
-    task_notifiable = 0;
+    task_notifiable = false;
 
     vTaskDelay(pdMS_TO_TICKS(kStartupTimeMS));
 
@@ -508,7 +508,7 @@ static ErrorCode stateConfiguring(void) {
     result = IMUconfigure();
     EXIT_ON_ERROR(result, kstateConfiguring, 2)
 
-    task_notifiable = 1;
+    task_notifiable = true;
 
     result = ignoreSamples();
     EXIT_ON_ERROR(result, kstateConfiguring, 3)

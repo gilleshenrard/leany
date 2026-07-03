@@ -37,10 +37,10 @@ uint32_t getCurrentTickISR(void) { return (uint32_t)xTaskGetTickCountFromISR(); 
  *
  * @param start_tick The tick to compare to now to check for a timeout
  * @param timeout_ms The timeout span in milliseconds
- * @retval 1 Timeout has occurred
- * @retval 0 Timeout has not occurred
+ * @retval true Timeout has occurred
+ * @retval false Timeout has not occurred
  */
-uint8_t systickTimeout(uint32_t start_tick, uint32_t timeout_ms) {
+bool systickTimeout(uint32_t start_tick, uint32_t timeout_ms) {
     return ((getCurrentTick() - start_tick) >= pdMS_TO_TICKS(timeout_ms));
 }
 

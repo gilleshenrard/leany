@@ -39,7 +39,7 @@ ErrorCode fillBackground(Pixel* buffer, size_t buffer_size, Orientation orientat
 ErrorCode printRectangle(Pixel* buffer, size_t buffer_size, const Area* area, ColourBigEndian colour);
 ErrorCode printIcon(Icon icon, uint8_t x_left_px, uint8_t y_top_px, ColourBigEndian foreground_colour);
 ErrorCode printBatteryIndicator(const BatteryStatus* status, BatteryIndicator* indicator);
-ErrorCode printStatusBar(uint8_t holding_status, uint8_t zeroing_status, uint8_t screen_width_px);
+ErrorCode printStatusBar(bool holding_status, bool zeroing_status, uint8_t screen_width_px);
 BatteryIndicator* getBatteryIndicator(void);
 
 #endif  //UI_DISPLAY_H

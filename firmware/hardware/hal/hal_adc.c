@@ -107,7 +107,7 @@ void initialiseHALadc(void) {
     adc_queue = xQueueCreateStatic(kRequestsLength, sizeof(RequestIDType), (uint8_t*)requests, &adc_queue_state);
     configASSERT(adc_queue);
 
-    for (uint8_t device = 0; device < (uint8_t)kADCnbDevices; device++) {
+    for (uint8_t device = 0; device < kADCnbDevices; device++) {
         const ADCmapping* mapping = &devices[device];
 
         //ADC needs to be disabled for calibration
@@ -136,12 +136,12 @@ void initialiseHALadc(void) {
  * Request an update on an ADC device
  *
  * @param device Device to update
- * @retval 1 Request sent
- * @retval 0 Queue could not accept the request
+ * @retval true Request sent
+ * @retval false Queue could not accept the request
  */
-uint8_t requestADCmeasurement(ADCdevice device) {
+bool requestADCmeasurement(ADCdevice device) {
     if (device >= kADCnbDevices) {
-        return 0;
+        return false;
     }
 
     const RequestIDType device_id = (RequestIDType)device;
@@ -156,17 +156,17 @@ uint8_t requestADCmeasurement(ADCdevice device) {
  * @param[out] value ADC value
  * @return Whether retrieval succeeded
  */
-uint8_t getADCvalue(ADCdevice device, uint8_t channel, uint16_t* value) {
+bool getADCvalue(ADCdevice device, uint8_t channel, uint16_t* value) {
     if (device >= kADCnbDevices) {
-        return 0;
+        return false;
     }
 
     if (channel >= devices[device].nb_channels) {
-        return 0;
+        return false;
     }
 
     if (!value) {
-        return 0;
+        return false;
     }
 
     //critical section used for non-blocking section that cannot fail
@@ -174,7 +174,7 @@ uint8_t getADCvalue(ADCdevice device, uint8_t channel, uint16_t* value) {
     *value = devices[device].latest_values[channel];
     taskEXIT_CRITICAL();
 
-    return 1;
+    return true;
 }
 
 /**

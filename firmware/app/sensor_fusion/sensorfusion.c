@@ -67,12 +67,12 @@ static inline FORCE_INLINE_SILENT float normaliseQuaternion(Quaternion* quaterni
 static inline FORCE_INLINE_SILENT float clamp(float value, float max_absolute_value);
 static inline FORCE_INLINE_SILENT float getDT(const TimeDelta* delta);
 static inline FORCE_INLINE_SILENT uint8_t isDTvalid(float delta_seconds);
-static uint8_t alignmentValid(const float accelerometer_normalised[kNBaxis], const float estimates_normalised[kNBaxis]);
+static bool alignmentValid(const float accelerometer_normalised[kNBaxis], const float estimates_normalised[kNBaxis]);
 static void computeGravityError(float errors[kNBaxis], const float accelerometer_g[kNBaxis],
                                 const float body_estimates[kNBaxis]);
 static void integrateGyroMeasurements(Quaternion* current_attitude, const float corrected_gyro[kNBaxis],
                                       float period_sec);
-static uint8_t validateNorm(MahonyContext* context, float norm, uint8_t* bad_norm_counter);
+static bool validateNorm(MahonyContext* context, float norm, uint8_t* bad_norm_counter);
 static void computeEstimates(const MahonyContext* context, float body_estimates[kNBaxis]);
 static void applyProportionate(const MahonyContext* context, float corrected_gyro_radps[kNBaxis],
                                const IMUsample* sample, const float errors[kNBaxis]);
@@ -339,18 +339,17 @@ static inline FORCE_INLINE_SILENT uint8_t isDTvalid(float delta_seconds) {
  *
  * @param accelerometer_normalised Accelerometer vectors, normalised to unit length
  * @param estimates_normalised Estimates vectors, normalised to unit length
- * @retval 1 Estimates are close enough to the accelerometer measurements
- * @retval 0 The angle between vectors is too wide (sign of large linear acceleration)
+ * @retval true Estimates are close enough to the accelerometer measurements
+ * @retval false The angle between vectors is too wide (sign of large linear acceleration)
  */
-static uint8_t alignmentValid(const float accelerometer_normalised[kNBaxis],
-                              const float estimates_normalised[kNBaxis]) {
+static bool alignmentValid(const float accelerometer_normalised[kNBaxis], const float estimates_normalised[kNBaxis]) {
     //This is done with the means of a dot product between vectors.
     //As the vectors are normalised, their dot product gives the cosine of the angle between them.
     const float dot_product = (accelerometer_normalised[kXaxis] * estimates_normalised[kXaxis]) +
                               (accelerometer_normalised[kYaxis] * estimates_normalised[kYaxis]) +
                               (accelerometer_normalised[kZaxis] * estimates_normalised[kZaxis]);
 
-    return ((dot_product >= kMinAlignmentCosine) && (dot_product <= kMaxAlignmentCosine));
+    return (bool)((dot_product >= kMinAlignmentCosine) && (dot_product <= kMaxAlignmentCosine));
 }
 
 /**
@@ -408,18 +407,18 @@ static void integrateGyroMeasurements(Quaternion* current_attitude, const float 
  * @param context Filter context
  * @param norm Norm to validate
  * @param bad_norm_counter Counter used to see if the filter should be reseted
- * @retval 1 Norm valid
- * @retval 0 Norm invalid
+ * @retval true Norm valid
+ * @retval false Norm invalid
  */
-static uint8_t validateNorm(MahonyContext* context, const float norm, uint8_t* bad_norm_counter) {
+static bool validateNorm(MahonyContext* context, const float norm, uint8_t* bad_norm_counter) {
     if ((norm < (1.0F - kMaxNormEpsilon)) || (norm > (1.0F + kMaxNormEpsilon))) {
         if (++(*bad_norm_counter) >= kMaxBadCounts) {
             resetMahonyFilter(context);
         }
-        return 0;
+        return false;
     }
     *bad_norm_counter = 0;
-    return 1;
+    return true;
 }
 
 /**

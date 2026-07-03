@@ -10,6 +10,7 @@
  */
 #ifndef HARDWARE_IMU_LSM6DSR_LSM6DSR_REGISTERS_H_INCLUDED
 #define HARDWARE_IMU_LSM6DSR_LSM6DSR_REGISTERS_H_INCLUDED
+#include <stdint.h>
 
 // WhoAmI register (0x0F) values
 #undef kLSM6_WHOAMI

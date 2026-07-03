@@ -12,7 +12,7 @@
 
 uint32_t getCurrentTick(void);
 uint32_t getCurrentTickISR(void);
-uint8_t systickTimeout(uint32_t start_tick, uint32_t timeout_ms);
+bool systickTimeout(uint32_t start_tick, uint32_t timeout_ms);
 void primeHSEOscillator(void);
 
 #endif

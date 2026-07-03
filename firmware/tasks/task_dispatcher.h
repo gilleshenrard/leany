@@ -10,7 +10,7 @@
 #include "errorstack.h"
 
 ErrorCode createMessageDispatchertask(void);
-uint8_t setLastErrorCode(ErrorCode error);
-uint8_t getLastErrorCode(ErrorCode* error);
+bool setLastErrorCode(ErrorCode error);
+bool getLastErrorCode(ErrorCode* error);
 
 #endif

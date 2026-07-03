@@ -155,7 +155,7 @@ uint8_t uncompressCharacter(const FontMetadata* font, uint8_t character_index, C
 
     //uncompress the final bitmap
     const ErrorCode result = uncompressBitmap(bitmap_metadata, character_bitmap, foreground_colour);
-    return (isError(result) ? 0U : char_metadata->width_px);
+    return (isError(result) ? 0U : char_metadata->width_px);  // NOLINT (dyreadability-implicit-bool-conversion)
 }
 
 /**

@@ -69,7 +69,7 @@ static QueueHandle_t queue_outbound = nullptr;                  ///< handle of t
 static QueueHandle_t queue_commands = nullptr;                  ///< handle of the parsed commands queue
 static volatile StreamBufferHandle_t stream_inbound = nullptr;  ///< First stream of the dual-buffer reception
 static ErrorCode result;                                        ///< Variable used to store error codes
-static uint8_t is_timed_out = 0;                                ///< Variable used to test for timeouts
+static bool is_timed_out = false;                               ///< Variable used to test for timeouts
 static ErrorLevel log_level = kErrorError;                      ///< Current minimum error level logging will process
 
 /********************************************************************************************************************************************/
@@ -96,16 +96,18 @@ void uartInterruptTriggered(void) {
  * Create the FreeRTOS serial communication task
  */
 void createSerialtask(void) {
-    static StackType_t inbound_task_stack[kStackSize] = {0};          ///< Buffer used as the task stack
-    static StaticTask_t inbound_task_state = {.pxDummy1 = nullptr};   ///< Task state variables
-    static StackType_t outbound_task_stack[kStackSize] = {0};         ///< Buffer used as the task stack
-    static StaticTask_t outbound_task_state = {.pxDummy1 = nullptr};  ///< Task state variables
+    // NOLINTBEGIN (hicpp-use-nullptr)
+    static StackType_t inbound_task_stack[kStackSize];
+    static StaticTask_t inbound_task_state;
+    static StackType_t outbound_task_stack[kStackSize];
+    static StaticTask_t outbound_task_state;
     static OutboundMessage outbound_buffer[kOutboundQueueSize];
     static char inbound_buffer[kInboundQueueSize];
     static SerialCommand commands_buffer[kCommandsQueueSize];
     static StaticQueue_t outbound_state;
     static StaticQueue_t commands_state;
     static StaticStreamBuffer_t inbound_state;
+    // NOLINTEND
 
     //create the static task
     inbound_task_handle = xTaskCreateStatic(runInboundTask, "Inbound serial task", kStackSize, nullptr,
@@ -154,13 +156,12 @@ void logSerial(ErrorLevel level, const char format[], ...) {
     va_list args;
     va_start(args, format);
 
-    const uint8_t is_a_log = (level != kMaxErrorLevel);
+    const bool is_a_log = (level != kMaxErrorLevel);
     if (is_a_log) {
         packed_message.message[0] = '!';
     }
 
-    //NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling, clang-diagnostic-format-nonliteral)
-    (void)leany_vsnprintf(&packed_message.message[is_a_log], (kOutboundSize - 1U - is_a_log), format, args);
+    (void)leany_vsnprintf(&packed_message.message[is_a_log], (kOutboundSize - 1U - (uint8_t)is_a_log), format, args);
     const size_t length = getStringLength(packed_message.message, kOutboundSize - 1);
     packed_message.message[length] = '\n';
     packed_message.message[length + 1U] = '\0';
@@ -178,7 +179,7 @@ void logSerial(ErrorLevel level, const char format[], ...) {
  * @param[out] command_received The command to send
  * @return Whether a command could be retrieved in a timely manner
  */
-uint8_t popSerialCommand(SerialCommand* command_received) {
+bool popSerialCommand(SerialCommand* command_received) {
     return (xQueueReceive(queue_commands, command_received, 0) == pdTRUE);
 }
 
@@ -220,7 +221,7 @@ static void runInboundTask(void* argument) {
     while (1) {
         (void)xStreamBufferReceive(stream_inbound, &received, 1U, portMAX_DELAY);
 
-        const uint8_t done = pushSCPIcharacter(received, &command_received);
+        const bool done = pushSCPIcharacter(received, &command_received);
         if (!done) {
             continue;
         }
@@ -268,7 +269,7 @@ static ErrorCode serialSend(const char msg[], size_t length) {
         return createErrorCode(kSerialSend, 1, kErrorError);
     }
 
-    is_timed_out = 0;
+    is_timed_out = false;
     const char* iterator = msg;
     do {
         LL_USART_TransmitData8(USART1, *(iterator++));

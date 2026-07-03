@@ -7,6 +7,7 @@
 
 #ifndef INC_HARDWARE_SCREEN_ST7735S_REGISTERS_H
 #define INC_HARDWARE_SCREEN_ST7735S_REGISTERS_H
+#include <stdint.h>
 
 //  Frame Rate Control (In normal mode/ Full colors) (register 0xB1) values
 enum : uint8_t {

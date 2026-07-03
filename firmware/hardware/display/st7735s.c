@@ -196,7 +196,7 @@ static ErrorCode restartScreen(void) {
 static ErrorCode writeConfiguration(void) {
     //execute all configuration commands
 
-    for (uint8_t command = 0; command < (uint8_t)kST7735nbCommands; command++) {
+    for (uint8_t command = 0; command < kST7735nbCommands; command++) {
         result = writeRegisters(&dma_descriptor.spi, (SPIregister)kST7735configurationScript[command].register_number,
                                 kST7735configurationScript[command].parameters,
                                 kST7735configurationScript[command].nb_parameters);

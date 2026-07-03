@@ -100,42 +100,42 @@ void createGPIOtask(void) {
 /**
  * Get the latest MCU internal temperature in [°C]
  * @param[out] temperature_celsius Pointer to store temperature value
- * @retval 1 Temperature retrieved successfully
- * @retval 0 Mutex timeout occurred
+ * @retval true Temperature retrieved successfully
+ * @retval false Mutex timeout occurred
  */
-uint8_t getInternalTemperatureCelsius(int32_t* temperature_celsius) {
+bool getInternalTemperatureCelsius(int32_t* temperature_celsius) {
     if (temperature_celsius == nullptr) {
-        return 0;
+        return false;
     }
 
     if (xSemaphoreTake(temperature_mutex, pdMS_TO_TICKS(kMutexMS)) == pdFALSE) {
-        return 0;
+        return false;
     }
 
     *temperature_celsius = internal_temperature_celsius;
     (void)xSemaphoreGive(temperature_mutex);
 
-    return 1;
+    return true;
 }
 
 /**
  * Get the current ADC reference voltage
  *
  * @param[out] voltage_mv Reference voltage in [mV]
- * @retval 1 Success
- * @retval 0 Could not retrieve voltage reference
+ * @retval true Success
+ * @retval false Could not retrieve voltage reference
  */
-uint8_t getADCreference_mV(uint32_t* voltage_mv) {
+bool getADCreference_mV(uint32_t* voltage_mv) {
     if (!voltage_mv) {
-        return 0;
+        return false;
     }
 
-    uint8_t success = 0;
+    bool success = false;
 
     if (xSemaphoreTake(reference_mutex, pdMS_TO_TICKS(kMutexMS)) == pdTRUE) {
         *voltage_mv = adc_vref_mv;
         (void)xSemaphoreGive(reference_mutex);
-        success = 1;
+        success = true;
     }
 
     return success;

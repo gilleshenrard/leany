@@ -68,7 +68,7 @@ uint8_t getDeepestError(ErrorCode code);
  * @param   code    Code to check
  * @return  Non-zero if error
  */
-inline uint8_t isError(const ErrorCode code) { return (code.layer0); }
+inline bool isError(const ErrorCode code) { return (code.layer0 != 0); }
 
 /**
  * Macro used to simplify error-on-exit code

@@ -123,7 +123,7 @@ static ErrorCode result = {0};                                   ///< Buffer use
 static I2C_TypeDef* i2c_handle = I2C1;                           ///< I²C handle to use with all transmissons
 static uint8_t battery_percentage = kBatteryFullPercent;         ///< Current battery percentage
 static uint8_t previous_battery_percentage = 0;                  ///< Previous battery percentage
-static uint8_t battery_charging = 0U;                            ///< Current battery charge status
+static bool battery_charging = false;                            ///< Current battery charge status
 static TickType_t previous_tick = 0;                             ///< Tick at the last status update
 static ChargerStatus current_battery_status;                     ///< Current battery status flags
 static uint32_t last_battery_lvl_update_tick = 0;                ///< Last tick at which battery lvl was updated
@@ -178,16 +178,16 @@ ErrorCode getBatteryStatus(BatteryStatus* status) {
     }
 
     *status = (BatteryStatus){.level_percents = battery_percentage,
-                              .charging = (battery_charging | isBQ25619charging(&current_battery_status))};
+                              .charging = (battery_charging || isBQ25619charging(&current_battery_status))};
     xSemaphoreGive(battery_mutex);
     return kSuccessCode;
 }
 
 /**
  * Set the battery charge status
- * @param status 1 if charging, 0 otherwise
+ * @param status New status
  */
-void setBatteryChargeStatus(uint8_t status) {
+void setBatteryChargeStatus(bool status) {
     if (xSemaphoreTake(battery_mutex, pdMS_TO_TICKS(kMutexTimeoutMs)) == pdTRUE) {
         battery_charging = status;
         xSemaphoreGive(battery_mutex);
@@ -205,14 +205,14 @@ ErrorCode turnSystemOff(void) { return disconnectBattery(); }
  * Get the latest measured battery voltage
  *
  * @param[out] voltage_mv Battery voltage in [mV]
- * @retval 1 Successfully retrieved
- * @retval 0 Could not retrieve voltage
+ * @retval true Successfully retrieved
+ * @retval false Could not retrieve voltage
  */
-uint8_t getBatteryVoltageMv(uint16_t* voltage_mv) {
-    uint8_t success = 0;
+bool getBatteryVoltageMv(uint16_t* voltage_mv) {
+    bool success = false;
     if (xSemaphoreTake(battery_mutex, pdMS_TO_TICKS(kMutexMS)) == pdTRUE) {
         *voltage_mv = battery_voltage_mv;
-        success = 1;
+        success = true;
         xSemaphoreGive(battery_mutex);
     }
 
@@ -275,7 +275,7 @@ static ErrorCode stateStartup(void) {
     result = testBQ25619identifier();
     EXIT_ON_ERROR(result, kStateStartup, 1)
 
-    for (uint8_t attempt = 0; attempt < (uint8_t)kNbRetries; attempt++) {
+    for (uint8_t attempt = 0; attempt < kNbRetries; attempt++) {
         result = resetBQ25619();
         if (getDeepestError(result) != kErrorAcknowledgeFailure) {
             break;
@@ -295,7 +295,7 @@ static ErrorCode stateStartup(void) {
  * @retval 1 Error while writing a configuration register
  */
 static ErrorCode stateConfiguring(void) {
-    for (uint8_t attempt = 0; attempt < (uint8_t)kNbRetries; attempt++) {
+    for (uint8_t attempt = 0; attempt < kNbRetries; attempt++) {
         result = configureBQ25619();
         if (getDeepestError(result) != kErrorAcknowledgeFailure) {
             break;
@@ -318,7 +318,7 @@ static ErrorCode stateIdle(void) {
     ChargerStatus changes;
 
     //retrieve the latest charger status
-    for (uint8_t attempt = 0; attempt < (uint8_t)kNbRetries; attempt++) {
+    for (uint8_t attempt = 0; attempt < kNbRetries; attempt++) {
         result = updateBQ25619status(&current_battery_status, &changes);
         if (getDeepestError(result) != kErrorAcknowledgeFailure) {
             break;
@@ -473,7 +473,7 @@ static uint8_t batteryVoltageToPercent(uint32_t voltage_mv) {
     }
 
     uint8_t step = 0U;
-    for (step = 0U; step < (uint8_t)kNbBatteryLevelSteps; step++) {
+    for (step = 0U; step < kNbBatteryLevelSteps; step++) {
         if (kBatteryLevelsLookupTable[step] >= voltage_mv) {
             break;
         }

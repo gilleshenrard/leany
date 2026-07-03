@@ -12,6 +12,6 @@
 #include "serial_command_types.h"
 
 void resetSCPIparser(void);
-uint8_t pushSCPIcharacter(uint8_t new_char, SerialCommand* command_received);
+bool pushSCPIcharacter(uint8_t new_char, SerialCommand* command_received);
 
 #endif

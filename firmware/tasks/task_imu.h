@@ -17,18 +17,18 @@
 void createIMUtask(void);
 void IMUinterruptTriggered(uint8_t interrupt_pin);
 int16_t getAngleDegreesTenths(Axis axis);
-uint8_t anglesChanged(void);
+bool anglesChanged(void);
 void IMUzeroDown(void);
 void IMUcancelZeroing(void);
-uint8_t isIMUzeroed(void);
+bool isIMUzeroed(void);
 float getIMU_KP(void);
 float getIMU_KI(void);
-uint8_t isIMUalignmentCheckEnabled(void);
+bool isIMUalignmentCheckEnabled(void);
 void setIMU_KI(float value);
 void setIMU_KP(float value);
-void setIMUalignmentCheckEnabled(uint8_t value);
-uint8_t toggleIMU_hold(void);
-uint8_t isIMUmeasurementsHolding(void);
+void setIMUalignmentCheckEnabled(bool value);
+bool toggleIMU_hold(void);
+bool isIMUmeasurementsHolding(void);
 ErrorCode setDisplayOrientation(Orientation new_orientation);
 ErrorCode getDisplayOrientation(Orientation* orientation);
 

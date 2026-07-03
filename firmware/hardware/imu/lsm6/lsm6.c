@@ -93,8 +93,8 @@ typedef struct {
 static void updateTemperature(int16_t lsb_value);
 static ErrorCode getAverageMeasures(SPIregister first_register, SPIregister available_mask, int16_t measures[kNBaxis]);
 static ErrorCode waitAndRead(SPIregister first_register, SPIregister available_mask, int16_t measures[kNBaxis]);
-static uint8_t isAccelSelfTestValid(const int16_t self_test_off[kNBaxis], const int16_t self_test_on[kNBaxis]);
-static uint8_t isGyroSelfTestValid(const int16_t self_test_off[kNBaxis], const int16_t self_test_on[kNBaxis]);
+static bool isAccelSelfTestValid(const int16_t self_test_off[kNBaxis], const int16_t self_test_on[kNBaxis]);
+static bool isGyroSelfTestValid(const int16_t self_test_off[kNBaxis], const int16_t self_test_on[kNBaxis]);
 
 /**
  * Temperature at which the LSM6 temperature reading will give 0
@@ -157,7 +157,7 @@ static SPI spi_descriptor = {.handle = SPI1,
                              .highest_register_number = kMAX_REGISTER,
                              .read_mask = kLSM6_READ,
                              .write_mask = kLSM6_WRITE,
-                             .read_dummy = 0};  ///< Descriptor of the SPI port used
+                             .read_dummy = false};  ///< Descriptor of the SPI port used
 
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
@@ -420,7 +420,7 @@ ErrorCode IMUgetSample(IMUsample* sample) {
     updateTemperature(lsb_values.values16bits[0]);
 
     //convert the gyroscope and accelerometer LSB values to rad/s and G
-    for (uint8_t axis = 0; axis < (uint8_t)kNBaxis; axis++) {
+    for (uint8_t axis = 0; axis < kNBaxis; axis++) {
         sample->gyroscope_radps[axis] =
             ((float)(lsb_values.values16bits[axis + 1U]) * temperature.gyro_scaled_sensitivity) - temperature.gyro_bias;
         sample->accelerometer_g[axis] =
@@ -491,13 +491,13 @@ static ErrorCode getAverageMeasures(SPIregister first_register, SPIregister avai
 
     //read 5 values for each axis
     int16_t raw[kNbAverage][kNBaxis];
-    for (uint8_t data_set = 0; data_set < (uint8_t)kNbAverage; data_set++) {
+    for (uint8_t data_set = 0; data_set < kNbAverage; data_set++) {
         result = waitAndRead(first_register, available_mask, raw[data_set]);
         EXIT_ON_ERROR(result, kAverageMeasures, 2)
     }
 
     //average out the values
-    for (uint8_t axis = 0; axis < (uint8_t)kNBaxis; axis++) {
+    for (uint8_t axis = 0; axis < kNBaxis; axis++) {
         measures[axis] = (int16_t)(((int32_t)raw[0][axis] + (int32_t)raw[1][axis] + (int32_t)raw[2][axis] +
                                     (int32_t)raw[3][axis] + (int32_t)raw[4][axis]) /
                                    (int32_t)kNbAverage);
@@ -545,10 +545,10 @@ static ErrorCode waitAndRead(SPIregister first_register, SPIregister available_m
  *
  * @param self_test_off Measurements taken with Self-Test disabled
  * @param self_test_on Measurements taken with Self-Test enabled
- * @retval 1 Self-test valid
- * @retval 0 Self-test invalid
+ * @retval true Self-test valid
+ * @retval false Self-test invalid
  */
-static uint8_t isAccelSelfTestValid(const int16_t self_test_off[kNBaxis], const int16_t self_test_on[kNBaxis]) {
+static bool isAccelSelfTestValid(const int16_t self_test_off[kNBaxis], const int16_t self_test_on[kNBaxis]) {
     const float min_selftest_value_mg = 40.0F;
     const float max_selftest_value_mg = 1700.0F;
 
@@ -558,12 +558,12 @@ static uint8_t isAccelSelfTestValid(const int16_t self_test_off[kNBaxis], const 
         [kZaxis] = (float)(self_test_on[kZaxis] - self_test_off[kZaxis]) * kAccelSensitivity4g_mg,
     };
 
-    return ((self_test_range_mg[kXaxis] >= min_selftest_value_mg) &&
-            (self_test_range_mg[kXaxis] <= max_selftest_value_mg) &&
-            (self_test_range_mg[kYaxis] >= min_selftest_value_mg) &&
-            (self_test_range_mg[kYaxis] <= max_selftest_value_mg) &&
-            (self_test_range_mg[kZaxis] >= min_selftest_value_mg) &&
-            (self_test_range_mg[kZaxis] <= max_selftest_value_mg));
+    return (bool)((self_test_range_mg[kXaxis] >= min_selftest_value_mg) &&
+                  (self_test_range_mg[kXaxis] <= max_selftest_value_mg) &&
+                  (self_test_range_mg[kYaxis] >= min_selftest_value_mg) &&
+                  (self_test_range_mg[kYaxis] <= max_selftest_value_mg) &&
+                  (self_test_range_mg[kZaxis] >= min_selftest_value_mg) &&
+                  (self_test_range_mg[kZaxis] <= max_selftest_value_mg));
 }
 
 /**
@@ -571,10 +571,10 @@ static uint8_t isAccelSelfTestValid(const int16_t self_test_off[kNBaxis], const 
  *
  * @param self_test_off Measurements taken with Self-Test disabled
  * @param self_test_on Measurements taken with Self-Test enabled
- * @retval 1 Self-test valid
- * @retval 0 Self-test invalid
+ * @retval true Self-test valid
+ * @retval false Self-test invalid
  */
-static uint8_t isGyroSelfTestValid(const int16_t self_test_off[kNBaxis], const int16_t self_test_on[kNBaxis]) {
+static bool isGyroSelfTestValid(const int16_t self_test_off[kNBaxis], const int16_t self_test_on[kNBaxis]) {
     const float min_selftest_value_dps = 150.0F;
     const float max_selftest_value_dps = 700.0F;
 
@@ -584,11 +584,11 @@ static uint8_t isGyroSelfTestValid(const int16_t self_test_off[kNBaxis], const i
         [kZaxis] = (float)(self_test_on[kZaxis] - self_test_off[kZaxis]) * kGyroSensitivity2000dps,
     };
 
-    return ((self_test_range_dps[kXaxis] >= min_selftest_value_dps) &&
-            (self_test_range_dps[kXaxis] <= max_selftest_value_dps) &&
-            (self_test_range_dps[kYaxis] >= min_selftest_value_dps) &&
-            (self_test_range_dps[kYaxis] <= max_selftest_value_dps) &&
-            (self_test_range_dps[kZaxis] >= min_selftest_value_dps) &&
-            (self_test_range_dps[kZaxis] <= max_selftest_value_dps));
+    return (bool)((self_test_range_dps[kXaxis] >= min_selftest_value_dps) &&
+                  (self_test_range_dps[kXaxis] <= max_selftest_value_dps) &&
+                  (self_test_range_dps[kYaxis] >= min_selftest_value_dps) &&
+                  (self_test_range_dps[kYaxis] <= max_selftest_value_dps) &&
+                  (self_test_range_dps[kZaxis] >= min_selftest_value_dps) &&
+                  (self_test_range_dps[kZaxis] <= max_selftest_value_dps));
 }
 #endif

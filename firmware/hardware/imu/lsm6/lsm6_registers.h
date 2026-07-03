@@ -10,6 +10,7 @@
  */
 #ifndef HARDWARE_IMU_LSM6_REGISTERS_H_INCLUDED
 #define HARDWARE_IMU_LSM6_REGISTERS_H_INCLUDED
+#include <stdint.h>
 
 enum : uint8_t {
     kLSM6_WRITE = 0x00U,  ///< Address byte value for a write operation

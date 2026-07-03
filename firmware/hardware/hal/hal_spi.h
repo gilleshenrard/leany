@@ -36,7 +36,7 @@ typedef struct {
     SPIregister highest_register_number;  ///< Highest register number a request can be + 1
     GPIO_TypeDef* data_command_port;      ///< GPIO port used by the DC pin
     uint32_t data_command_pin;            ///< GPIO mask used by the DC pin
-    uint8_t read_dummy;                   ///< Flag indicating whether a dummy byte read must be done
+    bool read_dummy;                      ///< Flag indicating whether a dummy byte read must be done
 } SPI;
 
 /**

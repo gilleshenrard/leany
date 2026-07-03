@@ -19,7 +19,7 @@ typedef struct {
 
 ErrorCode createBatteryTask(void);
 ErrorCode getBatteryStatus(BatteryStatus* status);
-void setBatteryChargeStatus(uint8_t status);
+void setBatteryChargeStatus(bool status);
 ErrorCode turnSystemOff(void);
-uint8_t getBatteryVoltageMv(uint16_t* voltage_mv);
+bool getBatteryVoltageMv(uint16_t* voltage_mv);
 #endif
