@@ -99,54 +99,54 @@ static uint8_t isGyroSelfTestValid(const int16_t self_test_off[kNBaxis], const i
 /**
  * Temperature at which the LSM6 temperature reading will give 0
  */
-static const float kBASE_TEMPERATURE = 25.0F;
+static constexpr float kBASE_TEMPERATURE = 25.0F;
 
 /**
  * Temperature sensitivity = 256 [LSB/°C] = 0.00390625 [°C/LSB] + LSB = 0 @ 25°C
  */
-static const float kTemperatureSensitivity = 0.00390625F;
+static constexpr float kTemperatureSensitivity = 0.00390625F;
 
 /**
  * Gyroscope sensitivity at 125°/s = 4.375[mdps/LSB]
  * to rad/s : (sensitivity / 1000[mdps/dps]) * (PI/180°) = 0.000076358155
  */
-static const float kGyroSensitivity125dps = 0.000076358155F;
+static constexpr float kGyroSensitivity125dps = 0.000076358155F;
 
 /**
  * Gyroscope sensitivity at 2000°/s = 70[mdps/LSB] = 0.07[dps/LSB]
  */
-static const float kGyroSensitivity2000dps = 0.07F;
+static constexpr float kGyroSensitivity2000dps = 0.07F;
 
 /**
  * Gyroscope temperature bias = 0.005 [dps/°C]
  * to radps/°C : sensitivity * (PI/180°) = 8.72664e-5
  */
-static const float kGyroTemperatureBias = 8.726646e-5F;
+static constexpr float kGyroTemperatureBias = 8.726646e-5F;
 
 /**
  * Gyroscope sensitivity drift due to temperature = 0.007 [%/°C]
  */
-static const float kGyroTemperatureSensitivity = 0.00007F;
+static constexpr float kGyroTemperatureSensitivity = 0.00007F;
 
 /**
  * Accelerometer sensitivity at 2G = 0.061 [mG/LSB] = 0.000061 [G/LSB] (9.81m/s²)
  */
-static const float kAccelSensitivity2g = 0.000061F;
+static constexpr float kAccelSensitivity2g = 0.000061F;
 
 /**
  * Accelerometer sensitivity at 4G = 0.122 [mG/LSB]
  */
-static const float kAccelSensitivity4g_mg = 0.122F;
+static constexpr float kAccelSensitivity4g_mg = 0.122F;
 
 /**
  * Accelerometer sensitivity drift due to temperature = 0.01 [%/°C]
  */
-static const float kAccelTemperatureSensitivity = 0.0001F;
+static constexpr float kAccelTemperatureSensitivity = 0.0001F;
 
 /**
  * Accelerometer temperature bias = 0.1 [mG/°C] = 0.0001 [G/°C]
  */
-static const float kAccelTemperatureBias = 0.0001F;
+static constexpr float kAccelTemperatureBias = 0.0001F;
 
 //state variables
 static ErrorCode result;                                                  ///< Variables used to store error codes

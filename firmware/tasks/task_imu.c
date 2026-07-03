@@ -69,8 +69,8 @@ static ErrorCode stateMeasuring(void);
 static void consumeStateMachineError(ErrorCode code);
 
 // constants
-static const float kRadiansToDegreesTenths = 572.957795F;   ///< One radian in tenths of degrees (= 10 * (180°/PI))
-static const float kDegreesTenthsToRadians = 0.001745329F;  ///< One tenth of degree in radians (= (180°/PI) / 10)
+static constexpr float kRadiansToDegreesTenths = 572.957795F;   ///< One radian in tenths of degrees (= 10 * (180°/PI))
+static constexpr float kDegreesTenthsToRadians = 0.001745329F;  ///< One tenth of degree in radians (= (180°/PI) / 10)
 
 //state variables
 static volatile TaskHandle_t task_handle = nullptr;    ///< handle of the FreeRTOS task

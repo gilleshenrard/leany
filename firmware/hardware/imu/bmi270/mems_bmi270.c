@@ -85,8 +85,8 @@ typedef uint8_t BMI270register;  ///< type definition for BMI270 registers
 
 // Read/Write bit value
 static constexpr uint16_t kConfigFileSize = 8192U;         ///< Size of the config file in bytes
-static const BMI270register kBMIwrite = 0x00U;             ///< Address byte value for a write operation
-static const BMI270register kBMIread = 0x80U;              ///< Address byte value for a read operation
+static constexpr BMI270register kBMIwrite = 0x00U;         ///< Address byte value for a write operation
+static constexpr BMI270register kBMIread = 0x80U;          ///< Address byte value for a read operation
 const uint32_t kMaxSensorTimeTicks = 0xFFFFFFU;            ///< The maximum tick value before it wraps around to 0
 const float kSensorTimeResolutionSeconds = 0.0000390625F;  ///< How many seconds a tick lasts
 
@@ -105,7 +105,7 @@ static void applyTemperatureDrift(float temperature_celcius, float accelerometer
  *
  * See datasheet p. 12, section "Sensitivity"
  */
-static const float kNominalAccelLSBto2G = (1.0F / (float)BMI2_ACC_FOC_2G_REF);
+static constexpr float kNominalAccelLSBto2G = (1.0F / (float)BMI2_ACC_FOC_2G_REF);
 
 /**
  * Accelerometer nominal sensitivity ratio from LSB to G, at +-16G range and 25°C
@@ -114,7 +114,7 @@ static const float kNominalAccelLSBto2G = (1.0F / (float)BMI2_ACC_FOC_2G_REF);
  *
  * See datasheet p. 12, section "Sensitivity"
  */
-static const float kNominalAccelLSBto16G = (1.0F / (float)BMI2_ACC_FOC_16G_REF);
+static constexpr float kNominalAccelLSBto16G = (1.0F / (float)BMI2_ACC_FOC_16G_REF);
 
 /**
  * Gyroscope nominal sensitivity ratio from LSB to rad/s, at +-125°/s range and 25°C
@@ -123,22 +123,22 @@ static const float kNominalAccelLSBto16G = (1.0F / (float)BMI2_ACC_FOC_16G_REF);
  *
  * See datasheet p. 14, section "Sensitivity"
  */
-static const float kNominalGyroLSBtoRadps = (1.0F / 262.144F) * 0.017453293F;
+static constexpr float kNominalGyroLSBtoRadps = (1.0F / 262.144F) * 0.017453293F;
 
 /**
  * Accelerometer temperature drift in [%/K], divided by 100 because percents
  */
-static const float kAccelTemperatureDriftPercentPerKelvin = (0.004F / 100.0F);
+static constexpr float kAccelTemperatureDriftPercentPerKelvin = (0.004F / 100.0F);
 
 /**
  * Gyroscope temperature drift in [%/K], divided by 100 because percents
  */
-static const float kGyroTemperatureDriftPercentPerKelvin = (0.02F / 100.0F);
+static constexpr float kGyroTemperatureDriftPercentPerKelvin = (0.02F / 100.0F);
 
 /**
  * Temperature in [°C] at which the internal temperature value read is 0x0000
  */
-static const float kReferenceTemperatureCelsius = 23.0F;
+static constexpr float kReferenceTemperatureCelsius = 23.0F;
 
 //external variables
 extern const uint8_t bmi270_config_file[];  ///< BMI270 config file provided by Bosch Sensortec, declared in bmi270.c

@@ -54,13 +54,13 @@
 #include <stdint.h>
 
 //definitions
-static const uint32_t kSuccessValue = 0x00000000UL;  ///< Value assigned to successes
-static const uint8_t kLayer0codeOffset = 12U;        ///< Number of bits to shift a code to reach the layer 0
-static const uint8_t kFunctionIDoffset = 16U;        ///< Number of bits to shift an ID to reach the function ID
-static const uint8_t kLevelOffset = 30U;             ///< Number of bits to shift an level to reach the level field
-static const uint8_t kFunctionIDclamp =
+static constexpr uint32_t kSuccessValue = 0x00000000UL;  ///< Value assigned to successes
+static constexpr uint8_t kLayer0codeOffset = 12U;        ///< Number of bits to shift a code to reach the layer 0
+static constexpr uint8_t kFunctionIDoffset = 16U;        ///< Number of bits to shift an ID to reach the function ID
+static constexpr uint8_t kLevelOffset = 30U;             ///< Number of bits to shift an level to reach the level field
+static constexpr uint8_t kFunctionIDclamp =
     0x7FU;  ///< Value used to clamp function ID arguments to the proper number of bits
-static const uint8_t kErrorCodeClamp =
+static constexpr uint8_t kErrorCodeClamp =
     0x0FU;  ///< Value used to clamp error code arguments to the proper number of bits
 
 //global variables

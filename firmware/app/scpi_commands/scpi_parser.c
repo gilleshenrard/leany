@@ -51,12 +51,12 @@ static uint8_t finaliseCommand(const Node* node, const char buffer[kReceiveBuffe
                                SerialCommand* command_received);
 
 //constants
-static const char kNewBranch = ':';    ///< Character used to indicate a new hierarchy branch
-static const char kRequest = '?';      ///< Character used to indicate the command is a request
-static const char kConcatenate = ';';  ///< Character used to concatenate commands
-static const char kParameter = ' ';    ///< Character used to indicate a parameter
-static const char kEndLine = '\n';     ///< Character used to indicate an end of line
-static const char kUnknownMessage[] =  ///< Message indicating "unknown command"
+static constexpr char kNewBranch = ':';    ///< Character used to indicate a new hierarchy branch
+static constexpr char kRequest = '?';      ///< Character used to indicate the command is a request
+static constexpr char kConcatenate = ';';  ///< Character used to concatenate commands
+static constexpr char kParameter = ' ';    ///< Character used to indicate a parameter
+static constexpr char kEndLine = '\n';     ///< Character used to indicate an end of line
+static constexpr char kUnknownMessage[] =  ///< Message indicating "unknown command"
     "Unknown command. Type ':help?' for more info";
 
 static char reception_buffer[kReceiveBufferSize];  ///< Buffer used to store bytes for slower computations

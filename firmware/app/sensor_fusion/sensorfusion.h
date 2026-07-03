@@ -67,10 +67,10 @@ typedef struct {
     uint32_t latest_tick;            ///< Latest sensor tick value
 } __attribute((aligned(kSampleStructAlignment))) IMUsample;
 
-static const float kProportionalGain = 2.5F;  ///< Propotional gain (KP) of the Mahony filter
-static const float kIntegralGain = 0.5F;      ///< Integral gain (KI) of the Mahony filter
-static const uint8_t kMaxBadCounts = 5U;      ///< Maximum number of bad accel. or quatern. counts before reset
-static const float kMaxIntegralError = 0.3F;  ///< Maximum integral error absolute value accepted
+static constexpr float kProportionalGain = 2.5F;  ///< Propotional gain (KP) of the Mahony filter
+static constexpr float kIntegralGain = 0.5F;      ///< Integral gain (KI) of the Mahony filter
+static constexpr uint8_t kMaxBadCounts = 5U;      ///< Maximum number of bad accel. or quatern. counts before reset
+static constexpr float kMaxIntegralError = 0.3F;  ///< Maximum integral error absolute value accepted
 
 void resetMahonyFilter(MahonyContext* context);
 void updateMahonyFilter(MahonyContext* context, const IMUsample* sample);

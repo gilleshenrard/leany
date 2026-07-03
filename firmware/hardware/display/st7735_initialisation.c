@@ -17,7 +17,7 @@
 /**
  * @brief Arguments sent when configuring the frame rate
  */
-static const Register kFramerageControlArgs[3] = {
+static constexpr Register kFramerageControlArgs[3] = {
     kOneLinePeriod1,
     kFrontPorchDefault,
     kBackPorchDefault,
@@ -26,19 +26,19 @@ static const Register kFramerageControlArgs[3] = {
 /**
  * @brief Arguments sent when configuring the frame rate in partial mode
  */
-static const Register kFramerateControlPartialArgs[6] = {
+static constexpr Register kFramerateControlPartialArgs[6] = {
     kOneLinePeriod1, kFrontPorchDefault, kBackPorchDefault, kOneLinePeriod1, kFrontPorchDefault, kBackPorchDefault,
 };
 
 /**
  * @brief Arguments sent when configuring the inversion
  */
-static const Register kInversionControlArg = kAllModesNoInversion;
+static constexpr Register kInversionControlArg = kAllModesNoInversion;
 
 /**
  * @brief Arguments sent when configuring the power 1
  */
-static const Register kPowerControl1Args[3] = {
+static constexpr Register kPowerControl1Args[3] = {
     kAVDD_5v | kGVDD_4_6v,  // NOLINT (hicpp-signed-bitwise)
     kGVCL_NEG_4_6V,
     kPowerModeAuto,
@@ -47,12 +47,12 @@ static const Register kPowerControl1Args[3] = {
 /**
  * @brief Arguments sent when configuring the power 2
  */
-static const Register powerControl2_arg = kVGH25_2_4C | kVGL_NEG_10 | kVGH_3ADD;  // NOLINT (hicpp-signed-bitwise)
+static constexpr Register powerControl2_arg = kVGH25_2_4C | kVGL_NEG_10 | kVGH_3ADD;  // NOLINT (hicpp-signed-bitwise)
 
 /**
  * @brief Arguments sent when configuring the power 3
  */
-static const Register kPowerControl3args[2] = {
+static constexpr Register kPowerControl3args[2] = {
     kBoostMax | kOpAmpSAPASmallCurrent | kOpAmpAPAMedLowCurrent,  // NOLINT (hicpp-signed-bitwise)
     kBoostMax,
 };
@@ -60,7 +60,7 @@ static const Register kPowerControl3args[2] = {
 /**
  * @brief Arguments sent when configuring the power 4
  */
-static const Register kPowerControl4args[2] = {
+static constexpr Register kPowerControl4args[2] = {
     (kBoost_BCLK_DIV2 << 6U) | kOpAmpSAPASmallCurrent | kOpAmpAPAMedLowCurrent,  // NOLINT (hicpp-signed-bitwise)
     kBoostLSB_BCLK_DIV2,
 };
@@ -68,7 +68,7 @@ static const Register kPowerControl4args[2] = {
 /**
  * @brief Arguments sent when configuring the power 5
  */
-static const Register kPowerControl5args[2] = {
+static constexpr Register kPowerControl5args[2] = {
     (kBoost_BCLK_DIV2 << 6U) | kOpAmpSAPASmallCurrent | kOpAmpAPAMedLowCurrent,  // NOLINT (hicpp-signed-bitwise)
     kBoostLSBidleMode,
 };
@@ -76,7 +76,7 @@ static const Register kPowerControl5args[2] = {
 /**
  * @brief Arguments sent when configuring the VCOM voltage
  */
-static const Register kVmCtr1arg = kVCOM_NEG_0_775V;
+static constexpr Register kVmCtr1arg = kVCOM_NEG_0_775V;
 
 /**
  * Register values corresponding to each display orientation
@@ -97,19 +97,19 @@ const Register kOrientations[kNBorientations] = {
 /**
  * @brief Arguments sent when configuring the colour mode
  */
-static const Register kColorModeArg = kColour16bits;
+static constexpr Register kColorModeArg = kColour16bits;
 
 /**
  * @brief Arguments sent when configuring the Gamma positive
  */
-static const Register kGammaControlPositiveArgs[16] = {0x02, 0x1c, 0x07, 0x12, 0x37, 0x32, 0x29, 0x2d,
-                                                       0x29, 0x25, 0x2B, 0x39, 0x00, 0x01, 0x03, 0x10};
+static constexpr Register kGammaControlPositiveArgs[16] = {0x02, 0x1c, 0x07, 0x12, 0x37, 0x32, 0x29, 0x2d,
+                                                           0x29, 0x25, 0x2B, 0x39, 0x00, 0x01, 0x03, 0x10};
 
 /**
  * @brief Arguments sent when configuring the Gamma negative
  */
-static const Register kGammaControlNegativeArgs[16] = {0x03, 0x1d, 0x07, 0x06, 0x2E, 0x2C, 0x29, 0x2D,
-                                                       0x2E, 0x2E, 0x37, 0x3F, 0x00, 0x00, 0x02, 0x10};
+static constexpr Register kGammaControlNegativeArgs[16] = {0x03, 0x1d, 0x07, 0x06, 0x2E, 0x2C, 0x29, 0x2D,
+                                                           0x2E, 0x2E, 0x37, 0x3F, 0x00, 0x00, 0x02, 0x10};
 
 /**
  * @brief Configuration commands list
