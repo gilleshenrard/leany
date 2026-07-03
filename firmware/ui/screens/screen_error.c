@@ -111,7 +111,7 @@ ErrorCode setupErrorScreen(const ErrorCode* error) {
     result = printErrorStackLabel(error);
     EXIT_ON_ERROR(result, kSetup, 4)
 
-    for (uint8_t bar = 0; bar < (uint8_t)kNbAnimatedBars; bar++) {
+    for (uint8_t bar = 0; bar < kNbAnimatedBars; bar++) {
         result = printRectangle(display_buffer, kFrameBufferSize, &bars[bar].area, colour_matchings[bars[bar].level]);
         EXIT_ON_ERROR(result, kSetup, 5)
     }
@@ -146,7 +146,7 @@ ErrorCode updateErrorAnimation(void) {
     current_bar_lit = (int8_t)(current_bar_lit + animation_direction);
 
     //update all the bars
-    for (uint8_t bar = 0; bar < (uint8_t)kNbAnimatedBars; bar++) {
+    for (uint8_t bar = 0; bar < kNbAnimatedBars; bar++) {
         //reset the current bar to fully lit, decrease opacity of the rest, ignore bars at minimum level
         if (bar == (uint8_t)current_bar_lit) {
             bars[bar].level = (kNbColourMatchings - 1);

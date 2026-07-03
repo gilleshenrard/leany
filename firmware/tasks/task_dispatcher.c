@@ -75,7 +75,7 @@ static void runDispatchertask(void* argument);
 static void transmitEventsToUI(void);
 static void handleZeroingEvent(const SerialCommand* command);
 static void handleZeroingCancelEvent(const SerialCommand* command);
-static void handleHoldingEvent(uint8_t* holding, const SerialCommand* command);
+static void handleHoldingEvent(bool* holding, const SerialCommand* command);
 static uint8_t handleSerialCommandEvent(SerialCommand* command);
 static void handleSerialReadCommandEvent(const SerialCommand* command);
 static void handleSerialWriteCommandEvent(const SerialCommand* command);
@@ -118,43 +118,43 @@ ErrorCode createMessageDispatchertask(void) {
  * Set the last error code detected
  *
  * @param error Error code
- * @retval 1 Successfully set
- * @retval 0 Could not be set
+ * @retval true Successfully set
+ * @retval false Could not be set
  */
-uint8_t setLastErrorCode(ErrorCode error) {
+bool setLastErrorCode(ErrorCode error) {
     if (!events_mutex) {
-        return 0;
+        return false;
     }
 
     if (xSemaphoreTake(events_mutex, pdMS_TO_TICKS(kMutexTimeoutMs)) == pdFALSE) {
-        return 0;
+        return false;
     }
 
     last_error = error;
     (void)xSemaphoreGive(events_mutex);
-    return 1;
+    return true;
 }
 
 /**
  * Get the last error code detected
  *
  * @param[out] error Error code
- * @retval 1 Successfully retrieved
- * @retval 0 Could not be retrieved
+ * @retval true Successfully retrieved
+ * @retval false Could not be retrieved
  */
-uint8_t getLastErrorCode(ErrorCode* error) {
+bool getLastErrorCode(ErrorCode* error) {
     if (!events_mutex) {
-        return 0;
+        return false;
     }
 
     if (xSemaphoreTake(events_mutex, pdMS_TO_TICKS(kMutexTimeoutMs)) == pdFALSE) {
-        return 0;
+        return false;
     }
 
     *error = last_error;
     (void)xSemaphoreGive(events_mutex);
 
-    return 1;
+    return true;
 }
 
 /**
@@ -186,7 +186,7 @@ static void runDispatchertask(void* argument) {
     (void)argument;
 
     SerialCommand command;
-    uint8_t holding = 0;
+    bool holding = false;
 
     while (1) {
         //if no new event received, loopback
@@ -216,7 +216,7 @@ static void runDispatchertask(void* argument) {
  */
 static void transmitEventsToUI(void) {
     //transmit the triggered events to the UI
-    for (uint8_t event = 0; event < (uint8_t)kNbEvents; event++) {
+    for (uint8_t event = 0; event < kNbEvents; event++) {
         if (event == kEventSerialCommand) {
             continue;
         }
@@ -272,10 +272,11 @@ static void handleZeroingCancelEvent(const SerialCommand* command) {
  * @param[out] holding The current holding state (updated upon exiting the function)
  * @param command Latest command received
  */
-static void handleHoldingEvent(uint8_t* holding, const SerialCommand* command) {
+static void handleHoldingEvent(bool* holding, const SerialCommand* command) {
     if (command->code == kCmdToggleHold) {
         if (command->is_read) {
-            logSerial(kMaxErrorLevel, "%u", isIMUmeasurementsHolding());
+            // NOLINTNEXTLINE (readability-implicit-bool-conversion)
+            logSerial(kMaxErrorLevel, "%d", isIMUmeasurementsHolding());
             return;
         }
 
@@ -287,7 +288,7 @@ static void handleHoldingEvent(uint8_t* holding, const SerialCommand* command) {
     }
 
     *holding = toggleIMU_hold();
-    const Colour led_colour = (*holding ? kBlue : kBlack);
+    const Colour led_colour = ((uint8_t)*holding ? kBlue : kBlack);
     LEDsetColour(&led_colour);
     LEDsetEffect(kSOLID, 0);
 }
@@ -375,6 +376,7 @@ static void handleSerialReadCommandEvent(const SerialCommand* command) {
             break;
 
         case kCmdAlignmentEnable:
+            // NOLINTNEXTLINE (readability-implicit-bool-conversion)
             logSerial(kMaxErrorLevel, "%u", isIMUalignmentCheckEnabled());
             break;
 
@@ -383,7 +385,8 @@ static void handleSerialReadCommandEvent(const SerialCommand* command) {
             break;
 
         case kCmdToggleZero:
-            logSerial(kMaxErrorLevel, "%u", isIMUzeroed());
+            // NOLINTNEXTLINE (readability-implicit-bool-conversion)
+            logSerial(kMaxErrorLevel, "%d", isIMUzeroed());
             break;
 
         case kCmdOrientation:
@@ -430,7 +433,7 @@ static void handleSerialWriteCommandEvent(const SerialCommand* command) {
             break;
 
         case kCmdAlignmentEnable:
-            setIMUalignmentCheckEnabled((uint8_t)command->parameter.int_value);
+            setIMUalignmentCheckEnabled((bool)command->parameter.int_value);
             break;
 
         case kCmdLogLevel:
@@ -443,7 +446,7 @@ static void handleSerialWriteCommandEvent(const SerialCommand* command) {
             break;
 
         case kCmdBatteryCharge:
-            setBatteryChargeStatus((uint8_t)command->parameter.int_value);
+            setBatteryChargeStatus((bool)command->parameter.int_value);
             triggerHardwareEvent(kEventBatteryStatus);
             break;
 

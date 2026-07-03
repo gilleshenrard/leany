@@ -67,7 +67,7 @@
 void SystemClock_Config(void);
 void MX_FREERTOS_Init(void);
 /* USER CODE BEGIN PFP */
-extern inline uint8_t isError(const ErrorCode code);
+extern inline bool isError(const ErrorCode code);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/

@@ -17,7 +17,6 @@
 #include <portmacro.h>
 #include <projdefs.h>
 #include <stddef.h>
-#include <stdint.h>
 
 _Static_assert((kNbEvents < 31U), "Too many events declared");  // NOLINT (cppcoreguidelines-avoid-magic-numbers)
 
@@ -56,21 +55,21 @@ void triggerHardwareEvent(Event event) {
  * Check if a hardware event has been triggered
  *
  * @param event Event to check 
- * @retval 1 Event triggered
- * @retval 0 Event not triggered
+ * @retval true Event triggered
+ * @retval false Event not triggered
  */
-uint8_t isHardwareEventTriggered(Event event) { return (latest_events & eventToBitmask(event)) != 0; }
+bool isHardwareEventTriggered(Event event) { return ((latest_events & eventToBitmask(event)) != 0); }
 
 /**
  * Wait for a hardware event to occur
  *
  * @param max_wait_time_ms  Maximum number of milliseconds to wait for an event
- * @retval 1 New events triggered
- * @retval 0 No new event triggered
+ * @retval true New events triggered
+ * @retval false No new event triggered
  */
-uint8_t waitForHardwareEvents(TickType_t max_wait_time_ms) {
+bool waitForHardwareEvents(TickType_t max_wait_time_ms) {
     if (!hardware_events_group) {
-        return 0;
+        return false;
     }
 
     const EventBits_t events = (1U << (EventBits_t)kNbEvents) - 1U;

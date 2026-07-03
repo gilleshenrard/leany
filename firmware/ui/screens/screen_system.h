@@ -13,6 +13,6 @@
 #include "hardware_events.h"
 
 ErrorCode setupSystemScreen(void);
-ErrorCode treatSystemScreenMessages(const uint8_t message_flags[kNbEvents]);
+ErrorCode treatSystemScreenMessages(const bool message_flags[kNbEvents]);
 
 #endif

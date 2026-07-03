@@ -29,8 +29,8 @@ typedef enum : uint8_t {
 
 void ADCinterruptTriggered(void);
 void initialiseHALadc(void);
-uint8_t requestADCmeasurement(ADCdevice device);
-uint8_t getADCvalue(ADCdevice device, uint8_t channel, uint16_t* value);
+bool requestADCmeasurement(ADCdevice device);
+bool getADCvalue(ADCdevice device, uint8_t channel, uint16_t* value);
 void runADCstateMachine(void);
 
 #endif

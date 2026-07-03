@@ -241,7 +241,7 @@ float stringToFloat(const char string[]) {
         length = 1;
         index = 1;
     }
-    while ((length < (uint8_t)kFloatBufferSize) && ((string[length] == '.') || isnumber(string[length]))) {
+    while ((length < kFloatBufferSize) && ((string[length] == '.') || isnumber(string[length]))) {
         length++;
     }
 
@@ -278,7 +278,7 @@ float stringToFloat(const char string[]) {
  */
 uint32_t stringToInt(const char string[]) {
     uint8_t length = 0;
-    while ((length < (uint8_t)kFloatBufferSize) && isnumber(string[length])) {
+    while ((length < kFloatBufferSize) && isnumber(string[length])) {
         length++;
     }
 
@@ -299,7 +299,7 @@ uint32_t stringToInt(const char string[]) {
  */
 uint32_t stringHexToInt(const char string[]) {
     uint8_t length = 0;
-    for (length = 0; length < (uint8_t)kHexaUint32Size; length++) {
+    for (length = 0; length < kHexaUint32Size; length++) {
         if (!isnumber(string[length]) && !isAlphaUppercase(string[length]) && !isAlphaLowercase(string[length])) {
             break;
         }
@@ -563,7 +563,7 @@ static uint8_t qualifyFormatPrefix(const char* format, FormatFlags* flags) {
     };
 
     // Qualify flag characters
-    while (parsing && (length < (uint8_t)kMaxPrefixLength)) {
+    while (parsing && (length < kMaxPrefixLength)) {
         switch (format[length]) {
             case '0':
                 flags->zero_pad = 1;

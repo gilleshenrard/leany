@@ -58,7 +58,7 @@ typedef union {
  */
 typedef struct {
     SerialCommandCode code;          ///< Command corresponding code
-    uint8_t is_read;                 ///< Whether the command is a read request
+    bool is_read;                    ///< Whether the command is a read request
     SerialParameterType param_type;  ///< Type of the parameter
     GenericParameter parameter;      ///< Parameter value, if any
 } __attribute((aligned(kCommandAlignment))) SerialCommand;

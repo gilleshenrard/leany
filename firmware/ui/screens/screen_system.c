@@ -133,7 +133,7 @@ ErrorCode setupSystemScreen(void) {
  * @param message_flags Array of flags indicating which new messages are to be treated
  * @return Any print function return code, or success if no failure
  */
-ErrorCode treatSystemScreenMessages(const uint8_t message_flags[kNbEvents]) {
+ErrorCode treatSystemScreenMessages(const bool message_flags[kNbEvents]) {
     if (message_flags[kEventTemperature]) {
         (void)updateTemperature();
     }
@@ -174,7 +174,7 @@ static ErrorCode initialiseSections(Section sections_array[kNbSections]) {
     const uint8_t label_y = (uint8_t)((kSectionHeightPx - kInterV_7pt_alpha_descriptor.height_px) / (uint8_t)2U);
     const uint8_t label_top = (uint8_t)(kTitleSectionHeightPx + label_y);
 
-    for (uint8_t index = 0; index < (uint8_t)kNbSections; index++) {
+    for (uint8_t index = 0; index < kNbSections; index++) {
         Section* section = &sections_array[index];
 
         //initialise the title label

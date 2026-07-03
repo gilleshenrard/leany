@@ -61,40 +61,40 @@ size_t getStringLength(const char* string, size_t max_length);
  * Check if a character is a number
  *
  * @param character Character to check
- * @retval 1 Character is a number
- * @retval 0 Character is not
+ * @retval true Character is a number
+ * @retval false Character is not
  */
-static inline uint8_t isnumber(char character) { return (((character >= '0') && (character <= '9'))); }
+static inline bool isnumber(char character) { return (bool)(((character >= '0') && (character <= '9'))); }
 
 /**
  * Check if a character is a sign ('+' or '-')
  *
  * @param character Character to check
- * @retval 1 Character is a sign
- * @retval 0 Character is not
+ * @retval true Character is a sign
+ * @retval false Character is not
  */
-static inline uint8_t issign(char character) { return ((character == '+') || (character == '-')); }
+static inline bool issign(char character) { return (bool)((character == '+') || (character == '-')); }
 
 /**
  * Check if a character is an upper case alpha character
  *
  * @param character Character to check
- * @retval 1 The character is upper case
- * @retval 0 The character is not upper case
+ * @retval true The character is upper case
+ * @retval false The character is not upper case
  */
-static inline uint8_t isAlphaUppercase(char character) {
-    return ((character >= (uint8_t)'A') && (character <= (uint8_t)'Z'));
+static inline bool isAlphaUppercase(char character) {
+    return (bool)((character >= (uint8_t)'A') && (character <= (uint8_t)'Z'));
 }
 
 /**
  * Check if a character is a lower case alpha character
  *
  * @param character Character to check
- * @retval 1 The character is lower case
- * @retval 0 The character is not lower case
+ * @retval true The character is lower case
+ * @retval false The character is not lower case
  */
-static inline uint8_t isAlphaLowercase(char character) {
-    return ((character >= (uint8_t)'a') && (character <= (uint8_t)'z'));
+static inline bool isAlphaLowercase(char character) {
+    return (bool)((character >= (uint8_t)'a') && (character <= (uint8_t)'z'));
 }
 
 #endif /* CUSTOM_PRINTF_H */

@@ -8,6 +8,7 @@
 // clang-format off
 #ifndef INC_SOFTWARE_VERSION_H
 #define INC_SOFTWARE_VERSION_H
+#include <stdint.h>
 
 enum : uint8_t {
     kFirmwareVersionSize = 7U,  ///< Maximum size of the firmware version string

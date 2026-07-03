@@ -168,36 +168,36 @@ ErrorCode updateBQ25619status(ChargerStatus* new_status, ChargerStatus* changes)
  * Check if the battery is charging
  *
  * @param status Status bits
- * @retval 1 Battery is charging
- * @retval 0 Battery is not charging
+ * @retval true Battery is charging
+ * @retval false Battery is not charging
  */
-uint8_t isBQ25619charging(const ChargerStatus* status) {
-    return (status->bits.vbus_status && status->bits.power_good && (status->bits.chrg_status > 0) &&
-            status->bits.poor_source_passed);
+bool isBQ25619charging(const ChargerStatus* status) {
+    return (bool)(status->bits.vbus_status && status->bits.power_good && (status->bits.chrg_status > 0) &&
+                  status->bits.poor_source_passed);
 }
 
 /**
  * Check if the charge status changed
  *
  * @param changes Changes flags
- * @retval 1 The charge status changed
- * @retval 0 The charge status has not changed
+ * @retval true The charge status changed
+ * @retval false The charge status has not changed
  */
-uint8_t BQ25619statusChanged(const ChargerStatus* changes) {
-    return (changes->bits.vbus_status || changes->bits.power_good || (changes->bits.chrg_status > 0) ||
-            changes->bits.poor_source_passed);
+bool BQ25619statusChanged(const ChargerStatus* changes) {
+    return (bool)(changes->bits.vbus_status || changes->bits.power_good || (changes->bits.chrg_status > 0) ||
+                  changes->bits.poor_source_passed);
 }
 
 /**
  * Check if a charger error occurred
  *
  * @param status Status flags
- * @retval 1 Error occurred
- * @retval 0 No error
+ * @retval true Error occurred
+ * @retval false No error
  */
-uint8_t BQ25619Error(const ChargerStatus* status) {
-    return (status->bits.boostmode_fault || (status->bits.thermal_fault > 0) || (status->bits.charge_fault > 0) ||
-            status->bits.bat_overvoltage);
+bool BQ25619Error(const ChargerStatus* status) {
+    return (bool)(status->bits.boostmode_fault || (status->bits.thermal_fault > 0) || (status->bits.charge_fault > 0) ||
+                  status->bits.bat_overvoltage);
 }
 
 /**

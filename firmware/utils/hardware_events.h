@@ -32,7 +32,7 @@ typedef enum : uint8_t {
 
 void createHardwareEventsGroup(void);
 void triggerHardwareEvent(Event event);
-uint8_t isHardwareEventTriggered(Event event);
-uint8_t waitForHardwareEvents(TickType_t max_wait_time_ms);
+bool isHardwareEventTriggered(Event event);
+bool waitForHardwareEvents(TickType_t max_wait_time_ms);
 void clearHardwareEvents(void);
 #endif

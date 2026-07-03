@@ -7,15 +7,13 @@
  */
 #ifndef TASKS_TASK_SERIAL_H
 #define TASKS_TASK_SERIAL_H
-#include <stdint.h>
-
 #include "errorstack.h"
 #include "serial_command_types.h"
 
 void uartInterruptTriggered(void);
 void createSerialtask(void);
 void logSerial(ErrorLevel level, const char format[], ...);
-uint8_t popSerialCommand(SerialCommand* command_received);
+bool popSerialCommand(SerialCommand* command_received);
 void setLogLevel(ErrorLevel level);
 ErrorLevel getLogLevel(void);
 

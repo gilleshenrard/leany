@@ -20,7 +20,7 @@ static void applyLEDpwm(Colour colour);
 static Colour current_colour = kBlack;    ///< Colour to apply to the blink effect
 static uint16_t blink_halfperiod_ms = 0;  ///< Half the milliseconds to operate an on/off blink cycle
 static uint32_t current_tick = 0;         ///< Last system tick value saved
-static uint8_t led_is_on = 0;             ///< Flag indicating whether the LED is on or off
+static bool led_is_on = false;            ///< Flag indicating whether the LED is on or off
 static EffectState effect = kOFF;         ///< Current LED effect state
 
 /********************************************************************************************************************************************/
@@ -53,8 +53,8 @@ void runLEDstateMachine(void) {
     current_tick = getCurrentTick();
 
     //invert the LED status and power
-    applyLEDpwm(led_is_on ? kBlack : current_colour);
-    led_is_on = !led_is_on;
+    applyLEDpwm((uint8_t)led_is_on ? kBlack : current_colour);
+    led_is_on = (bool)!led_is_on;
 }
 
 /**
@@ -105,9 +105,9 @@ void LEDsetColour(const Colour* colour) {
     applyLEDpwm(*colour);
 
     if (colour->hex_value == kBlack.hex_value) {
-        led_is_on = 0;
+        led_is_on = false;
     } else {
-        led_is_on = 1;
+        led_is_on = true;
         current_colour = *colour;
     }
 }

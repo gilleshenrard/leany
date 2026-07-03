@@ -55,12 +55,12 @@ _Static_assert((kNbEvents < UINT8_MAX), "Too many events. Event might overflow")
 
 static void runUItask(void* argument);
 static ErrorCode treatHardwareEvents(void);
-static uint8_t copyEvents(uint8_t message_flags[kNbEvents]);
-static ErrorCode treatToggleScreenMessage(const uint8_t message_flags[kNbEvents]);
-static ErrorCode treatErrorCodeMessage(const uint8_t message_flags[kNbEvents]);
+static bool copyEvents(bool message_flags[kNbEvents]);
+static ErrorCode treatToggleScreenMessage(const bool message_flags[kNbEvents]);
+static ErrorCode treatErrorCodeMessage(const bool message_flags[kNbEvents]);
 
 static volatile TaskHandle_t task_handle = nullptr;  ///< handle of the FreeRTOS task
-static uint8_t message_received[kNbEvents];          ///< Flag indicating whether a UI message was received
+static bool message_received[kNbEvents];             ///< Flag indicating whether a UI message was received
 static Screen current_screen = kScreenMain;          ///< Current screen displayed and updated
 static SemaphoreHandle_t ui_mutex = nullptr;         ///< Mutex used to protect UI resources
 static SemaphoreHandle_t events_mutex = nullptr;     ///< Mutex used to protect events coming from the dispatcher
@@ -101,26 +101,26 @@ ErrorCode createUItask(void) {
  * Dispatch an event to the UI
  *
  * @param event Hardware event
- * @retval 1 Message dispatched
- * @retval 0 Timeout or error while dispatching the message
+ * @retval true Message dispatched
+ * @retval false Timeout or error while dispatching the message
  */
-uint8_t dispatchEventToUI(const Event event) {
+bool dispatchEventToUI(const Event event) {
     if (event >= kNbEvents) {
-        return 0;
+        return false;
     }
 
     if (!events_mutex) {
-        return 0;
+        return false;
     }
 
     if (xSemaphoreTake(events_mutex, pdMS_TO_TICKS(kMutexTimeoutMs)) == pdFALSE) {
-        return 0;
+        return false;
     }
 
-    message_received[event] = 1;
+    message_received[event] = true;
     (void)xSemaphoreGive(events_mutex);
 
-    return 1;
+    return true;
 }
 
 /********************************************************************************************************************************************/
@@ -176,22 +176,22 @@ static void runUItask(void* argument) {
  * @retval 1 Copy success
  * @retval 0 Unable to retrieve the hardware events
  */
-static uint8_t copyEvents(uint8_t message_flags[kNbEvents]) {
+static bool copyEvents(bool message_flags[kNbEvents]) {
     if (!events_mutex) {
-        return 0;
+        return false;
     }
 
     if (xSemaphoreTake(events_mutex, pdMS_TO_TICKS(kMutexTimeoutMs)) == pdFALSE) {
-        return 0;
+        return false;
     }
 
-    for (uint8_t message = 0; message < (uint8_t)kNbEvents; message++) {
+    for (uint8_t message = 0; message < kNbEvents; message++) {
         message_flags[message] = message_received[message];
-        message_received[message] = 0;
+        message_received[message] = false;
     }
 
     (void)xSemaphoreGive(events_mutex);
-    return 1;
+    return true;
 }
 
 /**
@@ -201,7 +201,7 @@ static uint8_t copyEvents(uint8_t message_flags[kNbEvents]) {
  * @retval 0 Success
  * @retval 1 Error while switching screens
  */
-static ErrorCode treatToggleScreenMessage(const uint8_t message_flags[kNbEvents]) {
+static ErrorCode treatToggleScreenMessage(const bool message_flags[kNbEvents]) {
     if (!message_flags[kEventToggleScreen]) {
         return kSuccessCode;
     }
@@ -232,7 +232,7 @@ static ErrorCode treatHardwareEvents(void) {
     ErrorCode result;
 
     //gather the events sent by the dispatcher
-    uint8_t latest_flags[kNbEvents];
+    bool latest_flags[kNbEvents];
     if (!copyEvents(latest_flags)) {
         return kSuccessCode;
     }
@@ -272,7 +272,7 @@ static ErrorCode treatHardwareEvents(void) {
  * @retval 0 Success
  * @retval 1 Error while switching screens
  */
-static ErrorCode treatErrorCodeMessage(const uint8_t message_flags[kNbEvents]) {
+static ErrorCode treatErrorCodeMessage(const bool message_flags[kNbEvents]) {
     //Message flags array is null
     if (!message_flags[kEventErrorCode]) {
         return kSuccessCode;
