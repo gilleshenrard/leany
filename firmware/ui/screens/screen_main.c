@@ -69,7 +69,7 @@ static void treatHoldMessage(uint8_t message_flags[kNbEvents], uint8_t holding);
 static ErrorCode printMeasurements(ColourBigEndian foreground_colour);
 static void getAngleComponents(Axis axis, int16_t* angle_degrees, int16_t* angle_tenths);
 
-static const Layout kHorizontalLayout =  ///< Horizontal layout values
+static constexpr Layout kHorizontalLayout =  ///< Horizontal layout values
     {
         .angle_label_width = ((kDisplayWidth / 2U) - kAngleMargin),
         .pitch_label_x = (kAngleMargin / 2U),
@@ -85,7 +85,7 @@ static const Layout kHorizontalLayout =  ///< Horizontal layout values
         .separator_area = {.x0 = (kDisplayWidth / 2U), .y0 = 43U, .x1 = (kDisplayWidth / 2U), .y1 = 108U},
 };
 
-static const Layout kVerticalLayout =  ///< Vertical layout values
+static constexpr Layout kVerticalLayout =  ///< Vertical layout values
     {
         .angle_label_width = (kDisplayHeight / 2U),
         .pitch_label_x = (kDisplayHeight / 4U),

@@ -159,7 +159,7 @@ static void runUItask(void* argument) {
         }
 
         //Wait until a specific amount of milliseconds passed since last update
-        static const uint8_t kRefreshDelayMS = 30U;
+        static constexpr uint8_t kRefreshDelayMS = 30U;
         vTaskDelayUntil(&previous_tick, pdMS_TO_TICKS(kRefreshDelayMS));
 
         result = treatHardwareEvents();

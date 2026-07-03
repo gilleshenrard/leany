@@ -57,7 +57,7 @@ static ErrorCode writeConfiguration(void);
 //State variables
 static ErrorCode result;                    ///< Buffer used to store function return codes
 uint16_t display_buffer[kFrameBufferSize];  ///< Buffer used to send data to the display
-static const Backporch kOffsets[] =         ///< default backporch offsets
+static constexpr Backporch kOffsets[] =     ///< default backporch offsets
     {
         {1, 2},
 };
@@ -165,8 +165,8 @@ ErrorCode configureST7735S(void) {
  * @retval 2 Error while transmitting the sleep out command
  */
 static ErrorCode restartScreen(void) {
-    static const uint8_t kResetDelayMS = 150U;     ///< Number of milliseconds to wait after reset
-    static const uint8_t kSleepoutDelayMS = 255U;  ///< Number of milliseconds to wait sleep out
+    static constexpr uint8_t kResetDelayMS = 150U;     ///< Number of milliseconds to wait after reset
+    static constexpr uint8_t kSleepoutDelayMS = 255U;  ///< Number of milliseconds to wait sleep out
 
     //send the reset command and, if error, exit
     result = writeRegisters(&dma_descriptor.spi, kSWRESET, nullptr, 0);

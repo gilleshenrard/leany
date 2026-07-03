@@ -36,16 +36,16 @@ typedef enum : uint8_t {
     kBLINKING,  ///< Blinking
 } EffectState;
 
-static const Colour kWhite = {.hex_value = 0xFFFFFFUL};        ///< 0xFFFFFF : white LED hex colour value
-static const Colour kWhiteDimmed = {.hex_value = 0x333333UL};  ///< 0x333333 : dimmed white LED hex colour value
-static const Colour kRed = {.hex_value = 0xFF0000UL};          ///< 0xFF0000 : red LED hex colour value
-static const Colour kGreen = {.hex_value = 0x00FF00UL};        ///< 0x00FF00 : green LED hex colour value
-static const Colour kBlue = {.hex_value = 0x0000FFUL};         ///< 0x0000FF : blue LED hex colour value
-static const Colour kOrange = {.hex_value = 0xFFA500UL};       ///< 0xFFA500 : orange LED hex colour value
-static const Colour kYellow = {.hex_value = 0xFFFF00UL};       ///< 0xFFFF00 : yellow LED hex colour value
-static const Colour kBlack = {.hex_value = 0x000000UL};        ///< 0x000000 : LED off
+static constexpr Colour kWhite = {.hex_value = 0xFFFFFFUL};        ///< 0xFFFFFF : white LED hex colour value
+static constexpr Colour kWhiteDimmed = {.hex_value = 0x333333UL};  ///< 0x333333 : dimmed white LED hex colour value
+static constexpr Colour kRed = {.hex_value = 0xFF0000UL};          ///< 0xFF0000 : red LED hex colour value
+static constexpr Colour kGreen = {.hex_value = 0x00FF00UL};        ///< 0x00FF00 : green LED hex colour value
+static constexpr Colour kBlue = {.hex_value = 0x0000FFUL};         ///< 0x0000FF : blue LED hex colour value
+static constexpr Colour kOrange = {.hex_value = 0xFFA500UL};       ///< 0xFFA500 : orange LED hex colour value
+static constexpr Colour kYellow = {.hex_value = 0xFFFF00UL};       ///< 0xFFFF00 : yellow LED hex colour value
+static constexpr Colour kBlack = {.hex_value = 0x000000UL};        ///< 0x000000 : LED off
 
-static const uint16_t kSlowblinkPeriod_ms = 2000U;  ///< Number of milliseconds a slow blink period lasts
+static constexpr uint16_t kSlowblinkPeriod_ms = 2000U;  ///< Number of milliseconds a slow blink period lasts
 
 void initialiseLED(void);
 void runLEDstateMachine(void);

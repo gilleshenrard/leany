@@ -25,10 +25,11 @@ static inline FORCE_INLINE_SILENT float clamp(float value, float max_absolute_va
  */
 //NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 void complementaryFilter(const IMUsample* sample, float filtered_angles_rad[]) {
-    static const float kAlpha = 0.02F;  ///< Proportion applied to the gyro. and accel. in the final result
-    static const float kDtPeriodSeconds = 0.00240385F;  ///< Time period between two updates (LSM6DSO config. at 416Hz)
-    float accelx_astimated_rad = 0.0F;                  ///< Estimated accelerator angle on the X axis in [rad]
-    float accely_astimated_rad = 0.0F;                  ///< Estimated accelerator angle on the Y axis in [rad]
+    static constexpr float kAlpha = 0.02F;  ///< Proportion applied to the gyro. and accel. in the final result
+    static constexpr float kDtPeriodSeconds =
+        0.00240385F;                      ///< Time period between two updates (LSM6DSO config. at 416Hz)
+    float accelx_astimated_rad = 0.0F;    ///< Estimated accelerator angle on the X axis in [rad]
+    float accely_astimated_rad = 0.0F;    ///< Estimated accelerator angle on the Y axis in [rad]
     float euler_angleratex_radps = 0.0F;  ///< Euler angle rate (with reference to Earth) around X axis in rad/s
     float euler_angleratey_radps = 0.0F;  ///< Euler angle rate (with reference to Earth) around Y axis in rad/s
 

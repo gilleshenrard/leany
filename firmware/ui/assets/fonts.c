@@ -45,7 +45,8 @@ enum : uint8_t {
 };
 
 //variables
-static const CharacterMetadata kInterV_7pt_alpha_letters[kNbSmallCharacters] =  ///< Metadata of the small characters
+static constexpr CharacterMetadata
+    kInterV_7pt_alpha_letters[kNbSmallCharacters] =  ///< Metadata of the small characters
     {
         {' ', 6},  /*   */
         {'%', 7},  // %
@@ -96,7 +97,7 @@ static const CharacterMetadata kInterV_7pt_alpha_letters[kNbSmallCharacters] =  
         {'*', 4},  /* * */
 };
 
-static const CharacterMetadata
+static constexpr CharacterMetadata
     kInterVSemiBold_14pt_alpha_letters[kNbLargeCharacters] =  ///< Metadata of the large characters
     {
         {'+', 9},   // +
@@ -190,7 +191,7 @@ uint8_t getCharIndex(const FontMetadata* font, char ascii_character) {
 /**
  * Small font bitmap pool
  */
-static const BitmapRow kInterV_7pt_alpha_pool[kNbSmallCharacters * kSmallHeightPx] = {
+static constexpr BitmapRow kInterV_7pt_alpha_pool[kNbSmallCharacters * kSmallHeightPx] = {
     // clang-format off
 
 	// @0 ' ' (4 pixels wide)
@@ -669,7 +670,7 @@ static const BitmapRow kInterV_7pt_alpha_pool[kNbSmallCharacters * kSmallHeightP
 /**
  * Large font bitmap pool
  */
-static const BitmapRow kInterVSemiBold_14pt_num_pool[kNbLargeCharacters * kLargeHeightPx] = {
+static constexpr BitmapRow kInterVSemiBold_14pt_num_pool[kNbLargeCharacters * kLargeHeightPx] = {
     // clang-format off
 
 	// @0 '+' (9 pixels wide)

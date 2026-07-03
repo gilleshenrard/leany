@@ -26,7 +26,7 @@ enum : uint8_t {
 
 static const BitmapRow kIconsPool[kPoolSize];           ///< Bitmaps pool containing the small icons
 static const uint32_t kLargeIconsPool[kLargePoolSize];  ///< Bitmaps pool containing the large icons
-static const IconMetadata kDescriptors[kNbIcons] =      ///< Descriptors of all the icons
+static constexpr IconMetadata kDescriptors[kNbIcons] =  ///< Descriptors of all the icons
     {
         [kIconHold] = {.width_px = 8U, .height_px = 8U, .pool_offset = 0},
         [kIconAbsolute] = {.width_px = 8U, .height_px = 8U, .pool_offset = 8U},

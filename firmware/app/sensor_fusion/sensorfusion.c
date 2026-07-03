@@ -78,12 +78,12 @@ static void applyProportionate(const MahonyContext* context, float corrected_gyr
                                const IMUsample* sample, const float errors[kNBaxis]);
 
 //constants
-static const float kCloseToZero = 1e-3F;            ///< Value used to compare floats to 0
-static const float kMinAlignmentCosine = 0.9659F;   ///< cosine value for 15°, used as a maximum alignment angle
-static const float kMaxAlignmentCosine = 1.00001F;  ///< maximum alignment angle cosine acceptable
-static const float kMaxNormEpsilon = 0.15F;         ///< Maximum deviation of a norm around 1
-static const float kMinValidDTseconds = 1e-6F;      ///< Minimum acceptable timespan between updates
-static const float kMaxValidDTseconds = 0.5F;       ///< Maximum acceptable timespan between updates
+static constexpr float kCloseToZero = 1e-3F;            ///< Value used to compare floats to 0
+static constexpr float kMinAlignmentCosine = 0.9659F;   ///< cosine value for 15°, used as a maximum alignment angle
+static constexpr float kMaxAlignmentCosine = 1.00001F;  ///< maximum alignment angle cosine acceptable
+static constexpr float kMaxNormEpsilon = 0.15F;         ///< Maximum deviation of a norm around 1
+static constexpr float kMinValidDTseconds = 1e-6F;      ///< Minimum acceptable timespan between updates
+static constexpr float kMaxValidDTseconds = 0.5F;       ///< Maximum acceptable timespan between updates
 
 /*********************************************************************************************************************************/
 // Mahony filter's publicly accessible functions

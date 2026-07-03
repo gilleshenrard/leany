@@ -41,17 +41,17 @@ static void test_out_of_range_axis_returns_0(void);
 static void test_bad_quaternion_counter_resets_filter_at_threshold(void);
 
 //constants
-static const float kNormTolerance = 0.005F;             ///< Tolerance for quaternion norm comparisons
-static const float kAngleTolerance_rad = 0.05F;         ///< Tolerance for angle comparisons in [rad] (~3 degrees)
-static const float kTickPeriod_sec = 0.01F;             ///< Simulated tick period in [s]: 10ms -> 100 Hz update rate
-static const float kPI_F = 3.14159265358979323846F;     ///< Pi, as a float value
-static const uint32_t kMaxTick = UINT32_MAX;            ///< Maximum value a system tick can take
-static const float kStrongGyro_radps = (4.0F * kPI_F);  ///< Strong rotation speed
+static constexpr float kNormTolerance = 0.005F;          ///< Tolerance for quaternion norm comparisons
+static constexpr float kAngleTolerance_rad = 0.05F;      ///< Tolerance for angle comparisons in [rad] (~3 degrees)
+static constexpr float kTickPeriod_sec = 0.01F;          ///< Simulated tick period in [s]: 10ms -> 100 Hz update rate
+static constexpr float kPI_F = 3.14159265358979323846F;  ///< Pi, as a float value
+static constexpr uint32_t kMaxTick = UINT32_MAX;         ///< Maximum value a system tick can take
+static constexpr float kStrongGyro_radps = (4.0F * kPI_F);  ///< Strong rotation speed
 
 //state variables
-static MahonyContext context;                                             ///< Filter context used during tests
-static uint32_t current_tick;                                             ///< Simulated application tick
-static const IMUsample kPureGravity = {.accelerometer_g[kZaxis] = 1.0F};  ///< Sample pointing towards gravity
+static MahonyContext context;                                                 ///< Filter context used during tests
+static uint32_t current_tick;                                                 ///< Simulated application tick
+static constexpr IMUsample kPureGravity = {.accelerometer_g[kZaxis] = 1.0F};  ///< Sample pointing towards gravity
 
 /*********************************************************************************************************************************/
 // PUBLIC FUNCTIONS
@@ -502,10 +502,10 @@ static void test_integration_stable_at_high_angular_rate(void) {
  */
 static void test_integral_clamped_on_windup(void) {
     // mirrors kMaxIntegralError in sensorfusion.c
-    static const float kExpectedMaxIntegral = 0.3F;
+    static constexpr float kExpectedMaxIntegral = 0.3F;
     // ki > kMaxIntegralError / (|error| * dt) = 0.3 / (1.0 * 0.01) = 30 guarantees
     // saturation in one step; 100 gives safe margin
-    static const float kHighKi = 100.0F;  // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+    static constexpr float kHighKi = 100.0F;  // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 
     context.kp = 0.0F;
     context.ki = kHighKi;

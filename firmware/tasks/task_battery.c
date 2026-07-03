@@ -89,7 +89,7 @@ static uint8_t batteryVoltageToPercent(uint32_t voltage_mv);
  * Voltage range: 3500 mV to 4200 mV.
  * Step size: 5% SoC per entry.
  */
-static const uint16_t kBatteryLevelsLookupTable[kNbBatteryLevelSteps] = {
+static constexpr uint16_t kBatteryLevelsLookupTable[kNbBatteryLevelSteps] = {
     kBatteryMinMv,  // 0%
     3520U,          // 5%
     3550U,          // 10%
@@ -413,15 +413,15 @@ static void updateBatteryVoltage(void) {
  * @return Battery voltage in [mV]
  */
 static uint16_t adcToBatteryVoltage_mV(uint16_t adc_raw, uint32_t adc_vref_mv) {
-    static const uint32_t kVoltageDividerHighKohms = 56UL;
-    static const uint32_t kVoltageDividerLowKohms = 56UL;
+    static constexpr uint32_t kVoltageDividerHighKohms = 56UL;
+    static constexpr uint32_t kVoltageDividerLowKohms = 56UL;
 
     if (!adc_vref_mv) {
         return 0;
     }
 
     const uint32_t conversion_numerator = (adc_vref_mv * (kVoltageDividerHighKohms + kVoltageDividerLowKohms));
-    static const uint32_t kConversionDenominator = (kAdcMaxValue * kVoltageDividerLowKohms);
+    static constexpr uint32_t kConversionDenominator = (kAdcMaxValue * kVoltageDividerLowKohms);
 
     return (uint16_t)((adc_raw * conversion_numerator) / kConversionDenominator);
 }
