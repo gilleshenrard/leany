@@ -31,8 +31,8 @@
 #include "task_serial.h"
 
 enum : uint16_t {
-    kStackSize = 350U,      ///< Amount of words in the task stack
-    kTaskLowPriority = 3U,  ///< FreeRTOS number for a low priority task
+    kStackSize_words = 110U,  ///< Amount of words in the task stack
+    kTaskLowPriority = 3U,    ///< FreeRTOS number for a low priority task
 };
 
 /**
@@ -113,7 +113,7 @@ void IMUinterruptTriggered(uint8_t interrupt_pin) {
  */
 void createIMUtask(void) {
     // NOLINTBEGIN (hicpp-use-nullptr)
-    static StackType_t task_stack[kStackSize] = {0};         ///< Buffer used as the task stack
+    static StackType_t task_stack[kStackSize_words] = {0};   ///< Buffer used as the task stack
     static StaticTask_t task_state = {0};                    ///< Task state variables
     static StaticSemaphore_t measure_mutex_state = {0};      ///< Angles value mutex state variables
     static StaticSemaphore_t orientatino_mutex_state = {0};  ///< orientation mutex state variables
@@ -121,7 +121,7 @@ void createIMUtask(void) {
 
     //create the static task
     task_handle =
-        xTaskCreateStatic(taskIMU, "IMU task", kStackSize, nullptr, kTaskLowPriority, task_stack, &task_state);
+        xTaskCreateStatic(taskIMU, "IMU task", kStackSize_words, nullptr, kTaskLowPriority, task_stack, &task_state);
     configASSERT(task_handle);
 
     //create a semaphore to protect mearurements

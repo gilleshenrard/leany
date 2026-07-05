@@ -32,7 +32,7 @@
 
 enum : uint8_t {
     kOutboundSize = 64U,       ///< Maximum length of a message sent via serial
-    kStackSize = 100U,         ///< Amount of words in the task stack
+    kStackSize_words = 80U,    ///< Amount of words in the task stack
     kTaskLowPriority = 3U,     ///< FreeRTOS number for a low priority task
     kSerialTimeoutMS = 10U,    ///< Maximum number before considering a serial timeout
     kOutboundQueueSize = 15U,  ///< Number of messages the outbound queue can fit
@@ -97,9 +97,9 @@ void uartInterruptTriggered(void) {
  */
 void createSerialtask(void) {
     // NOLINTBEGIN (hicpp-use-nullptr)
-    static StackType_t inbound_task_stack[kStackSize];
+    static StackType_t inbound_task_stack[kStackSize_words];
     static StaticTask_t inbound_task_state;
-    static StackType_t outbound_task_stack[kStackSize];
+    static StackType_t outbound_task_stack[kStackSize_words];
     static StaticTask_t outbound_task_state;
     static OutboundMessage outbound_buffer[kOutboundQueueSize];
     static char inbound_buffer[kInboundQueueSize];
@@ -110,11 +110,11 @@ void createSerialtask(void) {
     // NOLINTEND
 
     //create the static task
-    inbound_task_handle = xTaskCreateStatic(runInboundTask, "Inbound serial task", kStackSize, nullptr,
+    inbound_task_handle = xTaskCreateStatic(runInboundTask, "Inbound serial task", kStackSize_words, nullptr,
                                             kTaskLowPriority, inbound_task_stack, &inbound_task_state);
     configASSERT(inbound_task_handle);
 
-    outbound_task_handle = xTaskCreateStatic(runOutboundTask, "Outbound serial task", kStackSize, nullptr,
+    outbound_task_handle = xTaskCreateStatic(runOutboundTask, "Outbound serial task", kStackSize_words, nullptr,
                                              kTaskLowPriority, outbound_task_stack, &outbound_task_state);
     configASSERT(outbound_task_handle);
 

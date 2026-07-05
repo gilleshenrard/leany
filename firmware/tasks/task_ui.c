@@ -31,15 +31,15 @@
 #include "task_dispatcher.h"
 
 enum : uint16_t {
-    kStackSize = 300U,       ///< Amount of words in the task stack
-    kTaskLowPriority = 3U,   ///< FreeRTOS number for a low priority task
-    kUIqueueLength = 50U,    ///< Number of slots available in the UI queue
-    kUImessageDelayMS = 2U,  ///< Number of milliseconds for ui messages delays
-    kFillBackground = 1U,    ///< fillBackground() function code
-    kPrintVertLine = 2U,     ///< printRectangle() function code
-    kPrintLabel = 3,         ///< printLabel() function
-    kMutexTimeoutMs = 10U,   ///< Maximum number of milliseconds before considering a mutex timeout
-    kAnimationSleepMs = 5U,  ///< Minimum wait in [ms] between two update loops
+    kStackSize_words = 140U,  ///< Amount of words in the task stack
+    kTaskLowPriority = 3U,    ///< FreeRTOS number for a low priority task
+    kUIqueueLength = 50U,     ///< Number of slots available in the UI queue
+    kUImessageDelayMS = 2U,   ///< Number of milliseconds for ui messages delays
+    kFillBackground = 1U,     ///< fillBackground() function code
+    kPrintVertLine = 2U,      ///< printRectangle() function code
+    kPrintLabel = 3,          ///< printLabel() function
+    kMutexTimeoutMs = 10U,    ///< Maximum number of milliseconds before considering a mutex timeout
+    kAnimationSleepMs = 5U,   ///< Minimum wait in [ms] between two update loops
 };
 
 /**
@@ -75,10 +75,10 @@ static SemaphoreHandle_t events_mutex = nullptr;     ///< Mutex used to protect 
  */
 ErrorCode createUItask(void) {
     // NOLINTBEGIN (hicpp-use-nullptr)
-    static StackType_t task_stack[kStackSize] = {0};    ///< Buffer used as the task stack
-    static StaticTask_t task_state = {0};               ///< Task state variables}
-    static StaticSemaphore_t ui_mutex_state = {0};      ///< UI mutex state variables
-    static StaticSemaphore_t events_mutex_state = {0};  ///< UI mutex state variables
+    static StackType_t task_stack[kStackSize_words] = {0};  ///< Buffer used as the task stack
+    static StaticTask_t task_state = {0};                   ///< Task state variables}
+    static StaticSemaphore_t ui_mutex_state = {0};          ///< UI mutex state variables
+    static StaticSemaphore_t events_mutex_state = {0};      ///< UI mutex state variables
     // NOLINTEND
 
     //create a semaphore to protect UI resources
@@ -91,7 +91,7 @@ ErrorCode createUItask(void) {
 
     // create the static task
     task_handle =
-        xTaskCreateStatic(runUItask, "UI task", kStackSize, nullptr, kTaskLowPriority, task_stack, &task_state);
+        xTaskCreateStatic(runUItask, "UI task", kStackSize_words, nullptr, kTaskLowPriority, task_stack, &task_state);
     configASSERT(task_handle);
 
     return kSuccessCode;
