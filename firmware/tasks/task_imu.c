@@ -32,7 +32,7 @@
 
 enum : uint16_t {
     kStackSize_words = 110U,  ///< Amount of words in the task stack
-    kTaskLowPriority = 3U,    ///< FreeRTOS number for a low priority task
+    kTaskPriority = 5U,       ///< FreeRTOS number for a low priority task
 };
 
 /**
@@ -122,7 +122,7 @@ void createIMUtask(void) {
 
     //create the static task
     task_handle =
-        xTaskCreateStatic(taskIMU, "IMU task", kStackSize_words, nullptr, kTaskLowPriority, task_stack, &task_state);
+        xTaskCreateStatic(taskIMU, "IMU task", kStackSize_words, nullptr, kTaskPriority, task_stack, &task_state);
     configASSERT(task_handle);
 
     //create a semaphore to protect mearurements
