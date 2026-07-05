@@ -17,7 +17,6 @@
 void createIMUtask(void);
 void IMUinterruptTriggered(uint8_t interrupt_pin);
 int16_t getAngleDegreesTenths(Axis axis);
-bool anglesChanged(void);
 void IMUzeroDown(void);
 void IMUcancelZeroing(void);
 bool isIMUzeroed(void);

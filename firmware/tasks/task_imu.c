@@ -155,29 +155,6 @@ int16_t getAngleDegreesTenths(Axis axis) {
 }
 
 /**
- * @brief Check if angle measurements have changed
- *
- * @retval false No new values available
- * @retval true New values are available
- */
-bool anglesChanged(void) {
-    if (xSemaphoreTake(angles_mutex, pdMS_TO_TICKS(kMutexMS)) == pdFALSE) {
-        return false;
-    }
-    const float current_angle_rad = getAttitudeAngle(&filter_context);
-    (void)xSemaphoreGive(angles_mutex);
-
-    //check if angle changed above minimum threshold (0.1° in any direction)
-    static float previous_angle_rad = 0.0F;
-    const bool changed = (fabsf(previous_angle_rad - current_angle_rad) > kDegreesTenthsToRadians);
-    if (changed) {
-        previous_angle_rad = current_angle_rad;
-    }
-
-    return changed;
-}
-
-/**
  * @brief Set the measurements in relative mode and zero down the values
  */
 void IMUzeroDown(void) {
@@ -552,6 +529,7 @@ static ErrorCode ignoreSamples(void) {
  * @retval 0 Success
  * @retval 1 No interrupt received from the IMU in a timely manner
  * @retval 2 Error while getting the latest IMU sample
+ * @retval 3 Could not take the angles mutex
  */
 static ErrorCode stateMeasuring(void) {
     //wait for measurements to be ready
@@ -564,15 +542,29 @@ static ErrorCode stateMeasuring(void) {
     result = IMUgetSample(&sample);
     EXIT_ON_ERROR(result, kStateMeasuring, 2)
 
-    //apply sensor fusion to the measurements
-    if (xSemaphoreTake(angles_mutex, pdMS_TO_TICKS(kMutexMS)) == pdTRUE) {
-        filter_context.dt.current_tick = sample.latest_tick;
-        updateMahonyFilter(&filter_context, &sample);
-        (void)xSemaphoreGive(angles_mutex);
+    static float previous_angles[kNBaxis];
+    float current_angles[kNBaxis];
+    float deltas[kNBaxis];
+
+    if (xSemaphoreTake(angles_mutex, pdMS_TO_TICKS(kMutexMS)) == pdFALSE) {
+        logSerial(kErrorInfo, "Could not take the angles mutex. Skipping update");
+        return createErrorCode(kStateMeasuring, 3, kErrorInfo);
     }
 
-    if (anglesChanged()) {
+    //apply sensor fusion to the measurements and get current angles
+    filter_context.dt.current_tick = sample.latest_tick;
+    updateMahonyFilter(&filter_context, &sample);
+    current_angles[kXaxis] = angleAlongAxis(&filter_context, kXaxis);
+    current_angles[kYaxis] = angleAlongAxis(&filter_context, kYaxis);
+    (void)xSemaphoreGive(angles_mutex);
+
+    //if angles changed enough, trigger event
+    deltas[kXaxis] = fabsf(previous_angles[kXaxis] - current_angles[kXaxis]);
+    deltas[kYaxis] = fabsf(previous_angles[kYaxis] - current_angles[kYaxis]);
+    if ((deltas[kXaxis] > kDegreesTenthsToRadians) || (deltas[kYaxis] > kDegreesTenthsToRadians)) {
         triggerHardwareEvent(kEventAngle);
+        previous_angles[kXaxis] = current_angles[kXaxis];
+        previous_angles[kYaxis] = current_angles[kYaxis];
     }
 
     return kSuccessCode;
