@@ -40,7 +40,7 @@ enum : uint16_t {
  */
 typedef enum : uint16_t {
     kStartupTimeMS = 10U,  ///< Number of milliseconds to wait after a reset
-    kTimeoutMS = 1000U,    ///< Max number of milliseconds to wait for a notification
+    kTimeoutMS = 20U,      ///< Max number of milliseconds to wait for a notification
     kMutexMS = 100U,       ///< Max number of milliseconds to wait for a mutex
 } Timing;
 
@@ -145,10 +145,11 @@ int16_t getAngleDegreesTenths(Axis axis) {
     if (xSemaphoreTake(angles_mutex, pdMS_TO_TICKS(kMutexMS)) == pdFALSE) {
         return 0;
     }
-    float current_angle_rad = angleAlongAxis(&filter_context, axis);
-    (void)xSemaphoreGive(angles_mutex);
 
+    float current_angle_rad = angleAlongAxis(&filter_context, axis);
     float total = (current_angle_rad + angles_zeroing_rad[axis]);
+
+    (void)xSemaphoreGive(angles_mutex);
     return (int16_t)(total * kRadiansToDegreesTenths);
 }
 
@@ -397,7 +398,7 @@ ErrorCode getDisplayOrientation(Orientation* orientation) {
         return createErrorCode(kgetOrientation, 1, kErrorError);
     }
 
-    if (xSemaphoreTake(orientation_mutex, kMutexMS) == pdFALSE) {
+    if (xSemaphoreTake(orientation_mutex, pdMS_TO_TICKS(kMutexMS)) == pdFALSE) {
         return createErrorCode(kgetOrientation, 2, kErrorError);
     }
 
@@ -567,7 +568,6 @@ static ErrorCode stateMeasuring(void) {
     if (xSemaphoreTake(angles_mutex, pdMS_TO_TICKS(kMutexMS)) == pdTRUE) {
         filter_context.dt.current_tick = sample.latest_tick;
         updateMahonyFilter(&filter_context, &sample);
-        logSerial(kErrorDebug, "Mahony filter updated");
         (void)xSemaphoreGive(angles_mutex);
     }
 
