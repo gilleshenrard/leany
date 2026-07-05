@@ -30,7 +30,7 @@
 #include "task_gpio.h"
 
 enum : uint16_t {
-    kStackSize = 250U,               ///< Amount of words in the task stack
+    kStackSize_words = 110U,         ///< Amount of words in the task stack
     kTaskLowPriority = 3U,           ///< FreeRTOS number for a low priority task
     kNbChipIDtests = 5U,             ///< Number of times chip ID reading must be tested
     kBatteryFullPercent = 100U,      ///< Value used as a 100% battery level
@@ -116,7 +116,7 @@ static constexpr uint16_t kBatteryLevelsLookupTable[kNbBatteryLevelSteps] = {
 // NOLINTBEGIN (hicpp-use-nullptr)
 static volatile TaskHandle_t task_handle = nullptr;              ///< handle of the FreeRTOS task
 static volatile FunctionCode state = kStateStartup;              ///< Current state machine state
-static StackType_t task_stack[kStackSize] = {0};                 ///< Buffer used as the task stack
+static StackType_t task_stack[kStackSize_words] = {0};           ///< Buffer used as the task stack
 static StaticTask_t task_state = {0};                            ///< Task state variables
 static SemaphoreHandle_t battery_mutex = nullptr;                ///< Mutex used to protect the battery status
 static ErrorCode result = {0};                                   ///< Buffer used to store the latest error code
@@ -152,7 +152,7 @@ ErrorCode createBatteryTask(void) {
     configASSERT(battery_mutex);
 
     //create the static task
-    task_handle = xTaskCreateStatic(taskBatteryManagement, "Battery management task", kStackSize, nullptr,
+    task_handle = xTaskCreateStatic(taskBatteryManagement, "Battery management task", kStackSize_words, nullptr,
                                     kTaskLowPriority, task_stack, &task_state);
     if (!task_handle) {
         Error_Handler();

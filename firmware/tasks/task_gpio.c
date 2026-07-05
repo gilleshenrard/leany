@@ -29,8 +29,8 @@
 #include "systick.h"
 
 enum : uint8_t {
-    kStackSize = 150U,      ///< Amount of words in the task stack
-    kTaskLowPriority = 3U,  ///< FreeRTOS number for a low priority task
+    kStackSize_words = 50U,  ///< Amount of words in the task stack
+    kTaskLowPriority = 3U,   ///< FreeRTOS number for a low priority task
 };
 
 /**
@@ -77,7 +77,7 @@ static uint32_t last_adc_update_tick = 0;              ///< Last tick at which A
  */
 void createGPIOtask(void) {
     // NOLINTBEGIN (hicpp-use-nullptr)
-    static StackType_t task_stack[kStackSize] = {0};         ///< Buffer used as the task stack
+    static StackType_t task_stack[kStackSize_words] = {0};   ///< Buffer used as the task stack
     static StaticTask_t task_state = {0};                    ///< Task state variables
     static StaticSemaphore_t temperature_mutex_state = {0};  ///< internal temperature mutex state variables
     static StaticSemaphore_t reference_mutex_state = {0};    ///< ADC reference voltage mutex state variables
@@ -93,7 +93,7 @@ void createGPIOtask(void) {
 
     //create the static task
     task_handle =
-        xTaskCreateStatic(taskGPIO, "GPIO task", kStackSize, nullptr, kTaskLowPriority, task_stack, &task_state);
+        xTaskCreateStatic(taskGPIO, "GPIO task", kStackSize_words, nullptr, kTaskLowPriority, task_stack, &task_state);
     configASSERT(task_handle);
 }
 

@@ -40,7 +40,7 @@
 #include "task_ui.h"
 
 enum : uint8_t {
-    kStackSize = 150U,           ///< Amount of words in the task stack
+    kStackSize_words = 250U,     ///< Amount of words in the task stack
     kTaskLowPriority = 3U,       ///< FreeRTOS number for a low priority task
     kEventDelayMS = 20U,         ///< Number of milliseconds for hardware events delay
     kMutexTimeoutMs = 10U,       ///< Maximum number of milliseconds before considering a mutex timeout
@@ -97,9 +97,9 @@ static ErrorCode last_error = {.dword = 0};       ///< Last error detected
  */
 ErrorCode createMessageDispatchertask(void) {
     // NOLINTBEGIN (hicpp-use-nullptr)
-    static StackType_t task_stack[kStackSize] = {0};    // Buffer used as the task stack
-    static StaticTask_t task_state = {0};               // Task state variables
-    static StaticSemaphore_t events_mutex_state = {0};  ///< UI mutex state variables
+    static StackType_t task_stack[kStackSize_words] = {0};  // Buffer used as the task stack
+    static StaticTask_t task_state = {0};                   // Task state variables
+    static StaticSemaphore_t events_mutex_state = {0};      ///< UI mutex state variables
     // NOLINTEND
 
     //create a semaphore to protect events
@@ -107,7 +107,7 @@ ErrorCode createMessageDispatchertask(void) {
     configASSERT(events_mutex);
 
     // create the static task
-    TaskHandle_t task_handle = xTaskCreateStatic(runDispatchertask, "Dispatch task", kStackSize, nullptr,
+    TaskHandle_t task_handle = xTaskCreateStatic(runDispatchertask, "Dispatch task", kStackSize_words, nullptr,
                                                  kTaskLowPriority, task_stack, &task_state);
     configASSERT(task_handle);
 
