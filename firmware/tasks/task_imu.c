@@ -82,6 +82,7 @@ static ErrorCode result;                               ///< Variable used to rec
 static volatile bool task_notifiable = false;  ///< Flag indicating whether the task is ready to treat notifications
 static float angles_zeroing_rad[kNBaxis - 1] = {0, 0};  ///< Angles used to zero out the measurements
 static bool holding = false;                            ///< Flag indicating whether the measurements are held
+static bool zeroed = false;                             ///< Measurements zeroing status
 static MahonyContext filter_context = {
     .ki = kIntegralGain, .kp = kProportionalGain, .align_check_enabled = true};  ///< Current Mahony filter context
 
@@ -186,6 +187,7 @@ void IMUzeroDown(void) {
 
     angles_zeroing_rad[kXaxis] = -angleAlongAxis(&filter_context, kXaxis);
     angles_zeroing_rad[kYaxis] = -angleAlongAxis(&filter_context, kYaxis);
+    zeroed = true;
 
     (void)xSemaphoreGive(angles_mutex);
 }
@@ -200,6 +202,7 @@ void IMUcancelZeroing(void) {
 
     angles_zeroing_rad[kXaxis] = 0.0F;
     angles_zeroing_rad[kYaxis] = 0.0F;
+    zeroed = false;
 
     (void)xSemaphoreGive(angles_mutex);
 }
@@ -211,13 +214,10 @@ void IMUcancelZeroing(void) {
  * @retval false IMU is in absolute mode 
  */
 bool isIMUzeroed(void) {
-    const float close_to_zero = 1e-3F;
     bool current_zeroing = false;
 
     if (xSemaphoreTake(angles_mutex, pdMS_TO_TICKS(kMutexMS)) == pdTRUE) {
-        current_zeroing =
-            (bool)(((angles_zeroing_rad[kXaxis] > close_to_zero) || (angles_zeroing_rad[kXaxis] < -close_to_zero)) &&
-                   ((angles_zeroing_rad[kYaxis] > close_to_zero) || (angles_zeroing_rad[kYaxis] < -close_to_zero)));
+        current_zeroing = zeroed;
         (void)xSemaphoreGive(angles_mutex);
     }
 
