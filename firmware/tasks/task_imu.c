@@ -559,9 +559,14 @@ static ErrorCode stateMeasuring(void) {
         return createErrorCode(kStateMeasuring, 3, kErrorInfo);
     }
 
-    //apply sensor fusion to the measurements and get current angles
+    //apply sensor fusion to the measurements
     filter_context.dt.last_sampled_tick = sample.tick;
-    updateMahonyFilter(&filter_context, &sample);
+    if (!updateMahonyFilter(&filter_context, &sample)) {
+        (void)xSemaphoreGive(angles_mutex);
+        return kSuccessCode;
+    }
+
+    //get the current angles
     current_angles[kXaxis] = angleAlongAxis(&filter_context, kXaxis);
     current_angles[kYaxis] = angleAlongAxis(&filter_context, kYaxis);
     (void)xSemaphoreGive(angles_mutex);

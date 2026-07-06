@@ -73,7 +73,7 @@ static constexpr uint8_t kMaxBadCounts = 5U;      ///< Maximum number of bad acc
 static constexpr float kMaxIntegralError = 0.3F;  ///< Maximum integral error absolute value accepted
 
 void resetMahonyFilter(MahonyContext* context);
-void updateMahonyFilter(MahonyContext* context, const IMUsample* sample);
+bool updateMahonyFilter(MahonyContext* context, const IMUsample* sample);
 float angleAlongAxis(const MahonyContext* context, Axis axis);
 float getAttitudeAngle(const MahonyContext* context);
 

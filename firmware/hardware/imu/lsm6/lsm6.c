@@ -204,7 +204,7 @@ ErrorCode IMUcheckDeviceID(void) {
 ErrorCode IMUsoftReset(void) {
     const SPIregister value = (kLSM6_SOFTWARE_RESET | kLSM6_INT_ACTIVE_LOW);  //NOLINT(hicpp-signed-bitwise)
     result = writeRegisters(&spi_descriptor, kCTRL3_C, &value, 1);
-    EXIT_ON_ERROR(result, kResetting, 1)
+    EXIT_ON_ERROR(result, kResetting, 1)  // cppcheck-suppress unknownMacro
 
     return kSuccessCode;
 }
