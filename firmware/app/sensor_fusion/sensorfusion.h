@@ -30,10 +30,10 @@ typedef enum : uint8_t {
  * Structure defining time delta
  */
 typedef struct {
-    uint32_t current_tick;      ///< Current sensor tick value
-    uint32_t previous_tick;     ///< Tick value at the last update
-    uint32_t max_tick;          ///< Maximum sensor tick value
-    float tick_period_seconds;  ///< Tick resolution in [s]
+    uint32_t last_sampled_tick;  ///< IMU internal tick at which the last sample was taken
+    uint32_t last_valid_tick;    ///< IMU internal tick at which the filter was successfully updated
+    uint32_t max_tick;           ///< Maximum sensor tick value
+    float tick_period_seconds;   ///< Tick resolution in [s]
 } __attribute__((aligned(kTimeDeltaAlignment))) TimeDelta;
 
 /**
@@ -64,7 +64,7 @@ typedef struct {
 typedef struct {
     float accelerometer_g[kNBaxis];  ///< Accelerometer measurements in [G] (9.81 m/s²)
     float gyroscope_radps[kNBaxis];  ///< Gyroscope measurements in [rad/s]
-    uint32_t latest_tick;            ///< Latest sensor tick value
+    uint32_t tick;                   ///< IMU internal tick at which the sample was taken
 } __attribute((aligned(kSampleStructAlignment))) IMUsample;
 
 static constexpr float kProportionalGain = 2.5F;  ///< Propotional gain (KP) of the Mahony filter

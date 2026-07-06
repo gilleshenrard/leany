@@ -560,7 +560,7 @@ static ErrorCode stateMeasuring(void) {
     }
 
     //apply sensor fusion to the measurements and get current angles
-    filter_context.dt.current_tick = sample.latest_tick;
+    filter_context.dt.last_sampled_tick = sample.tick;
     updateMahonyFilter(&filter_context, &sample);
     current_angles[kXaxis] = angleAlongAxis(&filter_context, kXaxis);
     current_angles[kYaxis] = angleAlongAxis(&filter_context, kYaxis);
