@@ -5,7 +5,7 @@
  */
 
 /**
- * @file sensorfusion.c
+ * @file mahony.c
  * @brief Mahony filter implementation for 6DoF attitude estimation using gyroscope and accelerometer.
  *
  * @details
@@ -48,7 +48,7 @@
  *
  * @author Gilles Henrard
  */
-#include "sensorfusion.h"
+#include "mahony.h"
 
 #include <math.h>
 #include <stdint.h>
