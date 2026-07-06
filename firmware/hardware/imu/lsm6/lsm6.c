@@ -32,7 +32,7 @@
 #include "imu.h"
 #include "lsm6_registers.h"
 #include "lsm6dsr_registers.h"
-#include "sensorfusion.h"
+#include "mahony.h"
 #include "systick.h"
 
 enum : uint8_t {

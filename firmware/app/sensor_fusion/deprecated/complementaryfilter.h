@@ -7,7 +7,7 @@
  */
 #ifndef HARDWARE_IMU_COMPLEMENTARY_FILTER_H
 #define HARDWARE_IMU_COMPLEMENTARY_FILTER_H
-#include "sensorfusion.h"
+#include "mahony.h"
 
 void complementaryFilter(const IMUsample* sample, float filtered_angles_rad[]);
 #endif
