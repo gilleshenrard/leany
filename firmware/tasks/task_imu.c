@@ -26,8 +26,8 @@
 #include "errorstack.h"
 #include "hardware_events.h"
 #include "imu.h"
+#include "mahony.h"
 #include "orientation.h"
-#include "sensorfusion.h"
 #include "task_serial.h"
 
 enum : uint16_t {

@@ -10,8 +10,8 @@
 #include <stdint.h>
 
 #include "errorstack.h"
+#include "mahony.h"
 #include "orientation.h"
-#include "sensorfusion.h"
 
 // IMU functions
 void createIMUtask(void);

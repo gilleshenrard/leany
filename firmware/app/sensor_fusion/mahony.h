@@ -2,11 +2,11 @@
  * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
  * SPDX-License-Identifier: MIT
  * 
- * @file sensorfusion.h
+ * @file mahony.h
  * @author Gilles Henrard
  */
-#ifndef HARDWARE_SENSOR_SENSORFUSION_H
-#define HARDWARE_SENSOR_SENSORFUSION_H
+#ifndef APP_SENSOR_FUSION_MAHONY_H
+#define APP_SENSOR_FUSION_MAHONY_H
 #include <stdint.h>
 
 enum : uint8_t {

@@ -30,7 +30,7 @@
 #include "errorstack.h"
 #include "hal_spi.h"
 #include "imu.h"
-#include "sensorfusion.h"
+#include "mahony.h"
 #include "systick.h"
 
 enum : uint8_t {

@@ -16,7 +16,7 @@ target_link_libraries(scpi PRIVATE
 )
 
 add_library(sensorfusion
-	sensor_fusion/sensorfusion.c
+	sensor_fusion/mahony.c
 )
 target_include_directories(sensorfusion PUBLIC sensor_fusion)
 target_compile_options(sensorfusion PRIVATE ${WARNING_FLAGS})
