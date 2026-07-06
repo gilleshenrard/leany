@@ -435,6 +435,8 @@ static void taskIMU(void* argument) {
  * @retval 0 Success
  * @retval 1 Error while checking the communication
  * @retval 2 Error while requesting the soft reset
+ * @retval 3 Error while running the accelerometer self-test
+ * @retval 3 Error while running the gyroscope self-test
  */
 static ErrorCode stateStartup(void) {
     task_notifiable = false;
@@ -450,22 +452,28 @@ static ErrorCode stateStartup(void) {
     vTaskDelay(pdMS_TO_TICKS(kStartupTimeMS));
     logSerial(kErrorInfo, "IMU soft-reset done");
 
-    //attempt self-testing accelerometer and gyroscope
-    uint8_t attempts = 5U;  // NOLINT(*-magic-numbers)
-    do {
+    constexpr uint8_t self_test_attempts = 5U;
+
+    //run the accelerometer self-testing
+    for (uint8_t attempts = 0; attempts < self_test_attempts; attempts++) {
         result = selfTestAccelerometer();
-        if (isError(result)) {
-            continue;
+        if (!isError(result)) {
+            logSerial(kErrorInfo, "Accemerometer self-test ok");
+            break;
         }
-        logSerial(kErrorInfo, "Accemerometer self-test ok");
-
-        result = selfTestGyroscope();
-    } while (--attempts && isError(result));
-
-    //if either self-test failed, error
+    }
     EXIT_ON_ERROR(result, kStateStartup, 3)
 
-    logSerial(kErrorInfo, "Gyroscope self-test ok");
+    //run the gyroscope self-testing
+    for (uint8_t attempts = 0; attempts < self_test_attempts; attempts++) {
+        result = selfTestGyroscope();
+        if (!isError(result)) {
+            logSerial(kErrorInfo, "Gyroscope self-test ok");
+            break;
+        }
+    }
+    EXIT_ON_ERROR(result, kStateStartup, 4)
+
     return kSuccessCode;
 }
 
