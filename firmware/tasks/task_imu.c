@@ -571,14 +571,17 @@ static ErrorCode stateMeasuring(void) {
     current_angles[kYaxis] = angleAlongAxis(&filter_context, kYaxis);
     (void)xSemaphoreGive(angles_mutex);
 
-    //if angles changed enough, trigger event
+    //if angles did not change enough, exit
     deltas[kXaxis] = fabsf(previous_angles[kXaxis] - current_angles[kXaxis]);
     deltas[kYaxis] = fabsf(previous_angles[kYaxis] - current_angles[kYaxis]);
-    if ((deltas[kXaxis] > kDegreesTenthsToRadians) || (deltas[kYaxis] > kDegreesTenthsToRadians)) {
-        triggerHardwareEvent(kEventAngle);
-        previous_angles[kXaxis] = current_angles[kXaxis];
-        previous_angles[kYaxis] = current_angles[kYaxis];
+    if ((deltas[kXaxis] <= kDegreesTenthsToRadians) && (deltas[kYaxis] <= kDegreesTenthsToRadians)) {
+        return kSuccessCode;
     }
+
+    //trigger angles update event
+    triggerHardwareEvent(kEventAngle);
+    previous_angles[kXaxis] = current_angles[kXaxis];
+    previous_angles[kYaxis] = current_angles[kYaxis];
 
     return kSuccessCode;
 }
