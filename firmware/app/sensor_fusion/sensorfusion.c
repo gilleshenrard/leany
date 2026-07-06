@@ -217,6 +217,7 @@ float angleAlongAxis(const MahonyContext* context, Axis axis) {
  * @param context Current Mahony filter context
  * @return Angle in [rad]
  */
+// cppcheck-suppress unusedFunction
 float getAttitudeAngle(const MahonyContext* context) {
     //if no context provided, exit
     if (!context) {
