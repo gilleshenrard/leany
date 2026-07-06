@@ -436,7 +436,7 @@ static void taskIMU(void* argument) {
  * @retval 1 Error while checking the communication
  * @retval 2 Error while requesting the soft reset
  * @retval 3 Error while running the accelerometer self-test
- * @retval 3 Error while running the gyroscope self-test
+ * @retval 4 Error while running the gyroscope self-test
  */
 static ErrorCode stateStartup(void) {
     task_notifiable = false;
