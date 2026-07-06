@@ -106,7 +106,7 @@ void resetMahonyFilter(MahonyContext* context) {
     context->error_integrals[kZaxis] = 0.0F;
     context->bad_acceleration_count = 0;
     context->bad_quaternion_count = 0;
-    context->dt.previous_tick = context->dt.current_tick;
+    context->dt.last_valid_tick = context->dt.last_sampled_tick;
 }
 
 /**
@@ -173,7 +173,7 @@ void updateMahonyFilter(MahonyContext* context, const IMUsample* sample) {
     }
 
     //update the last update tick on success
-    context->dt.previous_tick = context->dt.current_tick;
+    context->dt.last_valid_tick = context->dt.last_sampled_tick;
 }
 
 /**
@@ -320,7 +320,7 @@ static inline FORCE_INLINE_SILENT float clamp(const float value, const float max
  */
 static inline FORCE_INLINE_SILENT float getDT(const TimeDelta* delta) {
     //compute the time delta and avoid issues with the overflow after maxTick
-    const uint32_t delta_ticks = (delta->current_tick - delta->previous_tick) & delta->max_tick;
+    const uint32_t delta_ticks = (delta->last_sampled_tick - delta->last_valid_tick) & delta->max_tick;
     return ((float)delta_ticks * delta->tick_period_seconds);
 }
 

@@ -96,8 +96,8 @@ void setUp(void) {
     context.ki = kIntegralGain;
     context.dt.tick_period_seconds = kTickPeriod_sec;
     context.dt.max_tick = kMaxTick;
-    context.dt.current_tick = 0U;
-    context.dt.previous_tick = 0U;
+    context.dt.last_sampled_tick = 0U;
+    context.dt.last_valid_tick = 0U;
     context.align_check_enabled = 0U;
 
     current_tick = 1U;
@@ -147,7 +147,7 @@ static void test_null_pointer_guards(void) {
     TEST_ASSERT_TRUE_MESSAGE(equals, "nullptr sample failed");
 
     //test in normal conditions
-    context.dt.current_tick++;
+    context.dt.last_sampled_tick++;
     updateMahonyFilter(&context, &violent_pitch);
     // NOLINTNEXTLINE (DeprecatedOrUnsafeBufferHandling)
     equals = (memcmp(&old_context, &context, sizeof(MahonyContext)) == 0);
@@ -162,10 +162,10 @@ static void test_null_pointer_guards(void) {
  * Test that tick wraparound does not trigger a spurious filter reset.
  *
  * @details
- * This is achieved by setting previous_tick near UINT32_MAX and current_tick
+ * This is achieved by setting last_valid_tick near UINT32_MAX and last_sampled_tick
  * near zero, then running one update. Under these conditions getDT() computes
  * the correct elapsed time via bitmask subtraction rather than overflowing.
- * Example: previous_tick = UINT32_MAX - 5, current_tick = 3 →
+ * Example: last_valid_tick = UINT32_MAX - 5, last_sampled_tick = 3 →
  * delta = (3 - (UINT32_MAX - 5)) & UINT32_MAX = 9 ticks = 0.09s (valid).
  * Also verifies that dT=0 and dT>5s each trigger a reset.
  *
@@ -185,20 +185,20 @@ static void test_tick_handles_overflow(void) {
     // Tilt the quaternion slightly so a valid update and a reset produce
     // distinguishable states — identity after reset vs. rotated after update
     context.attitude.q1 = 0.1F;
-    context.dt.previous_tick = (kMaxTick - 5U);  // NOLINT (cppcoreguidelines-avoid-magic-numbers)
-    context.dt.current_tick = 3U;
+    context.dt.last_valid_tick = (kMaxTick - 5U);  // NOLINT (cppcoreguidelines-avoid-magic-numbers)
+    context.dt.last_sampled_tick = 3U;
     updateMahonyFilter(&context, &violent_pitch);
     TEST_ASSERT_FALSE_MESSAGE(isContextReset(&context), "Correct wraparound context failed");
 
     //test dT = 0 ticks -> filter reset
-    context.dt.previous_tick = context.dt.current_tick;
+    context.dt.last_valid_tick = context.dt.last_sampled_tick;
     updateMahonyFilter(&context, &violent_pitch);
     TEST_ASSERT_TRUE_MESSAGE(isContextReset(&context), "dT 0s context failed");
 
     //test dT > 5s -> filter reset
     const uint32_t tick_dt_5s = (uint32_t)(5.0F / kTickPeriod_sec);
-    context.dt.previous_tick = 0;
-    context.dt.current_tick = tick_dt_5s;
+    context.dt.last_valid_tick = 0;
+    context.dt.last_sampled_tick = tick_dt_5s;
     updateMahonyFilter(&context, &violent_pitch);
     TEST_ASSERT_TRUE_MESSAGE(isContextReset(&context), "dT > 5s context failed");
 }
@@ -225,7 +225,7 @@ static void test_bad_samples_counter_resets_correctly(void) {
     const IMUsample bad_sample = {.accelerometer_g[kXaxis] = 5.0F};
 
     //enable alignment check and feed the maximum number of bad acceleration values
-    context.dt.current_tick = 1U;
+    context.dt.last_sampled_tick = 1U;
     context.align_check_enabled = 1U;
     iterate_filter(&context, &bad_sample, kMaxBadCounts);
     TEST_ASSERT_TRUE_MESSAGE(isContextReset(&context), "Maximum bad attempts test failed");
@@ -238,7 +238,7 @@ static void test_bad_samples_counter_resets_correctly(void) {
     context.dt.tick_period_seconds = kTickPeriod_sec;
     context.dt.max_tick = kMaxTick;
     context.attitude.q1 = 0.1F;  // non-identity so recovery is distinguishable from reset
-    context.dt.current_tick = 1U;
+    context.dt.last_sampled_tick = 1U;
     context.align_check_enabled = 1U;
     iterate_filter(&context, &bad_sample, (kMaxBadCounts - 1U));
     updateMahonyFilter(&context, &kPureGravity);
@@ -263,7 +263,7 @@ static void test_bad_samples_counter_resets_correctly(void) {
 static void test_alignment_check_disabled_allows_update(void) {
     const IMUsample misaligned = {.accelerometer_g = {0.6F, 0.0F, 0.8F}};
     const Quaternion attitude_before = context.attitude;
-    context.dt.current_tick = 1U;
+    context.dt.last_sampled_tick = 1U;
 
     updateMahonyFilter(&context, &misaligned);
     TEST_ASSERT_NOT_EQUAL_FLOAT(attitude_before.q0, context.attitude.q0);
@@ -561,7 +561,7 @@ static void test_bad_quaternion_counter_resets_filter_at_threshold(void) {
     for (uint8_t attempt = 0U; attempt < kMaxBadCounts; attempt++) {
         // Force near-zero norm so normaliseQuaternion bails, triggering validateNorm rejection
         context.attitude = (Quaternion){.q0 = 0.0001F};  // NOLINT(cppcoreguidelines-avoid-magic-numbers)
-        context.dt.current_tick = (uint32_t)(attempt + 1U);
+        context.dt.last_sampled_tick = (uint32_t)(attempt + 1U);
         updateMahonyFilter(&context, &kPureGravity);
     }
     TEST_ASSERT_TRUE_MESSAGE(isContextReset(&context), "bad_quaternion_count failed to trigger reset");
@@ -574,9 +574,9 @@ static void test_bad_quaternion_counter_resets_filter_at_threshold(void) {
 /**
  * Feed N identical IMU samples into the filter.
  *
- * @details filter_context->dt.current_tick is set to the current current_tick value before
+ * @details filter_context->dt.last_sampled_tick is set to the current last_sampled_tick value before
  * each call because updateMahonyFilter() derives elapsed time from
- * filter_context->dt.current_tick and filter_context->dt.previous_tick, not from sample->latest_tick.
+ * filter_context->dt.last_sampled_tick and filter_context->dt.last_valid_tick, not from sample->tick.
  *
  * @param[out] filter_context Mahony filter context to update
  * @param[in] sample Constant IMU sample to feed
@@ -584,7 +584,7 @@ static void test_bad_quaternion_counter_resets_filter_at_threshold(void) {
  */
 static void iterate_filter(MahonyContext* filter_context, const IMUsample* sample, uint32_t steps) {
     for (uint32_t i = 0U; i < steps; i++) {
-        filter_context->dt.current_tick = current_tick;
+        filter_context->dt.last_sampled_tick = current_tick;
         updateMahonyFilter(filter_context, sample);
         current_tick++;
     }

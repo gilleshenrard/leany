@@ -461,7 +461,7 @@ ErrorCode IMUgetSample(IMUsample* sample) {
 
     //update the current sensor time ticks
     const uint8_t nb_measure_registers = (uint8_t)kNBaxis << 2U;
-    sample->latest_tick = toTicks(&lsb_values.registers8bits[nb_measure_registers]);
+    sample->tick = toTicks(&lsb_values.registers8bits[nb_measure_registers]);
 
     return kSuccessCode;
 }
