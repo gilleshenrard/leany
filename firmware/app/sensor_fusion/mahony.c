@@ -114,11 +114,13 @@ void resetMahonyFilter(MahonyContext* context) {
  *
  * @param[out] context  Current Mahony filter context
  * @param[in] sample    Latest IMU sample measured
+ * @retval true Filter updated
+ * @retval false Filter not updated due to error
  */
-void updateMahonyFilter(MahonyContext* context, const IMUsample* sample) {
+bool updateMahonyFilter(MahonyContext* context, const IMUsample* sample) {
     //if no pointer provided, exit
     if (!context || !sample) {
-        return;
+        return false;
     }
 
     //normalise accelerometer vectors to unit length, to avoid drift
@@ -126,14 +128,14 @@ void updateMahonyFilter(MahonyContext* context, const IMUsample* sample) {
                                                sample->accelerometer_g[2]};
     const float acceleration_norm = normaliseArray(normalised_accelerometer);
     if (!validateNorm(context, acceleration_norm, &context->bad_acceleration_count)) {
-        return;
+        return false;
     }
 
     //if dT out of reasonable bounds, reset the filter
     const float period_sec = getDT(&context->dt);
     if (!isDTvalid(period_sec)) {
         resetMahonyFilter(context);
-        return;
+        return true;
     }
 
     //estimate the current body frame gravity vectors from the current orientation quaternion
@@ -142,7 +144,7 @@ void updateMahonyFilter(MahonyContext* context, const IMUsample* sample) {
 
     //Abort update if validation is enabled and a strong linear motion is detected
     if (context->align_check_enabled && !alignmentValid(normalised_accelerometer, body_estimates)) {
-        return;
+        return false;
     }
 
     //compute the error rotation vectors, which will be used to realign the estimations to the measured vectors
@@ -169,11 +171,12 @@ void updateMahonyFilter(MahonyContext* context, const IMUsample* sample) {
     //normalise the current attitude quaternion to avoid drift
     const float quaterion_norm = normaliseQuaternion(&context->attitude);
     if (!validateNorm(context, quaterion_norm, &context->bad_quaternion_count)) {
-        return;
+        return false;
     }
 
     //update the last update tick on success
     context->dt.last_valid_tick = context->dt.last_sampled_tick;
+    return true;
 }
 
 /**
