@@ -12,7 +12,7 @@
 #include <unity.h>
 #include <unity_internals.h>
 
-#include "sensorfusion.h"
+#include "mahony.h"
 
 enum : uint16_t {
     kConvergenceSteps = 2000U,   ///< Number of steps for the filter to reach a stable attitude from identity
@@ -98,7 +98,7 @@ void setUp(void) {
     context.dt.max_tick = kMaxTick;
     context.dt.last_sampled_tick = 0U;
     context.dt.last_valid_tick = 0U;
-    context.align_check_enabled = 0U;
+    context.align_check_enabled = false;
 
     current_tick = 1U;
 }
@@ -154,8 +154,10 @@ static void test_null_pointer_guards(void) {
     TEST_ASSERT_FALSE_MESSAGE(equals, "Normal update condition failed");
 
     //test getting an angles with a nullptr context
+    // NOLINTBEGIN (readability-magic-numbers)
     TEST_ASSERT_EQUAL_FLOAT(0.0F, angleAlongAxis(nullptr, kXaxis));
     TEST_ASSERT_EQUAL_FLOAT(0.0F, getAttitudeAngle(nullptr));
+    // NOLINTEND (readability-magic-numbers)
 }
 
 /**
@@ -184,6 +186,7 @@ static void test_tick_handles_overflow(void) {
     // Test tick wraparound -> no reset
     // Tilt the quaternion slightly so a valid update and a reset produce
     // distinguishable states — identity after reset vs. rotated after update
+    // NOLINTNEXTLINE (readability-magic-numbers)
     context.attitude.q1 = 0.1F;
     context.dt.last_valid_tick = (kMaxTick - 5U);  // NOLINT (cppcoreguidelines-avoid-magic-numbers)
     context.dt.last_sampled_tick = 3U;
@@ -226,7 +229,7 @@ static void test_bad_samples_counter_resets_correctly(void) {
 
     //enable alignment check and feed the maximum number of bad acceleration values
     context.dt.last_sampled_tick = 1U;
-    context.align_check_enabled = 1U;
+    context.align_check_enabled = true;
     iterate_filter(&context, &bad_sample, kMaxBadCounts);
     TEST_ASSERT_TRUE_MESSAGE(isContextReset(&context), "Maximum bad attempts test failed");
 
@@ -237,9 +240,10 @@ static void test_bad_samples_counter_resets_correctly(void) {
     context.ki = kIntegralGain;
     context.dt.tick_period_seconds = kTickPeriod_sec;
     context.dt.max_tick = kMaxTick;
+    // NOLINTNEXTLINE (readability-magic-numbers)
     context.attitude.q1 = 0.1F;  // non-identity so recovery is distinguishable from reset
     context.dt.last_sampled_tick = 1U;
-    context.align_check_enabled = 1U;
+    context.align_check_enabled = true;
     iterate_filter(&context, &bad_sample, (kMaxBadCounts - 1U));
     updateMahonyFilter(&context, &kPureGravity);
     TEST_ASSERT_FALSE_MESSAGE(isContextReset(&context), "Recovery without reset failed");
@@ -266,6 +270,7 @@ static void test_alignment_check_disabled_allows_update(void) {
     context.dt.last_sampled_tick = 1U;
 
     updateMahonyFilter(&context, &misaligned);
+    // NOLINTNEXTLINE (readability-magic-numbers)
     TEST_ASSERT_NOT_EQUAL_FLOAT(attitude_before.q0, context.attitude.q0);
 }
 
@@ -422,7 +427,7 @@ static void test_normalisation_prevents_drift_under_sustained_input(void) {
 static void test_alignment_check_freezes_update_on_lateral_accel(void) {
     iterate_filter(&context, &kPureGravity, kConvergenceSteps);
 
-    context.align_check_enabled = 1U;
+    context.align_check_enabled = true;
 
     // Snapshot the quaternion before injecting the misaligned samples
     const Quaternion attitude_before = context.attitude;
@@ -497,11 +502,11 @@ static void test_integration_stable_at_high_angular_rate(void) {
  * @internal
  * Exercises the clamp() call applied to each error_integrals[axis] inside
  * updateMahonyFilter(). kExpectedMaxIntegral mirrors the private kMaxIntegralError
- * constant in sensorfusion.c — any change to that constant must be reflected here.
+ * constant in mahony.c — any change to that constant must be reflected here.
  * kp=0 removes the proportional path so only the integral branch is active.
  */
 static void test_integral_clamped_on_windup(void) {
-    // mirrors kMaxIntegralError in sensorfusion.c
+    // mirrors kMaxIntegralError in mahony.c
     static constexpr float kExpectedMaxIntegral = 0.3F;
     // ki > kMaxIntegralError / (|error| * dt) = 0.3 / (1.0 * 0.01) = 30 guarantees
     // saturation in one step; 100 gives safe margin
@@ -538,7 +543,10 @@ static void test_integral_clamped_on_windup(void) {
  * no-op contract for sentinel values. Without this test, removing the case
  * would go unnoticed since default already covers it.
  */
-static void test_out_of_range_axis_returns_0(void) { TEST_ASSERT_EQUAL_FLOAT(0.0F, angleAlongAxis(&context, kNBaxis)); }
+static void test_out_of_range_axis_returns_0(void) {
+    // NOLINTNEXTLINE (readability-magic-numbers)
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, angleAlongAxis(&context, kNBaxis));
+}
 
 /**
  * Test that the bad quaternion counter resets the filter at threshold.
@@ -560,7 +568,7 @@ static void test_out_of_range_axis_returns_0(void) { TEST_ASSERT_EQUAL_FLOAT(0.0
 static void test_bad_quaternion_counter_resets_filter_at_threshold(void) {
     for (uint8_t attempt = 0U; attempt < kMaxBadCounts; attempt++) {
         // Force near-zero norm so normaliseQuaternion bails, triggering validateNorm rejection
-        context.attitude = (Quaternion){.q0 = 0.0001F};  // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+        context.attitude = (Quaternion){.q0 = 1e-3F};  // NOLINT (readability-magic-numbers)
         context.dt.last_sampled_tick = (uint32_t)(attempt + 1U);
         updateMahonyFilter(&context, &kPureGravity);
     }
