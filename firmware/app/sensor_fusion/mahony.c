@@ -76,6 +76,8 @@ static bool validateNorm(MahonyContext* context, float norm, uint8_t* bad_norm_c
 static void computeEstimates(const MahonyContext* context, float body_estimates[kNBaxis]);
 static void applyProportionate(const MahonyContext* context, float corrected_gyro_radps[kNBaxis],
                                const IMUsample* sample, const float errors[kNBaxis]);
+static void applyClampedErrorIntegrals(MahonyContext* context, float corrected_gyro_radps[kNBaxis],
+                                       const float errors[kNBaxis], float period_sec);
 
 //constants
 static constexpr float kCloseToZero = 1e-3F;            ///< Value used to compare floats to 0
@@ -157,13 +159,7 @@ bool updateMahonyFilter(MahonyContext* context, const IMUsample* sample) {
 
     //apply the clamped integral term to error vectors and add them to the gyroscope measurements
     // (avoid if gain is 0 to avoid integral windup due to float approximate 0.0F)
-    uint8_t axis = 0;
-    while ((context->ki > kCloseToZero) && (axis < kNBaxis)) {
-        context->error_integrals[axis] += (context->ki * errors[axis] * period_sec);
-        context->error_integrals[axis] = clamp(context->error_integrals[axis], kMaxIntegralError);
-        corrected_gyro_radps[axis] += context->error_integrals[axis];
-        axis++;
-    }
+    applyClampedErrorIntegrals(context, corrected_gyro_radps, errors, period_sec);
 
     //integrate the corrected gyroscope data into the current attitude quaternion
     integrateGyroMeasurements(&context->attitude, corrected_gyro_radps, period_sec);
@@ -453,4 +449,28 @@ static void applyProportionate(const MahonyContext* context, float corrected_gyr
     corrected_gyro_radps[kXaxis] = (sample->gyroscope_radps[kXaxis] + (context->kp * errors[kXaxis]));
     corrected_gyro_radps[kYaxis] = (sample->gyroscope_radps[kYaxis] + (context->kp * errors[kYaxis]));
     corrected_gyro_radps[kZaxis] = (sample->gyroscope_radps[kZaxis] + (context->kp * errors[kZaxis]));
+}
+
+/**
+ * Apply the clamped integral term to error vectors and add them to the gyroscope measurements
+ * @details Avoid if gain is 0 to avoid integral windup due to float approximate 0.0F
+ *
+ * @param context Filter context
+ * @param[out] corrected_gyro_radps Array to fill with the filtered values
+ * @param errors Error orientation vector (body frame).
+ * @param period_sec Time delta since last update
+ */
+static void applyClampedErrorIntegrals(MahonyContext* context, float corrected_gyro_radps[kNBaxis],
+                                       const float errors[kNBaxis], float period_sec) {
+    if ((context->ki <= kCloseToZero)) {
+        return;
+    }
+
+    uint8_t axis = 0;
+    while (axis < kNBaxis) {
+        context->error_integrals[axis] += (context->ki * errors[axis] * period_sec);
+        context->error_integrals[axis] = clamp(context->error_integrals[axis], kMaxIntegralError);
+        corrected_gyro_radps[axis] += context->error_integrals[axis];
+        axis++;
+    }
 }
