@@ -65,19 +65,21 @@ static inline FORCE_INLINE_SILENT float squared(float number);
 static inline FORCE_INLINE_SILENT float normaliseArray(float array[3]);
 static inline FORCE_INLINE_SILENT float normaliseQuaternion(Quaternion* quaternion);
 static inline FORCE_INLINE_SILENT float clamp(float value, float max_absolute_value);
-static inline FORCE_INLINE_SILENT float getDT(const TimeDelta* delta);
+static inline FORCE_INLINE_SILENT float computeDTseconds(const TimeDelta* delta);
 static inline FORCE_INLINE_SILENT uint8_t isDTvalid(float delta_seconds);
+static bool normaliseAccelerometer(MahonyContext* context, const IMUsample* sample,
+                                   float normalised_accelerometer[kNBaxis]);
 static bool alignmentValid(const float accelerometer_normalised[kNBaxis], const float estimates_normalised[kNBaxis]);
 static void computeGravityError(float errors[kNBaxis], const float accelerometer_g[kNBaxis],
                                 const float body_estimates[kNBaxis]);
-static void integrateGyroMeasurements(Quaternion* current_attitude, const float corrected_gyro[kNBaxis],
-                                      float period_sec);
+static void integrateGyroQuaternion(Quaternion* current_attitude, const float corrected_gyro[kNBaxis],
+                                    float timedelta_seconds);
 static bool validateNorm(MahonyContext* context, float norm, uint8_t* bad_norm_counter);
-static void computeEstimates(const MahonyContext* context, float body_estimates[kNBaxis]);
-static void applyProportionate(const MahonyContext* context, float corrected_gyro_radps[kNBaxis],
-                               const IMUsample* sample, const float errors[kNBaxis]);
-static void applyClampedErrorIntegrals(MahonyContext* context, float corrected_gyro_radps[kNBaxis],
-                                       const float errors[kNBaxis], float period_sec);
+static void estimateOrientation(const MahonyContext* context, float body_estimates[kNBaxis]);
+static void applyProportionateErrors(const MahonyContext* context, float corrected_gyro_radps[kNBaxis],
+                                     const IMUsample* sample, const float errors[kNBaxis]);
+static void accumulateIntegralErrors(MahonyContext* context, const float errors[kNBaxis], float timedelta_seconds);
+static void applyIntegralErrors(const MahonyContext* context, float corrected_gyro_radps[kNBaxis]);
 
 //constants
 static constexpr float kCloseToZero = 1e-3F;            ///< Value used to compare floats to 0
@@ -126,23 +128,21 @@ bool updateMahonyFilter(MahonyContext* context, const IMUsample* sample) {
     }
 
     //normalise accelerometer vectors to unit length, to avoid drift
-    float normalised_accelerometer[kNBaxis] = {sample->accelerometer_g[0], sample->accelerometer_g[1],
-                                               sample->accelerometer_g[2]};
-    const float acceleration_norm = normaliseArray(normalised_accelerometer);
-    if (!validateNorm(context, acceleration_norm, &context->bad_acceleration_count)) {
+    float normalised_accelerometer[kNBaxis];
+    if (!normaliseAccelerometer(context, sample, normalised_accelerometer)) {
         return false;
     }
 
     //if dT out of reasonable bounds, reset the filter
-    const float period_sec = getDT(&context->dt);
-    if (!isDTvalid(period_sec)) {
+    const float timedelta_seconds = computeDTseconds(&context->dt);
+    if (!isDTvalid(timedelta_seconds)) {
         resetMahonyFilter(context);
         return true;
     }
 
     //estimate the current body frame gravity vectors from the current orientation quaternion
     float body_estimates[kNBaxis];
-    computeEstimates(context, body_estimates);
+    estimateOrientation(context, body_estimates);
 
     //Abort update if validation is enabled and a strong linear motion is detected
     if (context->align_check_enabled && !alignmentValid(normalised_accelerometer, body_estimates)) {
@@ -153,16 +153,14 @@ bool updateMahonyFilter(MahonyContext* context, const IMUsample* sample) {
     float errors[kNBaxis] = {0.0F, 0.0F, 0.0F};
     computeGravityError(errors, normalised_accelerometer, body_estimates);
 
-    //apply the proportion term to error vectors and add them to the gyroscope measurements
+    //apply the proportion and integral terms to error vectors
     float corrected_gyro_radps[kNBaxis];
-    applyProportionate(context, corrected_gyro_radps, sample, errors);
-
-    //apply the clamped integral term to error vectors and add them to the gyroscope measurements
-    // (avoid if gain is 0 to avoid integral windup due to float approximate 0.0F)
-    applyClampedErrorIntegrals(context, corrected_gyro_radps, errors, period_sec);
+    applyProportionateErrors(context, corrected_gyro_radps, sample, errors);
+    accumulateIntegralErrors(context, errors, timedelta_seconds);
+    applyIntegralErrors(context, corrected_gyro_radps);
 
     //integrate the corrected gyroscope data into the current attitude quaternion
-    integrateGyroMeasurements(&context->attitude, corrected_gyro_radps, period_sec);
+    integrateGyroQuaternion(&context->attitude, corrected_gyro_radps, timedelta_seconds);
 
     //normalise the current attitude quaternion to avoid drift
     const float quaterion_norm = normaliseQuaternion(&context->attitude);
@@ -317,7 +315,7 @@ static inline FORCE_INLINE_SILENT float clamp(const float value, const float max
  * @param delta Time delta structure
  * @return time delta in [s]
  */
-static inline FORCE_INLINE_SILENT float getDT(const TimeDelta* delta) {
+static inline FORCE_INLINE_SILENT float computeDTseconds(const TimeDelta* delta) {
     //compute the time delta and avoid issues with the overflow after maxTick
     const uint32_t delta_ticks = (delta->last_sampled_tick - delta->last_valid_tick) & delta->max_tick;
     return ((float)delta_ticks * delta->tick_period_seconds);
@@ -353,6 +351,27 @@ static bool alignmentValid(const float accelerometer_normalised[kNBaxis], const 
 }
 
 /**
+ * Normalise accelerometer vectors to unit length
+ * @details This avoids drifting
+ *
+ * @param context Filter context
+ * @param sample Last measured IMU sample
+ * @param[out] normalised_accelerometer Array of normalised acceleration values in [G] (9.81 m/s²)
+ * @return true Norm is valid
+ * @return false Norm is invalid
+ */
+static bool normaliseAccelerometer(MahonyContext* context, const IMUsample* sample,
+                                   float normalised_accelerometer[kNBaxis]) {
+    //normalise accelerometer vectors to unit length, to avoid drift
+    normalised_accelerometer[kXaxis] = sample->accelerometer_g[kXaxis];
+    normalised_accelerometer[kYaxis] = sample->accelerometer_g[kYaxis];
+    normalised_accelerometer[kZaxis] = sample->accelerometer_g[kZaxis];
+
+    const float acceleration_norm = normaliseArray(normalised_accelerometer);
+    return validateNorm(context, acceleration_norm, &context->bad_acceleration_count);
+}
+
+/**
  * Compute the 3D error vector between measured and estimated gravity.
  * @details Uses the cross product of the normalized accelerometer vector and the estimated gravity vector (from quaternion)
  * to compute the direction and magnitude of the orientation error. This error is used to correct the gyroscope bias.
@@ -374,12 +393,12 @@ static void computeGravityError(float errors[kNBaxis], const float accelerometer
 /**
  * Integrate corrected gyroscope measurements and apply them to the current attitude quaternion
  *
- * @param current_attitude Current attitude quaternion to update
+ * @param[out] current_attitude Current attitude quaternion to update
  * @param corrected_gyro Gyroscope measurements, corrected with the PI filter and error rotation vectors
- * @param period_sec Period between now and the last update, in [s]
+ * @param timedelta_seconds Period between now and the last update, in [s]
  */
-static void integrateGyroMeasurements(Quaternion* current_attitude, const float corrected_gyro[kNBaxis],
-                                      float period_sec) {
+static void integrateGyroQuaternion(Quaternion* current_attitude, const float corrected_gyro[kNBaxis],
+                                    float timedelta_seconds) {
     //compute the derivative quaternion, composed of the current attitude and the gyroscope measurements
 
     const float q0 = current_attitude->q0;  //NOLINT(readability-identifier-length)
@@ -394,10 +413,10 @@ static void integrateGyroMeasurements(Quaternion* current_attitude, const float 
         .q3 = half((q0 * corrected_gyro[kZaxis]) + (q1 * corrected_gyro[kYaxis]) - (q2 * corrected_gyro[kXaxis]))};
 
     //integrate the current quaternion with the change rate
-    current_attitude->q0 += (rate_of_change.q0 * period_sec);
-    current_attitude->q1 += (rate_of_change.q1 * period_sec);
-    current_attitude->q2 += (rate_of_change.q2 * period_sec);
-    current_attitude->q3 += (rate_of_change.q3 * period_sec);
+    current_attitude->q0 += (rate_of_change.q0 * timedelta_seconds);
+    current_attitude->q1 += (rate_of_change.q1 * timedelta_seconds);
+    current_attitude->q2 += (rate_of_change.q2 * timedelta_seconds);
+    current_attitude->q3 += (rate_of_change.q3 * timedelta_seconds);
 }
 
 /**
@@ -406,7 +425,7 @@ static void integrateGyroMeasurements(Quaternion* current_attitude, const float 
  *
  * @param context Filter context
  * @param norm Norm to validate
- * @param bad_norm_counter Counter used to see if the filter should be reseted
+ * @param bad_norm_counter Counter used to see if the filter should be reset
  * @retval true Norm valid
  * @retval false Norm invalid
  */
@@ -427,7 +446,7 @@ static bool validateNorm(MahonyContext* context, const float norm, uint8_t* bad_
  * @param context Current Mahony filter's context
  * @param[out] body_estimates Array to fill with the estimates
  */
-static void computeEstimates(const MahonyContext* context, float body_estimates[kNBaxis]) {
+static void estimateOrientation(const MahonyContext* context, float body_estimates[kNBaxis]) {
     body_estimates[kXaxis] =
         twice((context->attitude.q1 * context->attitude.q3) - (context->attitude.q0 * context->attitude.q2));
     body_estimates[kYaxis] =
@@ -437,40 +456,47 @@ static void computeEstimates(const MahonyContext* context, float body_estimates[
 }
 
 /**
- * Apply the filter's PID proportionate member to the current sample gyroscope values
+ * Apply the filter's PI proportionate term to the current sample gyroscope values
  *
  * @param context Current Mahony filter's context
  * @param[out] corrected_gyro_radps Array to fill with the filtered values
  * @param sample Current sample from which get the gyro values
  * @param errors Error vectors to apply
  */
-static void applyProportionate(const MahonyContext* context, float corrected_gyro_radps[kNBaxis],
-                               const IMUsample* sample, const float errors[kNBaxis]) {
+static void applyProportionateErrors(const MahonyContext* context, float corrected_gyro_radps[kNBaxis],
+                                     const IMUsample* sample, const float errors[kNBaxis]) {
     corrected_gyro_radps[kXaxis] = (sample->gyroscope_radps[kXaxis] + (context->kp * errors[kXaxis]));
     corrected_gyro_radps[kYaxis] = (sample->gyroscope_radps[kYaxis] + (context->kp * errors[kYaxis]));
     corrected_gyro_radps[kZaxis] = (sample->gyroscope_radps[kZaxis] + (context->kp * errors[kZaxis]));
 }
 
 /**
- * Apply the clamped integral term to error vectors and add them to the gyroscope measurements
- * @details Avoid if gain is 0 to avoid integral windup due to float approximate 0.0F
+ * Accumulate the new errors with the integral term into the error integrals array
  *
- * @param context Filter context
- * @param[out] corrected_gyro_radps Array to fill with the filtered values
+ * @param[out] context Filter context
  * @param errors Error orientation vector (body frame).
- * @param period_sec Time delta since last update
+ * @param timedelta_seconds Time delta since last update
  */
-static void applyClampedErrorIntegrals(MahonyContext* context, float corrected_gyro_radps[kNBaxis],
-                                       const float errors[kNBaxis], float period_sec) {
+static void accumulateIntegralErrors(MahonyContext* context, const float errors[kNBaxis], float timedelta_seconds) {
+    // Avoid if gain is 0 to avoid integrals pollution due to float approximating 0.0F
     if ((context->ki <= kCloseToZero)) {
         return;
     }
 
-    uint8_t axis = 0;
-    while (axis < kNBaxis) {
-        context->error_integrals[axis] += (context->ki * errors[axis] * period_sec);
+    for (uint8_t axis = 0; axis < kNBaxis; axis++) {
+        context->error_integrals[axis] += (context->ki * errors[axis] * timedelta_seconds);
         context->error_integrals[axis] = clamp(context->error_integrals[axis], kMaxIntegralError);
+    }
+}
+
+/**
+ * Apply the filter's PI integral term to the current sample gyroscope values
+ *
+ * @param context Filter context
+ * @param[out] corrected_gyro_radps Array to correct
+ */
+static void applyIntegralErrors(const MahonyContext* context, float corrected_gyro_radps[kNBaxis]) {
+    for (uint8_t axis = 0; axis < kNBaxis; axis++) {
         corrected_gyro_radps[axis] += context->error_integrals[axis];
-        axis++;
     }
 }
