@@ -27,7 +27,8 @@ enum : uint8_t {
 
     // Accelerometer Control register 1 (0x10) values
     kAXL_POWER_DOWN = 0x00U,        ///< Accelerometer ODR value for power-down
-    kAXL_ODR_416HZ = 0x60U,         ///< Accelerometer ODR value for 416Hz High-Performance
+    kAXL_ODR_416HZ = 0x60U,         ///< Accelerometer ODR value for 416Hz
+    kAXL_ODR_104HZ = 0x40U,         ///< Accelerometer ODR value for 104Hz
     kODR_XL_52HZ = 0x30U,           ///< Bit value for an accelerometer 52Hz ODR
     kLSM6_AXL_LPF2_ENABLE = 0x02U,  ///< Bit value to enable the accelerometers LP filter 2
     kLPF2_XL_DISABLE = 0x00U,       ///< Bit value for accelerometer LPF2 disable

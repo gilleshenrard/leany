@@ -356,13 +356,13 @@ ErrorCode IMUconfigure(void) {
         // cppcheck-suppress-begin duplicateExpression
         {kFIFO_CTRL4, kFIFO_MODE_BYPASS},
         {kINT1_CTRL, kINT1_AXL_DATA_RDY},
-        {kCTRL1_XL, kFS_XL_2G | kAXL_ODR_416HZ | kLSM6_AXL_LPF2_ENABLE},
-        {kCTRL2_G, kAXL_ODR_416HZ | kGYR_FS_125_DPS},
+        {kCTRL1_XL, kFS_XL_2G | kAXL_ODR_104HZ | kLSM6_AXL_LPF2_ENABLE},
+        {kCTRL2_G, kAXL_ODR_104HZ | kGYR_FS_125_DPS},
         {kCTRL4_C, kGYR_LPF1_ENABLE | kLSM6_I2C_DISABLE},
         {kCTRL5_C, kGYR_SELFTEST_DISABLE | kAXL_SELFTEST_DISABLE},
         {kCTRL6_C, kGYR_LPF1_CUTOFF_120_3HZ},
         {kCTRL7_G, kGYR_HPF_ENABLE | kGYR_HPF_CUTOFF_65MHZ | kLSM6_OIS_DISABLE},
-        {kCTRL8_XL, kAXL_NO_HP_FILTER | kAXL_LPF2_ODR_4},
+        {kCTRL8_XL, kAXL_NO_HP_FILTER | kAXL_LPF2_ODR_20},
         {kCTRL9_XL, kAXL_DEN_DISABLE | kLSM6_I3C_DISABLE},
         {kCTRL10_C, kLSM6_TIMESTAMP_ENABLE},
         // cppcheck-suppress-end duplicateExpression
