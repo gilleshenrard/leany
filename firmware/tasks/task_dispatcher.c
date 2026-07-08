@@ -30,6 +30,7 @@
 
 #include "errorstack.h"
 #include "hardware_events.h"
+#include "leany_std.h"
 #include "led.h"
 #include "orientation.h"
 #include "scpi_commands.h"
@@ -365,14 +366,18 @@ static void handleSerialReadCommandEvent(const SerialCommand* command) {
     // Therefore, Lizard linter can ignore this function's length
     // #lizard forgives(cyclomatic_complexity)
     uint8_t orientation = 0;
+    constexpr uint8_t floatbuffer_size = 16U;
+    char float_strbuffer[floatbuffer_size];
 
     switch (command->code) {
         case kCmdKI:
-            logSerial(kMaxErrorLevel, "%f", (double)getIMU_KI());
+            floatToString(getIMU_KI(), float_strbuffer, floatbuffer_size, 2U);
+            logSerial(kMaxErrorLevel, "%s", float_strbuffer);
             break;
 
         case kCmdKP:
-            logSerial(kMaxErrorLevel, "%f", (double)getIMU_KP());
+            floatToString(getIMU_KP(), float_strbuffer, floatbuffer_size, 2U);
+            logSerial(kMaxErrorLevel, "%s", float_strbuffer);
             break;
 
         case kCmdAlignmentEnable:
