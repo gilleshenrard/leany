@@ -127,17 +127,17 @@ bool updateMahonyFilter(MahonyContext* context, const IMUsample* sample) {
         return false;
     }
 
-    //normalise accelerometer vectors to unit length, to avoid drift
-    float normalised_accelerometer[kNBaxis];
-    if (!normaliseAccelerometer(context, sample, normalised_accelerometer)) {
-        return false;
-    }
-
     //if dT out of reasonable bounds, reset the filter
     const float timedelta_seconds = computeDTseconds(&context->dt);
     if (!isDTvalid(timedelta_seconds)) {
         resetMahonyFilter(context);
         return true;
+    }
+
+    //normalise accelerometer vectors to unit length, to avoid drift
+    float normalised_accelerometer[kNBaxis];
+    if (!normaliseAccelerometer(context, sample, normalised_accelerometer)) {
+        return false;
     }
 
     //estimate the current body frame gravity vectors from the current orientation quaternion
