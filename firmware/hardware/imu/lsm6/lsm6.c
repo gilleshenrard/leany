@@ -383,21 +383,22 @@ ErrorCode IMUconfigure(void) {
  * @param[out] filter_context Mahony filter's current context
  */
 void IMUsetupTimebase(MahonyContext* filter_context) {
-    //read the internal frequency register
-    int8_t frequency_fine = 0;
-    result = readRegisters(&spi_descriptor, kINTERNAL_FREQ_FINE, (uint8_t*)&frequency_fine, 1);
+    //read the difference between typical frequency and actual frequency (in [0.15% steps])
+    int8_t frequency_difference_nbsteps = 0;
+    result = readRegisters(&spi_descriptor, kINTERNAL_FREQ_FINE, (uint8_t*)&frequency_difference_nbsteps, 1);
     if (isError(result)) {
         return;
     }
 
     //apply the frequency difference to the nominal frequency (lsm6dsr datasheet p.82)
     const float nominal_tick_hz = 40000.0F;
-    const float freq_diff_step_100percent = 0.0015F;
-    float tick_frequency = (nominal_tick_hz + (freq_diff_step_100percent * (float)frequency_fine * nominal_tick_hz));
+    const float frequency_difference_percent_step = 0.0015F;  // 0.15% / step
+    const float actual_tick_hz =
+        (nominal_tick_hz + (frequency_difference_percent_step * (float)frequency_difference_nbsteps * nominal_tick_hz));
 
     //update the Mahony filter's context timebase
     filter_context->dt.max_tick = UINT32_MAX;
-    filter_context->dt.tick_period_seconds = 1.0F / tick_frequency;
+    filter_context->dt.tick_period_seconds = (1.0F / actual_tick_hz);
 }
 
 /**
