@@ -184,49 +184,6 @@ void floatToString(float value, char out_buffer[], uint8_t buffer_size, uint8_t 
 }
 
 /**
- * Parse an int to a string
- *
- * @param value Value to parse 
- * @param[out] out_buffer Buffer in which store the parsed string
- * @param buffer_size Maximum number of characters in the buffer
- */
-void intToString(uint32_t value, char out_buffer[], uint8_t buffer_size) {
-    if (!out_buffer || !buffer_size) {
-        return;
-    }
-
-    const char ascii_digit_offset = '0';
-    const uint8_t decimal_base = 10U;
-
-    if (value == 0U) {
-        out_buffer[0] = ascii_digit_offset;
-        out_buffer[1] = '\n';
-        return;
-    }
-
-    // Calculate the correct magnitude (highest power of 10 <= value)
-    uint32_t magnitude = 1U;
-    uint32_t temp_value = value;
-
-    while (temp_value >= decimal_base) {
-        temp_value /= decimal_base;
-        magnitude *= decimal_base;
-    }
-
-    // Convert digits from most significant to least significant
-    uint8_t index = 0U;
-    while ((index < buffer_size - 1U) && (magnitude > 0U)) {
-        uint8_t digit = (uint8_t)(value / magnitude);
-        out_buffer[index] = (char)(ascii_digit_offset + digit);
-        value %= magnitude;
-        magnitude /= decimal_base;
-        index++;
-    }
-
-    out_buffer[index] = '\0';
-}
-
-/**
  * Parse a string to a float
  *
  * @param string String to parse

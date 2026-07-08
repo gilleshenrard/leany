@@ -49,7 +49,6 @@ enum : uint8_t {
 int32_t leany_vsnprintf(char* buffer, size_t size, const char* format, va_list args);
 int32_t leany_snprintf(char* buffer, size_t size, const char* format, ...);
 void floatToString(float value, char out_buffer[], uint8_t buffer_size, uint8_t precision);
-void intToString(uint32_t value, char out_buffer[], uint8_t buffer_size);
 float stringToFloat(const char string[]);
 uint32_t stringToInt(const char string[]);
 uint32_t stringHexToInt(const char string[]);
