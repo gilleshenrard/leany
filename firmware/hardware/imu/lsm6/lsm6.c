@@ -384,8 +384,8 @@ ErrorCode IMUconfigure(void) {
  */
 void IMUsetupTimebase(MahonyContext* filter_context) {
     //read the internal frequency register
-    uint8_t frequency_fine = 0;
-    result = readRegisters(&spi_descriptor, kINTERNAL_FREQ_FINE, &frequency_fine, 1);
+    int8_t frequency_fine = 0;
+    result = readRegisters(&spi_descriptor, kINTERNAL_FREQ_FINE, (uint8_t*)&frequency_fine, 1);
     if (isError(result)) {
         return;
     }
