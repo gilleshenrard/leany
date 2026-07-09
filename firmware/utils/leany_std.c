@@ -26,13 +26,13 @@ enum : uint8_t {
  * @brief Format flags parsed from format specifier
  */
 typedef struct {
-    uint8_t zero_pad;      /**< Use zero padding instead of spaces */
-    uint8_t left_justify;  /**< Left justify the output */
-    uint8_t show_sign;     /**< Always show sign for signed numbers */
-    uint8_t space_sign;    /**< Use space for positive numbers */
-    uint32_t width;        /**< Minimum field width */
-    uint32_t precision;    /**< Precision for strings/numbers */
-    uint8_t has_precision; /**< Whether precision was specified */
+    bool zero_pad;      /**< Use zero padding instead of spaces */
+    bool left_justify;  /**< Left justify the output */
+    bool show_sign;     /**< Always show sign for signed numbers */
+    bool space_sign;    /**< Use space for positive numbers */
+    uint32_t width;     /**< Minimum field width */
+    uint32_t precision; /**< Precision for strings/numbers */
+    bool has_precision; /**< Whether precision was specified */
 } FormatFlags;
 
 /**
@@ -510,35 +510,35 @@ static uint8_t qualifyFormatPrefix(const char* format, FormatFlags* flags) {
 
     // Initialize flags
     *flags = (FormatFlags){
-        .zero_pad = 0,
-        .left_justify = 0,
-        .show_sign = 0,
-        .space_sign = 0,
+        .zero_pad = false,
+        .left_justify = false,
+        .show_sign = false,
+        .space_sign = false,
         .width = 0U,
         .precision = 0U,
-        .has_precision = 0,
+        .has_precision = false,
     };
 
     // Qualify flag characters
     while (parsing && (length < kMaxPrefixLength)) {
         switch (format[length]) {
             case '0':
-                flags->zero_pad = 1;
+                flags->zero_pad = true;
                 length++;
                 break;
 
             case '-':
-                flags->left_justify = 1;
+                flags->left_justify = true;
                 length++;
                 break;
 
             case '+':
-                flags->show_sign = 1;
+                flags->show_sign = true;
                 length++;
                 break;
 
             case ' ':
-                flags->space_sign = 1;
+                flags->space_sign = true;
                 length++;
                 break;
 
@@ -758,7 +758,7 @@ static void applyStringJustification(OutputBuffer* output, const FormatFlags* fl
 
     /* Output zero padding (after sign) */
     if (!flags->left_justify) {
-        const char pad_character = (flags->zero_pad ? '0' : ' ');
+        const char pad_character = ((uint8_t)flags->zero_pad ? '0' : ' ');
         outputPadding(output, pad_character, padding);
     }
 
