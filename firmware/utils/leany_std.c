@@ -483,12 +483,6 @@ static uint32_t parseFlags(const char* format, FormatFlags* flags) {
     uint32_t length = qualifyFormatPrefix(format, flags);
     length += qualifyLengthModifier(&format[length], &flags->width);
 
-    if (format[length] != '.') {
-        return length;
-    }
-
-    length += qualifyLengthModifier(&format[length], &flags->precision);
-
     return length;
 }
 
