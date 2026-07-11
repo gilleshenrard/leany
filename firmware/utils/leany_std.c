@@ -20,24 +20,24 @@ enum : uint8_t {
 };
 
 /**
- * @brief Format flags parsed from format specifier
+ * @brief Format metadata parsed from format specifier
  */
 typedef struct {
-    bool zero_pad;     /**< Use zero padding instead of spaces */
-    bool left_justify; /**< Left justify the output */
-    bool show_sign;    /**< Always show sign for signed numbers */
-    bool space_sign;   /**< Use space for positive numbers */
-    uint32_t width;    /**< Minimum field width */
-} FormatFlags;
+    bool zero_pad;      ///< Use zero padding instead of spaces
+    bool left_justify;  ///< Left justify the output
+    bool show_sign;     ///< Always show sign for signed numbers
+    bool space_sign;    ///< Use space for positive numbers
+    uint32_t width;     ///< Minimum field width
+} ConversionMetadata;
 
 /**
- * Structure used to lower the number of arguments to outputInteger()
+ * Structure holding a parsing/conversion string result
  */
 typedef struct {
-    const char* input_string;  ///< String which will be copied
-    uint32_t input_length;     ///< Length of the input string
-    uint8_t is_negative;       ///< Whether the number is negative
-} IntegerInput;
+    char input_string[kMaxIntBuffer];  ///< String which will be copied
+    uint32_t input_length;             ///< Length of the input string
+    uint8_t is_negative;               ///< Whether the number is negative
+} ConversionResult;
 
 /**
  * Output buffer into which perform the formatting
@@ -52,15 +52,16 @@ static void outputChar(OutputBuffer* output, char character);
 static void outputPadding(OutputBuffer* output, char pad_char, uint32_t count);
 static uint32_t convertUnsigned(uint32_t value, char* buffer, uint32_t base, uint8_t uppercase);
 static uint32_t convertSigned(int32_t value, char* buffer, uint32_t base, uint8_t* is_negative);
-static uint32_t parseFlags(const char* format, FormatFlags* flags);
-static uint8_t qualifyFormatPrefix(const char* format, FormatFlags* flags);
-static void outputInteger(OutputBuffer* output, const IntegerInput* input, const FormatFlags* flags);
-static char qualifySignCharacter(const FormatFlags* flags, uint8_t is_negative);
-static void outputString(OutputBuffer* output, const char* str, const FormatFlags* flags);
-static void qualifyConversionSpecifier(char specifier, OutputBuffer* output, const FormatFlags* flags, va_list* args);
+static uint32_t parseFlags(const char* format, ConversionMetadata* metadata);
+static uint8_t qualifyFormatPrefix(const char* format, ConversionMetadata* metadata);
+static void outputInteger(OutputBuffer* output, const ConversionResult* result, const ConversionMetadata* metadata);
+static char qualifySignCharacter(const ConversionMetadata* metadata, uint8_t is_negative);
+static void outputString(OutputBuffer* output, const char* str, const ConversionMetadata* metadata);
+static void qualifyConversionSpecifier(char specifier, OutputBuffer* output, const ConversionMetadata* metadata,
+                                       va_list* args);
 static uint32_t qualifyHexCharacter(char character);
 static uint32_t qualifyLengthModifier(const char format[], uint32_t* length);
-static void applyStringJustification(OutputBuffer* output, const FormatFlags* flags, uint32_t output_len);
+static void applyStringJustification(OutputBuffer* output, const ConversionMetadata* metadata, uint32_t output_len);
 static uint8_t consumeIntroductoryCharacter(const char* format, uint32_t* format_index, OutputBuffer* output);
 
 /********************************************************************************************************************************************/
@@ -102,10 +103,10 @@ int32_t leany_vsnprintf(char* buffer, size_t size, const char* format, va_list a
             continue;
         }
 
-        // Parse flags and conversion specifier
-        FormatFlags flags;
-        format_index += parseFlags(&format[format_index], &flags);
-        qualifyConversionSpecifier(format[format_index], &output, &flags, &args);
+        // Parse metadata and conversion specifier
+        ConversionMetadata metadata;
+        format_index += parseFlags(&format[format_index], &metadata);
+        qualifyConversionSpecifier(format[format_index], &output, &metadata, &args);
     }
 
     // Null-terminate
@@ -464,19 +465,19 @@ static uint32_t convertSigned(int32_t value, char* buffer, uint32_t base, uint8_
 }
 
 /**
- * Parse format flags from format string
+ * Parse format metadata from format string
  * 
- * @param format Pointer to format string (at flags position)
- * @param[out] flags Parsed flags structure
+ * @param format Pointer to format string (at metadata position)
+ * @param[out] metadata Parsed metadata structure
  * @return Number of characters consumed
  */
-static uint32_t parseFlags(const char* format, FormatFlags* flags) {
-    if (!format || !flags) {
+static uint32_t parseFlags(const char* format, ConversionMetadata* metadata) {
+    if (!format || !metadata) {
         return 0U;
     }
 
-    uint32_t length = qualifyFormatPrefix(format, flags);
-    length += qualifyLengthModifier(&format[length], &flags->width);
+    uint32_t length = qualifyFormatPrefix(format, metadata);
+    length += qualifyLengthModifier(&format[length], &metadata->width);
 
     return length;
 }
@@ -486,19 +487,19 @@ static uint32_t parseFlags(const char* format, FormatFlags* flags) {
  * @details The prefix comprises all modifier characters coming before any length or type specifier
  *
  * @param format Format to parse
- * @param flags Prefix flags to qualify
+ * @param metadata Prefix metadata to qualify
  * @return Length of the prefix
  */
-static uint8_t qualifyFormatPrefix(const char* format, FormatFlags* flags) {
-    if (!format || !flags) {
+static uint8_t qualifyFormatPrefix(const char* format, ConversionMetadata* metadata) {
+    if (!format || !metadata) {
         return 0U;
     }
 
     uint8_t parsing = 1;
     uint8_t length = 0;
 
-    // Initialize flags
-    *flags = (FormatFlags){
+    // Initialize metadata
+    *metadata = (ConversionMetadata){
         .zero_pad = false,
         .left_justify = false,
         .show_sign = false,
@@ -510,22 +511,22 @@ static uint8_t qualifyFormatPrefix(const char* format, FormatFlags* flags) {
     while (parsing && (length < kMaxPrefixLength)) {
         switch (format[length]) {
             case '0':
-                flags->zero_pad = true;
+                metadata->zero_pad = true;
                 length++;
                 break;
 
             case '-':
-                flags->left_justify = true;
+                metadata->left_justify = true;
                 length++;
                 break;
 
             case '+':
-                flags->show_sign = true;
+                metadata->show_sign = true;
                 length++;
                 break;
 
             case ' ':
-                flags->space_sign = true;
+                metadata->space_sign = true;
                 length++;
                 break;
 
@@ -539,29 +540,29 @@ static uint8_t qualifyFormatPrefix(const char* format, FormatFlags* flags) {
 }
 
 /**
- * Format and output an integer with flags
+ * Format and output an integer with metadata
  * 
  * @param[out] output Output buffer metadata
- * @param input Characteristics of the input number
- * @param flags Format flags
+ * @param result_str Characteristics of the input number
+ * @param metadata Format metadata
  */
-static void outputInteger(OutputBuffer* output, const IntegerInput* input, const FormatFlags* flags) {
-    if (!output || !input || !flags) {
+static void outputInteger(OutputBuffer* output, const ConversionResult* result, const ConversionMetadata* metadata) {
+    if (!output || !result || !metadata) {
         return;
     }
 
-    char sign_char = qualifySignCharacter(flags, input->is_negative);
+    char sign_char = qualifySignCharacter(metadata, result->is_negative);
 
-    uint32_t total_len = input->input_length;
+    uint32_t total_len = result->input_length;
     if (sign_char != '\0') {
         total_len++;
     }
 
     // Calculate padding
-    const uint32_t padding = ((flags->width > total_len) ? (flags->width - total_len) : 0U);
+    const uint32_t padding = ((metadata->width > total_len) ? (metadata->width - total_len) : 0U);
 
     /* Output left padding (if not zero-pad or left-justify) */
-    if (!flags->left_justify && !flags->zero_pad) {
+    if (!metadata->left_justify && !metadata->zero_pad) {
         outputPadding(output, ' ', padding);
     }
 
@@ -570,18 +571,18 @@ static void outputInteger(OutputBuffer* output, const IntegerInput* input, const
         outputChar(output, sign_char);
     }
 
-    outputString(output, input->input_string, flags);
+    outputString(output, result->input_string, metadata);
 }
 
 /**
  * Parse a sign character
  *
- * @param flags Prefix flags to qualify
+ * @param metadata Prefix metadata to qualify
  * @param is_negative Flag indicating whether the sign is negative
  * @return Corresponding character
  */
-static char qualifySignCharacter(const FormatFlags* flags, uint8_t is_negative) {
-    if (!flags) {
+static char qualifySignCharacter(const ConversionMetadata* metadata, uint8_t is_negative) {
+    if (!metadata) {
         return '\0';
     }
 
@@ -589,11 +590,11 @@ static char qualifySignCharacter(const FormatFlags* flags, uint8_t is_negative) 
         return '-';
     }
 
-    if (flags->show_sign) {
+    if (metadata->show_sign) {
         return '+';
     }
 
-    if (flags->space_sign) {
+    if (metadata->space_sign) {
         return ' ';
     }
 
@@ -601,20 +602,20 @@ static char qualifySignCharacter(const FormatFlags* flags, uint8_t is_negative) 
 }
 
 /**
- * Format and output a string with flags
+ * Format and output a string with metadata
  * 
  * @param[out] output Output buffer metadata
  * @param str String to output
- * @param flags Format flags
+ * @param metadata Format metadata
  */
-static void outputString(OutputBuffer* output, const char* str, const FormatFlags* flags) {
-    if (!output || !str || !flags) {
+static void outputString(OutputBuffer* output, const char* str, const ConversionMetadata* metadata) {
+    if (!output || !str || !metadata) {
         return;
     }
 
     uint32_t output_len = getStringLength(str, kMaxFormatLength);
 
-    applyStringJustification(output, flags, output_len);
+    applyStringJustification(output, metadata, output_len);
 
     // Output string
     for (uint32_t index = 0U; index < output_len; index++) {
@@ -627,36 +628,38 @@ static void outputString(OutputBuffer* output, const char* str, const FormatFlag
  * 
  * @param specifier Specifier (e.g. 'd' for an integer)
  * @param[out] output Output buffer metadata
- * @param flags Modifier flags (e.g. '+' to force adding the sign)
+ * @param metadata Modifier metadata (e.g. '+' to force adding the sign)
  * @param args Variable list of arguments
  */
-static void qualifyConversionSpecifier(char specifier, OutputBuffer* output, const FormatFlags* flags, va_list* args) {
+static void qualifyConversionSpecifier(char specifier, OutputBuffer* output, const ConversionMetadata* metadata,
+                                       va_list* args) {
     const uint8_t decimal_radix = 10U;
     const uint8_t hexa_radix = 16U;
-    char num_buffer[kMaxIntBuffer];
     const uint8_t is_uppercase_hex = (specifier == 'X');
 
-    IntegerInput input = {.input_string = num_buffer, .is_negative = 0};
+    ConversionResult result = {.is_negative = 0};
     switch (specifier) {
         case 'd':
         case 'i':
-            input.input_length = convertSigned(va_arg(*args, int32_t), num_buffer, decimal_radix, &input.is_negative);
-            outputInteger(output, &input, flags);
+            result.input_length =
+                convertSigned(va_arg(*args, int32_t), result.input_string, decimal_radix, &result.is_negative);
+            outputInteger(output, &result, metadata);
             break;
 
         case 'u':
-            input.input_length = convertUnsigned(va_arg(*args, uint32_t), num_buffer, decimal_radix, 0);
-            outputInteger(output, &input, flags);
+            result.input_length = convertUnsigned(va_arg(*args, uint32_t), result.input_string, decimal_radix, 0);
+            outputInteger(output, &result, metadata);
             break;
 
         case 'X':
         case 'x':
-            input.input_length = convertUnsigned(va_arg(*args, uint32_t), num_buffer, hexa_radix, is_uppercase_hex);
-            outputInteger(output, &input, flags);
+            result.input_length =
+                convertUnsigned(va_arg(*args, uint32_t), result.input_string, hexa_radix, is_uppercase_hex);
+            outputInteger(output, &result, metadata);
             break;
 
         case 's':
-            outputString(output, va_arg(*args, char*), flags);
+            outputString(output, va_arg(*args, char*), metadata);
             break;
 
         case 'c':
@@ -667,8 +670,9 @@ static void qualifyConversionSpecifier(char specifier, OutputBuffer* output, con
             /* Pointer as hex with 0x prefix */
             outputChar(output, '0');
             outputChar(output, 'x');
-            input.input_length = convertUnsigned((uint32_t)(uintptr_t)va_arg(*args, void*), num_buffer, hexa_radix, 0);
-            outputInteger(output, &input, flags);
+            result.input_length =
+                convertUnsigned((uint32_t)(uintptr_t)va_arg(*args, void*), result.input_string, hexa_radix, 0);
+            outputInteger(output, &result, metadata);
             break;
 
         default:
@@ -726,23 +730,23 @@ static uint32_t qualifyLengthModifier(const char format[], uint32_t* length) {
  * Apply string justificaton (left, right, padding)
  *
  * @param[out] output Output buffer metadata
- * @param flags Modifier flags
+ * @param metadata Modifier metadata
  * @param output_len Length of the string to justify in the buffer
  */
-static void applyStringJustification(OutputBuffer* output, const FormatFlags* flags, uint32_t output_len) {
+static void applyStringJustification(OutputBuffer* output, const ConversionMetadata* metadata, uint32_t output_len) {
     // Calculate padding
-    const uint32_t padding = ((flags->width > output_len) ? (flags->width - output_len) : 0U);
+    const uint32_t padding = ((metadata->width > output_len) ? (metadata->width - output_len) : 0U);
 
     /* Output zero padding (after sign) */
-    if (!flags->left_justify) {
-        const char pad_character = ((uint8_t)flags->zero_pad ? '0' : ' ');
+    if (!metadata->left_justify) {
+        const char pad_character = ((uint8_t)metadata->zero_pad ? '0' : ' ');
         outputPadding(output, pad_character, padding);
     }
 
     const size_t restore_index = output->current_index;
 
     /* Output right padding */
-    if (flags->left_justify) {
+    if (metadata->left_justify) {
         outputPadding(output, ' ', padding);
     }
 
