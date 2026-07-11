@@ -1,10 +1,7 @@
-/*
- * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
- *
- * SPDX-License-Identifier: MIT
- */
-
 /**
+ * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
+ * SPDX-License-Identifier: MIT
+ *
  * @file leany_std.c
  * @brief Lightweight standard functions implementation for embedded systems
  */
@@ -26,13 +23,11 @@ enum : uint8_t {
  * @brief Format flags parsed from format specifier
  */
 typedef struct {
-    bool zero_pad;      /**< Use zero padding instead of spaces */
-    bool left_justify;  /**< Left justify the output */
-    bool show_sign;     /**< Always show sign for signed numbers */
-    bool space_sign;    /**< Use space for positive numbers */
-    uint32_t width;     /**< Minimum field width */
-    uint32_t precision; /**< Precision for strings/numbers */
-    bool has_precision; /**< Whether precision was specified */
+    bool zero_pad;     /**< Use zero padding instead of spaces */
+    bool left_justify; /**< Left justify the output */
+    bool show_sign;    /**< Always show sign for signed numbers */
+    bool space_sign;   /**< Use space for positive numbers */
+    uint32_t width;    /**< Minimum field width */
 } FormatFlags;
 
 /**
@@ -509,8 +504,6 @@ static uint8_t qualifyFormatPrefix(const char* format, FormatFlags* flags) {
         .show_sign = false,
         .space_sign = false,
         .width = 0U,
-        .precision = 0U,
-        .has_precision = false,
     };
 
     // Qualify flag characters
@@ -620,11 +613,6 @@ static void outputString(OutputBuffer* output, const char* str, const FormatFlag
     }
 
     uint32_t output_len = getStringLength(str, kMaxFormatLength);
-
-    // Apply precision limit
-    if (flags->has_precision && (flags->precision < output_len)) {
-        output_len = flags->precision;
-    }
 
     applyStringJustification(output, flags, output_len);
 
@@ -742,11 +730,6 @@ static uint32_t qualifyLengthModifier(const char format[], uint32_t* length) {
  * @param output_len Length of the string to justify in the buffer
  */
 static void applyStringJustification(OutputBuffer* output, const FormatFlags* flags, uint32_t output_len) {
-    // Apply precision limit
-    if (flags->has_precision && (flags->precision < output_len)) {
-        output_len = flags->precision;
-    }
-
     // Calculate padding
     const uint32_t padding = ((flags->width > output_len) ? (flags->width - output_len) : 0U);
 

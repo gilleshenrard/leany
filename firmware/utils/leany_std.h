@@ -1,10 +1,7 @@
-/*
- * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
- *
- * SPDX-License-Identifier: MIT
- */
-
 /**
+ * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
+ * SPDX-License-Identifier: MIT 
+ *
  * @file leany_std.h
  * @brief Lightweight printf implementation for embedded systems
  * 
@@ -26,7 +23,6 @@
  * - +: always show sign
  * - (space): space for positive numbers
  * - width: minimum field width (e.g., %5d)
- * - .precision: precision for strings (e.g., %.10s)
  * 
  * @note Does not support:
  * - Floating-point formats (%f, %e, %g)
