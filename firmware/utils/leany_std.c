@@ -36,7 +36,6 @@ typedef struct {
 typedef struct {
     char input_string[kMaxIntBuffer];  ///< String which will be copied
     uint32_t input_length;             ///< Length of the input string
-    uint8_t is_negative;               ///< Whether the number is negative
 } ConversionResult;
 
 /**
@@ -51,11 +50,12 @@ typedef struct {
 static void outputChar(OutputBuffer* output, char character);
 static void outputPadding(OutputBuffer* output, char pad_char, uint32_t count);
 static uint32_t convertUnsigned(uint32_t value, char* buffer, uint32_t base, uint8_t uppercase);
-static uint32_t convertSigned(int32_t value, char* buffer, uint32_t base, uint8_t* is_negative);
+static uint32_t convertSigned(int32_t value, char* buffer, uint32_t base);
 static uint32_t parseFlags(const char* format, ConversionMetadata* metadata);
 static uint8_t qualifyFormatPrefix(const char* format, ConversionMetadata* metadata);
-static void outputInteger(OutputBuffer* output, const ConversionResult* result, const ConversionMetadata* metadata);
-static char qualifySignCharacter(const ConversionMetadata* metadata, uint8_t is_negative);
+static void outputInteger(OutputBuffer* output, const ConversionResult* result, const ConversionMetadata* metadata,
+                          bool is_negative);
+static char qualifySignCharacter(const ConversionMetadata* metadata, bool is_negative);
 static void outputString(OutputBuffer* output, const char* str, const ConversionMetadata* metadata);
 static void qualifyConversionSpecifier(char specifier, OutputBuffer* output, const ConversionMetadata* metadata,
                                        va_list* args);
@@ -442,15 +442,12 @@ static uint32_t convertUnsigned(uint32_t value, char* buffer, uint32_t base, uin
  * @param value Value to convert
  * @param[out] buffer Buffer to store result
  * @param base Numeric base (typically 10)
- * @param[out] is_negative Set to 1 if value was negative
  * @return Length of converted string (excluding sign)
  */
-static uint32_t convertSigned(int32_t value, char* buffer, uint32_t base, uint8_t* is_negative) {
-    if (!buffer || !is_negative) {
+static uint32_t convertSigned(int32_t value, char* buffer, uint32_t base) {
+    if (!buffer) {
         return 0U;
     }
-
-    *is_negative = (value < 0);
 
     uint32_t unsigned_value = 0;
     if (value < 0) {
@@ -546,12 +543,13 @@ static uint8_t qualifyFormatPrefix(const char* format, ConversionMetadata* metad
  * @param result_str Characteristics of the input number
  * @param metadata Format metadata
  */
-static void outputInteger(OutputBuffer* output, const ConversionResult* result, const ConversionMetadata* metadata) {
+static void outputInteger(OutputBuffer* output, const ConversionResult* result, const ConversionMetadata* metadata,
+                          bool is_negative) {
     if (!output || !result || !metadata) {
         return;
     }
 
-    char sign_char = qualifySignCharacter(metadata, result->is_negative);
+    char sign_char = qualifySignCharacter(metadata, is_negative);
 
     uint32_t total_len = result->input_length;
     if (sign_char != '\0') {
@@ -581,7 +579,7 @@ static void outputInteger(OutputBuffer* output, const ConversionResult* result, 
  * @param is_negative Flag indicating whether the sign is negative
  * @return Corresponding character
  */
-static char qualifySignCharacter(const ConversionMetadata* metadata, uint8_t is_negative) {
+static char qualifySignCharacter(const ConversionMetadata* metadata, bool is_negative) {
     if (!metadata) {
         return '\0';
     }
@@ -636,26 +634,27 @@ static void qualifyConversionSpecifier(char specifier, OutputBuffer* output, con
     const uint8_t decimal_radix = 10U;
     const uint8_t hexa_radix = 16U;
     const uint8_t is_uppercase_hex = (specifier == 'X');
+    int32_t signed_value = 0;
 
-    ConversionResult result = {.is_negative = 0};
+    ConversionResult result;
     switch (specifier) {
         case 'd':
         case 'i':
-            result.input_length =
-                convertSigned(va_arg(*args, int32_t), result.input_string, decimal_radix, &result.is_negative);
-            outputInteger(output, &result, metadata);
+            signed_value = va_arg(*args, int32_t);
+            result.input_length = convertSigned(signed_value, result.input_string, decimal_radix);
+            outputInteger(output, &result, metadata, (signed_value < 0));
             break;
 
         case 'u':
             result.input_length = convertUnsigned(va_arg(*args, uint32_t), result.input_string, decimal_radix, 0);
-            outputInteger(output, &result, metadata);
+            outputInteger(output, &result, metadata, false);
             break;
 
         case 'X':
         case 'x':
             result.input_length =
                 convertUnsigned(va_arg(*args, uint32_t), result.input_string, hexa_radix, is_uppercase_hex);
-            outputInteger(output, &result, metadata);
+            outputInteger(output, &result, metadata, false);
             break;
 
         case 's':
@@ -672,7 +671,7 @@ static void qualifyConversionSpecifier(char specifier, OutputBuffer* output, con
             outputChar(output, 'x');
             result.input_length =
                 convertUnsigned((uint32_t)(uintptr_t)va_arg(*args, void*), result.input_string, hexa_radix, 0);
-            outputInteger(output, &result, metadata);
+            outputInteger(output, &result, metadata, false);
             break;
 
         default:
