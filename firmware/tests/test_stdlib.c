@@ -12,6 +12,9 @@ enum : uint8_t {
 static void test_null_pointer_guards(void);
 static void test_context_initialisation(void);
 static void test_string_without_arguments(void);
+static void test_double_percents(void);
+static void test_invalid_argument_format_length(void);
+static void test_arguments_reevaluation_overflow(void);
 
 static ParserContext parser_context;
 static char test_buffer[kStringBufferSize];
@@ -30,6 +33,9 @@ int main(void) {
     RUN_TEST(test_null_pointer_guards);
     RUN_TEST(test_context_initialisation);
     RUN_TEST(test_string_without_arguments);
+    RUN_TEST(test_double_percents);
+    RUN_TEST(test_invalid_argument_format_length);
+    RUN_TEST(test_arguments_reevaluation_overflow);
     return UNITY_END();
 }
 
@@ -108,3 +114,42 @@ static void test_string_without_arguments(void) {
     }
     TEST_ASSERT_EQUAL_STRING_MESSAGE(testchar, parser_context.output.buffer, "Final string not cropped properly");
 }
+
+static void test_double_percents(void) {
+    (void)pushCharacter(&parser_context, '%', nullptr);
+    (void)pushCharacter(&parser_context, '%', nullptr);
+    (void)pushCharacter(&parser_context, 'd', nullptr);
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("%d", parser_context.output.buffer, "Double percents not accounted for");
+
+    setUp();
+    (void)pushCharacter(&parser_context, '%', nullptr);
+    (void)pushCharacter(&parser_context, '%', nullptr);
+    (void)pushCharacter(&parser_context, '%', nullptr);
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("%", parser_context.output.buffer, "Double percents not accounted for");
+    TEST_ASSERT_EQUAL_UINT8_MESSAGE(kStateParsingPrefix, parser_context.state, "Invalid state");
+}
+
+static void test_invalid_argument_format_length(void) {
+    // const char invalid_argument_modifiers[] = "%- 012.013d";
+    // ParserResult result = kParserPending;
+
+    // const char* iterator = invalid_argument_modifiers;
+    // while (*iterator != '\0') {
+    //     result = pushCharacter(&parser_context, *iterator, nullptr);
+    //     iterator++;
+    // }
+
+    // TEST_ASSERT_EQUAL_UINT8_MESSAGE(kParserInvalid, result, "Argument not shown as invalid");
+
+    // TEST_ASSERT_EQUAL_size_t_MESSAGE(0, parser_context.output.current_index, "Invalid buffer index");
+    // TEST_ASSERT_EQUAL_UINT8_MESSAGE(kStateCopying, parser_context.state, "Invalid parser state");
+    // TEST_ASSERT_EQUAL_UINT8_MESSAGE(0, parser_context.current_argument.prefix_length, "Invalid prefix length");
+    // TEST_ASSERT_EQUAL_UINT32_MESSAGE(0, parser_context.current_argument.width, "Invalid argument width");
+    // TEST_ASSERT_FALSE_MESSAGE(parser_context.current_argument.introductory_consumed, "Invalid introduction flag value");
+    // TEST_ASSERT_FALSE_MESSAGE(parser_context.current_argument.left_justify, "Invalid justification flag value");
+    // TEST_ASSERT_FALSE_MESSAGE(parser_context.current_argument.show_sign, "Invalid sign forcing flag value");
+    // TEST_ASSERT_FALSE_MESSAGE(parser_context.current_argument.space_sign, "Invalid space sign flag value");
+    // TEST_ASSERT_FALSE_MESSAGE(parser_context.current_argument.zero_pad, "Invalid zero padding flag value");
+}
+
+static void test_arguments_reevaluation_overflow(void) {}
