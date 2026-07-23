@@ -2,6 +2,8 @@
 #
 # SPDX-License-Identifier: MIT
 
+add_subdirectory(sensor_fusion)
+
 #
 # Declare the SCPI serial commands library
 #
@@ -14,9 +16,3 @@ target_link_libraries(scpi PRIVATE
 	tasks
 	utils
 )
-
-add_library(sensorfusion
-	sensor_fusion/mahony.c
-)
-target_include_directories(sensorfusion PUBLIC sensor_fusion)
-target_compile_options(sensorfusion PRIVATE ${WARNING_FLAGS})
