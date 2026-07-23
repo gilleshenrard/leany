@@ -24,9 +24,10 @@ enum : uint8_t {
  */
 typedef enum : uint8_t {
     kParserPending = 0,       ///< Parser is still pending for new characters
-    kParserInvalid = 1,       ///< Parser received an invalid input
-    kParserSkipArgument = 2,  ///< The current argument can be considered as parsed and can be skipped
-    kParserDone = 3,          ///< Parser is done
+    kParserSkipArgument = 1,  ///< The current argument can be considered as parsed and can be skipped
+    kParserReevaluate = 2,    ///< The parser needs to re-evaluate the last character
+    kParserInvalid = 3,       ///< Parser received an invalid input
+    kParserDone = 4,          ///< Parser is done
 } ParserResult;
 
 /**

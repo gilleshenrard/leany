@@ -9,8 +9,13 @@
 
 #include <stdarg.h>
 #include <stddef.h>
+#include <stdint.h>
 
 #include "custom_string.h"
+
+enum : uint8_t {
+    kMaxCharacterEvaluations = 10U,  ///< Maximum times the parser can reevaluate a character
+};
 
 // state machine functions
 static ParserResult stateCopyingCharacters(ParserContext* context, char input_character);
@@ -51,21 +56,29 @@ ParserResult pushCharacter(ParserContext* context, char input_character, va_list
     }
 
     ParserResult result = kParserPending;
-    switch (context->state) {
-        case kStateCopying:
-            result = stateCopyingCharacters(context, input_character);
-            break;
+    uint8_t evaluations = kMaxCharacterEvaluations;
+    do {
+        switch (context->state) {
+            case kStateCopying:
+                result = stateCopyingCharacters(context, input_character);
+                break;
 
-        case kStateParsingPrefix:
-            result = stateParsingArgumentPrefix(context, input_character);
-            break;
+            case kStateParsingPrefix:
+                result = stateParsingArgumentPrefix(context, input_character);
+                break;
 
-        case kStateParsingLengthModifier:
-            result = stateParsingLengthModifier(context, input_character);
-            break;
+            case kStateParsingLengthModifier:
+                result = stateParsingLengthModifier(context, input_character);
+                break;
 
-        default:
-            result = kParserInvalid;
+            default:
+                result = kParserInvalid;
+        }
+    } while (--evaluations && (result == kParserReevaluate));
+
+    if (!evaluations) {
+        resetContext(context);
+        result = kParserInvalid;
     }
 
     return result;
@@ -187,7 +200,7 @@ static ParserResult stateParsingArgumentPrefix(ParserContext* context, char inpu
         default:
             context->state = kStateParsingLengthModifier;
             argument->prefix_length = 0;
-            break;
+            return kParserReevaluate;
     }
 
     return kParserPending;
