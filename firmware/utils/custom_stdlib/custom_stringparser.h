@@ -34,9 +34,9 @@ typedef enum : uint8_t {
  * States of the parser
  */
 typedef enum : uint8_t {
-    kStateCopying = 1,                ///< State during which characters pushed are not parameters or modifiers
-    kStateParsingPrefix = 2,          ///< State during which the argument prefix (length, padding, ...) is parsed
-    kStateParsingLengthModifier = 3,  ///< State during which the length modifier is parsed
+    kStateCopying = 0,                ///< State during which characters pushed are not parameters or modifiers
+    kStateParsingPrefix = 1,          ///< State during which the argument prefix (length, padding, ...) is parsed
+    kStateParsingLengthModifier = 2,  ///< State during which the length modifier is parsed
 } ParserState;
 
 /**
@@ -49,7 +49,7 @@ typedef struct {
 } OutputBuffer;
 
 /**
- * @brief Format metadata parsed from format specifier
+ * Argument format metadata parsed from format specifier
  */
 typedef struct {
     bool introductory_consumed;  ///< Whether the percent character has already been consumed
@@ -61,10 +61,13 @@ typedef struct {
     uint8_t prefix_length;       ///< Argument's prefix length
 } ArgumentMetadata;
 
+/**
+ * String parser context
+ */
 typedef struct {
-    ParserState state;
-    OutputBuffer output;
-    ArgumentMetadata current_argument;
+    ParserState state;                  ///< Current parser state
+    OutputBuffer output;                ///< Output metadata
+    ArgumentMetadata current_argument;  ///< Current argument metadata
 } ParserContext;
 
 bool initialiseContext(ParserContext* context, char* output_buffer, size_t output_size);

@@ -1,3 +1,10 @@
+/**
+ * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
+ * SPDX-License-Identifier: MIT
+ *
+ * @file test_stdlib.c
+ * @brief Unit tests for the lightweight printf-style string parser (custom_stringparser).
+ */
 #include <stdint.h>
 #include <string.h>
 #include <unity.h>
@@ -16,8 +23,8 @@ static void test_double_percents(void);
 static void test_invalid_argument_format_length(void);
 static void test_arguments_reevaluation_overflow(void);
 
-static ParserContext parser_context;
-static char test_buffer[kStringBufferSize];
+static ParserContext parser_context;         ///< Parser context to use on all tests
+static char test_buffer[kStringBufferSize];  ///< String buffer to use as output on all tests
 
 /*********************************************************************************************************************************/
 // PUBLIC FUNCTIONS
@@ -40,11 +47,7 @@ int main(void) {
 }
 
 /**
- * Initialise the filter context to a clean, known state before each test.
- *
- * @internal
- * resetMahonyFilter() only resets the quaternion, error integrals, and bad counters.
- * All other fields must be set explicitly here.
+ * Initialise the parser context to a clean, known state before each test.
  */
 void setUp(void) {
     memset(test_buffer, '\0', kStringBufferSize);
@@ -60,6 +63,9 @@ void tearDown(void) {}
 // TEST FUNCTIONS
 /*********************************************************************************************************************************/
 
+/**
+ * Check initialiseContext() rejects a null context, a null output buffer, and a zero-size buffer
+ */
 static void test_null_pointer_guards(void) {
     TEST_ASSERT_FALSE_MESSAGE(initialiseContext(nullptr, test_buffer, kStringBufferSize), "nullptr context failed");
     TEST_ASSERT_FALSE_MESSAGE(initialiseContext(&parser_context, nullptr, kStringBufferSize),
@@ -67,6 +73,9 @@ static void test_null_pointer_guards(void) {
     TEST_ASSERT_FALSE_MESSAGE(initialiseContext(&parser_context, test_buffer, 0U), "zero-size output buffer failed");
 }
 
+/**
+ * Check initialiseContext() resets a fully "poisoned" context back to its clean default state
+ */
 static void test_context_initialisation(void) {
     parser_context = (ParserContext){
         // clang-format off
@@ -98,6 +107,10 @@ static void test_context_initialisation(void) {
     TEST_ASSERT_FALSE_MESSAGE(parser_context.current_argument.zero_pad, "Invalid zero padding flag value");
 }
 
+/**
+ * Check plain characters (no '%' introducer) are copied verbatim, and that the output
+ * is truncated once the destination buffer is full
+ */
 static void test_string_without_arguments(void) {
     const char testchar[kStringBufferSize] = "000000000000000";
     ParserResult result = kParserDone;
@@ -115,6 +128,10 @@ static void test_string_without_arguments(void) {
     TEST_ASSERT_EQUAL_STRING_MESSAGE(testchar, parser_context.output.buffer, "Final string not cropped properly");
 }
 
+/**
+ * Check "%%" is collapsed to a single literal '%' in the output, and that a further
+ * "%" after that correctly re-enters prefix parsing rather than being copied verbatim
+ */
 static void test_double_percents(void) {
     (void)pushCharacter(&parser_context, '%', nullptr);
     (void)pushCharacter(&parser_context, '%', nullptr);
@@ -129,6 +146,12 @@ static void test_double_percents(void) {
     TEST_ASSERT_EQUAL_UINT8_MESSAGE(kStateParsingPrefix, parser_context.state, "Invalid state");
 }
 
+/**
+ * Check an over-long length modifier (width/precision digit run) is rejected as invalid
+ * and the context is reset to a clean copying state
+ *
+ * @todo Implementation pending stateParsingLengthModifier()
+ */
 static void test_invalid_argument_format_length(void) {
     // const char invalid_argument_modifiers[] = "%- 012.013d";
     // ParserResult result = kParserPending;
@@ -152,4 +175,10 @@ static void test_invalid_argument_format_length(void) {
     // TEST_ASSERT_FALSE_MESSAGE(parser_context.current_argument.zero_pad, "Invalid zero padding flag value");
 }
 
+/**
+ * Check that exceeding kMaxCharacterEvaluations re-evaluations for a single character
+ * is reported as invalid rather than looping indefinitely
+ *
+ * @todo Implementation pending
+ */
 static void test_arguments_reevaluation_overflow(void) {}
