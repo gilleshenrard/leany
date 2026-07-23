@@ -2,6 +2,8 @@
 #
 # SPDX-License-Identifier: MIT
 
+add_subdirectory(custom_stdlib)
+
 #create the utils library, taking care of the error stack management
 #	STM32CubeMX includes and definitions are manually added instead of linking the library
 #	to avoid re-compiling STMCube libraries and optimising compilation

@@ -63,4 +63,5 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
     sensorfusion
     utils
     stm32cubemx
+    custom_stdlib
 )
