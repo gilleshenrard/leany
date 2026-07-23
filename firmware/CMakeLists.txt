@@ -24,6 +24,8 @@ endif()
 # if set, configure unit-testing and exit
 if(UNIT_TESTING)
     enable_testing()
+    add_subdirectory(utils/custom_stdlib)
+    add_subdirectory(app/sensor_fusion)
     add_subdirectory(tests)
     return()
 endif()
