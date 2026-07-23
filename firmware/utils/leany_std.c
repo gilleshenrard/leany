@@ -540,8 +540,9 @@ static uint8_t qualifyFormatPrefix(const char* format, ConversionMetadata* metad
  * Format and output an integer with metadata
  * 
  * @param[out] output Output buffer metadata
- * @param result_str Characteristics of the input number
+ * @param result Characteristics of the input number
  * @param metadata Format metadata
+ * @param is_negative Flag indicating whether the number is negative or not
  */
 static void outputInteger(OutputBuffer* output, const ConversionResult* result, const ConversionMetadata* metadata,
                           bool is_negative) {
