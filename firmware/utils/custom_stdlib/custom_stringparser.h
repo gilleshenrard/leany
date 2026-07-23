@@ -23,10 +23,20 @@ enum : uint8_t {
  * Result of the last parser round
  */
 typedef enum : uint8_t {
-    kParserPending = 0,  ///< Parser is still pending for new characters
-    kParserInvalid = 1,  ///< Parser received an invalid input
-    kParserDone = 2,     ///< Parser is done
+    kParserPending = 0,       ///< Parser is still pending for new characters
+    kParserInvalid = 1,       ///< Parser received an invalid input
+    kParserSkipArgument = 2,  ///< The current argument can be considered as parsed and can be skipped
+    kParserDone = 3,          ///< Parser is done
 } ParserResult;
+
+/**
+ * States of the parser
+ */
+typedef enum : uint8_t {
+    kStateCopying = 1,                ///< State during which characters pushed are not parameters or modifiers
+    kStateParsingPrefix = 2,          ///< State during which the argument prefix (length, padding, ...) is parsed
+    kStateParsingLengthModifier = 3,  ///< State during which the length modifier is parsed
+} ParserState;
 
 /**
  * Output buffer into which perform the formatting
@@ -37,6 +47,26 @@ typedef struct {
     size_t current_index;  ///< Current index in the buffer
 } OutputBuffer;
 
-ParserResult pushCharacter(OutputBuffer* output_string, char input_character, va_list args);
+/**
+ * @brief Format metadata parsed from format specifier
+ */
+typedef struct {
+    bool introductory_consumed;  ///< Whether the percent character has already been consumed
+    bool zero_pad;               ///< Use zero padding instead of spaces
+    bool left_justify;           ///< Left justify the output
+    bool show_sign;              ///< Always show sign for signed numbers
+    bool space_sign;             ///< Use space for positive numbers
+    uint32_t width;              ///< Minimum field width
+    uint8_t prefix_length;       ///< Argument's prefix length
+} ArgumentMetadata;
+
+typedef struct {
+    ParserState state;
+    OutputBuffer output;
+    ArgumentMetadata current_argument;
+} ParserContext;
+
+bool initialiseContext(ParserContext* context, char* output_buffer, size_t output_size);
+ParserResult pushCharacter(ParserContext* context, char input_character, va_list args);
 
 #endif

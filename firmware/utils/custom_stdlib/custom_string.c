@@ -33,17 +33,19 @@
  * @note If the formatted string would exceed size-1, it is truncated
  */
 int32_t custom_vsnprintf(char* buffer, size_t size, const char* format, va_list args) {
-    (void)args;
-
     /* Validate parameters */
     if (!buffer || !format || !size) {
         return -1;
     }
 
-    OutputBuffer output = {buffer, size, 0};
+    ParserContext context;
+    if (!initialiseContext(&context, buffer, size)) {
+        return -1;
+    }
+
     uint32_t format_index = 0U;
     for (format_index = 0U; format_index < kMaxFormatLength; format_index++) {
-        (void)pushCharacter(&output, format[format_index], args);
+        (void)pushCharacter(&context, format[format_index], args);
     }
 
     return 0;
