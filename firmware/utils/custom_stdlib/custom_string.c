@@ -84,7 +84,7 @@ int32_t custom_snprintf(char* buffer, size_t size, const char* format, ...) {
  * @retval true Character is a number
  * @retval false Character is not
  */
-bool isnumber(char character) { return (bool)(((character >= '0') && (character <= '9'))); }
+bool isnumber(char character) { return (bool)((character >= '0') && (character <= '9')); }
 
 /**
  * Check if a character is a sign ('+' or '-')

@@ -32,6 +32,16 @@ static constexpr char kPercentCharacter = '%';  ///< Character indicating the in
 /*********************************************************************************************************************************/
 /*********************************************************************************************************************************/
 
+/**
+ * Initialise the parser context
+ * @details This ensures the context variables are properly set before use
+ *
+ * @param[out] context Parser context to initialise
+ * @param output_buffer String buffer to attach to the context
+ * @param output_size Size in bytes of the buffer attached
+ * @retval true Context initialised
+ * @retval false Context could not be initialised
+ */
 // NOLINTNEXTLINE (dyreadability-non-const-parameter)
 bool initialiseContext(ParserContext* context, char* output_buffer, size_t output_size) {
     if (!context || !output_buffer || !output_size) {
@@ -48,7 +58,10 @@ bool initialiseContext(ParserContext* context, char* output_buffer, size_t outpu
 
  * @param context Current context of the parser
  * @param input_character Next character to parse
- * @return 0
+ * @param args List of unnamed arguments
+ * @retval kParserPending The parser is waiting for new characters
+ * @retval kParserInvalid The parser encountered an error due to a malformed argument
+ * @retval kParserDone The parser is done parsing
  */
 ParserResult pushCharacter(ParserContext* context, char input_character, va_list args) {
     (void)args;
@@ -88,6 +101,11 @@ ParserResult pushCharacter(ParserContext* context, char input_character, va_list
 /*********************************************************************************************************************************/
 /*********************************************************************************************************************************/
 
+/**
+ * Reset the context's state and flags
+ *
+ * @param[out] context Context to reset
+ */
 static void resetContext(ParserContext* context) {
     if (!context) {
         return;
@@ -105,6 +123,16 @@ static void resetContext(ParserContext* context) {
     };
 }
 
+/**
+ * Examinate a percent character against the current context to see if it is a second one
+ * @details In case of %%, a single '%' character is to be outputted to the output string
+ *
+ * @param[in,out] context Parser context to examinate
+ * @param input_character New character to examinate against
+ * @retval kParserPending Character is not a new percent character, move on
+ * @retval kParserDone Output string needs to be cropped
+ * @retval kParserSkipArgument A double percent occurred and the argument is to be skipped
+ */
 static ParserResult treatDoublePercentCharacter(ParserContext* context, char input_character) {
     if ((!context->current_argument.introductory_consumed) || (input_character != kPercentCharacter)) {
         return kParserPending;
@@ -132,6 +160,14 @@ static ParserResult treatDoublePercentCharacter(ParserContext* context, char inp
 /*********************************************************************************************************************************/
 /*********************************************************************************************************************************/
 
+/**
+ * State during which characters are simply copied to the output
+ *
+ * @param[out] context Parser context
+ * @param input_character New character to copy
+ * @retval kParserPending The parser is waiting for a new character
+ * @retval kParserDone The string had to be cropped, parser's done
+ */
 static ParserResult stateCopyingCharacters(ParserContext* context, char input_character) {
     //consume the '%' character if any
     if (input_character == kPercentCharacter) {
@@ -157,6 +193,16 @@ static ParserResult stateCopyingCharacters(ParserContext* context, char input_ch
     return kParserPending;
 }
 
+/**
+ * State during which argument qualifiers are parsed to the context variables
+ *
+ * @param[out] context Parser context
+ * @param input_character New character to evaluate
+ * @retval kParserPending The parser is waiting for a new character
+ * @retval kParserDone The string had to be cropped, parser's done
+ * @retval kParserInvalid The parser encountered an error due to a malformed argument
+ * @retval kParserReevaluate The current character needs reevaluation by another state
+ */
 static ParserResult stateParsingArgumentPrefix(ParserContext* context, char input_character) {
     // A double '%' will parse as a '%' symbol in the output string
     ParserResult doublepercent_result = treatDoublePercentCharacter(context, input_character);
@@ -207,6 +253,13 @@ static ParserResult stateParsingArgumentPrefix(ParserContext* context, char inpu
     return kParserPending;
 }
 
+/**
+ * State during which the argument's length modifiers are evaluated
+ *
+ * @param[out] context Parser context
+ * @param input_character Character to evaluate
+ * @retval kParserPending The parser is waiting for a new character
+ */
 static ParserResult stateParsingLengthModifier(ParserContext* context, char input_character) {
     (void)context;
     if (isnumber(input_character)) {

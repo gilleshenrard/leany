@@ -240,7 +240,7 @@ jobs:
             --exclude Middlewares
             --exclude Core
 
-      - name: Open source Copyright and Licensing
+      - name: REUSE - Open source Copyright and Licensing
         id: reuse
         continue-on-error: true
         run: |
@@ -259,8 +259,9 @@ jobs:
         working-directory: ${{github.workspace}}/firmware
         continue-on-error: true
         run : |
-              chmod +x build/HOSTgcc/tests/Leany
-              build/HOSTgcc/tests/Leany
+              chmod +x build/HOSTgcc/tests/test_sensorfusion build/HOSTgcc/tests/test_stdlib
+              build/HOSTgcc/tests/test_sensorfusion
+              build/HOSTgcc/tests/test_stdlib
 
       - name: Final result
         run: |
