@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <string.h>
 #include <unity.h>
 #include <unity_internals.h>
 
@@ -10,8 +11,10 @@ enum : uint8_t {
 
 static void test_null_pointer_guards(void);
 static void test_context_initialisation(void);
+static void test_string_without_arguments(void);
 
 static ParserContext parser_context;
+static char test_buffer[kStringBufferSize];
 
 /*********************************************************************************************************************************/
 // PUBLIC FUNCTIONS
@@ -26,6 +29,7 @@ int main(void) {
     UNITY_BEGIN();
     RUN_TEST(test_null_pointer_guards);
     RUN_TEST(test_context_initialisation);
+    RUN_TEST(test_string_without_arguments);
     return UNITY_END();
 }
 
@@ -36,7 +40,10 @@ int main(void) {
  * resetMahonyFilter() only resets the quaternion, error integrals, and bad counters.
  * All other fields must be set explicitly here.
  */
-void setUp(void) {}
+void setUp(void) {
+    memset(test_buffer, '\0', kStringBufferSize);
+    (void)initialiseContext(&parser_context, test_buffer, kStringBufferSize);
+}
 
 /**
  * Free up the resources used during each test
@@ -48,7 +55,6 @@ void tearDown(void) {}
 /*********************************************************************************************************************************/
 
 static void test_null_pointer_guards(void) {
-    char test_buffer[kStringBufferSize];
     TEST_ASSERT_FALSE_MESSAGE(initialiseContext(nullptr, test_buffer, kStringBufferSize), "nullptr context failed");
     TEST_ASSERT_FALSE_MESSAGE(initialiseContext(&parser_context, nullptr, kStringBufferSize),
                               "nullptr output buffer failed");
@@ -56,8 +62,6 @@ static void test_null_pointer_guards(void) {
 }
 
 static void test_context_initialisation(void) {
-    char test_buffer[kStringBufferSize];
-
     parser_context = (ParserContext){
         // clang-format off
         .state = kStateParsingPrefix,
@@ -75,24 +79,32 @@ static void test_context_initialisation(void) {
     TEST_ASSERT_TRUE_MESSAGE(initialiseContext(&parser_context, test_buffer, kStringBufferSize),
                              "context initialisation failed");
 
-    TEST_ASSERT_EQUAL_PTR_MESSAGE(test_buffer, parser_context.output.buffer,
-                                  "Invalid output buffer address at initialisation");
-    TEST_ASSERT_EQUAL_size_t_MESSAGE(kStringBufferSize, parser_context.output.buffer_size,
-                                     "Invalid buffer size at initialisation");
-    TEST_ASSERT_EQUAL_size_t_MESSAGE(0, parser_context.output.current_index, "Invalid buffer index at initialisation");
-    TEST_ASSERT_EQUAL_UINT8_MESSAGE(kStateCopying, parser_context.state, "Invalid parser state at initialisation");
-    TEST_ASSERT_EQUAL_UINT8_MESSAGE(0, parser_context.current_argument.prefix_length,
-                                    "Invalid prefix length at initialisation");
-    TEST_ASSERT_EQUAL_UINT32_MESSAGE(0, parser_context.current_argument.width,
-                                     "Invalid argument width at initialisation");
-    TEST_ASSERT_FALSE_MESSAGE(parser_context.current_argument.introductory_consumed,
-                              "Invalid introduction flag value after initialisation");
-    TEST_ASSERT_FALSE_MESSAGE(parser_context.current_argument.left_justify,
-                              "Invalid justification flag value after initialisation");
-    TEST_ASSERT_FALSE_MESSAGE(parser_context.current_argument.show_sign,
-                              "Invalid sign forcing flag value after initialisation");
-    TEST_ASSERT_FALSE_MESSAGE(parser_context.current_argument.space_sign,
-                              "Invalid space sign flag value after initialisation");
-    TEST_ASSERT_FALSE_MESSAGE(parser_context.current_argument.zero_pad,
-                              "Invalid zero padding flag value after initialisation");
+    TEST_ASSERT_EQUAL_PTR_MESSAGE(test_buffer, parser_context.output.buffer, "Invalid output buffer address");
+    TEST_ASSERT_EQUAL_size_t_MESSAGE(kStringBufferSize, parser_context.output.buffer_size, "Invalid buffer size");
+    TEST_ASSERT_EQUAL_size_t_MESSAGE(0, parser_context.output.current_index, "Invalid buffer index");
+    TEST_ASSERT_EQUAL_UINT8_MESSAGE(kStateCopying, parser_context.state, "Invalid parser state");
+    TEST_ASSERT_EQUAL_UINT8_MESSAGE(0, parser_context.current_argument.prefix_length, "Invalid prefix length");
+    TEST_ASSERT_EQUAL_UINT32_MESSAGE(0, parser_context.current_argument.width, "Invalid argument width");
+    TEST_ASSERT_FALSE_MESSAGE(parser_context.current_argument.introductory_consumed, "Invalid introduction flag value");
+    TEST_ASSERT_FALSE_MESSAGE(parser_context.current_argument.left_justify, "Invalid justification flag value");
+    TEST_ASSERT_FALSE_MESSAGE(parser_context.current_argument.show_sign, "Invalid sign forcing flag value");
+    TEST_ASSERT_FALSE_MESSAGE(parser_context.current_argument.space_sign, "Invalid space sign flag value");
+    TEST_ASSERT_FALSE_MESSAGE(parser_context.current_argument.zero_pad, "Invalid zero padding flag value");
+}
+
+static void test_string_without_arguments(void) {
+    const char testchar[kStringBufferSize] = "000000000000000";
+    ParserResult result = kParserDone;
+
+    for (uint8_t character = 0; character < (kStringBufferSize - 1U); character++) {
+        result = pushCharacter(&parser_context, '0', nullptr);
+        TEST_ASSERT_EQUAL_UINT8_MESSAGE(kParserPending, result, "Invalid state while pushing characters");
+    }
+    TEST_ASSERT_EQUAL_STRING_MESSAGE(testchar, parser_context.output.buffer, "Characters not pushed properly");
+
+    for (uint8_t character = 0; character < (kStringBufferSize - 1U); character++) {
+        result = pushCharacter(&parser_context, '0', nullptr);
+        TEST_ASSERT_EQUAL_UINT8_MESSAGE(kParserDone, result, "Invalid cropping result");
+    }
+    TEST_ASSERT_EQUAL_STRING_MESSAGE(testchar, parser_context.output.buffer, "Final string not cropped properly");
 }
