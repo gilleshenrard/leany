@@ -67,7 +67,8 @@ jobs:
           name: build-Debug
           path: |
                 ${{ github.workspace }}/firmware/build/Debug/compile_commands.json
-                ${{ github.workspace }}/firmware/build/HOSTgcc/tests/Leany
+                ${{ github.workspace }}/firmware/build/HOSTgcc/tests/test_stdlib
+                ${{ github.workspace }}/firmware/build/HOSTgcc/tests/test_sensorfusion
                 ${{ github.workspace }}/firmware/utils/softversion.h
                 ${{ github.workspace }}/firmware/README.md
                 ${{ github.workspace }}/firmware/Doxyfile
