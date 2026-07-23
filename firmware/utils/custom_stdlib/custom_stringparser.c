@@ -51,6 +51,7 @@ bool initialiseContext(ParserContext* context, char* output_buffer, size_t outpu
  * @return 0
  */
 ParserResult pushCharacter(ParserContext* context, char input_character, va_list args) {
+    (void)args;
     if (!context || !context->output.buffer || !context->output.buffer_size) {
         return kParserInvalid;
     }
@@ -207,6 +208,7 @@ static ParserResult stateParsingArgumentPrefix(ParserContext* context, char inpu
 }
 
 static ParserResult stateParsingLengthModifier(ParserContext* context, char input_character) {
+    (void)context;
     if (isnumber(input_character)) {
     }
 
