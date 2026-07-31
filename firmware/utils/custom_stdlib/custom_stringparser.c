@@ -25,6 +25,9 @@ static ParserResult stateParsingLengthModifier(ParserContext* context, char inpu
 //utility functions
 static void resetContext(ParserContext* context);
 static ParserResult treatDoublePercentCharacter(ParserContext* context, char input_character);
+static void parsePlusSignPrefix(ArgumentMetadata* argument);
+static void parseSpaceSignPrefix(ArgumentMetadata* argument);
+static void parseArgumentPrefixFlag(ArgumentMetadata* argument, bool* flag_modified);
 
 //constants
 static constexpr char kPercentCharacter = '%';  ///< Character indicating the introduction of a formatted parameter
@@ -157,6 +160,54 @@ static ParserResult treatDoublePercentCharacter(ParserContext* context, char inp
     return kParserSkipArgument;
 }
 
+/**
+ * Set a flag representing a parsed prefix modifier
+ *
+ * @param argument Argument being parsed
+ * @param flag_modified Flag to modify
+ */
+static void parseArgumentPrefixFlag(ArgumentMetadata* const argument, bool* const flag_modified) {
+    if (!flag_modified) {
+        return;
+    }
+
+    if (*flag_modified) {
+        return;
+    }
+
+    *flag_modified = true;
+    argument->prefix_length++;
+}
+
+/**
+ * Parse a '+' in an argument prefix
+ * @details A '+' sign will nullify any previous ' ' parsed in the prefix
+ *
+ * @param argument Argument being parsed
+ */
+static void parsePlusSignPrefix(ArgumentMetadata* const argument) {
+    if (argument->show_sign) {
+        return;
+    }
+
+    argument->space_sign = false;
+    parseArgumentPrefixFlag(argument, &argument->show_sign);
+}
+
+/**
+ * Parse a ' ' in an argument prefix
+ * @details A '+' sign will make the parser ignore any ' ' in the prefix
+ *
+ * @param argument Argument being parsed
+ */
+static void parseSpaceSignPrefix(ArgumentMetadata* const argument) {
+    if (argument->show_sign) {
+        return;
+    }
+
+    parseArgumentPrefixFlag(argument, &argument->space_sign);
+}
+
 /*********************************************************************************************************************************/
 /*********************************************************************************************************************************/
 
@@ -222,26 +273,22 @@ static ParserResult stateParsingArgumentPrefix(ParserContext* context, char inpu
         return kParserInvalid;
     }
 
-    //qualify the prefix modifier
+    //collect the qualifier to interpret
     switch (input_character) {
         case '0':  //Left-pads the number with zeroes (0) instead of spaces when padding is specified
-            argument->zero_pad = true;
-            argument->prefix_length++;
+            parseArgumentPrefixFlag(argument, &argument->zero_pad);
             break;
 
         case '-':  //Left-justify within the given field width; Right justification is the default
-            argument->left_justify = true;
-            argument->prefix_length++;
+            parseArgumentPrefixFlag(argument, &argument->left_justify);
             break;
 
         case '+':  //Forces to preceed the result with a plus or minus sign (+ or -) even for positive numbers
-            argument->show_sign = true;
-            argument->prefix_length++;
+            parsePlusSignPrefix(argument);
             break;
 
         case ' ':  //If no sign is going to be written, a blank space is inserted before the value.
-            argument->space_sign = true;
-            argument->prefix_length++;
+            parseSpaceSignPrefix(argument);
             break;
 
         default:
