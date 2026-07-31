@@ -168,6 +168,11 @@ static void test_arguments_evaluation(void) {
     TEST_ASSERT_EQUAL_UINT8_MESSAGE(3, parser_context.current_argument.prefix_length, "Invalid index length");
 
     (void)pushCharacter(&parser_context, ' ', nullptr);
+    TEST_ASSERT_FALSE_MESSAGE(parser_context.current_argument.space_sign, "Space filling flag not properly ignored");
+    TEST_ASSERT_EQUAL_UINT8_MESSAGE(3, parser_context.current_argument.prefix_length, "Invalid index length");
+
+    parser_context.current_argument.show_sign = false;
+    (void)pushCharacter(&parser_context, ' ', nullptr);
     TEST_ASSERT_TRUE_MESSAGE(parser_context.current_argument.space_sign, "Invalid space filling flag");
     TEST_ASSERT_EQUAL_UINT8_MESSAGE(4, parser_context.current_argument.prefix_length, "Invalid index length");
 

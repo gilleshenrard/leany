@@ -222,32 +222,41 @@ static ParserResult stateParsingArgumentPrefix(ParserContext* context, char inpu
         return kParserInvalid;
     }
 
-    //qualify the prefix modifier
+    bool* flag_modified = nullptr;
+
+    //collect the qualifier to interpret
     switch (input_character) {
         case '0':  //Left-pads the number with zeroes (0) instead of spaces when padding is specified
-            argument->zero_pad = true;
-            argument->prefix_length++;
+            flag_modified = &argument->zero_pad;
             break;
 
         case '-':  //Left-justify within the given field width; Right justification is the default
-            argument->left_justify = true;
-            argument->prefix_length++;
+            flag_modified = &argument->left_justify;
             break;
 
         case '+':  //Forces to preceed the result with a plus or minus sign (+ or -) even for positive numbers
-            argument->show_sign = true;
-            argument->prefix_length++;
+            flag_modified = &argument->show_sign;
+            if (!argument->show_sign) {
+                argument->space_sign = false;
+            }
             break;
 
         case ' ':  //If no sign is going to be written, a blank space is inserted before the value.
-            argument->space_sign = true;
-            argument->prefix_length++;
+            if (!argument->show_sign) {
+                flag_modified = &argument->space_sign;
+            }
             break;
 
         default:
             context->state = kStateParsingLengthModifier;
             argument->prefix_length = 0;
             return kParserReevaluate;
+    }
+
+    //interpret the qualifier
+    if (flag_modified && !*flag_modified) {
+        *flag_modified = true;
+        argument->prefix_length++;
     }
 
     return kParserPending;
