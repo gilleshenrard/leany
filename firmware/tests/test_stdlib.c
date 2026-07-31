@@ -20,6 +20,7 @@ static void test_null_pointer_guards(void);
 static void test_context_initialisation(void);
 static void test_string_without_arguments(void);
 static void test_double_percents(void);
+static void test_arguments_evaluation(void);
 static void test_invalid_argument_format_length(void);
 static void test_arguments_reevaluation_overflow(void);
 
@@ -41,6 +42,7 @@ int main(void) {
     RUN_TEST(test_context_initialisation);
     RUN_TEST(test_string_without_arguments);
     RUN_TEST(test_double_percents);
+    RUN_TEST(test_arguments_evaluation);
     RUN_TEST(test_invalid_argument_format_length);
     RUN_TEST(test_arguments_reevaluation_overflow);
     return UNITY_END();
@@ -144,6 +146,35 @@ static void test_double_percents(void) {
     (void)pushCharacter(&parser_context, '%', nullptr);
     TEST_ASSERT_EQUAL_STRING_MESSAGE("%", parser_context.output.buffer, "Double percents not accounted for");
     TEST_ASSERT_EQUAL_UINT8_MESSAGE(kStateParsingPrefix, parser_context.state, "Invalid state");
+}
+
+/**
+ * Check if argument modifier flags are properly set
+ */
+static void test_arguments_evaluation(void) {
+    (void)pushCharacter(&parser_context, '%', nullptr);
+    TEST_ASSERT_EQUAL_UINT8_MESSAGE(kStateParsingPrefix, parser_context.state, "Invalid state");
+
+    (void)pushCharacter(&parser_context, '0', nullptr);
+    TEST_ASSERT_TRUE_MESSAGE(parser_context.current_argument.zero_pad, "Invalid zero padding flag");
+    TEST_ASSERT_EQUAL_UINT8_MESSAGE(1, parser_context.current_argument.prefix_length, "Invalid index length");
+
+    (void)pushCharacter(&parser_context, '-', nullptr);
+    TEST_ASSERT_TRUE_MESSAGE(parser_context.current_argument.left_justify, "Invalid left-justification flag");
+    TEST_ASSERT_EQUAL_UINT8_MESSAGE(2, parser_context.current_argument.prefix_length, "Invalid index length");
+
+    (void)pushCharacter(&parser_context, '+', nullptr);
+    TEST_ASSERT_TRUE_MESSAGE(parser_context.current_argument.show_sign, "Invalid sign show focring flag");
+    TEST_ASSERT_EQUAL_UINT8_MESSAGE(3, parser_context.current_argument.prefix_length, "Invalid index length");
+
+    (void)pushCharacter(&parser_context, ' ', nullptr);
+    TEST_ASSERT_TRUE_MESSAGE(parser_context.current_argument.space_sign, "Invalid space filling flag");
+    TEST_ASSERT_EQUAL_UINT8_MESSAGE(4, parser_context.current_argument.prefix_length, "Invalid index length");
+
+    (void)pushCharacter(&parser_context, '5', nullptr);
+    TEST_ASSERT_EQUAL_UINT8_MESSAGE(0, parser_context.current_argument.prefix_length,
+                                    "Invalid index length at length modifier evaluation");
+    TEST_ASSERT_EQUAL_UINT8_MESSAGE(kStateParsingLengthModifier, parser_context.state, "Invalid state");
 }
 
 /**
