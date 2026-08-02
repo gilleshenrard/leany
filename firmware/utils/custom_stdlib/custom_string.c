@@ -32,7 +32,7 @@
  * @note The function always null-terminates the buffer if size > 0
  * @note If the formatted string would exceed size-1, it is truncated
  */
-int32_t custom_vsnprintf(char* buffer, size_t size, const char* format, va_list args) {
+int32_t custom_vsnprintf(char* buffer, size_t size, const char* format, va_list* args) {
     /* Validate parameters */
     if (!buffer || !format || !size) {
         return -1;
@@ -68,10 +68,10 @@ int32_t custom_vsnprintf(char* buffer, size_t size, const char* format, va_list 
  * @note If the formatted string would exceed size-1, it is truncated
  */
 int32_t custom_snprintf(char* buffer, size_t size, const char* format, ...) {
-    va_list args;
+    va_list args;  // NOLINT (cppcoreguidelines-init-variables)
 
     va_start(args, format);
-    int32_t result = custom_vsnprintf(buffer, size, format, args);
+    int32_t result = custom_vsnprintf(buffer, size, format, &args);
     va_end(args);
 
     return result;

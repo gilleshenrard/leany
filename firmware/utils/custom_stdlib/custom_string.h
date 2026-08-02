@@ -12,7 +12,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-int32_t custom_vsnprintf(char* buffer, size_t size, const char* format, va_list args);
+int32_t custom_vsnprintf(char* buffer, size_t size, const char* format, va_list* args);
 int32_t custom_snprintf(char* buffer, size_t size, const char* format, ...);
 bool isnumber(char character);
 bool issign(char character);

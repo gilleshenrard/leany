@@ -21,7 +21,7 @@ enum : uint8_t {
 static ParserResult stateCopyingCharacters(ParserContext* context, char input_character);
 static ParserResult stateParsingArgumentPrefix(ParserContext* context, char input_character);
 static ParserResult stateParsingLengthModifier(ParserContext* context, char input_character);
-static ParserResult stateParsingConversionSpecifier(ParserContext* context, char input_character, va_list args);
+static ParserResult stateParsingConversionSpecifier(ParserContext* context, char input_character, va_list* args);
 
 //utility functions
 static void resetContext(ParserContext* context);
@@ -67,7 +67,7 @@ bool initialiseContext(ParserContext* context, char* output_buffer, size_t outpu
  * @retval kParserInvalid The parser encountered an error due to a malformed argument
  * @retval kParserDone The parser is done parsing
  */
-ParserResult pushCharacter(ParserContext* context, char input_character, va_list args) {
+ParserResult pushCharacter(ParserContext* context, char input_character, va_list* args) {
     if (!context || !context->output.buffer || !context->output.buffer_size) {
         return kParserInvalid;
     }
@@ -343,7 +343,7 @@ static ParserResult stateParsingLengthModifier(ParserContext* context, char inpu
  * @param args Current arg value to evaluate
  * @retval kParserDone The string had to be cropped, parser's done
  */
-static ParserResult stateParsingConversionSpecifier(ParserContext* context, char input_character, va_list args) {
+static ParserResult stateParsingConversionSpecifier(ParserContext* context, char input_character, va_list* args) {
     (void)context;
     (void)input_character;
     (void)args;

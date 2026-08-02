@@ -72,6 +72,6 @@ typedef struct {
 } ParserContext;
 
 bool initialiseContext(ParserContext* context, char* output_buffer, size_t output_size);
-ParserResult pushCharacter(ParserContext* context, char input_character, va_list args);
+ParserResult pushCharacter(ParserContext* context, char input_character, va_list* args);
 
 #endif
