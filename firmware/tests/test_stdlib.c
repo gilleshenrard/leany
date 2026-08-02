@@ -23,6 +23,7 @@ static void test_double_percents(void);
 static void test_arguments_evaluation(void);
 static void test_invalid_argument_format_length(void);
 static void test_arguments_reevaluation_overflow(void);
+static void test_arguments_width(void);
 
 static ParserContext parser_context;         ///< Parser context to use on all tests
 static char test_buffer[kStringBufferSize];  ///< String buffer to use as output on all tests
@@ -45,6 +46,7 @@ int main(void) {
     RUN_TEST(test_arguments_evaluation);
     RUN_TEST(test_invalid_argument_format_length);
     RUN_TEST(test_arguments_reevaluation_overflow);
+    RUN_TEST(test_arguments_width);
     return UNITY_END();
 }
 
@@ -177,8 +179,9 @@ static void test_arguments_evaluation(void) {
     TEST_ASSERT_EQUAL_UINT8_MESSAGE(4, parser_context.current_argument.prefix_length, "Invalid index length");
 
     (void)pushCharacter(&parser_context, '5', nullptr);
-    TEST_ASSERT_EQUAL_UINT8_MESSAGE(0, parser_context.current_argument.prefix_length,
+    TEST_ASSERT_EQUAL_UINT8_MESSAGE(4, parser_context.current_argument.prefix_length,
                                     "Invalid index length at length modifier evaluation");
+    TEST_ASSERT_EQUAL_UINT8_MESSAGE(5, parser_context.current_argument.width, "Invalid format length resetting");
     TEST_ASSERT_EQUAL_UINT8_MESSAGE(kStateParsingLengthModifier, parser_context.state, "Invalid state");
 }
 
@@ -218,3 +221,22 @@ static void test_invalid_argument_format_length(void) {
  * @todo Implementation pending
  */
 static void test_arguments_reevaluation_overflow(void) {}
+
+/**
+ * Check the format width modifiers and the overflow protection
+ */
+static void test_arguments_width(void) {
+    (void)pushCharacter(&parser_context, '%', nullptr);
+
+    (void)pushCharacter(&parser_context, '5', nullptr);
+    TEST_ASSERT_EQUAL_UINT8_MESSAGE(5, parser_context.current_argument.width,
+                                    "Invalid format length at first character");
+
+    (void)pushCharacter(&parser_context, '5', nullptr);
+    TEST_ASSERT_EQUAL_UINT8_MESSAGE(55, parser_context.current_argument.width,
+                                    "Invalid format length at second character");
+
+    (void)pushCharacter(&parser_context, '5', nullptr);
+    TEST_ASSERT_EQUAL_UINT8_MESSAGE(kMaxFormatLength, parser_context.current_argument.width,
+                                    "Invalid format length at third character");
+}
