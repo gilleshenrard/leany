@@ -194,7 +194,11 @@ static void parsePlusSignPrefix(ArgumentMetadata* const argument) {
         return;
     }
 
-    argument->space_sign = false;
+    if (argument->space_sign) {
+        argument->space_sign = false;
+        argument->prefix_length--;
+    }
+
     parseArgumentPrefixFlag(argument, &argument->show_sign);
 }
 
@@ -309,6 +313,7 @@ static ParserResult stateParsingArgumentPrefix(ParserContext* context, char inpu
  *
  * @param[out] context Parser context
  * @param input_character Character to evaluate
+ * @retval kParserReevaluate The current character needs reevaluation by another state
  * @retval kParserPending The parser is waiting for a new character
  */
 static ParserResult stateParsingLengthModifier(ParserContext* context, char input_character) {
@@ -330,6 +335,14 @@ static ParserResult stateParsingLengthModifier(ParserContext* context, char inpu
     return kParserPending;
 }
 
+/**
+ * State during which the argument's conversion specifier is evaluated
+ *
+ * @param[out] context Parser context
+ * @param input_character Character to evaluate
+ * @param args Current arg value to evaluate
+ * @retval kParserDone The string had to be cropped, parser's done
+ */
 static ParserResult stateParsingConversionSpecifier(ParserContext* context, char input_character, va_list args) {
     (void)context;
     (void)input_character;
