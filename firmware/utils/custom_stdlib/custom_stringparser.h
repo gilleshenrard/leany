@@ -12,11 +12,12 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "custom_conversion.h"
+
 enum : uint8_t {
     kMaxPrefixLength = 8U,                       ///< Maximum format prefix length to prevent infinite loops
     kMaxFormatLength = 256U - kMaxPrefixLength,  ///< Maximum format string length to prevent infinite loops
     kMaxIntBuffer = 65U,                         ///< Maximum integer conversion buffer size (64-bit in binary + sign)
-    kMaxWidth = 128U,                            ///< Maximum width specifier value
 };
 
 /**
@@ -39,28 +40,6 @@ typedef enum : uint8_t {
     kStateParsingLengthModifier = 2,       ///< State during which the length modifier is parsed
     kStateParsingConversionSpecifier = 3,  ///< State during which the conversion specifier is parsed
 } ParserState;
-
-/**
- * Output buffer into which perform the formatting
- */
-typedef struct {
-    char* buffer;          ///< Buffer into which store the formatted output
-    size_t buffer_size;    ///< Size of the buffer
-    size_t current_index;  ///< Current index in the buffer
-} OutputBuffer;
-
-/**
- * Argument format metadata parsed from format specifier
- */
-typedef struct {
-    bool introductory_consumed;  ///< Whether the percent character has already been consumed
-    bool zero_pad;               ///< Use zero padding instead of spaces
-    bool left_justify;           ///< Left justify the output
-    bool show_sign;              ///< Always show sign for signed numbers
-    bool space_sign;             ///< Use space for positive numbers
-    uint32_t width;              ///< Minimum field width
-    uint8_t prefix_length;       ///< Argument's prefix length
-} ArgumentMetadata;
 
 /**
  * String parser context
