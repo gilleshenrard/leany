@@ -5,6 +5,7 @@
 #create the custom standard library, reimplementing standard C functions
 add_library(custom_stdlib
 	custom_string.c
-	custom_stringparser.c)
+	custom_stringparser.c
+	custom_conversion.c)
 target_include_directories(custom_stdlib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_compile_options(custom_stdlib PRIVATE ${WARNING_FLAGS})
