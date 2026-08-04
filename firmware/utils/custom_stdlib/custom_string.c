@@ -17,6 +17,32 @@
 /*********************************************************************************************************************************/
 
 /**
+ * @brief Format and write to a string with size limit
+ * 
+ * This function formats a string according to the format specifier and
+ * writes it to the buffer, ensuring null-termination and preventing
+ * buffer overflow.
+ * 
+ * @param[out] buffer Destination buffer
+ * @param[in] size Size of destination buffer (including null terminator)
+ * @param[in] format Format string
+ * @param[in] ... Variable arguments
+ * @return Number of characters written (excluding null terminator), or -1 on error
+ * 
+ * @note The function always null-terminates the buffer if size > 0
+ * @note If the formatted string would exceed size-1, it is truncated
+ */
+int32_t custom_snprintf(char* buffer, size_t size, const char* format, ...) {
+    va_list args;  // NOLINT (cppcoreguidelines-init-variables)
+
+    va_start(args, format);
+    int32_t result = custom_vsnprintf(buffer, size, format, &args);
+    va_end(args);
+
+    return result;
+}
+
+/**
  * Format and write to a string with size limit
  * 
  * This function formats a string according to the format specifier and
@@ -49,32 +75,6 @@ int32_t custom_vsnprintf(char* buffer, size_t size, const char* format, va_list*
     }
 
     return 0;
-}
-
-/**
- * @brief Format and write to a string with size limit
- * 
- * This function formats a string according to the format specifier and
- * writes it to the buffer, ensuring null-termination and preventing
- * buffer overflow.
- * 
- * @param[out] buffer Destination buffer
- * @param[in] size Size of destination buffer (including null terminator)
- * @param[in] format Format string
- * @param[in] ... Variable arguments
- * @return Number of characters written (excluding null terminator), or -1 on error
- * 
- * @note The function always null-terminates the buffer if size > 0
- * @note If the formatted string would exceed size-1, it is truncated
- */
-int32_t custom_snprintf(char* buffer, size_t size, const char* format, ...) {
-    va_list args;  // NOLINT (cppcoreguidelines-init-variables)
-
-    va_start(args, format);
-    int32_t result = custom_vsnprintf(buffer, size, format, &args);
-    va_end(args);
-
-    return result;
 }
 
 /**
@@ -112,3 +112,23 @@ bool isAlphaUppercase(char character) { return (bool)((character >= (uint8_t)'A'
  * @retval false The character is not lower case
  */
 bool isAlphaLowercase(char character) { return (bool)((character >= (uint8_t)'a') && (character <= (uint8_t)'z')); }
+
+/**
+ * Get the number of characters in a string
+ *
+ * @param string String to check
+ * @param max_length Maximum number of characters the string can hold
+ * @return Number of characters, not counting '\0'
+ */
+size_t getStringLength(const char* string, size_t max_length) {
+    if (!string) {
+        return 0;
+    }
+
+    uint32_t length = 0U;
+    while ((length < max_length) && (string[length] != '\0')) {
+        length++;
+    }
+
+    return length;
+}

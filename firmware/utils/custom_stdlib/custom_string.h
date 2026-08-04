@@ -12,11 +12,12 @@
 #include <stddef.h>
 #include <stdint.h>
 
-int32_t custom_vsnprintf(char* buffer, size_t size, const char* format, va_list* args);
 int32_t custom_snprintf(char* buffer, size_t size, const char* format, ...);
+int32_t custom_vsnprintf(char* buffer, size_t size, const char* format, va_list* args);
 bool isnumber(char character);
 bool issign(char character);
 bool isAlphaUppercase(char character);
 bool isAlphaLowercase(char character);
+size_t getStringLength(const char* string, size_t max_length);
 
 #endif
