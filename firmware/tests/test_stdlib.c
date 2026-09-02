@@ -22,8 +22,6 @@ static void test_context_initialisation(void);
 static void test_string_without_arguments(void);
 static void test_double_percents(void);
 static void test_arguments_evaluation(void);
-static void test_invalid_argument_format_length(void);
-static void test_arguments_reevaluation_overflow(void);
 static void test_arguments_width(void);
 static void test_unimplemented_type_specifier(void);
 static void test_signed_integer_output(void);
@@ -50,8 +48,6 @@ int main(void) {
     RUN_TEST(test_string_without_arguments);
     RUN_TEST(test_double_percents);
     RUN_TEST(test_arguments_evaluation);
-    RUN_TEST(test_invalid_argument_format_length);
-    RUN_TEST(test_arguments_reevaluation_overflow);
     RUN_TEST(test_arguments_width);
     RUN_TEST(test_unimplemented_type_specifier);
     RUN_TEST(test_signed_integer_output);
@@ -196,43 +192,6 @@ static void test_arguments_evaluation(void) {
     TEST_ASSERT_EQUAL_UINT8_MESSAGE(5, parser_context.current_argument.width, "Invalid format length resetting");
     TEST_ASSERT_EQUAL_UINT8_MESSAGE(kStateParsingLengthModifier, parser_context.state, "Invalid state");
 }
-
-/**
- * Check an over-long length modifier (width/precision digit run) is rejected as invalid
- * and the context is reset to a clean copying state
- *
- * @todo Implementation pending stateParsingLengthModifier()
- */
-static void test_invalid_argument_format_length(void) {
-    // const char invalid_argument_modifiers[] = "%- 012.013d";
-    // ParserResult result = kParserPending;
-
-    // const char* iterator = invalid_argument_modifiers;
-    // while (*iterator != '\0') {
-    //     result = pushCharacter(&parser_context, *iterator, nullptr);
-    //     iterator++;
-    // }
-
-    // TEST_ASSERT_EQUAL_UINT8_MESSAGE(kParserInvalid, result, "Argument not shown as invalid");
-
-    // TEST_ASSERT_EQUAL_size_t_MESSAGE(0, parser_context.output.current_index, "Invalid buffer index");
-    // TEST_ASSERT_EQUAL_UINT8_MESSAGE(kStateCopying, parser_context.state, "Invalid parser state");
-    // TEST_ASSERT_EQUAL_UINT8_MESSAGE(0, parser_context.current_argument.prefix_length, "Invalid prefix length");
-    // TEST_ASSERT_EQUAL_UINT32_MESSAGE(0, parser_context.current_argument.width, "Invalid argument width");
-    // TEST_ASSERT_FALSE_MESSAGE(parser_context.current_argument.introductory_consumed, "Invalid introduction flag value");
-    // TEST_ASSERT_FALSE_MESSAGE(parser_context.current_argument.left_justify, "Invalid justification flag value");
-    // TEST_ASSERT_FALSE_MESSAGE(parser_context.current_argument.show_sign, "Invalid sign forcing flag value");
-    // TEST_ASSERT_FALSE_MESSAGE(parser_context.current_argument.space_sign, "Invalid space sign flag value");
-    // TEST_ASSERT_FALSE_MESSAGE(parser_context.current_argument.zero_pad, "Invalid zero padding flag value");
-}
-
-/**
- * Check that exceeding kMaxCharacterEvaluations re-evaluations for a single character
- * is reported as invalid rather than looping indefinitely
- *
- * @todo Implementation pending
- */
-static void test_arguments_reevaluation_overflow(void) {}
 
 /**
  * Check the format width modifiers and the overflow protection

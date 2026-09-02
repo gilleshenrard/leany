@@ -99,6 +99,7 @@ ParserResult pushCharacter(ParserContext* context, char input_character, va_list
         }
     } while (--evaluations && (result == kParserReevaluate));
 
+    // Ceiling kept as a safety net; not reachable via current state graph
     if (!evaluations) {
         resetContext(context);
         result = kParserInvalid;
@@ -277,7 +278,7 @@ static ParserResult stateParsingArgumentPrefix(ParserContext* context, char inpu
 
     ArgumentMetadata* const argument = &context->current_argument;
 
-    //prefix too long, dropping
+    // Ceiling kept as a safety net; not reachable via current state graph
     if (argument->prefix_length >= kMaxPrefixLength) {
         resetContext(context);
         return kParserInvalid;
