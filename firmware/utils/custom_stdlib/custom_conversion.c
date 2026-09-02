@@ -18,9 +18,9 @@ enum : uint8_t {
 };
 
 //utility functions
-static void applyStringJustification(OutputBuffer* output, const ArgumentMetadata* metadata, size_t output_len);
 static void outputPadding(OutputBuffer* output, char pad_char, size_t count);
 static char qualifySignCharacter(const ArgumentMetadata* metadata, bool is_negative);
+static size_t getPaddingSize(const ArgumentMetadata* metadata, size_t output_len);
 
 /*********************************************************************************************************************************/
 /*********************************************************************************************************************************/
@@ -53,12 +53,19 @@ void outputString(OutputBuffer* output, const char* str, const ArgumentMetadata*
     }
 
     size_t output_len = getStringLength(str, kMaxFormatLength);
+    const size_t padding_size = getPaddingSize(metadata, output_len);
 
-    applyStringJustification(output, metadata, output_len);
+    if (!metadata->left_justify) {
+        outputPadding(output, (char)((char)metadata->zero_pad ? '0' : ' '), padding_size);
+    }
 
     // Output string
     for (uint32_t index = 0U; index < output_len; index++) {
         outputChar(output, str[index]);
+    }
+
+    if (metadata->left_justify) {
+        outputPadding(output, ' ', padding_size);
     }
 }
 
@@ -85,11 +92,18 @@ void outputInteger(OutputBuffer* output, const char* result_string, size_t resul
     }
 
     // Calculate padding
-    const size_t padding = ((metadata->width > total_len) ? (metadata->width - total_len) : 0U);
+    const size_t padding_size = getPaddingSize(metadata, total_len);
+    size_t string_start_index = 0;
+    size_t padding_start_index = 0;
+    char padding_char = ' ';
 
-    /* Output left padding (if not zero-pad or left-justify) */
-    if (!metadata->left_justify && !metadata->zero_pad) {
-        outputPadding(output, ' ', padding);
+    if (metadata->left_justify) {
+        padding_start_index = total_len;
+    } else {
+        string_start_index = padding_size;
+        if (metadata->zero_pad) {
+            padding_char = '0';
+        }
     }
 
     /* Output sign */
@@ -97,7 +111,18 @@ void outputInteger(OutputBuffer* output, const char* result_string, size_t resul
         outputChar(output, sign_char);
     }
 
-    outputString(output, result_string, metadata);
+    const size_t output_index_backup = output->current_index;
+
+    output->current_index = output_index_backup + padding_start_index;
+    outputPadding(output, padding_char, padding_size);
+
+    output->current_index = output_index_backup + string_start_index;
+
+    for (size_t index = 0U; index < result_length; index++) {
+        outputChar(output, result_string[index]);
+    }
+
+    output->current_index = output_index_backup + total_len + padding_size;
 }
 
 /**
@@ -172,31 +197,9 @@ uint32_t convertSigned(int32_t value, char* buffer, uint32_t radix) {
 /*********************************************************************************************************************************/
 /*********************************************************************************************************************************/
 
-/**
- * Apply string justificaton (left, right, padding)
- *
- * @param[out] output Output buffer metadata
- * @param metadata Modifier metadata
- * @param output_len Length of the string to justify in the buffer
- */
-static void applyStringJustification(OutputBuffer* output, const ArgumentMetadata* metadata, size_t output_len) {
-    // Calculate padding
-    const size_t padding = ((metadata->width > output_len) ? (metadata->width - output_len) : 0U);
-
-    /* Output zero padding (after sign) */
-    if (!metadata->left_justify) {
-        const char pad_character = (char)((char)metadata->zero_pad ? '0' : ' ');
-        outputPadding(output, pad_character, padding);
-    }
-
-    const size_t restore_index = output->current_index;
-
-    /* Output right padding */
-    if (metadata->left_justify) {
-        outputPadding(output, ' ', padding);
-    }
-
-    output->current_index = restore_index;
+static size_t getPaddingSize(const ArgumentMetadata* metadata, size_t output_len) {
+    const size_t left_padding = ((metadata->width > output_len) ? (metadata->width - output_len) : 0U);
+    return left_padding;
 }
 
 /**

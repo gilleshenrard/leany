@@ -71,7 +71,17 @@ int32_t custom_vsnprintf(char* buffer, size_t size, const char* format, va_list*
 
     uint32_t format_index = 0U;
     for (format_index = 0U; format_index < kMaxFormatLength; format_index++) {
+        if (format[format_index] == '\0') {
+            break;
+        }
         (void)pushCharacter(&context, format[format_index], args);
+    }
+
+    // Null-terminate
+    if (context.output.current_index < size) {
+        context.output.buffer[context.output.current_index] = '\0';
+    } else {
+        context.output.buffer[size - 1U] = '\0';
     }
 
     return 0;

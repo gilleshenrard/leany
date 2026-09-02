@@ -11,6 +11,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "custom_conversion.h"
 #include "custom_string.h"
 
 enum : uint8_t {
@@ -344,9 +345,29 @@ static ParserResult stateParsingLengthModifier(ParserContext* context, char inpu
  * @retval kParserDone The string had to be cropped, parser's done
  */
 static ParserResult stateParsingConversionSpecifier(ParserContext* context, char input_character, va_list* args) {
-    (void)context;
-    (void)input_character;
-    (void)args;
+    constexpr uint8_t decimal_radix = 10U;
+    char conversion_buffer[kMaxIntBuffer];
+    int32_t signed_value = 0;
+    uint32_t result_length = 0;
+
+    switch (input_character) {
+        case 'd':
+        case 'i':
+            signed_value = va_arg(*args, int32_t);
+            result_length = convertSigned(signed_value, conversion_buffer, decimal_radix);
+            outputInteger(&context->output, conversion_buffer, result_length, &context->current_argument,
+                          (signed_value < 0));
+            break;
+
+        case 'u':
+        case 'X':
+        case 'x':
+        case 's':
+        case 'c':
+        case 'p':
+        default:  //not-implemented specifier
+            return kParserSkipArgument;
+    }
 
     return kParserDone;
 }

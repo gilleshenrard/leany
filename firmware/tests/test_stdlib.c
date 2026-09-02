@@ -10,6 +10,7 @@
 #include <unity.h>
 #include <unity_internals.h>
 
+#include "custom_string.h"
 #include "custom_stringparser.h"
 
 enum : uint8_t {
@@ -24,6 +25,7 @@ static void test_arguments_evaluation(void);
 static void test_invalid_argument_format_length(void);
 static void test_arguments_reevaluation_overflow(void);
 static void test_arguments_width(void);
+static void test_signed_integer_output(void);
 
 static ParserContext parser_context;         ///< Parser context to use on all tests
 static char test_buffer[kStringBufferSize];  ///< String buffer to use as output on all tests
@@ -47,6 +49,7 @@ int main(void) {
     RUN_TEST(test_invalid_argument_format_length);
     RUN_TEST(test_arguments_reevaluation_overflow);
     RUN_TEST(test_arguments_width);
+    RUN_TEST(test_signed_integer_output);
     return UNITY_END();
 }
 
@@ -239,4 +242,46 @@ static void test_arguments_width(void) {
     (void)pushCharacter(&parser_context, '5', nullptr);
     TEST_ASSERT_EQUAL_UINT8_MESSAGE(kMaxFormatLength, parser_context.current_argument.width,
                                     "Invalid format length at third character");
+}
+
+static void test_signed_integer_output(void) {
+    constexpr uint8_t buffer_size = 10U;
+    char result[buffer_size];
+
+    custom_snprintf(result, buffer_size, "%d", 5);  //NOLINT (cppcoreguidelines-avoid-magic-numbers)
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("5", result, "Incorrect result for a positive integer conversion");
+
+    memset(result, '\0', buffer_size);
+    custom_snprintf(result, buffer_size, "%d", -5);  //NOLINT (cppcoreguidelines-avoid-magic-numbers)
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("-5", result, "Incorrect result for a negative integer conversion");
+
+    memset(result, '\0', buffer_size);
+    custom_snprintf(result, buffer_size, "%d", INT32_MAX);  //NOLINT (cppcoreguidelines-avoid-magic-numbers)
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("214748364", result, "Incorrect result for the max integer conversion");
+
+    memset(result, '\0', buffer_size);
+    custom_snprintf(result, buffer_size, "%d", INT32_MAX + 1U);  //NOLINT (cppcoreguidelines-avoid-magic-numbers)
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("-21474836", result, "Incorrect result for an integer rollover conversion");
+
+    memset(result, '\0', buffer_size);
+    custom_snprintf(result, buffer_size, "%+d", 5);  //NOLINT (cppcoreguidelines-avoid-magic-numbers)
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("+5", result, "Incorrect result for a simple integer with forced sign conversion");
+
+    memset(result, '\0', buffer_size);
+    custom_snprintf(result, buffer_size, "%5d", 5);  //NOLINT (cppcoreguidelines-avoid-magic-numbers)
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("    5", result, "Incorrect result for an integer with ' ' padding conversion");
+
+    memset(result, '\0', buffer_size);
+    custom_snprintf(result, buffer_size, "%-5d", 5);  //NOLINT (cppcoreguidelines-avoid-magic-numbers)
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("5    ", result,
+                                     "Incorrect result for a left-justified integer with ' ' padding conversion");
+
+    memset(result, '\0', buffer_size);
+    custom_snprintf(result, buffer_size, "%05d", 5);  //NOLINT (cppcoreguidelines-avoid-magic-numbers)
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("00005", result, "Incorrect result for an integer with '0' padding conversion");
+
+    memset(result, '\0', buffer_size);
+    custom_snprintf(result, buffer_size, "%05d", -5);  //NOLINT (cppcoreguidelines-avoid-magic-numbers)
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("-0005", result,
+                                     "Incorrect result for a negative integer with '0' padding conversion");
 }
