@@ -6,6 +6,7 @@
  * @brief Unit tests for the lightweight printf-style string parser (custom_stringparser).
  */
 #include <stdint.h>
+#include <stdio.h>
 #include <string.h>
 #include <unity.h>
 #include <unity_internals.h>
@@ -29,6 +30,7 @@ static void test_unsigned_integer_output(void);
 static void test_hexa_integer_output(void);
 static void test_string_output(void);
 static void test_char_output(void);
+static void test_pointer_output(void);
 
 static ParserContext parser_context;         ///< Parser context to use on all tests
 static char test_buffer[kStringBufferSize];  ///< String buffer to use as output on all tests
@@ -56,6 +58,7 @@ int main(void) {
     RUN_TEST(test_hexa_integer_output);
     RUN_TEST(test_string_output);
     RUN_TEST(test_char_output);
+    RUN_TEST(test_pointer_output);
     return UNITY_END();
 }
 
@@ -421,4 +424,32 @@ static void test_char_output(void) {
     custom_snprintf(result, buffer_size, "%c", '\0');
     TEST_ASSERT_EQUAL_CHAR(0, result[0]);
     TEST_ASSERT_EQUAL_CHAR(0, result[1]);
+}
+
+/**
+ * Test the serialisation of a pointer as a 32-bits hexadecimal address
+ */
+static void test_pointer_output(void) {
+    // NOLINTBEGIN (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling, cppcoreguidelines-avoid-magic-numbers)
+    constexpr uint8_t buffer_size = 20U;
+    char result[buffer_size];
+    char expected[buffer_size];
+    int dummy_variable = 0;
+
+    const uint32_t truncated_address = (uint32_t)(uintptr_t)&dummy_variable;
+    snprintf(expected, buffer_size, "%x", truncated_address);
+
+    custom_snprintf(result, buffer_size, "%p", (void*)&dummy_variable);
+    TEST_ASSERT_EQUAL_STRING(expected, result);
+
+    memset(result, '\0', buffer_size);
+    custom_snprintf(result, buffer_size, "%p", nullptr);
+    TEST_ASSERT_EQUAL_STRING("0", result);
+
+    memset(result, '\0', buffer_size);
+    snprintf(expected, buffer_size, "%08x", truncated_address);
+    custom_snprintf(result, buffer_size, "%08p", (void*)&dummy_variable);
+    TEST_ASSERT_EQUAL_STRING(expected, result);
+
+    // NOLINTEND (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling, cppcoreguidelines-avoid-magic-numbers)
 }

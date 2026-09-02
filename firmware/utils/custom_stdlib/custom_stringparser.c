@@ -383,6 +383,11 @@ static ParserResult stateParsingConversionSpecifier(ParserContext* context, char
             break;
 
         case 'p':
+            result_length =
+                convertUnsigned((uint32_t)(uintptr_t)va_arg(*args, void*), conversion_buffer, hexa_radix, false);
+            outputInteger(&context->output, conversion_buffer, result_length, &context->current_argument, false);
+            break;
+
         default:  //not-implemented specifier
             outputChar(&context->output, '%');
             outputChar(&context->output, input_character);
