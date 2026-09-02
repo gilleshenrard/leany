@@ -379,6 +379,9 @@ static ParserResult stateParsingConversionSpecifier(ParserContext* context, char
             break;
 
         case 'c':
+            outputChar(&context->output, (char)va_arg(*args, int));
+            break;
+
         case 'p':
         default:  //not-implemented specifier
             outputChar(&context->output, '%');
