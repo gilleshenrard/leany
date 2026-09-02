@@ -28,6 +28,7 @@ static void test_signed_integer_output(void);
 static void test_unsigned_integer_output(void);
 static void test_hexa_integer_output(void);
 static void test_string_output(void);
+static void test_char_output(void);
 
 static ParserContext parser_context;         ///< Parser context to use on all tests
 static char test_buffer[kStringBufferSize];  ///< String buffer to use as output on all tests
@@ -54,6 +55,7 @@ int main(void) {
     RUN_TEST(test_unsigned_integer_output);
     RUN_TEST(test_hexa_integer_output);
     RUN_TEST(test_string_output);
+    RUN_TEST(test_char_output);
     return UNITY_END();
 }
 
@@ -395,4 +397,28 @@ static void test_string_output(void) {
     TEST_ASSERT_EQUAL_STRING("This is a very long string oh my god would you look at that    ", result);
 
     // NOLINTEND (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling, cppcoreguidelines-avoid-magic-numbers)
+}
+
+/**
+ * Test the serialisation of a character
+ */
+static void test_char_output(void) {
+    constexpr uint8_t buffer_size = 10U;
+    char result[buffer_size];
+
+    custom_snprintf(result, buffer_size, "%c", 'A');
+    TEST_ASSERT_EQUAL_STRING("A", result);
+
+    memset(result, '\0', buffer_size);
+    custom_snprintf(result, buffer_size, "%5c", 'A');
+    TEST_ASSERT_EQUAL_STRING("A", result);
+
+    memset(result, '\0', buffer_size);
+    custom_snprintf(result, buffer_size, "%-5c", 'A');
+    TEST_ASSERT_EQUAL_STRING("A", result);
+
+    memset(result, 'X', buffer_size);
+    custom_snprintf(result, buffer_size, "%c", '\0');
+    TEST_ASSERT_EQUAL_CHAR(0, result[0]);
+    TEST_ASSERT_EQUAL_CHAR(0, result[1]);
 }
