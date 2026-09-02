@@ -19,16 +19,26 @@ typedef struct {
 } OutputBuffer;
 
 /**
+ * Metadata specific to floating points arguments
+ */
+typedef struct {
+    bool decimal_sign_consumed;  ///< Whether the argument as a decimal sign already consumed
+    bool zero_pad;               ///< Use zero padding instead of spaces
+    uint32_t width;              ///< Minimum field width
+} FloatMetadata;
+
+/**
  * Argument format metadata parsed from format specifier
  */
 typedef struct {
-    bool introductory_consumed;  ///< Whether the percent character has already been consumed
-    bool zero_pad;               ///< Use zero padding instead of spaces
-    bool left_justify;           ///< Left justify the output
-    bool show_sign;              ///< Always show sign for signed numbers
-    bool space_sign;             ///< Use space for positive numbers
-    uint32_t width;              ///< Minimum field width
-    uint8_t prefix_length;       ///< Argument's prefix length
+    bool introductory_consumed;    ///< Whether the percent character has already been consumed
+    bool zero_pad;                 ///< Use zero padding instead of spaces
+    bool left_justify;             ///< Left justify the output
+    bool show_sign;                ///< Always show sign for signed numbers
+    bool space_sign;               ///< Use space for positive numbers
+    uint32_t width;                ///< Minimum field width
+    uint8_t prefix_length;         ///< Argument's prefix length
+    FloatMetadata float_metadata;  ///< Floating point arguments' metadata
 } ArgumentMetadata;
 
 void outputChar(OutputBuffer* output, char character);
@@ -37,5 +47,6 @@ uint32_t convertUnsigned(uint32_t value, char* buffer, uint32_t radix, bool uppe
 uint32_t convertSigned(int32_t value, char* buffer, uint32_t radix);
 void outputInteger(OutputBuffer* output, const char* result_string, size_t result_length,
                    const ArgumentMetadata* metadata, bool is_negative);
+uint32_t convertFloat(float value, char* buffer);
 
 #endif

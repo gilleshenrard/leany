@@ -33,6 +33,7 @@ static void parseArgumentPrefixFlag(ArgumentMetadata* argument, bool* flag_modif
 
 //constants
 static constexpr char kPercentCharacter = '%';  ///< Character indicating the introduction of a formatted parameter
+static constexpr char kDecimalCharacter = '.';  ///< Character indicating a decimal parameter
 
 /*********************************************************************************************************************************/
 /*********************************************************************************************************************************/
@@ -130,6 +131,12 @@ static void resetContext(ParserContext* context) {
         .space_sign = false,
         .width = 0U,
         .prefix_length = 0U,
+        .float_metadata =
+            {
+                .decimal_sign_consumed = false,
+                .zero_pad = false,
+                .width = 0U,
+            },
     };
 }
 
@@ -287,7 +294,11 @@ static ParserResult stateParsingArgumentPrefix(ParserContext* context, char inpu
     //collect the qualifier to interpret
     switch (input_character) {
         case '0':  //Left-pads the number with zeroes (0) instead of spaces when padding is specified
-            parseArgumentPrefixFlag(argument, &argument->zero_pad);
+            if (context->current_argument.float_metadata.decimal_sign_consumed) {
+                parseArgumentPrefixFlag(argument, &argument->float_metadata.zero_pad);
+            } else {
+                parseArgumentPrefixFlag(argument, &argument->zero_pad);
+            }
             break;
 
         case '-':  //Left-justify within the given field width; Right justification is the default
@@ -320,6 +331,11 @@ static ParserResult stateParsingArgumentPrefix(ParserContext* context, char inpu
  * @retval kParserPending The parser is waiting for a new character
  */
 static ParserResult stateParsingLengthModifier(ParserContext* context, char input_character) {
+    if (input_character == kDecimalCharacter) {
+        context->current_argument.float_metadata.decimal_sign_consumed = true;
+        return kParserPending;
+    }
+
     if (!isnumber(input_character)) {
         context->state = kStateParsingConversionSpecifier;
         return kParserReevaluate;
@@ -328,11 +344,17 @@ static ParserResult stateParsingLengthModifier(ParserContext* context, char inpu
     constexpr uint32_t multiplier_10 = 10U;
     constexpr uint32_t base_number_character = '0';
 
-    context->current_argument.width =
-        (context->current_argument.width * multiplier_10) + ((uint32_t)input_character - base_number_character);
+    uint32_t* width_to_modify = nullptr;
+    if (context->current_argument.float_metadata.decimal_sign_consumed) {
+        width_to_modify = &context->current_argument.float_metadata.width;
+    } else {
+        width_to_modify = &context->current_argument.width;
+    }
 
-    if (context->current_argument.width > kMaxFormatLength) {
-        context->current_argument.width = kMaxFormatLength;
+    *width_to_modify = (*width_to_modify * multiplier_10) + ((uint32_t)input_character - base_number_character);
+
+    if (*width_to_modify > kMaxFormatLength) {
+        *width_to_modify = kMaxFormatLength;
     }
 
     return kParserPending;

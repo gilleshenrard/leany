@@ -204,6 +204,27 @@ uint32_t convertSigned(int32_t value, char* buffer, uint32_t radix) {
     return length;
 }
 
+/**
+ * Convert a float to string
+ *
+ * @param value Value to convert
+ * @param[out] buffer Buffer to store result
+ * @return 0
+ */
+// NOLINTNEXTLINE (readability-non-const-parameter)
+uint32_t convertFloat(float value, char* buffer) {
+    (void)buffer;
+
+    // Extract integer part
+    const int32_t ipart = (uint16_t)value;
+
+    // Extract floating part
+    float fpart = value - (float)ipart;
+    (void)fpart;
+
+    return 0;
+}
+
 /*********************************************************************************************************************************/
 /*********************************************************************************************************************************/
 
