@@ -361,12 +361,18 @@ static ParserResult stateParsingConversionSpecifier(ParserContext* context, char
             break;
 
         case 'u':
+            result_length = convertUnsigned(va_arg(*args, uint32_t), conversion_buffer, decimal_radix, 0);
+            outputInteger(&context->output, conversion_buffer, result_length, &context->current_argument, false);
+            break;
+
         case 'X':
         case 'x':
         case 's':
         case 'c':
         case 'p':
         default:  //not-implemented specifier
+            outputChar(&context->output, '%');
+            outputChar(&context->output, input_character);
             return kParserSkipArgument;
     }
 
