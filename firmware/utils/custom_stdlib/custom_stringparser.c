@@ -374,6 +374,9 @@ static ParserResult stateParsingConversionSpecifier(ParserContext* context, char
             break;
 
         case 's':
+            outputString(&context->output, va_arg(*args, char*), &context->current_argument);
+            break;
+
         case 'c':
         case 'p':
         default:  //not-implemented specifier
