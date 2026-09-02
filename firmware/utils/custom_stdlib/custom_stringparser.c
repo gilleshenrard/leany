@@ -69,6 +69,7 @@ bool initialiseContext(ParserContext* context, char* output_buffer, size_t outpu
  * @retval kParserDone The parser is done parsing
  */
 ParserResult pushCharacter(ParserContext* context, char input_character, va_list* args) {
+    // #lizard forgives(cyclomatic_complexity)
     if (!context || !context->output.buffer || !context->output.buffer_size) {
         return kParserInvalid;
     }

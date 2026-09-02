@@ -57,6 +57,7 @@ int main(void) {
  * Initialise the parser context to a clean, known state before each test.
  */
 void setUp(void) {
+    // NOLINTNEXTLINE (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
     memset(test_buffer, '\0', kStringBufferSize);
     (void)initialiseContext(&parser_context, test_buffer, kStringBufferSize);
 }
@@ -244,7 +245,11 @@ static void test_arguments_width(void) {
                                     "Invalid format length at third character");
 }
 
+/**
+ * Test the serialisation of a signed integer to a string
+ */
 static void test_signed_integer_output(void) {
+    // NOLINTBEGIN (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
     constexpr uint8_t buffer_size = 10U;
     char result[buffer_size];
 
@@ -284,4 +289,6 @@ static void test_signed_integer_output(void) {
     custom_snprintf(result, buffer_size, "%05d", -5);  //NOLINT (cppcoreguidelines-avoid-magic-numbers)
     TEST_ASSERT_EQUAL_STRING_MESSAGE("-0005", result,
                                      "Incorrect result for a negative integer with '0' padding conversion");
+
+    // NOLINTEND (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
 }

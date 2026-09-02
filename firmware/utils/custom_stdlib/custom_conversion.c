@@ -197,6 +197,13 @@ uint32_t convertSigned(int32_t value, char* buffer, uint32_t radix) {
 /*********************************************************************************************************************************/
 /*********************************************************************************************************************************/
 
+/**
+ * Get the number of characters the padding spans
+ *
+ * @param metadata Prefix metadata
+ * @param output_len Number of characters the raw output takes
+ * @return Number of characters in the padding
+ */
 static size_t getPaddingSize(const ArgumentMetadata* metadata, size_t output_len) {
     const size_t left_padding = ((metadata->width > output_len) ? (metadata->width - output_len) : 0U);
     return left_padding;
