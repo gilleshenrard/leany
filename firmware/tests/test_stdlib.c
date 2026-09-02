@@ -29,6 +29,7 @@ static void test_unimplemented_type_specifier(void);
 static void test_signed_integer_output(void);
 static void test_unsigned_integer_output(void);
 static void test_hexa_integer_output(void);
+static void test_string_output(void);
 
 static ParserContext parser_context;         ///< Parser context to use on all tests
 static char test_buffer[kStringBufferSize];  ///< String buffer to use as output on all tests
@@ -56,6 +57,7 @@ int main(void) {
     RUN_TEST(test_signed_integer_output);
     RUN_TEST(test_unsigned_integer_output);
     RUN_TEST(test_hexa_integer_output);
+    RUN_TEST(test_string_output);
     return UNITY_END();
 }
 
@@ -259,149 +261,179 @@ static void test_unimplemented_type_specifier(void) {
     char result[buffer_size];
 
     custom_snprintf(result, buffer_size, "%w", 5);  //NOLINT (cppcoreguidelines-avoid-magic-numbers)
-    TEST_ASSERT_EQUAL_STRING_MESSAGE("%w", result, "Incorrect handling of an unimplemented type specifier");
+    TEST_ASSERT_EQUAL_STRING("%w", result);
 }
 
 /**
  * Test the serialisation of a signed integer to a string
  */
 static void test_signed_integer_output(void) {
-    // NOLINTBEGIN (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
+    // NOLINTBEGIN (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling, cppcoreguidelines-avoid-magic-numbers)
     constexpr uint8_t buffer_size = 10U;
     char result[buffer_size];
 
-    custom_snprintf(result, buffer_size, "%d", 5);  //NOLINT (cppcoreguidelines-avoid-magic-numbers)
-    TEST_ASSERT_EQUAL_STRING_MESSAGE("5", result, "Incorrect result for a positive integer conversion");
+    custom_snprintf(result, buffer_size, "%d", 5);
+    TEST_ASSERT_EQUAL_STRING("5", result);
 
     memset(result, '\0', buffer_size);
-    custom_snprintf(result, buffer_size, "%d", -5);  //NOLINT (cppcoreguidelines-avoid-magic-numbers)
-    TEST_ASSERT_EQUAL_STRING_MESSAGE("-5", result, "Incorrect result for a negative integer conversion");
+    custom_snprintf(result, buffer_size, "%d", -5);
+    TEST_ASSERT_EQUAL_STRING("-5", result);
 
     memset(result, '\0', buffer_size);
-    custom_snprintf(result, buffer_size, "%d", INT32_MAX);  //NOLINT (cppcoreguidelines-avoid-magic-numbers)
-    TEST_ASSERT_EQUAL_STRING_MESSAGE("214748364", result, "Incorrect result for the max integer conversion");
+    custom_snprintf(result, buffer_size, "%d", INT32_MAX);
+    TEST_ASSERT_EQUAL_STRING("214748364", result);
 
     memset(result, '\0', buffer_size);
-    custom_snprintf(result, buffer_size, "%d", INT32_MAX + 1U);  //NOLINT (cppcoreguidelines-avoid-magic-numbers)
-    TEST_ASSERT_EQUAL_STRING_MESSAGE("-21474836", result, "Incorrect result for an integer rollover conversion");
+    custom_snprintf(result, buffer_size, "%d", INT32_MAX + 1U);
+    TEST_ASSERT_EQUAL_STRING("-21474836", result);
 
     memset(result, '\0', buffer_size);
-    custom_snprintf(result, buffer_size, "%+d", 5);  //NOLINT (cppcoreguidelines-avoid-magic-numbers)
-    TEST_ASSERT_EQUAL_STRING_MESSAGE("+5", result, "Incorrect result for a simple integer with forced sign conversion");
+    custom_snprintf(result, buffer_size, "%+d", 5);
+    TEST_ASSERT_EQUAL_STRING("+5", result);
 
     memset(result, '\0', buffer_size);
-    custom_snprintf(result, buffer_size, "%5d", 5);  //NOLINT (cppcoreguidelines-avoid-magic-numbers)
-    TEST_ASSERT_EQUAL_STRING_MESSAGE("    5", result, "Incorrect result for an integer with ' ' padding conversion");
+    custom_snprintf(result, buffer_size, "%5d", 5);
+    TEST_ASSERT_EQUAL_STRING("    5", result);
 
     memset(result, '\0', buffer_size);
-    custom_snprintf(result, buffer_size, "%-5d", 5);  //NOLINT (cppcoreguidelines-avoid-magic-numbers)
-    TEST_ASSERT_EQUAL_STRING_MESSAGE("5    ", result,
-                                     "Incorrect result for a left-justified integer with ' ' padding conversion");
+    custom_snprintf(result, buffer_size, "%10d", INT32_MAX);
+    TEST_ASSERT_EQUAL_STRING("214748364", result);
 
     memset(result, '\0', buffer_size);
-    custom_snprintf(result, buffer_size, "%05d", 5);  //NOLINT (cppcoreguidelines-avoid-magic-numbers)
-    TEST_ASSERT_EQUAL_STRING_MESSAGE("00005", result, "Incorrect result for an integer with '0' padding conversion");
+    custom_snprintf(result, buffer_size, "%-5d", 5);
+    TEST_ASSERT_EQUAL_STRING("5    ", result);
 
     memset(result, '\0', buffer_size);
-    custom_snprintf(result, buffer_size, "%05d", -5);  //NOLINT (cppcoreguidelines-avoid-magic-numbers)
-    TEST_ASSERT_EQUAL_STRING_MESSAGE("-0005", result,
-                                     "Incorrect result for a negative integer with '0' padding conversion");
+    custom_snprintf(result, buffer_size, "%05d", 5);
+    TEST_ASSERT_EQUAL_STRING("00005", result);
 
-    // NOLINTEND (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
+    memset(result, '\0', buffer_size);
+    custom_snprintf(result, buffer_size, "%05d", -5);
+    TEST_ASSERT_EQUAL_STRING("-0005", result);
+
+    // NOLINTEND (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling, cppcoreguidelines-avoid-magic-numbers)
 }
 
 /**
  * Test the serialisation of an unsigned integer to a string
  */
 static void test_unsigned_integer_output(void) {
-    // NOLINTBEGIN (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
+    // NOLINTBEGIN (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling, cppcoreguidelines-avoid-magic-numbers)
     constexpr uint8_t buffer_size = 10U;
     char result[buffer_size];
 
-    custom_snprintf(result, buffer_size, "%u", 5);  //NOLINT (cppcoreguidelines-avoid-magic-numbers)
-    TEST_ASSERT_EQUAL_STRING_MESSAGE("5", result, "Incorrect result for an unsigned integer conversion");
+    custom_snprintf(result, buffer_size, "%u", 5);
+    TEST_ASSERT_EQUAL_STRING("5", result);
 
     memset(result, '\0', buffer_size);
-    custom_snprintf(result, buffer_size, "%u", -5);  //NOLINT (cppcoreguidelines-avoid-magic-numbers)
-    TEST_ASSERT_EQUAL_STRING_MESSAGE("429496729", result,
-                                     "Incorrect result for an unsigned integer rollback conversion");
+    custom_snprintf(result, buffer_size, "%u", -5);
+    TEST_ASSERT_EQUAL_STRING("429496729", result);
 
     memset(result, '\0', buffer_size);
-    custom_snprintf(result, buffer_size, "%u", UINT32_MAX);  //NOLINT (cppcoreguidelines-avoid-magic-numbers)
-    TEST_ASSERT_EQUAL_STRING_MESSAGE("429496729", result, "Incorrect result for the max unsigned integer conversion");
+    custom_snprintf(result, buffer_size, "%u", UINT32_MAX);
+    TEST_ASSERT_EQUAL_STRING("429496729", result);
 
     memset(result, '\0', buffer_size);
-    custom_snprintf(result, buffer_size, "%u", UINT32_MAX + 1U);  //NOLINT (cppcoreguidelines-avoid-magic-numbers)
-    TEST_ASSERT_EQUAL_STRING_MESSAGE("0", result, "Incorrect result for an integer rollover conversion");
+    custom_snprintf(result, buffer_size, "%10u", UINT32_MAX);
+    TEST_ASSERT_EQUAL_STRING("429496729", result);
 
     memset(result, '\0', buffer_size);
-    custom_snprintf(result, buffer_size, "%+u", 5);  //NOLINT (cppcoreguidelines-avoid-magic-numbers)
-    TEST_ASSERT_EQUAL_STRING_MESSAGE("+5", result,
-                                     "Incorrect result for a simple unsigned integer with forced sign conversion");
+    custom_snprintf(result, buffer_size, "%u", UINT32_MAX + 1U);
+    TEST_ASSERT_EQUAL_STRING("0", result);
 
     memset(result, '\0', buffer_size);
-    custom_snprintf(result, buffer_size, "%5u", 5);  //NOLINT (cppcoreguidelines-avoid-magic-numbers)
-    TEST_ASSERT_EQUAL_STRING_MESSAGE("    5", result,
-                                     "Incorrect result for an unsigned integer with ' ' padding conversion");
+    custom_snprintf(result, buffer_size, "%+u", 5);
+    TEST_ASSERT_EQUAL_STRING("+5", result);
 
     memset(result, '\0', buffer_size);
-    custom_snprintf(result, buffer_size, "%-5u", 5);  //NOLINT (cppcoreguidelines-avoid-magic-numbers)
-    TEST_ASSERT_EQUAL_STRING_MESSAGE(
-        "5    ", result, "Incorrect result for a left-justified unsigned integer with ' ' padding conversion");
+    custom_snprintf(result, buffer_size, "%5u", 5);
+    TEST_ASSERT_EQUAL_STRING("    5", result);
 
     memset(result, '\0', buffer_size);
-    custom_snprintf(result, buffer_size, "%05u", 5);  //NOLINT (cppcoreguidelines-avoid-magic-numbers)
-    TEST_ASSERT_EQUAL_STRING_MESSAGE("00005", result,
-                                     "Incorrect result for an unsigned integer with '0' padding conversion");
+    custom_snprintf(result, buffer_size, "%-5u", 5);
+    TEST_ASSERT_EQUAL_STRING("5    ", result);
 
-    // NOLINTEND (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
+    memset(result, '\0', buffer_size);
+    custom_snprintf(result, buffer_size, "%05u", 5);
+    TEST_ASSERT_EQUAL_STRING("00005", result);
+
+    // NOLINTEND (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling, cppcoreguidelines-avoid-magic-numbers)
 }
 
 /**
  * Test the serialisation of an hexadecimal integer to a string
  */
 static void test_hexa_integer_output(void) {
-    // NOLINTBEGIN (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
+    // NOLINTBEGIN (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling, cppcoreguidelines-avoid-magic-numbers)
     constexpr uint8_t buffer_size = 10U;
     char result[buffer_size];
 
-    custom_snprintf(result, buffer_size, "%x", 10);  //NOLINT (cppcoreguidelines-avoid-magic-numbers)
-    TEST_ASSERT_EQUAL_STRING_MESSAGE("a", result, "Incorrect result for a hexa integer conversion");
+    custom_snprintf(result, buffer_size, "%x", 10);
+    TEST_ASSERT_EQUAL_STRING("a", result);
 
     memset(result, '\0', buffer_size);
-    custom_snprintf(result, buffer_size, "%X", 10);  //NOLINT (cppcoreguidelines-avoid-magic-numbers)
-    TEST_ASSERT_EQUAL_STRING_MESSAGE("A", result, "Incorrect result for a hexa integer conversion");
+    custom_snprintf(result, buffer_size, "%X", 10);
+    TEST_ASSERT_EQUAL_STRING("A", result);
 
     memset(result, '\0', buffer_size);
-    custom_snprintf(result, buffer_size, "%x", -5);  //NOLINT (cppcoreguidelines-avoid-magic-numbers)
-    TEST_ASSERT_EQUAL_STRING_MESSAGE("fffffffb", result, "Incorrect result for a hexa integer rollback conversion");
+    custom_snprintf(result, buffer_size, "%x", -5);
+    TEST_ASSERT_EQUAL_STRING("fffffffb", result);
 
     memset(result, '\0', buffer_size);
-    custom_snprintf(result, buffer_size, "%x", UINT32_MAX);  //NOLINT (cppcoreguidelines-avoid-magic-numbers)
-    TEST_ASSERT_EQUAL_STRING_MESSAGE("ffffffff", result, "Incorrect result for the max hexa integer conversion");
+    custom_snprintf(result, buffer_size, "%x", UINT32_MAX);
+    TEST_ASSERT_EQUAL_STRING("ffffffff", result);
 
     memset(result, '\0', buffer_size);
-    custom_snprintf(result, buffer_size, "%x", UINT32_MAX + 1U);  //NOLINT (cppcoreguidelines-avoid-magic-numbers)
-    TEST_ASSERT_EQUAL_STRING_MESSAGE("0", result, "Incorrect result for a hexa integer rollover conversion");
+    custom_snprintf(result, buffer_size, "%x", UINT32_MAX + 1U);
+    TEST_ASSERT_EQUAL_STRING("0", result);
 
     memset(result, '\0', buffer_size);
-    custom_snprintf(result, buffer_size, "%+x", 10);  //NOLINT (cppcoreguidelines-avoid-magic-numbers)
-    TEST_ASSERT_EQUAL_STRING_MESSAGE("+a", result, "Incorrect result for a hexa integer with forced sign conversion");
+    custom_snprintf(result, buffer_size, "%+x", 10);
+    TEST_ASSERT_EQUAL_STRING("+a", result);
 
     memset(result, '\0', buffer_size);
-    custom_snprintf(result, buffer_size, "%5x", 10);  //NOLINT (cppcoreguidelines-avoid-magic-numbers)
-    TEST_ASSERT_EQUAL_STRING_MESSAGE("    a", result,
-                                     "Incorrect result for a hexa integer with ' ' padding conversion");
+    custom_snprintf(result, buffer_size, "%5x", 10);
+    TEST_ASSERT_EQUAL_STRING("    a", result);
 
     memset(result, '\0', buffer_size);
-    custom_snprintf(result, buffer_size, "%-5x", 10);  //NOLINT (cppcoreguidelines-avoid-magic-numbers)
-    TEST_ASSERT_EQUAL_STRING_MESSAGE("a    ", result,
-                                     "Incorrect result for a left-justified hexa integer with ' ' padding conversion");
+    custom_snprintf(result, buffer_size, "%-5x", 10);
+    TEST_ASSERT_EQUAL_STRING("a    ", result);
 
     memset(result, '\0', buffer_size);
-    custom_snprintf(result, buffer_size, "%05x", 10);  //NOLINT (cppcoreguidelines-avoid-magic-numbers)
-    TEST_ASSERT_EQUAL_STRING_MESSAGE("0000a", result,
-                                     "Incorrect result for a hexa integer with '0' padding conversion");
+    custom_snprintf(result, buffer_size, "%05x", 10);
+    TEST_ASSERT_EQUAL_STRING("0000a", result);
 
-    // NOLINTEND (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
+    // NOLINTEND (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling, cppcoreguidelines-avoid-magic-numbers)
+}
+
+/**
+ * Test the serialisation of a string with modifiers
+ */
+static void test_string_output(void) {
+    // NOLINTBEGIN (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling, cppcoreguidelines-avoid-magic-numbers)
+    constexpr uint8_t short_buffer_size = 10U;
+    constexpr uint8_t long_buffer_size = 64U;
+    constexpr char long_string[] = "This is a very long string oh my god would you look at that";
+    char result[long_buffer_size];
+
+    custom_snprintf(result, short_buffer_size, "%s", long_string);
+    TEST_ASSERT_EQUAL_STRING("This is a", result);
+
+    memset(result, '\0', long_buffer_size);
+    custom_snprintf(result, long_buffer_size, "%s", long_string);
+    TEST_ASSERT_EQUAL_STRING(long_string, result);
+
+    memset(result, '\0', long_buffer_size);
+    custom_snprintf(result, long_buffer_size, "%64s", long_string);
+    TEST_ASSERT_EQUAL_STRING("     This is a very long string oh my god would you look at tha", result);
+
+    memset(result, '\0', long_buffer_size);
+    custom_snprintf(result, long_buffer_size, "%63s", long_string);
+    TEST_ASSERT_EQUAL_STRING("    This is a very long string oh my god would you look at that", result);
+
+    memset(result, '\0', long_buffer_size);
+    custom_snprintf(result, long_buffer_size, "%-63s", long_string);
+    TEST_ASSERT_EQUAL_STRING("This is a very long string oh my god would you look at that    ", result);
+
+    // NOLINTEND (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling, cppcoreguidelines-avoid-magic-numbers)
 }
