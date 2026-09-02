@@ -22,9 +22,9 @@ typedef struct {
  * Metadata specific to floating points arguments
  */
 typedef struct {
-    bool decimal_sign_consumed;  ///< Whether the argument as a decimal sign already consumed
-    bool zero_pad;               ///< Use zero padding instead of spaces
-    uint32_t width;              ///< Minimum field width
+    bool decimal_char_consumed;  ///< Whether the argument as a decimal character already consumed
+    bool zero_append;            ///< Append the result with zeroes until precision reached
+    uint32_t precision;          ///< Minimum field width
 } FloatMetadata;
 
 /**

@@ -216,7 +216,7 @@ uint32_t convertFloat(float value, char* buffer) {
     (void)buffer;
 
     // Extract integer part
-    const int32_t ipart = (uint16_t)value;
+    const int32_t ipart = (int32_t)value;
 
     // Extract floating part
     float fpart = value - (float)ipart;

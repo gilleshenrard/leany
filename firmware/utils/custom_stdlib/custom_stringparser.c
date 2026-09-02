@@ -133,9 +133,9 @@ static void resetContext(ParserContext* context) {
         .prefix_length = 0U,
         .float_metadata =
             {
-                .decimal_sign_consumed = false,
-                .zero_pad = false,
-                .width = 0U,
+                .decimal_char_consumed = false,
+                .zero_append = false,
+                .precision = 0U,
             },
     };
 }
@@ -294,8 +294,8 @@ static ParserResult stateParsingArgumentPrefix(ParserContext* context, char inpu
     //collect the qualifier to interpret
     switch (input_character) {
         case '0':  //Left-pads the number with zeroes (0) instead of spaces when padding is specified
-            if (context->current_argument.float_metadata.decimal_sign_consumed) {
-                parseArgumentPrefixFlag(argument, &argument->float_metadata.zero_pad);
+            if (context->current_argument.float_metadata.decimal_char_consumed) {
+                parseArgumentPrefixFlag(argument, &argument->float_metadata.zero_append);
             } else {
                 parseArgumentPrefixFlag(argument, &argument->zero_pad);
             }
@@ -332,7 +332,7 @@ static ParserResult stateParsingArgumentPrefix(ParserContext* context, char inpu
  */
 static ParserResult stateParsingLengthModifier(ParserContext* context, char input_character) {
     if (input_character == kDecimalCharacter) {
-        context->current_argument.float_metadata.decimal_sign_consumed = true;
+        context->current_argument.float_metadata.decimal_char_consumed = true;
         return kParserPending;
     }
 
@@ -345,8 +345,8 @@ static ParserResult stateParsingLengthModifier(ParserContext* context, char inpu
     constexpr uint32_t base_number_character = '0';
 
     uint32_t* width_to_modify = nullptr;
-    if (context->current_argument.float_metadata.decimal_sign_consumed) {
-        width_to_modify = &context->current_argument.float_metadata.width;
+    if (context->current_argument.float_metadata.decimal_char_consumed) {
+        width_to_modify = &context->current_argument.float_metadata.precision;
     } else {
         width_to_modify = &context->current_argument.width;
     }
