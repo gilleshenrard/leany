@@ -33,7 +33,7 @@ typedef struct {
 
 void outputChar(OutputBuffer* output, char character);
 void outputString(OutputBuffer* output, const char* str, const ArgumentMetadata* metadata);
-uint32_t convertUnsigned(uint32_t value, char* buffer, uint32_t radix, uint8_t uppercase);
+uint32_t convertUnsigned(uint32_t value, char* buffer, uint32_t radix, bool uppercase);
 uint32_t convertSigned(int32_t value, char* buffer, uint32_t radix);
 void outputInteger(OutputBuffer* output, const char* result_string, size_t result_length,
                    const ArgumentMetadata* metadata, bool is_negative);
