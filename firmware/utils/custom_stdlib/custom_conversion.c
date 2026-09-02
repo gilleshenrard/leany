@@ -53,20 +53,30 @@ void outputString(OutputBuffer* output, const char* str, const ArgumentMetadata*
     }
 
     size_t output_len = getStringLength(str, kMaxFormatLength);
-    const size_t padding_size = getPaddingSize(metadata, output_len);
 
-    if (!metadata->left_justify) {
-        outputPadding(output, (char)((char)metadata->zero_pad ? '0' : ' '), padding_size);
+    // Calculate padding
+    const size_t padding_size = getPaddingSize(metadata, output_len);
+    size_t string_start_index = 0;
+    size_t padding_start_index = 0;
+
+    if (metadata->left_justify) {
+        padding_start_index = output_len;
+    } else {
+        string_start_index = padding_size;
     }
 
-    // Output string
-    for (uint32_t index = 0U; index < output_len; index++) {
+    const size_t output_index_backup = output->current_index;
+
+    output->current_index = output_index_backup + padding_start_index;
+    outputPadding(output, ' ', padding_size);
+
+    output->current_index = output_index_backup + string_start_index;
+
+    for (size_t index = 0U; index < output_len; index++) {
         outputChar(output, str[index]);
     }
 
-    if (metadata->left_justify) {
-        outputPadding(output, ' ', padding_size);
-    }
+    output->current_index = output_index_backup + output_len + padding_size;
 }
 
 /**
@@ -205,8 +215,11 @@ uint32_t convertSigned(int32_t value, char* buffer, uint32_t radix) {
  * @return Number of characters in the padding
  */
 static size_t getPaddingSize(const ArgumentMetadata* metadata, size_t output_len) {
-    const size_t left_padding = ((metadata->width > output_len) ? (metadata->width - output_len) : 0U);
-    return left_padding;
+    if (output_len >= metadata->width) {
+        return 0;
+    }
+
+    return (metadata->width - output_len);
 }
 
 /**
