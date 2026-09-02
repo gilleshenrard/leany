@@ -406,6 +406,8 @@ static void test_string_output(void) {
  * Test the serialisation of a character
  */
 static void test_char_output(void) {
+    // NOLINTBEGIN (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling, cppcoreguidelines-avoid-magic-numbers)
+
     constexpr uint8_t buffer_size = 10U;
     char result[buffer_size];
 
@@ -424,6 +426,8 @@ static void test_char_output(void) {
     custom_snprintf(result, buffer_size, "%c", '\0');
     TEST_ASSERT_EQUAL_CHAR(0, result[0]);
     TEST_ASSERT_EQUAL_CHAR(0, result[1]);
+
+    // NOLINTEND (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling, cppcoreguidelines-avoid-magic-numbers)
 }
 
 /**
