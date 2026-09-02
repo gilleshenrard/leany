@@ -28,6 +28,7 @@ static void test_arguments_width(void);
 static void test_unimplemented_type_specifier(void);
 static void test_signed_integer_output(void);
 static void test_unsigned_integer_output(void);
+static void test_hexa_integer_output(void);
 
 static ParserContext parser_context;         ///< Parser context to use on all tests
 static char test_buffer[kStringBufferSize];  ///< String buffer to use as output on all tests
@@ -54,6 +55,7 @@ int main(void) {
     RUN_TEST(test_unimplemented_type_specifier);
     RUN_TEST(test_signed_integer_output);
     RUN_TEST(test_unsigned_integer_output);
+    RUN_TEST(test_hexa_integer_output);
     return UNITY_END();
 }
 
@@ -351,6 +353,55 @@ static void test_unsigned_integer_output(void) {
     custom_snprintf(result, buffer_size, "%05u", 5);  //NOLINT (cppcoreguidelines-avoid-magic-numbers)
     TEST_ASSERT_EQUAL_STRING_MESSAGE("00005", result,
                                      "Incorrect result for an unsigned integer with '0' padding conversion");
+
+    // NOLINTEND (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
+}
+
+/**
+ * Test the serialisation of an hexadecimal integer to a string
+ */
+static void test_hexa_integer_output(void) {
+    // NOLINTBEGIN (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
+    constexpr uint8_t buffer_size = 10U;
+    char result[buffer_size];
+
+    custom_snprintf(result, buffer_size, "%x", 10);  //NOLINT (cppcoreguidelines-avoid-magic-numbers)
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("a", result, "Incorrect result for a hexa integer conversion");
+
+    memset(result, '\0', buffer_size);
+    custom_snprintf(result, buffer_size, "%X", 10);  //NOLINT (cppcoreguidelines-avoid-magic-numbers)
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("A", result, "Incorrect result for a hexa integer conversion");
+
+    memset(result, '\0', buffer_size);
+    custom_snprintf(result, buffer_size, "%x", -5);  //NOLINT (cppcoreguidelines-avoid-magic-numbers)
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("fffffffb", result, "Incorrect result for a hexa integer rollback conversion");
+
+    memset(result, '\0', buffer_size);
+    custom_snprintf(result, buffer_size, "%x", UINT32_MAX);  //NOLINT (cppcoreguidelines-avoid-magic-numbers)
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("ffffffff", result, "Incorrect result for the max hexa integer conversion");
+
+    memset(result, '\0', buffer_size);
+    custom_snprintf(result, buffer_size, "%x", UINT32_MAX + 1U);  //NOLINT (cppcoreguidelines-avoid-magic-numbers)
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("0", result, "Incorrect result for a hexa integer rollover conversion");
+
+    memset(result, '\0', buffer_size);
+    custom_snprintf(result, buffer_size, "%+x", 10);  //NOLINT (cppcoreguidelines-avoid-magic-numbers)
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("+a", result, "Incorrect result for a hexa integer with forced sign conversion");
+
+    memset(result, '\0', buffer_size);
+    custom_snprintf(result, buffer_size, "%5x", 10);  //NOLINT (cppcoreguidelines-avoid-magic-numbers)
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("    a", result,
+                                     "Incorrect result for a hexa integer with ' ' padding conversion");
+
+    memset(result, '\0', buffer_size);
+    custom_snprintf(result, buffer_size, "%-5x", 10);  //NOLINT (cppcoreguidelines-avoid-magic-numbers)
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("a    ", result,
+                                     "Incorrect result for a left-justified hexa integer with ' ' padding conversion");
+
+    memset(result, '\0', buffer_size);
+    custom_snprintf(result, buffer_size, "%05x", 10);  //NOLINT (cppcoreguidelines-avoid-magic-numbers)
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("0000a", result,
+                                     "Incorrect result for a hexa integer with '0' padding conversion");
 
     // NOLINTEND (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
 }
