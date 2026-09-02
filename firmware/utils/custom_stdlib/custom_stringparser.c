@@ -374,6 +374,7 @@ static ParserResult stateParsingConversionSpecifier(ParserContext* context, char
     const bool is_uppercase_hex = (input_character == 'X');
     char conversion_buffer[kMaxIntBuffer];
     int32_t signed_value = 0;
+    float float_value = 0.0F;
     uint32_t result_length = 0;
 
     switch (input_character) {
@@ -408,6 +409,14 @@ static ParserResult stateParsingConversionSpecifier(ParserContext* context, char
             result_length =
                 convertUnsigned((uint32_t)(uintptr_t)va_arg(*args, void*), conversion_buffer, hexa_radix, false);
             outputInteger(&context->output, conversion_buffer, result_length, &context->current_argument, false);
+            break;
+
+        case 'f':
+            float_value = (float)va_arg(*args, double);
+            result_length =
+                convertFloat(float_value, conversion_buffer, context->current_argument.float_metadata.precision);
+            outputFloat(&context->output, conversion_buffer, result_length, &context->current_argument,
+                        (float_value < 0.0F));
             break;
 
         default:  //not-implemented specifier

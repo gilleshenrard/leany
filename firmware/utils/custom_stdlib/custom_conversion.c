@@ -136,6 +136,60 @@ void outputInteger(OutputBuffer* output, const char* result_string, size_t resul
 }
 
 /**
+ * Format and output an float with metadata
+ * 
+ * @param[out] output Output buffer metadata
+ * @param result_string String buffer into which store the converted float
+ * @param result_length Number of characters the raw output float takes
+ * @param metadata Format metadata
+ * @param is_negative Flag indicating whether the number is negative or not
+ */
+void outputFloat(OutputBuffer* output, const char* result_string, size_t result_length,
+                 const ArgumentMetadata* metadata, bool is_negative) {
+    if (!output || !result_string || !metadata) {
+        return;
+    }
+
+    char sign_char = qualifySignCharacter(metadata, is_negative);
+
+    size_t output_len = result_length;
+    if (sign_char != '\0') {
+        output_len++;
+    }
+
+    output_len += getStringLength(result_string, kMaxFormatLength);
+
+    // Calculate padding
+    const size_t padding_size = getPaddingSize(metadata, output_len);
+    size_t string_start_index = 0;
+    size_t padding_start_index = 0;
+
+    if (metadata->left_justify) {
+        padding_start_index = output_len;
+    } else {
+        string_start_index = padding_size;
+    }
+
+    /* Output sign */
+    if (sign_char != '\0') {
+        outputChar(output, sign_char);
+    }
+
+    const size_t output_index_backup = output->current_index;
+
+    output->current_index = output_index_backup + padding_start_index;
+    outputPadding(output, ' ', padding_size);
+
+    output->current_index = output_index_backup + string_start_index;
+
+    for (size_t index = 0U; index < output_len; index++) {
+        outputChar(output, result_string[index]);
+    }
+
+    output->current_index = output_index_backup + output_len + padding_size;
+}
+
+/**
  * Convert unsigned integer to string
  * 
  * @param value Value to convert
@@ -209,20 +263,48 @@ uint32_t convertSigned(int32_t value, char* buffer, uint32_t radix) {
  *
  * @param value Value to convert
  * @param[out] buffer Buffer to store result
- * @return 0
+ * @param precision Number of characters after the decimal point
+ * @return Length of converted float (excluding sign)
  */
-// NOLINTNEXTLINE (readability-non-const-parameter)
-uint32_t convertFloat(float value, char* buffer) {
-    (void)buffer;
+uint32_t convertFloat(float value, char* buffer, uint32_t precision) {
+    constexpr uint8_t decimal_radix = 10U;
+    constexpr float multiplier_10f = 10.0F;
+    constexpr uint8_t max_uint_characters = 10U;
+
+    if ((precision == 0) || (precision >= max_uint_characters)) {
+        precision = (max_uint_characters - 1U);  // cppcheck-suppress uselessAssignmentArg
+    }
 
     // Extract integer part
     const int32_t ipart = (int32_t)value;
+    uint32_t buffer_index = convertSigned(ipart, buffer, decimal_radix);
+
+    buffer[buffer_index] = '.';
+    buffer_index++;
 
     // Extract floating part
     float fpart = value - (float)ipart;
-    (void)fpart;
+    if (fpart < 0.0F) {
+        fpart = -fpart;
+    }
+    for (uint32_t rank = 0; rank < precision; rank++) {
+        if ((uint32_t)(fpart * multiplier_10f) >= UINT32_MAX) {
+            break;
+        }
 
-    return 0;
+        fpart *= multiplier_10f;
+
+        if ((uint32_t)fpart == 0) {
+            buffer[buffer_index] = '0';
+            buffer_index++;
+        }
+    }
+
+    if ((uint32_t)fpart) {
+        buffer_index += convertUnsigned((uint32_t)fpart, &buffer[buffer_index], decimal_radix, false);
+    }
+
+    return buffer_index;
 }
 
 /*********************************************************************************************************************************/

@@ -31,6 +31,7 @@ static void test_hexa_integer_output(void);
 static void test_string_output(void);
 static void test_char_output(void);
 static void test_pointer_output(void);
+static void test_float_output(void);
 
 static ParserContext parser_context;         ///< Parser context to use on all tests
 static char test_buffer[kStringBufferSize];  ///< String buffer to use as output on all tests
@@ -59,6 +60,7 @@ int main(void) {
     RUN_TEST(test_string_output);
     RUN_TEST(test_char_output);
     RUN_TEST(test_pointer_output);
+    RUN_TEST(test_float_output);
     return UNITY_END();
 }
 
@@ -455,5 +457,41 @@ static void test_pointer_output(void) {
     custom_snprintf(result, buffer_size, "%08p", (void*)&dummy_variable);
     TEST_ASSERT_EQUAL_STRING(expected, result);
 
+    // NOLINTEND (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling, cppcoreguidelines-avoid-magic-numbers)
+}
+
+/**
+ * Test the serialisation of a floating-point number
+ */
+static void test_float_output(void) {
+    // NOLINTBEGIN (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling, cppcoreguidelines-avoid-magic-numbers)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunsuffixed-float-constants"
+
+    constexpr uint8_t buffer_size = 20U;
+    char result[buffer_size];
+
+    custom_snprintf(result, buffer_size, "%f", 2.5);
+    TEST_ASSERT_EQUAL_STRING("2.500000000", result);
+
+    custom_snprintf(result, buffer_size, "%f", -2.5);
+    TEST_ASSERT_EQUAL_STRING("-2.500000000", result);
+
+    custom_snprintf(result, buffer_size, "%3f", 2.5);
+    TEST_ASSERT_EQUAL_STRING("  2.500000000", result);
+
+    custom_snprintf(result, buffer_size, "%3.3f", 2.5);
+    TEST_ASSERT_EQUAL_STRING("  2.500", result);
+
+    custom_snprintf(result, buffer_size, "%03.3f", 2.5);
+    TEST_ASSERT_EQUAL_STRING("002.500", result);
+
+    custom_snprintf(result, buffer_size, "%3.3f", -2.5);
+    TEST_ASSERT_EQUAL_STRING("  -2.500", result);
+
+    custom_snprintf(result, buffer_size, "%03.3f", -2.5);
+    TEST_ASSERT_EQUAL_STRING("-002.500", result);
+
+#pragma GCC diagnostic pop
     // NOLINTEND (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling, cppcoreguidelines-avoid-magic-numbers)
 }
