@@ -347,6 +347,8 @@ static ParserResult stateParsingLengthModifier(ParserContext* context, char inpu
  */
 static ParserResult stateParsingConversionSpecifier(ParserContext* context, char input_character, va_list* args) {
     constexpr uint8_t decimal_radix = 10U;
+    constexpr uint8_t hexa_radix = 16U;
+    const bool is_uppercase_hex = (input_character == 'X');
     char conversion_buffer[kMaxIntBuffer];
     int32_t signed_value = 0;
     uint32_t result_length = 0;
@@ -361,12 +363,16 @@ static ParserResult stateParsingConversionSpecifier(ParserContext* context, char
             break;
 
         case 'u':
-            result_length = convertUnsigned(va_arg(*args, uint32_t), conversion_buffer, decimal_radix, 0);
+            result_length = convertUnsigned(va_arg(*args, uint32_t), conversion_buffer, decimal_radix, false);
             outputInteger(&context->output, conversion_buffer, result_length, &context->current_argument, false);
             break;
 
         case 'X':
         case 'x':
+            result_length = convertUnsigned(va_arg(*args, uint32_t), conversion_buffer, hexa_radix, is_uppercase_hex);
+            outputInteger(&context->output, conversion_buffer, result_length, &context->current_argument, false);
+            break;
+
         case 's':
         case 'c':
         case 'p':

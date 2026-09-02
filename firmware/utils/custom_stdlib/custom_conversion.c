@@ -134,14 +134,14 @@ void outputInteger(OutputBuffer* output, const char* result_string, size_t resul
  * @param uppercase Use uppercase for hex digits
  * @return Length of converted string
  */
-uint32_t convertUnsigned(uint32_t value, char* buffer, uint32_t radix, uint8_t uppercase) {
+uint32_t convertUnsigned(uint32_t value, char* buffer, uint32_t radix, bool uppercase) {
     if (!buffer) {
         return 0U;
     }
 
     const char* digits_lower = "0123456789abcdef";
     const char* digits_upper = "0123456789ABCDEF";
-    const char* digits = (uppercase ? digits_upper : digits_lower);
+    const char* digits = ((uint8_t)uppercase ? digits_upper : digits_lower);
 
     //Handle 0 value
     if (value == 0U) {
@@ -190,7 +190,7 @@ uint32_t convertSigned(int32_t value, char* buffer, uint32_t radix) {
         unsigned_value = (uint32_t)value;
     }
 
-    uint32_t length = convertUnsigned(unsigned_value, buffer, radix, 0);
+    uint32_t length = convertUnsigned(unsigned_value, buffer, radix, false);
     return length;
 }
 
