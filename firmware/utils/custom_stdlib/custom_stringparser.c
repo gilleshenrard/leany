@@ -131,10 +131,10 @@ static void resetContext(ParserContext* context) {
         .space_sign = false,
         .width = 0U,
         .prefix_length = 0U,
-        .float_metadata =
+        .precision =
             {
                 .decimal_char_consumed = false,
-                .precision = 0U,
+                .magnitude = 0U,
             },
     };
 }
@@ -327,7 +327,7 @@ static ParserResult stateParsingArgumentPrefix(ParserContext* context, char inpu
  */
 static ParserResult stateParsingLengthModifier(ParserContext* context, char input_character) {
     if (input_character == kDecimalCharacter) {
-        context->current_argument.float_metadata.decimal_char_consumed = true;
+        context->current_argument.precision.decimal_char_consumed = true;
         return kParserPending;
     }
 
@@ -340,8 +340,8 @@ static ParserResult stateParsingLengthModifier(ParserContext* context, char inpu
     constexpr uint32_t base_number_character = '0';
 
     uint32_t* width_to_modify = nullptr;
-    if (context->current_argument.float_metadata.decimal_char_consumed) {
-        width_to_modify = &context->current_argument.float_metadata.precision;
+    if (context->current_argument.precision.decimal_char_consumed) {
+        width_to_modify = &context->current_argument.precision.magnitude;
     } else {
         width_to_modify = &context->current_argument.width;
     }
@@ -408,8 +408,7 @@ static ParserResult stateParsingConversionSpecifier(ParserContext* context, char
 
         case 'f':
             float_value = (float)va_arg(*args, double);
-            result_length =
-                convertFloat(float_value, conversion_buffer, context->current_argument.float_metadata.precision);
+            result_length = convertFloat(float_value, conversion_buffer, context->current_argument.precision.magnitude);
             outputFloat(&context->output, conversion_buffer, result_length, &context->current_argument,
                         (float_value < 0.0F));
             break;
