@@ -298,11 +298,15 @@ int8_t compareString(const char* first, size_t first_size, const char* second, s
         remaining--;
     }
 
-    if (remaining == 0U) {
-        return 0;
+    if (first_size > second_size) {
+        return 1;
     }
 
-    return (int8_t)((int16_t)toLowerAscii(*first) - (int16_t)toLowerAscii(*second));
+    if (first_size < second_size) {
+        return -1;
+    }
+
+    return 0;
 }
 
 /*********************************************************************************************************************************/
