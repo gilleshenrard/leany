@@ -409,6 +409,10 @@ static void test_string_output(void) {
     custom_snprintf(result, long_buffer_size, "%-63s", long_string);
     TEST_ASSERT_EQUAL_STRING("This is a very long string oh my god would you look at that    ", result);
 
+    memset(result, '\0', long_buffer_size);
+    custom_snprintf(result, long_buffer_size, "%.10s", long_string);
+    TEST_ASSERT_EQUAL_STRING("This is a ", result);
+
     // NOLINTEND (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling, cppcoreguidelines-avoid-magic-numbers)
 }
 

@@ -53,6 +53,9 @@ void outputString(OutputBuffer* output, const char* str, const ArgumentMetadata*
     }
 
     size_t output_len = getStringLength(str, kMaxFormatLength);
+    if ((metadata->float_metadata.precision) && (output_len > metadata->float_metadata.precision)) {
+        output_len = metadata->float_metadata.precision;
+    }
 
     // Calculate padding
     const size_t padding_size = getPaddingSize(metadata, output_len);
