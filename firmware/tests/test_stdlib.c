@@ -36,6 +36,8 @@ static void test_string_to_float(void);
 static void test_string_to_decimal_integer(void);
 static void test_string_to_hexadecimal_integer(void);
 static void test_tolower_ascii(void);
+static void test_get_string_length(void);
+static void test_compare_string(void);
 
 static ParserContext parser_context;         ///< Parser context to use on all tests
 static char test_buffer[kStringBufferSize];  ///< String buffer to use as output on all tests
@@ -69,6 +71,8 @@ int main(void) {
     RUN_TEST(test_string_to_decimal_integer);
     RUN_TEST(test_string_to_hexadecimal_integer);
     RUN_TEST(test_tolower_ascii);
+    RUN_TEST(test_get_string_length);
+    RUN_TEST(test_compare_string);
     return UNITY_END();
 }
 
@@ -599,5 +603,46 @@ static void test_tolower_ascii(void) {
 
     result = toLowerAscii(('Z' + 1));
     TEST_ASSERT_EQUAL_CHAR(('Z' + 1), result);
+    // NOLINTEND (cppcoreguidelines-avoid-magic-numbers)
+}
+
+/**
+ * Test getting the length of a string, bounded by a maximum length
+ */
+static void test_get_string_length(void) {
+    // NOLINTBEGIN (cppcoreguidelines-avoid-magic-numbers)
+    TEST_ASSERT_EQUAL_size_t(0, getStringLength(nullptr, 10));
+    TEST_ASSERT_EQUAL_size_t(0, getStringLength("", 10));
+    TEST_ASSERT_EQUAL_size_t(5, getStringLength("Hello", 10));
+    TEST_ASSERT_EQUAL_size_t(5, getStringLength("Hello, World!", 5));  // truncated by max_length
+    TEST_ASSERT_EQUAL_size_t(0, getStringLength("Hello", 0));
+    // NOLINTEND (cppcoreguidelines-avoid-magic-numbers)
+}
+
+/**
+ * Test comparing two strings in a case-insensitive manner, bounded by their respective sizes
+ */
+static void test_compare_string(void) {
+    // NOLINTBEGIN (cppcoreguidelines-avoid-magic-numbers)
+    TEST_ASSERT_EQUAL_INT8(0, compareString("hello", 5, "hello", 5));
+    TEST_ASSERT_EQUAL_INT8(0, compareString("Hello", 5, "hello", 5));  // case-insensitive
+    TEST_ASSERT_EQUAL_INT8(0, compareString("HELLO", 5, "hello", 5));
+
+    TEST_ASSERT_TRUE(compareString("hello", 5, "apple", 5) > 0);  // 'h' > 'a'
+    TEST_ASSERT_TRUE(compareString("apple", 5, "hello", 5) < 0);  // 'a' < 'h'
+
+    // one string a prefix of the other, compared over their full lengths
+    TEST_ASSERT_TRUE(compareString("hello", 5, "hell", 4) > 0);
+    TEST_ASSERT_TRUE(compareString("hell", 4, "hello", 5) < 0);
+
+    // early null terminator inside the given size
+    TEST_ASSERT_EQUAL_INT8(0, compareString("hi\0xx", 5, "hi\0yy", 5));
+
+    // comparison bounded by the smaller of the two sizes, even if buffers are longer
+    TEST_ASSERT_EQUAL_INT8(0, compareString("hello world", 5, "hello there", 5));
+
+    // zero size on either side
+    TEST_ASSERT_EQUAL_INT8(0, compareString("hello", 0, "hello", 5));
+    TEST_ASSERT_EQUAL_INT8(0, compareString("hello", 5, "hello", 0));
     // NOLINTEND (cppcoreguidelines-avoid-magic-numbers)
 }
