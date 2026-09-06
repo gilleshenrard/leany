@@ -106,6 +106,10 @@ ParserResult pushCharacter(ParserContext* context, char input_character, va_list
         result = kParserInvalid;
     }
 
+    if (result == kParserDone) {
+        resetContext(context);
+    }
+
     return result;
 }
 
