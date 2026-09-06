@@ -38,6 +38,7 @@ static void test_string_to_hexadecimal_integer(void);
 static void test_tolower_ascii(void);
 static void test_get_string_length(void);
 static void test_compare_string(void);
+static void test_multiple_arguments(void);
 
 static ParserContext parser_context;         ///< Parser context to use on all tests
 static char test_buffer[kStringBufferSize];  ///< String buffer to use as output on all tests
@@ -73,6 +74,7 @@ int main(void) {
     RUN_TEST(test_tolower_ascii);
     RUN_TEST(test_get_string_length);
     RUN_TEST(test_compare_string);
+    RUN_TEST(test_multiple_arguments);
     return UNITY_END();
 }
 
@@ -645,4 +647,24 @@ static void test_compare_string(void) {
     TEST_ASSERT_EQUAL_INT8(0, compareString("hello", 0, "hello", 5));
     TEST_ASSERT_EQUAL_INT8(0, compareString("hello", 5, "hello", 0));
     // NOLINTEND (cppcoreguidelines-avoid-magic-numbers)
+}
+
+/**
+ * Test a full string with multiple arguments
+ */
+static void test_multiple_arguments(void) {
+    // NOLINTBEGIN (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling, cppcoreguidelines-avoid-magic-numbers)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunsuffixed-float-constants"
+
+    constexpr uint8_t long_buffer_size = 64U;
+    char buffer[long_buffer_size];
+
+    int32_t length = custom_snprintf(buffer, long_buffer_size, "%.10s %8.2f and %8.2f is %8.2f, not %02i", "The sum of",
+                                     2.45, 6.54, 2);
+    TEST_ASSERT_EQUAL_STRING("The sum of     2.45 and     6.54 is     8.99, not 02", buffer);
+    TEST_ASSERT_EQUAL_INT32(52, length);
+
+#pragma GCC diagnostic pop
+    // NOLINTEND (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling, cppcoreguidelines-avoid-magic-numbers)
 }

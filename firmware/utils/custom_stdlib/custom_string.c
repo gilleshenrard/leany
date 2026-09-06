@@ -56,15 +56,14 @@ int32_t custom_snprintf(char* buffer, size_t size, const char* format, ...) {
  * This function formats a string according to the format specifier and
  * writes it to the buffer, ensuring null-termination and preventing
  * buffer overflow.
+ * @note The function always null-terminates the buffer if size > 0
+ * @note If the formatted string would exceed size-1, it is truncated
  * 
  * @param[out] buffer Destination buffer
  * @param size Size of destination buffer (including null terminator)
  * @param format Format string
  * @param args Variable argument list
  * @return Number of characters written (excluding null terminator), or -1 on error
- * 
- * @note The function always null-terminates the buffer if size > 0
- * @note If the formatted string would exceed size-1, it is truncated
  */
 int32_t custom_vsnprintf(char* buffer, size_t size, const char* format, va_list* args) {
     /* Validate parameters */
@@ -92,7 +91,7 @@ int32_t custom_vsnprintf(char* buffer, size_t size, const char* format, va_list*
         context.output.buffer[size - 1U] = '\0';
     }
 
-    return 0;
+    return (int32_t)context.output.current_index;
 }
 
 /**
