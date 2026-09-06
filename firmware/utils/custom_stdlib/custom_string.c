@@ -40,6 +40,8 @@ static uint32_t qualifyHexCharacter(char character);
  * @note The function always null-terminates the buffer if size > 0
  * @note If the formatted string would exceed size-1, it is truncated
  */
+// clang-format off
+__attribute__((format(printf, 3, 4)))
 int32_t custom_snprintf(char* buffer, size_t size, const char* format, ...) {
     va_list args;  // NOLINT (cppcoreguidelines-init-variables)
 
@@ -49,6 +51,7 @@ int32_t custom_snprintf(char* buffer, size_t size, const char* format, ...) {
 
     return result;
 }
+// clang-format on
 
 /**
  * Format and write to a string with size limit

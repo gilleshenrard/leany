@@ -661,7 +661,7 @@ static void test_multiple_arguments(void) {
     char buffer[long_buffer_size];
 
     int32_t length = custom_snprintf(buffer, long_buffer_size, "%.10s %8.2f and %8.2f is %8.2f, not %02i", "The sum of",
-                                     2.45, 6.54, 2);
+                                     2.45, 6.54, 8.99, 2U);
     TEST_ASSERT_EQUAL_STRING("The sum of     2.45 and     6.54 is     8.99, not 02", buffer);
     TEST_ASSERT_EQUAL_INT32(52, length);
 
