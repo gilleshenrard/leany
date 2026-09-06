@@ -474,30 +474,39 @@ static void test_float_output(void) {
     custom_snprintf(result, buffer_size, "%f", 2.5);
     TEST_ASSERT_EQUAL_STRING("2.500000000", result);
 
+    memset(result, '\0', buffer_size);
     custom_snprintf(result, buffer_size, "%f", -2.5);
     TEST_ASSERT_EQUAL_STRING("-2.500000000", result);
 
+    memset(result, '\0', buffer_size);
     custom_snprintf(result, buffer_size, "%19f", 2.5);
     TEST_ASSERT_EQUAL_STRING("        2.500000000", result);
 
+    memset(result, '\0', buffer_size);
     custom_snprintf(result, buffer_size, "%3f", 2.5);  //should not have effect
     TEST_ASSERT_EQUAL_STRING("2.500000000", result);
 
+    memset(result, '\0', buffer_size);
     custom_snprintf(result, buffer_size, "%19.3f", 2.5);
     TEST_ASSERT_EQUAL_STRING("              2.500", result);
 
+    memset(result, '\0', buffer_size);
     custom_snprintf(result, buffer_size, "%-19.3f", 2.5);
     TEST_ASSERT_EQUAL_STRING("2.500              ", result);
 
+    memset(result, '\0', buffer_size);
     custom_snprintf(result, buffer_size, "%-19.3f", -2.5);
     TEST_ASSERT_EQUAL_STRING("-2.500             ", result);
 
+    memset(result, '\0', buffer_size);
     custom_snprintf(result, buffer_size, "%019.3f", 2.5);
     TEST_ASSERT_EQUAL_STRING("000000000000002.500", result);
 
+    memset(result, '\0', buffer_size);
     custom_snprintf(result, buffer_size, "%019.3f", -2.5);
     TEST_ASSERT_EQUAL_STRING("-00000000000002.500", result);
 
+    memset(result, '\0', buffer_size);
     custom_snprintf(result, buffer_size, "%+019.3f", 2.5);
     TEST_ASSERT_EQUAL_STRING("+00000000000002.500", result);
 
