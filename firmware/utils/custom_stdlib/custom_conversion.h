@@ -19,25 +19,25 @@ typedef struct {
 } OutputBuffer;
 
 /**
- * Metadata specific to floating points arguments
+ * Metadata specific to whether precision is required in the argument's conversion
  */
 typedef struct {
     bool decimal_char_consumed;  ///< Whether the argument as a decimal character already consumed
-    uint32_t precision;          ///< Minimum field width
-} FloatMetadata;
+    uint32_t magnitude;          ///< Minimum number of characters to hit the precision
+} ConversionPrecision;
 
 /**
  * Argument format metadata parsed from format specifier
  */
 typedef struct {
-    bool introductory_consumed;    ///< Whether the percent character has already been consumed
-    bool zero_pad;                 ///< Use zero padding instead of spaces
-    bool left_justify;             ///< Left justify the output
-    bool show_sign;                ///< Always show sign for signed numbers
-    bool space_sign;               ///< Use space for positive numbers
-    uint32_t width;                ///< Minimum field width
-    uint8_t prefix_length;         ///< Argument's prefix length
-    FloatMetadata float_metadata;  ///< Floating point arguments' metadata
+    bool introductory_consumed;     ///< Whether the percent character has already been consumed
+    bool zero_pad;                  ///< Use zero padding instead of spaces
+    bool left_justify;              ///< Left justify the output
+    bool show_sign;                 ///< Always show sign for signed numbers
+    bool space_sign;                ///< Use space for positive numbers
+    uint32_t width;                 ///< Minimum field width
+    uint8_t prefix_length;          ///< Argument's prefix length
+    ConversionPrecision precision;  ///< Arguments' precision metadata
 } ArgumentMetadata;
 
 void outputChar(OutputBuffer* output, char character);
