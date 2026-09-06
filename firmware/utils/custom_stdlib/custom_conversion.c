@@ -153,14 +153,9 @@ void outputFloat(OutputBuffer* output, const char* result_string, size_t result_
     char sign_char = qualifySignCharacter(metadata, is_negative);
 
     size_t output_len = result_length;
-    if (sign_char != '\0') {
-        output_len++;
-    }
-
-    output_len += getStringLength(result_string, kMaxFormatLength);
 
     // Calculate padding
-    const size_t padding_size = getPaddingSize(metadata, output_len);
+    const size_t padding_size = getPaddingSize(metadata, output_len + (uint8_t)(sign_char != '\0'));
     size_t string_start_index = 0;
     size_t padding_start_index = 0;
 
@@ -178,7 +173,8 @@ void outputFloat(OutputBuffer* output, const char* result_string, size_t result_
     const size_t output_index_backup = output->current_index;
 
     output->current_index = output_index_backup + padding_start_index;
-    outputPadding(output, ' ', padding_size);
+    const char padding_character = (char)((char)(metadata->zero_pad) ? '0' : ' ');
+    outputPadding(output, padding_character, padding_size);
 
     output->current_index = output_index_backup + string_start_index;
 
