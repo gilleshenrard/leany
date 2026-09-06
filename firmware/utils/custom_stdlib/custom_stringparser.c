@@ -134,7 +134,6 @@ static void resetContext(ParserContext* context) {
         .float_metadata =
             {
                 .decimal_char_consumed = false,
-                .zero_append = false,
                 .precision = 0U,
             },
     };
@@ -294,11 +293,7 @@ static ParserResult stateParsingArgumentPrefix(ParserContext* context, char inpu
     //collect the qualifier to interpret
     switch (input_character) {
         case '0':  //Left-pads the number with zeroes (0) instead of spaces when padding is specified
-            if (context->current_argument.float_metadata.decimal_char_consumed) {
-                parseArgumentPrefixFlag(argument, &argument->float_metadata.zero_append);
-            } else {
-                parseArgumentPrefixFlag(argument, &argument->zero_pad);
-            }
+            parseArgumentPrefixFlag(argument, &argument->zero_pad);
             break;
 
         case '-':  //Left-justify within the given field width; Right justification is the default

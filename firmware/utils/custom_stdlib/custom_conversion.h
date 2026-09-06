@@ -23,7 +23,6 @@ typedef struct {
  */
 typedef struct {
     bool decimal_char_consumed;  ///< Whether the argument as a decimal character already consumed
-    bool zero_append;            ///< Append the result with zeroes until precision reached
     uint32_t precision;          ///< Minimum field width
 } FloatMetadata;
 
