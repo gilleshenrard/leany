@@ -30,18 +30,24 @@ static uint32_t qualifyHexCharacter(char character);
  * This function formats a string according to the format specifier and
  * writes it to the buffer, ensuring null-termination and preventing
  * buffer overflow.
+ *
+ * @note The function always null-terminates the buffer if size > 0
+ * @note If the formatted string would exceed size-1, it is truncated
+ * @note The implemented type specifiers are :
+ * - d, i : Signed 32-bits decimal integer
+ * - u    : Unsigned 32-bits decimal integer
+ * - x, X : Unsigned 32-bits hexadecimal integer
+ * - s    : String
+ * - c    : ASCII character
+ * - p    : 32-bits address
+ * - f    : 32-bits float
  * 
  * @param[out] buffer Destination buffer
  * @param[in] size Size of destination buffer (including null terminator)
  * @param[in] format Format string
  * @param[in] ... Variable arguments
  * @return Number of characters written (excluding null terminator), or -1 on error
- * 
- * @note The function always null-terminates the buffer if size > 0
- * @note If the formatted string would exceed size-1, it is truncated
  */
-// clang-format off
-__attribute__((format(printf, 3, 4)))
 int32_t custom_snprintf(char* buffer, size_t size, const char* format, ...) {
     va_list args;  // NOLINT (cppcoreguidelines-init-variables)
 
@@ -51,7 +57,6 @@ int32_t custom_snprintf(char* buffer, size_t size, const char* format, ...) {
 
     return result;
 }
-// clang-format on
 
 /**
  * Format and write to a string with size limit
@@ -61,6 +66,15 @@ int32_t custom_snprintf(char* buffer, size_t size, const char* format, ...) {
  * buffer overflow.
  * @note The function always null-terminates the buffer if size > 0
  * @note If the formatted string would exceed size-1, it is truncated
+ * 
+ * @note The implemented type specifiers are :
+ * - d, i : Signed 32-bits decimal integer
+ * - u    : Unsigned 32-bits decimal integer
+ * - x, X : Unsigned 32-bits hexadecimal integer
+ * - s    : String
+ * - c    : ASCII character
+ * - p    : 32-bits address
+ * - f    : 32-bits float
  * 
  * @param[out] buffer Destination buffer
  * @param size Size of destination buffer (including null terminator)
