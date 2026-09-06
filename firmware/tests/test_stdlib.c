@@ -32,6 +32,10 @@ static void test_string_output(void);
 static void test_char_output(void);
 static void test_pointer_output(void);
 static void test_float_output(void);
+static void test_string_to_float(void);
+static void test_string_to_decimal_integer(void);
+static void test_string_to_hexadecimal_integer(void);
+static void test_tolower_ascii(void);
 
 static ParserContext parser_context;         ///< Parser context to use on all tests
 static char test_buffer[kStringBufferSize];  ///< String buffer to use as output on all tests
@@ -61,6 +65,10 @@ int main(void) {
     RUN_TEST(test_char_output);
     RUN_TEST(test_pointer_output);
     RUN_TEST(test_float_output);
+    RUN_TEST(test_string_to_float);
+    RUN_TEST(test_string_to_decimal_integer);
+    RUN_TEST(test_string_to_hexadecimal_integer);
+    RUN_TEST(test_tolower_ascii);
     return UNITY_END();
 }
 
@@ -512,4 +520,80 @@ static void test_float_output(void) {
 
 #pragma GCC diagnostic pop
     // NOLINTEND (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling, cppcoreguidelines-avoid-magic-numbers)
+}
+
+/**
+ * Test the string to float conversion
+ */
+static void test_string_to_float(void) {
+    // NOLINTBEGIN (cppcoreguidelines-avoid-magic-numbers)
+    float result = custom_strtof("2.5");
+    TEST_ASSERT_EQUAL_FLOAT(2.5F, result);
+
+    result = custom_strtof("0.0");
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, result);
+
+    result = custom_strtof("-2.5");
+    TEST_ASSERT_EQUAL_FLOAT(-2.5F, result);
+    // NOLINTEND (cppcoreguidelines-avoid-magic-numbers)
+}
+
+/**
+ * Test the string to decimal integer conversion
+ */
+static void test_string_to_decimal_integer(void) {
+    // NOLINTBEGIN (cppcoreguidelines-avoid-magic-numbers)
+    uint32_t result = custom_strtoi("10");
+    TEST_ASSERT_EQUAL_UINT32(10, result);
+
+    result = custom_strtoi("0");
+    TEST_ASSERT_EQUAL_UINT32(0, result);
+
+    result = custom_strtoi("4294967295");
+    TEST_ASSERT_EQUAL_UINT32(UINT32_MAX, result);
+
+    result = custom_strtoi("4294967295636");
+    TEST_ASSERT_EQUAL_UINT32(UINT32_MAX, result);
+    // NOLINTEND (cppcoreguidelines-avoid-magic-numbers)
+}
+
+/**
+ * Test the string to hexadecimal integer conversion
+ */
+static void test_string_to_hexadecimal_integer(void) {
+    // NOLINTBEGIN (cppcoreguidelines-avoid-magic-numbers)
+    uint32_t result = custom_strtoi_hexa("A");
+    TEST_ASSERT_EQUAL_UINT32(0xA, result);
+
+    result = custom_strtoi_hexa("0");
+    TEST_ASSERT_EQUAL_UINT32(0, result);
+
+    result = custom_strtoi_hexa("FFFFFFFF");
+    TEST_ASSERT_EQUAL_UINT32(UINT32_MAX, result);
+
+    result = custom_strtoi_hexa("FFFFFFFFFF");
+    TEST_ASSERT_EQUAL_UINT32(UINT32_MAX, result);
+    // NOLINTEND (cppcoreguidelines-avoid-magic-numbers)
+}
+
+/**
+ * Test the lowering of the case of an ascii character
+ */
+static void test_tolower_ascii(void) {
+    // NOLINTBEGIN (cppcoreguidelines-avoid-magic-numbers)
+    char result = toLowerAscii('A');
+    TEST_ASSERT_EQUAL_CHAR('a', result);
+
+    result = toLowerAscii('a');
+    TEST_ASSERT_EQUAL_CHAR('a', result);
+
+    result = toLowerAscii(('A' - 1));
+    TEST_ASSERT_EQUAL_CHAR(('A' - 1), result);
+
+    result = toLowerAscii(('z' + 1));
+    TEST_ASSERT_EQUAL_CHAR(('z' + 1), result);
+
+    result = toLowerAscii(('Z' + 1));
+    TEST_ASSERT_EQUAL_CHAR(('Z' + 1), result);
+    // NOLINTEND (cppcoreguidelines-avoid-magic-numbers)
 }

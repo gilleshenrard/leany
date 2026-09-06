@@ -14,8 +14,9 @@
 #include "custom_stringparser.h"
 
 enum : uint8_t {
-    kFloatBufferSize = 20U,  ///< Number of bytes a float to string buffer can hold
-    kHexaUint32Size = 8U,    ///< Number of bytes a hexadecimal 32-bits number can hold
+    kFloatBufferSize = 20U,    ///< Number of bytes a float to string buffer can hold
+    kDecimalUint32Size = 10U,  ///< Number of bytes a decimal 32-bits number can hold
+    kHexaUint32Size = 8U,      ///< Number of bytes a hexadecimal 32-bits number can hold
 };
 
 static uint32_t qualifyHexCharacter(char character);
@@ -146,7 +147,7 @@ float custom_strtof(const char string[]) {
  */
 uint32_t custom_strtoi(const char string[]) {
     uint8_t length = 0;
-    while ((length < kFloatBufferSize) && isnumber(string[length])) {
+    while ((length < kDecimalUint32Size) && isnumber(string[length])) {
         length++;
     }
 
