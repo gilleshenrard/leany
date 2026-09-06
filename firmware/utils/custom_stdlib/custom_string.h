@@ -14,10 +14,15 @@
 
 int32_t custom_snprintf(char* buffer, size_t size, const char* format, ...);
 int32_t custom_vsnprintf(char* buffer, size_t size, const char* format, va_list* args);
+float custom_strtof(const char string[]);
+uint32_t custom_strtoi(const char string[]);
+uint32_t custom_strtoi_hexa(const char string[]);
+char toLowerAscii(char character);
 bool isnumber(char character);
 bool issign(char character);
 bool isAlphaUppercase(char character);
 bool isAlphaLowercase(char character);
 size_t getStringLength(const char* string, size_t max_length);
+int8_t compareString(const char* first, size_t first_size, const char* second, size_t second_size);
 
 #endif
