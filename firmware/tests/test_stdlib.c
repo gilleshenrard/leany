@@ -477,20 +477,29 @@ static void test_float_output(void) {
     custom_snprintf(result, buffer_size, "%f", -2.5);
     TEST_ASSERT_EQUAL_STRING("-2.500000000", result);
 
-    custom_snprintf(result, buffer_size, "%3f", 2.5);
-    TEST_ASSERT_EQUAL_STRING("  2.500000000", result);
+    custom_snprintf(result, buffer_size, "%19f", 2.5);
+    TEST_ASSERT_EQUAL_STRING("        2.500000000", result);
 
-    custom_snprintf(result, buffer_size, "%3.3f", 2.5);
-    TEST_ASSERT_EQUAL_STRING("  2.500", result);
+    custom_snprintf(result, buffer_size, "%3f", 2.5);  //should not have effect
+    TEST_ASSERT_EQUAL_STRING("2.500000000", result);
 
-    custom_snprintf(result, buffer_size, "%03.3f", 2.5);
-    TEST_ASSERT_EQUAL_STRING("002.500", result);
+    custom_snprintf(result, buffer_size, "%19.3f", 2.5);
+    TEST_ASSERT_EQUAL_STRING("              2.500", result);
 
-    custom_snprintf(result, buffer_size, "%3.3f", -2.5);
-    TEST_ASSERT_EQUAL_STRING("  -2.500", result);
+    custom_snprintf(result, buffer_size, "%-19.3f", 2.5);
+    TEST_ASSERT_EQUAL_STRING("2.500              ", result);
 
-    custom_snprintf(result, buffer_size, "%03.3f", -2.5);
-    TEST_ASSERT_EQUAL_STRING("-002.500", result);
+    custom_snprintf(result, buffer_size, "%-19.3f", -2.5);
+    TEST_ASSERT_EQUAL_STRING("-2.500             ", result);
+
+    custom_snprintf(result, buffer_size, "%019.3f", 2.5);
+    TEST_ASSERT_EQUAL_STRING("000000000000002.500", result);
+
+    custom_snprintf(result, buffer_size, "%019.3f", -2.5);
+    TEST_ASSERT_EQUAL_STRING("-00000000000002.500", result);
+
+    custom_snprintf(result, buffer_size, "%+019.3f", 2.5);
+    TEST_ASSERT_EQUAL_STRING("+00000000000002.500", result);
 
 #pragma GCC diagnostic pop
     // NOLINTEND (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling, cppcoreguidelines-avoid-magic-numbers)
