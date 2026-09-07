@@ -14,14 +14,15 @@
 #include "custom_stringparser.h"
 
 enum : uint8_t {
-    kMaxWidth = 128U,  ///< Maximum width specifier value
+    kMaxWidth = 128U,             ///< Maximum width specifier value
+    kMaxDecimalsCharacters = 7U,  ///< Maximum number of decimals printed for a float
 };
 
 //utility functions
 static void outputPadding(OutputBuffer* output, char pad_char, size_t count);
 static char qualifySignCharacter(const ArgumentMetadata* metadata, bool is_negative);
 static size_t getPaddingSize(const ArgumentMetadata* metadata, size_t output_len);
-static uint32_t qualifyFloatPrecision(char* buffer, uint32_t* buffer_index, const ConversionPrecision* precision);
+static uint32_t getFloatPrecision(const ConversionPrecision* precision);
 
 /*********************************************************************************************************************************/
 /*********************************************************************************************************************************/
@@ -273,11 +274,16 @@ uint32_t convertFloat(float value, char* buffer, const ConversionPrecision* prec
     constexpr uint8_t decimal_radix = 10U;
     constexpr float multiplier_10f = 10.0F;
 
+    uint32_t precision_magnitude = getFloatPrecision(precision);
+
     // Extract integer part
     const int32_t ipart = (int32_t)value;
     uint32_t buffer_index = convertSigned(ipart, buffer, decimal_radix);
 
-    uint32_t precision_magnitude = qualifyFloatPrecision(buffer, &buffer_index, precision);
+    if (precision_magnitude > 0) {
+        buffer[buffer_index] = '.';
+        (buffer_index)++;
+    }
 
     // Extract floating part
     float fpart = value - (float)ipart;
@@ -368,25 +374,19 @@ static char qualifySignCharacter(const ArgumentMetadata* metadata, bool is_negat
 }
 
 /**
- * Decide which precision should be printed on a float and whether '.' should appear
+ * Decide which precision should be printed on a float
  *
- * @param[out] buffer Output buffer
- * @param buffer_index Current index in the buffer
  * @param precision Precision metadata extracted from the argument modifiers
  * @return Final magnitude of the precision
  */
-static uint32_t qualifyFloatPrecision(char* buffer, uint32_t* buffer_index, const ConversionPrecision* precision) {
-    constexpr uint8_t max_decimals_characters = 7U;
-
-    uint32_t precision_magnitude = precision->magnitude;
-    if (!precision->decimal_char_consumed || (precision_magnitude > max_decimals_characters)) {
-        precision_magnitude = max_decimals_characters;
+static uint32_t getFloatPrecision(const ConversionPrecision* precision) {
+    if (!precision) {
+        return 0;
     }
 
-    if (!precision->decimal_char_consumed || (precision_magnitude > 0)) {
-        buffer[*buffer_index] = '.';
-        (*buffer_index)++;
+    if (!precision->decimal_char_consumed || (precision->magnitude > kMaxDecimalsCharacters)) {
+        return kMaxDecimalsCharacters;
     }
 
-    return precision_magnitude;
+    return precision->magnitude;
 }

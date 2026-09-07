@@ -678,11 +678,15 @@ static void test_multiple_arguments(void) {
 
     constexpr uint8_t long_buffer_size = 64U;
     char buffer[long_buffer_size];
+    char expected[long_buffer_size];
+
+    int32_t expected_length = snprintf(expected, long_buffer_size, "%.10s %08.2f and %-8.2f is %+8.2f, not %02u, %c",
+                                       "The sum of", (double)2.45F, (double)6.54F, (double)8.99F, 2U, 'A');
 
     int32_t length = custom_snprintf(buffer, long_buffer_size, "%.10s %08.2f and %-8.2f is %+8.2f, not %02u, %c",
                                      "The sum of", (double)2.45F, (double)6.54F, (double)8.99F, 2U, 'A');
-    TEST_ASSERT_EQUAL_STRING("The sum of 00002.45 and 6.54     is    +8.99, not 02, A", buffer);
-    TEST_ASSERT_EQUAL_INT32(57, length);
+    TEST_ASSERT_EQUAL_STRING(expected, buffer);
+    TEST_ASSERT_EQUAL_INT32(expected_length, length);
 
     // NOLINTEND (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling, cppcoreguidelines-avoid-magic-numbers)
 }
@@ -718,10 +722,11 @@ static void test_flag_sanitisation_for_unsupported_conversions(void) {
     TEST_ASSERT_EQUAL_STRING("a", result);
 
     // '0' is meaningless for %p : falls back to space padding, same as plain width
-    memset(result, '\0', buffer_size);
     int dummy_variable = 0;
     const uint32_t truncated_address = (uint32_t)(uintptr_t)&dummy_variable;
     char expected[buffer_size];
+
+    memset(result, '\0', buffer_size);
     snprintf(expected, buffer_size, "%8x", truncated_address);
     custom_snprintf(result, buffer_size, "%08p", (void*)&dummy_variable);
     TEST_ASSERT_EQUAL_STRING(expected, result);
