@@ -86,72 +86,16 @@ void outputString(OutputBuffer* output, const char* str, const ArgumentMetadata*
 }
 
 /**
- * Format and output an integer with metadata
+ * Format and output a number with metadata
  * 
  * @param[out] output Output buffer metadata
- * @param result_string String buffer into which store the converted integer
- * @param result_length Number of characters the raw output integer takes
+ * @param result_string String buffer into which store the converted number
+ * @param result_length Number of characters the raw output number takes
  * @param metadata Format metadata
  * @param is_negative Flag indicating whether the number is negative or not
  */
-void outputInteger(OutputBuffer* output, const char* result_string, size_t result_length,
-                   const ArgumentMetadata* metadata, bool is_negative) {
-    if (!output || !result_string || !result_length || !metadata) {
-        return;
-    }
-
-    char sign_char = qualifySignCharacter(metadata, is_negative);
-
-    size_t total_len = result_length;
-    if (sign_char != '\0') {
-        total_len++;
-    }
-
-    // Calculate padding
-    const size_t padding_size = getPaddingSize(metadata, total_len);
-    size_t string_start_index = 0;
-    size_t padding_start_index = 0;
-    char padding_char = ' ';
-
-    if (metadata->left_justify) {
-        padding_start_index = total_len;
-    } else {
-        string_start_index = padding_size;
-        if (metadata->zero_pad) {
-            padding_char = '0';
-        }
-    }
-
-    /* Output sign */
-    if (sign_char != '\0') {
-        outputChar(output, sign_char);
-    }
-
-    const size_t output_index_backup = output->current_index;
-
-    output->current_index = output_index_backup + padding_start_index;
-    outputPadding(output, padding_char, padding_size);
-
-    output->current_index = output_index_backup + string_start_index;
-
-    for (size_t index = 0U; index < result_length; index++) {
-        outputChar(output, result_string[index]);
-    }
-
-    output->current_index = output_index_backup + total_len + padding_size;
-}
-
-/**
- * Format and output an float with metadata
- * 
- * @param[out] output Output buffer metadata
- * @param result_string String buffer into which store the converted float
- * @param result_length Number of characters the raw output float takes
- * @param metadata Format metadata
- * @param is_negative Flag indicating whether the number is negative or not
- */
-void outputFloat(OutputBuffer* output, const char* result_string, size_t result_length,
-                 const ArgumentMetadata* metadata, bool is_negative) {
+void outputNumber(OutputBuffer* output, const char* result_string, size_t result_length,
+                  const ArgumentMetadata* metadata, bool is_negative) {
     if (!output || !result_string || !metadata) {
         return;
     }
@@ -179,8 +123,10 @@ void outputFloat(OutputBuffer* output, const char* result_string, size_t result_
 
     const size_t output_index_backup = output->current_index;
 
-    output->current_index = output_index_backup + sign_index;
-    outputChar(output, sign_char);
+    if (sign_char != '\0') {
+        output->current_index = output_index_backup + sign_index;
+        outputChar(output, sign_char);
+    }
 
     output->current_index = output_index_backup + padding_start_index;
     const char padding_character = (char)((char)(metadata->zero_pad) ? '0' : ' ');
