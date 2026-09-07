@@ -39,6 +39,7 @@ static void test_tolower_ascii(void);
 static void test_get_string_length(void);
 static void test_compare_string(void);
 static void test_multiple_arguments(void);
+static void test_flag_sanitisation_for_unsupported_conversions(void);
 
 static ParserContext parser_context;         ///< Parser context to use on all tests
 static char test_buffer[kStringBufferSize];  ///< String buffer to use as output on all tests
@@ -75,6 +76,7 @@ int main(void) {
     RUN_TEST(test_get_string_length);
     RUN_TEST(test_compare_string);
     RUN_TEST(test_multiple_arguments);
+    RUN_TEST(test_flag_sanitisation_for_unsupported_conversions);
     return UNITY_END();
 }
 
@@ -240,8 +242,12 @@ static void test_unimplemented_type_specifier(void) {
     constexpr uint8_t buffer_size = 10U;
     char result[buffer_size];
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat"
+#pragma GCC diagnostic ignored "-Wformat-extra-args"
     custom_snprintf(result, buffer_size, "%w", 5);  //NOLINT (cppcoreguidelines-avoid-magic-numbers)
     TEST_ASSERT_EQUAL_STRING("%w", result);
+#pragma GCC diagnostic pop
 }
 
 /**
@@ -264,7 +270,7 @@ static void test_signed_integer_output(void) {
     TEST_ASSERT_EQUAL_STRING("214748364", result);
 
     memset(result, '\0', buffer_size);
-    custom_snprintf(result, buffer_size, "%d", INT32_MAX + 1U);
+    custom_snprintf(result, buffer_size, "%d", (int32_t)(INT32_MAX + 1U));
     TEST_ASSERT_EQUAL_STRING("-21474836", result);
 
     memset(result, '\0', buffer_size);
@@ -302,11 +308,11 @@ static void test_unsigned_integer_output(void) {
     constexpr uint8_t buffer_size = 10U;
     char result[buffer_size];
 
-    custom_snprintf(result, buffer_size, "%u", 5);
+    custom_snprintf(result, buffer_size, "%u", 5U);
     TEST_ASSERT_EQUAL_STRING("5", result);
 
     memset(result, '\0', buffer_size);
-    custom_snprintf(result, buffer_size, "%u", -5);
+    custom_snprintf(result, buffer_size, "%u", (unsigned int)-5);
     TEST_ASSERT_EQUAL_STRING("429496729", result);
 
     memset(result, '\0', buffer_size);
@@ -321,20 +327,23 @@ static void test_unsigned_integer_output(void) {
     custom_snprintf(result, buffer_size, "%u", UINT32_MAX + 1U);
     TEST_ASSERT_EQUAL_STRING("0", result);
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat"
     memset(result, '\0', buffer_size);
-    custom_snprintf(result, buffer_size, "%+u", 5);
-    TEST_ASSERT_EQUAL_STRING("+5", result);
+    custom_snprintf(result, buffer_size, "%+u", 5U);
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("5", result, "'+' is undefined behaviour with %%u and should be sanitised out");
+#pragma GCC diagnostic pop
 
     memset(result, '\0', buffer_size);
-    custom_snprintf(result, buffer_size, "%5u", 5);
+    custom_snprintf(result, buffer_size, "%5u", 5U);
     TEST_ASSERT_EQUAL_STRING("    5", result);
 
     memset(result, '\0', buffer_size);
-    custom_snprintf(result, buffer_size, "%-5u", 5);
+    custom_snprintf(result, buffer_size, "%-5u", 5U);
     TEST_ASSERT_EQUAL_STRING("5    ", result);
 
     memset(result, '\0', buffer_size);
-    custom_snprintf(result, buffer_size, "%05u", 5);
+    custom_snprintf(result, buffer_size, "%05u", 5U);
     TEST_ASSERT_EQUAL_STRING("00005", result);
 
     // NOLINTEND (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling, cppcoreguidelines-avoid-magic-numbers)
@@ -348,15 +357,15 @@ static void test_hexa_integer_output(void) {
     constexpr uint8_t buffer_size = 10U;
     char result[buffer_size];
 
-    custom_snprintf(result, buffer_size, "%x", 10);
+    custom_snprintf(result, buffer_size, "%x", 10U);
     TEST_ASSERT_EQUAL_STRING("a", result);
 
     memset(result, '\0', buffer_size);
-    custom_snprintf(result, buffer_size, "%X", 10);
+    custom_snprintf(result, buffer_size, "%X", 10U);
     TEST_ASSERT_EQUAL_STRING("A", result);
 
     memset(result, '\0', buffer_size);
-    custom_snprintf(result, buffer_size, "%x", -5);
+    custom_snprintf(result, buffer_size, "%x", (unsigned int)-5);
     TEST_ASSERT_EQUAL_STRING("fffffffb", result);
 
     memset(result, '\0', buffer_size);
@@ -367,20 +376,23 @@ static void test_hexa_integer_output(void) {
     custom_snprintf(result, buffer_size, "%x", UINT32_MAX + 1U);
     TEST_ASSERT_EQUAL_STRING("0", result);
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat"
     memset(result, '\0', buffer_size);
-    custom_snprintf(result, buffer_size, "%+x", 10);
-    TEST_ASSERT_EQUAL_STRING("+a", result);
+    custom_snprintf(result, buffer_size, "%+x", 10U);
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("a", result, "'+' is undefined behaviour with %%x and should be sanitised out");
+#pragma GCC diagnostic pop
 
     memset(result, '\0', buffer_size);
-    custom_snprintf(result, buffer_size, "%5x", 10);
+    custom_snprintf(result, buffer_size, "%5x", 10U);
     TEST_ASSERT_EQUAL_STRING("    a", result);
 
     memset(result, '\0', buffer_size);
-    custom_snprintf(result, buffer_size, "%-5x", 10);
+    custom_snprintf(result, buffer_size, "%-5x", 10U);
     TEST_ASSERT_EQUAL_STRING("a    ", result);
 
     memset(result, '\0', buffer_size);
-    custom_snprintf(result, buffer_size, "%05x", 10);
+    custom_snprintf(result, buffer_size, "%05x", 10U);
     TEST_ASSERT_EQUAL_STRING("0000a", result);
 
     // NOLINTEND (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling, cppcoreguidelines-avoid-magic-numbers)
@@ -390,7 +402,7 @@ static void test_hexa_integer_output(void) {
  * Test the serialisation of a string with modifiers
  */
 static void test_string_output(void) {
-    // NOLINTBEGIN (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling, cppcoreguidelines-avoid-magic-numbers)
+    // NOLINTBEGIN (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
     constexpr uint8_t short_buffer_size = 10U;
     constexpr uint8_t long_buffer_size = 64U;
     constexpr char long_string[] = "This is a very long string oh my god would you look at that";
@@ -419,14 +431,14 @@ static void test_string_output(void) {
     custom_snprintf(result, long_buffer_size, "%.10s", long_string);
     TEST_ASSERT_EQUAL_STRING("This is a ", result);
 
-    // NOLINTEND (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling, cppcoreguidelines-avoid-magic-numbers)
+    // NOLINTEND (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
 }
 
 /**
  * Test the serialisation of a character
  */
 static void test_char_output(void) {
-    // NOLINTBEGIN (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling, cppcoreguidelines-avoid-magic-numbers)
+    // NOLINTBEGIN (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
 
     constexpr uint8_t buffer_size = 10U;
     char result[buffer_size];
@@ -447,14 +459,14 @@ static void test_char_output(void) {
     TEST_ASSERT_EQUAL_CHAR(0, result[0]);
     TEST_ASSERT_EQUAL_CHAR(0, result[1]);
 
-    // NOLINTEND (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling, cppcoreguidelines-avoid-magic-numbers)
+    // NOLINTEND (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
 }
 
 /**
  * Test the serialisation of a pointer as a 32-bits hexadecimal address
  */
 static void test_pointer_output(void) {
-    // NOLINTBEGIN (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling, cppcoreguidelines-avoid-magic-numbers)
+    // NOLINTBEGIN (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
     constexpr uint8_t buffer_size = 20U;
     char result[buffer_size];
     char expected[buffer_size];
@@ -467,69 +479,70 @@ static void test_pointer_output(void) {
     TEST_ASSERT_EQUAL_STRING(expected, result);
 
     memset(result, '\0', buffer_size);
-    custom_snprintf(result, buffer_size, "%p", nullptr);
+    custom_snprintf(result, buffer_size, "%p", (void*)nullptr);
     TEST_ASSERT_EQUAL_STRING("0", result);
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat"
     memset(result, '\0', buffer_size);
-    snprintf(expected, buffer_size, "%08x", truncated_address);
+    snprintf(expected, buffer_size, "%8x", truncated_address);
     custom_snprintf(result, buffer_size, "%08p", (void*)&dummy_variable);
-    TEST_ASSERT_EQUAL_STRING(expected, result);
+    TEST_ASSERT_EQUAL_STRING_MESSAGE(expected, result,
+                                     "'0' is undefined behaviour with %%p and should be sanitised out");
+#pragma GCC diagnostic pop
 
-    // NOLINTEND (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling, cppcoreguidelines-avoid-magic-numbers)
+    // NOLINTEND (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
 }
 
 /**
  * Test the serialisation of a floating-point number
  */
 static void test_float_output(void) {
-    // NOLINTBEGIN (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling, cppcoreguidelines-avoid-magic-numbers)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunsuffixed-float-constants"
+    // NOLINTBEGIN (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
 
     constexpr uint8_t buffer_size = 20U;
     char result[buffer_size];
 
-    custom_snprintf(result, buffer_size, "%f", 2.5);
+    custom_snprintf(result, buffer_size, "%f", (double)2.5F);
     TEST_ASSERT_EQUAL_STRING("2.500000000", result);
 
     memset(result, '\0', buffer_size);
-    custom_snprintf(result, buffer_size, "%f", -2.5);
+    custom_snprintf(result, buffer_size, "%f", (double)-2.5F);
     TEST_ASSERT_EQUAL_STRING("-2.500000000", result);
 
     memset(result, '\0', buffer_size);
-    custom_snprintf(result, buffer_size, "%19f", 2.5);
+    custom_snprintf(result, buffer_size, "%19f", (double)2.5F);
     TEST_ASSERT_EQUAL_STRING("        2.500000000", result);
 
     memset(result, '\0', buffer_size);
-    custom_snprintf(result, buffer_size, "%3f", 2.5);  //should not have effect
+    custom_snprintf(result, buffer_size, "%3f", (double)2.5F);  //should not have effect
     TEST_ASSERT_EQUAL_STRING("2.500000000", result);
 
     memset(result, '\0', buffer_size);
-    custom_snprintf(result, buffer_size, "%19.3f", 2.5);
+    custom_snprintf(result, buffer_size, "%19.3f", (double)2.5F);
     TEST_ASSERT_EQUAL_STRING("              2.500", result);
 
     memset(result, '\0', buffer_size);
-    custom_snprintf(result, buffer_size, "%-19.3f", 2.5);
+    custom_snprintf(result, buffer_size, "%-19.3f", (double)2.5F);
     TEST_ASSERT_EQUAL_STRING("2.500              ", result);
 
     memset(result, '\0', buffer_size);
-    custom_snprintf(result, buffer_size, "%-19.3f", -2.5);
+    custom_snprintf(result, buffer_size, "%-19.3f", (double)-2.5F);
     TEST_ASSERT_EQUAL_STRING("-2.500             ", result);
 
     memset(result, '\0', buffer_size);
-    custom_snprintf(result, buffer_size, "%019.3f", 2.5);
+    custom_snprintf(result, buffer_size, "%019.3f", (double)2.5F);
     TEST_ASSERT_EQUAL_STRING("000000000000002.500", result);
 
     memset(result, '\0', buffer_size);
-    custom_snprintf(result, buffer_size, "%019.3f", -2.5);
+    custom_snprintf(result, buffer_size, "%019.3f", (double)-2.5F);
     TEST_ASSERT_EQUAL_STRING("-00000000000002.500", result);
 
     memset(result, '\0', buffer_size);
-    custom_snprintf(result, buffer_size, "%+019.3f", 2.5);
+    custom_snprintf(result, buffer_size, "%+019.3f", (double)2.5F);
     TEST_ASSERT_EQUAL_STRING("+00000000000002.500", result);
 
-#pragma GCC diagnostic pop
-    // NOLINTEND (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling, cppcoreguidelines-avoid-magic-numbers)
+    // NOLINTEND (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
 }
 
 /**
@@ -654,16 +667,61 @@ static void test_compare_string(void) {
  */
 static void test_multiple_arguments(void) {
     // NOLINTBEGIN (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling, cppcoreguidelines-avoid-magic-numbers)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunsuffixed-float-constants"
 
     constexpr uint8_t long_buffer_size = 64U;
     char buffer[long_buffer_size];
 
-    int32_t length = custom_snprintf(buffer, long_buffer_size, "%.10s %8.2f and %8.2f is %8.2f, not %02i", "The sum of",
-                                     2.45, 6.54, 8.99, 2U);
-    TEST_ASSERT_EQUAL_STRING("The sum of     2.45 and     6.54 is     8.99, not 02", buffer);
-    TEST_ASSERT_EQUAL_INT32(52, length);
+    int32_t length = custom_snprintf(buffer, long_buffer_size, "%.10s %08.2f and %-8.2f is %+8.2f, not %02u, %c",
+                                     "The sum of", (double)2.45F, (double)6.54F, (double)8.99F, 2U, 'A');
+    TEST_ASSERT_EQUAL_STRING("The sum of 00002.45 and 6.54     is    +8.99, not 02, A", buffer);
+    TEST_ASSERT_EQUAL_INT32(57, length);
+
+    // NOLINTEND (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling, cppcoreguidelines-avoid-magic-numbers)
+}
+
+/**
+ * Check that flags with no defined meaning for a given conversion — '+' and ' ' on %u/%x,
+ * '0' on %p — are silently dropped rather than applied or rejected, and that this doesn't
+ * disturb argument consumption for the rest of the format string
+ */
+static void test_flag_sanitisation_for_unsupported_conversions(void) {
+// NOLINTBEGIN (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling, cppcoreguidelines-avoid-magic-numbers)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat"
+
+    constexpr uint8_t buffer_size = 20U;
+    char result[buffer_size];
+
+    // '+' is meaningless for %u/%x : output identical to the plain conversion
+    custom_snprintf(result, buffer_size, "%+u", 5U);
+    TEST_ASSERT_EQUAL_STRING("5", result);
+
+    memset(result, '\0', buffer_size);
+    custom_snprintf(result, buffer_size, "%+x", 10U);
+    TEST_ASSERT_EQUAL_STRING("a", result);
+
+    // ' ' is meaningless for %u/%x too, and untested elsewhere
+    memset(result, '\0', buffer_size);
+    custom_snprintf(result, buffer_size, "% u", 5U);
+    TEST_ASSERT_EQUAL_STRING("5", result);
+
+    memset(result, '\0', buffer_size);
+    custom_snprintf(result, buffer_size, "% x", 10U);
+    TEST_ASSERT_EQUAL_STRING("a", result);
+
+    // '0' is meaningless for %p : falls back to space padding, same as plain width
+    memset(result, '\0', buffer_size);
+    int dummy_variable = 0;
+    const uint32_t truncated_address = (uint32_t)(uintptr_t)&dummy_variable;
+    char expected[buffer_size];
+    snprintf(expected, buffer_size, "%8x", truncated_address);
+    custom_snprintf(result, buffer_size, "%08p", (void*)&dummy_variable);
+    TEST_ASSERT_EQUAL_STRING(expected, result);
+
+    // Dropping a flag must not shift argument consumption for what follows
+    memset(result, '\0', buffer_size);
+    custom_snprintf(result, buffer_size, "%+u-%d", 5U, -3);
+    TEST_ASSERT_EQUAL_STRING("5--3", result);
 
 #pragma GCC diagnostic pop
     // NOLINTEND (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling, cppcoreguidelines-avoid-magic-numbers)
