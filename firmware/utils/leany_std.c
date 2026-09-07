@@ -1,3 +1,4 @@
+// cppcheck-suppress-file unusedFunction
 /**
  * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
  * SPDX-License-Identifier: MIT
@@ -6,7 +7,6 @@
  * @brief Lightweight standard functions implementation for embedded systems
  */
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
-// cppcheck-suppress-file unusedFunction
 #include "leany_std.h"
 
 #include <stdarg.h>
