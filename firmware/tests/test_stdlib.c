@@ -566,11 +566,17 @@ static void test_string_to_float(void) {
     float result = custom_strtof("2.5");
     TEST_ASSERT_EQUAL_FLOAT(2.5F, result);
 
+    result = custom_strtof("6.54");
+    TEST_ASSERT_EQUAL_FLOAT(6.54F, result);
+
     result = custom_strtof("0.0");
     TEST_ASSERT_EQUAL_FLOAT(0.0F, result);
 
     result = custom_strtof("-2.5");
     TEST_ASSERT_EQUAL_FLOAT(-2.5F, result);
+
+    result = custom_strtof("-6.54");
+    TEST_ASSERT_EQUAL_FLOAT(-6.54F, result);
     // NOLINTEND (cppcoreguidelines-avoid-magic-numbers)
 }
 
