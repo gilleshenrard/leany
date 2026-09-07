@@ -53,10 +53,11 @@
 #include <math.h>
 #include <stdint.h>
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define FORCE_INLINE_SILENT __attribute((always_inline))  ///< Macro used to workaround Doxygen issues with __attribute
-#if defined(__DOXYGEN__) && __DOXYGEN__ == 1
+#else
 #define FORCE_INLINE_SILENT
-#endif
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 // utility functions
 static inline FORCE_INLINE_SILENT float half(float number);
