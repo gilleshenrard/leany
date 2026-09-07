@@ -31,6 +31,7 @@ static void parsePlusSignPrefix(ArgumentMetadata* argument);
 static void parseSpaceSignPrefix(ArgumentMetadata* argument);
 static void parseArgumentPrefixFlag(ArgumentMetadata* argument, bool* flag_modified);
 static void sanitiseUnsignedFlags(ArgumentMetadata* argument);
+static void sanitisePointerFlags(ArgumentMetadata* argument);
 
 //constants
 static constexpr char kPercentCharacter = '%';  ///< Character indicating the introduction of a formatted parameter
@@ -240,6 +241,17 @@ static void sanitiseUnsignedFlags(ArgumentMetadata* const argument) {
     argument->space_sign = false;
 }
 
+/**
+ * Sanitise flags in pointer arguments which are undefined behaviour in the C standard
+ *
+ * @param argument Argument to sanitise
+ */
+static void sanitisePointerFlags(ArgumentMetadata* const argument) {
+    argument->show_sign = false;
+    argument->zero_pad = false;
+    argument->space_sign = false;
+}
+
 /*********************************************************************************************************************************/
 /*********************************************************************************************************************************/
 
@@ -418,6 +430,7 @@ static ParserResult stateParsingConversionSpecifier(ParserContext* context, char
             break;
 
         case 'p':
+            sanitisePointerFlags(&context->current_argument);
             result_length =
                 convertUnsigned((uint32_t)(uintptr_t)va_arg(*args, void*), conversion_buffer, hexa_radix, false);
             outputInteger(&context->output, conversion_buffer, result_length, &context->current_argument, false);
@@ -435,6 +448,5 @@ static ParserResult stateParsingConversionSpecifier(ParserContext* context, char
             outputChar(&context->output, input_character);
             return kParserSkipArgument;
     }
-
     return kParserDone;
 }
