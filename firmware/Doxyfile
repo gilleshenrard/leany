@@ -2563,7 +2563,8 @@ INCLUDE_FILE_PATTERNS  =
 
 PREDEFINED             = IMU_LSM6=1 \
                          IMU_BMI270=2 \
-                         IMU_MODEL=IMU_LSM6
+                         IMU_MODEL=IMU_LSM6 \
+                         DOXYGEN_SHOULD_SKIP_THIS
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then this
 # tag can be used to specify a list of macro names that should be expanded. The
