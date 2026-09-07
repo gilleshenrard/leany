@@ -412,7 +412,7 @@ static ParserResult stateParsingConversionSpecifier(ParserContext* context, char
 
         case 'f':
             float_value = (float)va_arg(*args, double);
-            result_length = convertFloat(float_value, conversion_buffer, context->current_argument.precision.magnitude);
+            result_length = convertFloat(float_value, conversion_buffer, &context->current_argument.precision);
             outputFloat(&context->output, conversion_buffer, result_length, &context->current_argument,
                         (float_value < 0.0F));
             break;
