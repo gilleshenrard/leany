@@ -103,12 +103,11 @@ ParserResult pushCharacter(ParserContext* context, char input_character, va_list
     } while (--evaluations && (result == kParserReevaluate));
 
     // Ceiling kept as a safety net; not reachable via current state graph
-    if (!evaluations) {
-        resetContext(context);
+    if (result == kParserReevaluate) {
         result = kParserInvalid;
     }
 
-    if (result == kParserDone) {
+    if (result != kParserPending) {
         resetContext(context);
     }
 
@@ -404,21 +403,21 @@ static ParserResult stateParsingConversionSpecifier(ParserContext* context, char
         case 'i':
             signed_value = va_arg(*args, int32_t);
             result_length = convertSigned(signed_value, conversion_buffer, decimal_radix);
-            outputInteger(&context->output, conversion_buffer, result_length, &context->current_argument,
-                          (signed_value < 0));
+            outputNumber(&context->output, conversion_buffer, result_length, &context->current_argument,
+                         (signed_value < 0));
             break;
 
         case 'u':
             sanitiseUnsignedFlags(&context->current_argument);
             result_length = convertUnsigned(va_arg(*args, uint32_t), conversion_buffer, decimal_radix, false);
-            outputInteger(&context->output, conversion_buffer, result_length, &context->current_argument, false);
+            outputNumber(&context->output, conversion_buffer, result_length, &context->current_argument, false);
             break;
 
         case 'X':
         case 'x':
             sanitiseUnsignedFlags(&context->current_argument);
             result_length = convertUnsigned(va_arg(*args, uint32_t), conversion_buffer, hexa_radix, is_uppercase_hex);
-            outputInteger(&context->output, conversion_buffer, result_length, &context->current_argument, false);
+            outputNumber(&context->output, conversion_buffer, result_length, &context->current_argument, false);
             break;
 
         case 's':
@@ -433,14 +432,14 @@ static ParserResult stateParsingConversionSpecifier(ParserContext* context, char
             sanitisePointerFlags(&context->current_argument);
             result_length =
                 convertUnsigned((uint32_t)(uintptr_t)va_arg(*args, void*), conversion_buffer, hexa_radix, false);
-            outputInteger(&context->output, conversion_buffer, result_length, &context->current_argument, false);
+            outputNumber(&context->output, conversion_buffer, result_length, &context->current_argument, false);
             break;
 
         case 'f':
             float_value = (float)va_arg(*args, double);
             result_length = convertFloat(float_value, conversion_buffer, &context->current_argument.precision);
-            outputFloat(&context->output, conversion_buffer, result_length, &context->current_argument,
-                        (float_value < 0.0F));
+            outputNumber(&context->output, conversion_buffer, result_length, &context->current_argument,
+                         (float_value < 0.0F));
             break;
 
         default:  //not-implemented specifier
