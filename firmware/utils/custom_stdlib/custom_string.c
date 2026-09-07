@@ -1,3 +1,4 @@
+// cppcheck-suppress-file unusedFunction
 /**
  * SPDX-FileCopyrightText: 2026 Gilles Henrard <contact@gilleshenrard.com>
  * SPDX-License-Identifier: MIT
