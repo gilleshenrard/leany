@@ -5,6 +5,7 @@
  * @file leany_std.c
  * @brief Lightweight standard functions implementation for embedded systems
  */
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 // cppcheck-suppress-file unusedFunction
 #include "leany_std.h"
 
@@ -779,3 +780,5 @@ static uint8_t consumeIntroductoryCharacter(const char* format, uint32_t* format
 
     return 0;
 }
+
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */

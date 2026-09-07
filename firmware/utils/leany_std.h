@@ -33,6 +33,8 @@
 #ifndef HARDWARE_CUSTOM_PRINTF_H
 #define HARDWARE_CUSTOM_PRINTF_H
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -91,5 +93,7 @@ static inline bool isAlphaUppercase(char character) {
 static inline bool isAlphaLowercase(char character) {
     return (bool)((character >= (uint8_t)'a') && (character <= (uint8_t)'z'));
 }
+
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 #endif /* CUSTOM_PRINTF_H */
