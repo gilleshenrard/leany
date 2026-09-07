@@ -281,13 +281,13 @@ uint32_t convertFloat(float value, char* buffer, const ConversionPrecision* prec
     // convert integer part to string
     uint32_t buffer_index = convertSigned((precise_value / (int32_t)precise_multiplier), buffer, decimal_radix);
 
-    if (precision_magnitude <= 0) {
+    if (precision_magnitude == 0) {
         return buffer_index;
     }
 
     //add '.'
     buffer[buffer_index] = '.';
-    (buffer_index)++;
+    buffer_index++;
 
     //isolate the decimal part as an absolute value
     uint32_t decimal_part = (uint32_t)((precise_value >= 0) ? precise_value : -precise_value);
