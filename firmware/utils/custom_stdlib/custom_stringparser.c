@@ -30,6 +30,7 @@ static ParserResult treatDoublePercentCharacter(ParserContext* context, char inp
 static void parsePlusSignPrefix(ArgumentMetadata* argument);
 static void parseSpaceSignPrefix(ArgumentMetadata* argument);
 static void parseArgumentPrefixFlag(ArgumentMetadata* argument, bool* flag_modified);
+static void sanitiseUnsignedFlags(ArgumentMetadata* argument);
 
 //constants
 static constexpr char kPercentCharacter = '%';  ///< Character indicating the introduction of a formatted parameter
@@ -229,6 +230,16 @@ static void parseSpaceSignPrefix(ArgumentMetadata* const argument) {
     parseArgumentPrefixFlag(argument, &argument->space_sign);
 }
 
+/**
+ * Sanitise flags in unsigned integer arguments which are undefined behaviour in the C standard
+ *
+ * @param argument Argument to sanitise
+ */
+static void sanitiseUnsignedFlags(ArgumentMetadata* const argument) {
+    argument->show_sign = false;
+    argument->space_sign = false;
+}
+
 /*********************************************************************************************************************************/
 /*********************************************************************************************************************************/
 
@@ -386,12 +397,14 @@ static ParserResult stateParsingConversionSpecifier(ParserContext* context, char
             break;
 
         case 'u':
+            sanitiseUnsignedFlags(&context->current_argument);
             result_length = convertUnsigned(va_arg(*args, uint32_t), conversion_buffer, decimal_radix, false);
             outputInteger(&context->output, conversion_buffer, result_length, &context->current_argument, false);
             break;
 
         case 'X':
         case 'x':
+            sanitiseUnsignedFlags(&context->current_argument);
             result_length = convertUnsigned(va_arg(*args, uint32_t), conversion_buffer, hexa_radix, is_uppercase_hex);
             outputInteger(&context->output, conversion_buffer, result_length, &context->current_argument, false);
             break;
