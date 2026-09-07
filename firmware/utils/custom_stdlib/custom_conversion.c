@@ -21,6 +21,7 @@ enum : uint8_t {
 static void outputPadding(OutputBuffer* output, char pad_char, size_t count);
 static char qualifySignCharacter(const ArgumentMetadata* metadata, bool is_negative);
 static size_t getPaddingSize(const ArgumentMetadata* metadata, size_t output_len);
+static uint32_t qualifyFloatPrecision(char* buffer, uint32_t* buffer_index, const ConversionPrecision* precision);
 
 /*********************************************************************************************************************************/
 /*********************************************************************************************************************************/
@@ -154,38 +155,41 @@ void outputFloat(OutputBuffer* output, const char* result_string, size_t result_
     }
 
     char sign_char = qualifySignCharacter(metadata, is_negative);
+    const uint8_t sign_width = ((sign_char != '\0') ? 1 : 0);
 
-    size_t output_len = result_length;
+    const size_t padding_size = getPaddingSize(metadata, (result_length + sign_width));
 
-    // Calculate padding
-    const size_t padding_size = getPaddingSize(metadata, output_len + (uint8_t)(sign_char != '\0'));
     size_t string_start_index = 0;
     size_t padding_start_index = 0;
+    size_t sign_index = 0;
 
     if (metadata->left_justify) {
-        padding_start_index = output_len;
+        string_start_index = sign_width;
+        padding_start_index = result_length + string_start_index;
+    } else if (metadata->zero_pad) {
+        sign_index = 0;
+        padding_start_index = sign_width;
+        string_start_index = padding_size + sign_width;
     } else {
-        string_start_index = padding_size;
-    }
-
-    /* Output sign */
-    if (sign_char != '\0') {
-        outputChar(output, sign_char);
+        sign_index = padding_size;
+        string_start_index = padding_size + sign_width;
     }
 
     const size_t output_index_backup = output->current_index;
+
+    output->current_index = output_index_backup + sign_index;
+    outputChar(output, sign_char);
 
     output->current_index = output_index_backup + padding_start_index;
     const char padding_character = (char)((char)(metadata->zero_pad) ? '0' : ' ');
     outputPadding(output, padding_character, padding_size);
 
     output->current_index = output_index_backup + string_start_index;
-
-    for (size_t index = 0U; index < output_len; index++) {
+    for (size_t index = 0U; index < result_length; index++) {
         outputChar(output, result_string[index]);
     }
 
-    output->current_index = output_index_backup + output_len + padding_size;
+    output->current_index = output_index_backup + sign_width + result_length + padding_size;
 }
 
 /**
@@ -265,28 +269,22 @@ uint32_t convertSigned(int32_t value, char* buffer, uint32_t radix) {
  * @param precision Number of characters after the decimal point
  * @return Length of converted float (excluding sign)
  */
-uint32_t convertFloat(float value, char* buffer, uint32_t precision) {
+uint32_t convertFloat(float value, char* buffer, const ConversionPrecision* precision) {
     constexpr uint8_t decimal_radix = 10U;
     constexpr float multiplier_10f = 10.0F;
-    constexpr uint8_t max_uint_characters = 10U;
-
-    if ((precision == 0) || (precision >= max_uint_characters)) {
-        precision = (max_uint_characters - 1U);  // cppcheck-suppress uselessAssignmentArg
-    }
 
     // Extract integer part
     const int32_t ipart = (int32_t)value;
     uint32_t buffer_index = convertSigned(ipart, buffer, decimal_radix);
 
-    buffer[buffer_index] = '.';
-    buffer_index++;
+    uint32_t precision_magnitude = qualifyFloatPrecision(buffer, &buffer_index, precision);
 
     // Extract floating part
     float fpart = value - (float)ipart;
     if (fpart < 0.0F) {
         fpart = -fpart;
     }
-    for (uint32_t rank = 0; rank < precision; rank++) {
+    for (uint32_t rank = 0; rank < precision_magnitude; rank++) {
         if ((uint32_t)(fpart * multiplier_10f) >= UINT32_MAX) {
             break;
         }
@@ -367,4 +365,28 @@ static char qualifySignCharacter(const ArgumentMetadata* metadata, bool is_negat
     }
 
     return '\0';
+}
+
+/**
+ * Decide which precision should be printed on a float and whether '.' should appear
+ *
+ * @param[out] buffer Output buffer
+ * @param buffer_index Current index in the buffer
+ * @param precision Precision metadata extracted from the argument modifiers
+ * @return Final magnitude of the precision
+ */
+static uint32_t qualifyFloatPrecision(char* buffer, uint32_t* buffer_index, const ConversionPrecision* precision) {
+    constexpr uint8_t max_decimals_characters = 7U;
+
+    uint32_t precision_magnitude = precision->magnitude;
+    if (!precision->decimal_char_consumed || (precision_magnitude > max_decimals_characters)) {
+        precision_magnitude = max_decimals_characters;
+    }
+
+    if (!precision->decimal_char_consumed || (precision_magnitude > 0)) {
+        buffer[*buffer_index] = '.';
+        (*buffer_index)++;
+    }
+
+    return precision_magnitude;
 }
