@@ -48,6 +48,6 @@ uint32_t convertUnsigned(uint32_t value, char* buffer, uint32_t radix, bool uppe
 uint32_t convertSigned(int32_t value, char* buffer, uint32_t radix);
 void outputInteger(OutputBuffer* output, const char* result_string, size_t result_length,
                    const ArgumentMetadata* metadata, bool is_negative);
-uint32_t convertFloat(float value, char* buffer, uint32_t precision);
+uint32_t convertFloat(float value, char* buffer, const ConversionPrecision* precision);
 
 #endif

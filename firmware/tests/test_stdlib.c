@@ -504,19 +504,23 @@ static void test_float_output(void) {
     char result[buffer_size];
 
     custom_snprintf(result, buffer_size, "%f", (double)2.5F);
-    TEST_ASSERT_EQUAL_STRING("2.500000000", result);
+    TEST_ASSERT_EQUAL_STRING("2.5000000", result);
 
     memset(result, '\0', buffer_size);
     custom_snprintf(result, buffer_size, "%f", (double)-2.5F);
-    TEST_ASSERT_EQUAL_STRING("-2.500000000", result);
+    TEST_ASSERT_EQUAL_STRING("-2.5000000", result);
 
     memset(result, '\0', buffer_size);
     custom_snprintf(result, buffer_size, "%19f", (double)2.5F);
-    TEST_ASSERT_EQUAL_STRING("        2.500000000", result);
+    TEST_ASSERT_EQUAL_STRING("          2.5000000", result);
+
+    memset(result, '\0', buffer_size);
+    custom_snprintf(result, buffer_size, "%19f", (double)-2.5F);
+    TEST_ASSERT_EQUAL_STRING("         -2.5000000", result);
 
     memset(result, '\0', buffer_size);
     custom_snprintf(result, buffer_size, "%3f", (double)2.5F);  //should not have effect
-    TEST_ASSERT_EQUAL_STRING("2.500000000", result);
+    TEST_ASSERT_EQUAL_STRING("2.5000000", result);
 
     memset(result, '\0', buffer_size);
     custom_snprintf(result, buffer_size, "%19.3f", (double)2.5F);
@@ -541,6 +545,10 @@ static void test_float_output(void) {
     memset(result, '\0', buffer_size);
     custom_snprintf(result, buffer_size, "%+019.3f", (double)2.5F);
     TEST_ASSERT_EQUAL_STRING("+00000000000002.500", result);
+
+    memset(result, '\0', buffer_size);
+    custom_snprintf(result, buffer_size, "%.0f", (double)2.5F);
+    TEST_ASSERT_EQUAL_STRING("2", result);
 
     // NOLINTEND (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
 }
