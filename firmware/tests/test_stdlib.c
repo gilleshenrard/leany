@@ -498,12 +498,19 @@ static void test_pointer_output(void) {
  * Test the serialisation of a floating-point number
  */
 static void test_float_output(void) {
+    // #lizard forgives(length)
     // NOLINTBEGIN (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
     constexpr uint8_t buffer_size = 20U;
     char result[buffer_size];
 
     custom_snprintf(result, buffer_size, "%f", (double)2.5F);
     TEST_ASSERT_EQUAL_STRING("2.500000", result);
+
+    custom_snprintf(result, buffer_size, "%f", (double)14000.0F);
+    TEST_ASSERT_EQUAL_STRING("14000.000000", result);
+
+    custom_snprintf(result, buffer_size, "%.3f", (double)20000000.0F);
+    TEST_ASSERT_EQUAL_STRING("20000000.000", result);
 
     custom_snprintf(result, buffer_size, "%f", (double)2.005F);
     TEST_ASSERT_EQUAL_STRING("2.005000", result);
