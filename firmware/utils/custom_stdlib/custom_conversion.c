@@ -275,11 +275,12 @@ uint32_t convertFloat(float value, char* buffer, const ConversionPrecision* prec
     constexpr uint8_t decimal_radix = 10U;
 
     const uint32_t precision_magnitude = getFloatPrecision(precision);
-    uint32_t precise_multiplier = getPowerOf10(precision_magnitude);
-    int32_t precise_value = (int32_t)(value * (float)precise_multiplier);
+    uint64_t precise_multiplier = getPowerOf10(precision_magnitude);
+    int64_t precise_value = (int64_t)(value * (float)precise_multiplier);
 
     // convert integer part to string
-    uint32_t buffer_index = convertSigned((precise_value / (int32_t)precise_multiplier), buffer, decimal_radix);
+    uint32_t buffer_index =
+        convertSigned((int32_t)(precise_value / (int64_t)precise_multiplier), buffer, decimal_radix);
 
     if (precision_magnitude == 0) {
         return buffer_index;
@@ -290,7 +291,7 @@ uint32_t convertFloat(float value, char* buffer, const ConversionPrecision* prec
     buffer_index++;
 
     //isolate the decimal part as an absolute value
-    uint32_t decimal_part = (uint32_t)((precise_value >= 0) ? precise_value : -precise_value);
+    uint64_t decimal_part = (uint64_t)((precise_value >= 0) ? precise_value : -precise_value);
     decimal_part %= precise_multiplier;
 
     //push as many leading 0 as needed to the decimal part
@@ -303,7 +304,7 @@ uint32_t convertFloat(float value, char* buffer, const ConversionPrecision* prec
 
     //if required, convert the decimal part to string
     if (decimal_part) {
-        buffer_index += convertUnsigned(decimal_part, &buffer[buffer_index], decimal_radix, false);
+        buffer_index += convertUnsigned((uint32_t)decimal_part, &buffer[buffer_index], decimal_radix, false);
     }
 
     return buffer_index;
