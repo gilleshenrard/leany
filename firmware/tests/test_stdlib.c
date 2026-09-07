@@ -499,28 +499,34 @@ static void test_pointer_output(void) {
  */
 static void test_float_output(void) {
     // NOLINTBEGIN (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
-
     constexpr uint8_t buffer_size = 20U;
     char result[buffer_size];
 
     custom_snprintf(result, buffer_size, "%f", (double)2.5F);
-    TEST_ASSERT_EQUAL_STRING("2.5000000", result);
+    TEST_ASSERT_EQUAL_STRING("2.500000", result);
+
+    custom_snprintf(result, buffer_size, "%f", (double)2.005F);
+    TEST_ASSERT_EQUAL_STRING("2.005000", result);
 
     memset(result, '\0', buffer_size);
     custom_snprintf(result, buffer_size, "%f", (double)-2.5F);
-    TEST_ASSERT_EQUAL_STRING("-2.5000000", result);
+    TEST_ASSERT_EQUAL_STRING("-2.500000", result);
+
+    custom_snprintf(result, buffer_size, "%f", (double)-2.005F);
+    TEST_ASSERT_EQUAL_STRING("-2.005000", result);
 
     memset(result, '\0', buffer_size);
     custom_snprintf(result, buffer_size, "%19f", (double)2.5F);
-    TEST_ASSERT_EQUAL_STRING("          2.5000000", result);
+    TEST_ASSERT_EQUAL_STRING("           2.500000", result);
 
     memset(result, '\0', buffer_size);
     custom_snprintf(result, buffer_size, "%19f", (double)-2.5F);
-    TEST_ASSERT_EQUAL_STRING("         -2.5000000", result);
+    TEST_ASSERT_EQUAL_STRING("          -2.500000", result);
 
     memset(result, '\0', buffer_size);
-    custom_snprintf(result, buffer_size, "%3f", (double)2.5F);  //should not have effect
-    TEST_ASSERT_EQUAL_STRING("2.5000000", result);
+    custom_snprintf(result, buffer_size, "%3f", (double)2.5F);
+    TEST_ASSERT_EQUAL_STRING_MESSAGE("2.500000", result,
+                                     "A length modifier smaller than the output size should not have effect");
 
     memset(result, '\0', buffer_size);
     custom_snprintf(result, buffer_size, "%19.3f", (double)2.5F);
@@ -549,7 +555,6 @@ static void test_float_output(void) {
     memset(result, '\0', buffer_size);
     custom_snprintf(result, buffer_size, "%.0f", (double)2.5F);
     TEST_ASSERT_EQUAL_STRING("2", result);
-
     // NOLINTEND (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
 }
 

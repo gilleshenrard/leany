@@ -15,7 +15,7 @@
 
 enum : uint8_t {
     kMaxWidth = 128U,             ///< Maximum width specifier value
-    kMaxDecimalsCharacters = 7U,  ///< Maximum number of decimals printed for a float
+    kMaxDecimalsCharacters = 6U,  ///< Maximum number of decimals printed for a float
 };
 
 //utility functions
@@ -23,6 +23,7 @@ static void outputPadding(OutputBuffer* output, char pad_char, size_t count);
 static char qualifySignCharacter(const ArgumentMetadata* metadata, bool is_negative);
 static size_t getPaddingSize(const ArgumentMetadata* metadata, size_t output_len);
 static uint32_t getFloatPrecision(const ConversionPrecision* precision);
+static uint32_t getPowerOf10(uint32_t exponent);
 
 /*********************************************************************************************************************************/
 /*********************************************************************************************************************************/
@@ -272,39 +273,37 @@ uint32_t convertSigned(int32_t value, char* buffer, uint32_t radix) {
  */
 uint32_t convertFloat(float value, char* buffer, const ConversionPrecision* precision) {
     constexpr uint8_t decimal_radix = 10U;
-    constexpr float multiplier_10f = 10.0F;
 
-    uint32_t precision_magnitude = getFloatPrecision(precision);
+    const uint32_t precision_magnitude = getFloatPrecision(precision);
+    uint32_t precise_multiplier = getPowerOf10(precision_magnitude);
+    int32_t precise_value = (int32_t)(value * (float)precise_multiplier);
 
-    // Extract integer part
-    const int32_t ipart = (int32_t)value;
-    uint32_t buffer_index = convertSigned(ipart, buffer, decimal_radix);
+    // convert integer part to string
+    uint32_t buffer_index = convertSigned((precise_value / (int32_t)precise_multiplier), buffer, decimal_radix);
 
-    if (precision_magnitude > 0) {
-        buffer[buffer_index] = '.';
-        (buffer_index)++;
+    if (precision_magnitude <= 0) {
+        return buffer_index;
     }
 
-    // Extract floating part
-    float fpart = value - (float)ipart;
-    if (fpart < 0.0F) {
-        fpart = -fpart;
-    }
-    for (uint32_t rank = 0; rank < precision_magnitude; rank++) {
-        if ((uint32_t)(fpart * multiplier_10f) >= UINT32_MAX) {
-            break;
-        }
+    //add '.'
+    buffer[buffer_index] = '.';
+    (buffer_index)++;
 
-        fpart *= multiplier_10f;
+    //isolate the decimal part as an absolute value
+    uint32_t decimal_part = (uint32_t)((precise_value >= 0) ? precise_value : -precise_value);
+    decimal_part %= precise_multiplier;
 
-        if ((uint32_t)fpart == 0) {
-            buffer[buffer_index] = '0';
-            buffer_index++;
-        }
+    //push as many leading 0 as needed to the decimal part
+    precise_multiplier /= decimal_radix;
+    while (precise_multiplier > decimal_part) {
+        buffer[buffer_index] = '0';
+        buffer_index++;
+        precise_multiplier /= decimal_radix;
     }
 
-    if ((uint32_t)fpart) {
-        buffer_index += convertUnsigned((uint32_t)fpart, &buffer[buffer_index], decimal_radix, false);
+    //if required, convert the decimal part to string
+    if (decimal_part) {
+        buffer_index += convertUnsigned(decimal_part, &buffer[buffer_index], decimal_radix, false);
     }
 
     return buffer_index;
@@ -389,4 +388,21 @@ static uint32_t getFloatPrecision(const ConversionPrecision* precision) {
     }
 
     return precision->magnitude;
+}
+
+/**
+ * Compute a power of 10
+ *
+ * @param exponent Exponent of the power of 10
+ * @return 10^exponent
+ */
+static uint32_t getPowerOf10(const uint32_t exponent) {
+    constexpr uint8_t multiplier10 = 10U;
+
+    uint32_t multiplier = 1U;
+    for (uint32_t rank = 0; rank < exponent; rank++) {
+        multiplier *= multiplier10;
+    }
+
+    return multiplier;
 }
