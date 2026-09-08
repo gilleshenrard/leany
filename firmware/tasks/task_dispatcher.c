@@ -363,7 +363,7 @@ static void handleBatteryStatusEvent(const SerialCommand* command) {
  */
 static void handleSerialReadCommandEvent(const SerialCommand* command) {
     // A large switch is the most straightforward way to handle serial read commands.
-    // Therefore, Lizard linter can ignore this function's length
+    // Therefore, Lizard linter can ignore this function's cyclomatic complexity
     // #lizard forgives(cyclomatic_complexity)
     uint8_t orientation = 0;
     constexpr uint8_t floatbuffer_size = 16U;

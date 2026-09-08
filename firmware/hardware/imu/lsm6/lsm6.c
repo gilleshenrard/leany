@@ -391,8 +391,8 @@ void IMUsetupTimebase(MahonyContext* filter_context) {
     }
 
     //apply the frequency difference to the nominal frequency (lsm6dsr datasheet p.82)
-    const float nominal_tick_hz = 40000.0F;
-    const float frequency_difference_percent_step = 0.0015F;  // 0.15% / step
+    constexpr float nominal_tick_hz = 40000.0F;
+    constexpr float frequency_difference_percent_step = 0.0015F;  // 0.15% / step
     const float actual_tick_hz =
         (nominal_tick_hz + (frequency_difference_percent_step * (float)frequency_difference_nbsteps * nominal_tick_hz));
 
