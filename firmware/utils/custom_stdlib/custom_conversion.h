@@ -30,22 +30,27 @@ typedef struct {
  * Argument format metadata parsed from format specifier
  */
 typedef struct {
-    bool introductory_consumed;     ///< Whether the percent character has already been consumed
-    bool zero_pad;                  ///< Use zero padding instead of spaces
-    bool left_justify;              ///< Left justify the output
-    bool show_sign;                 ///< Always show sign for signed numbers
-    bool space_sign;                ///< Use space for positive numbers
-    uint32_t field_width;           ///< Minimum field width
-    uint8_t prefix_length;          ///< Argument's prefix length
-    ConversionPrecision precision;  ///< Arguments' precision metadata
+    bool introductory_consumed;      ///< Whether the percent character has already been consumed
+    bool zero_pad;                   ///< Use zero padding instead of spaces
+    bool left_justify;               ///< Left justify the output
+    bool show_sign;                  ///< Always show sign for signed numbers
+    bool space_sign;                 ///< Use space for positive numbers
+    uint32_t field_width;            ///< Minimum field width
+    uint8_t long_length_modifiers;   ///< Number of times a long length modifier ('l') appeared
+    uint8_t short_length_modifiers;  ///< Number of times a short length modifier ('h') appeared
+    uint8_t prefix_length;           ///< Argument's prefix length
+    ConversionPrecision precision;   ///< Arguments' precision metadata
 } ArgumentMetadata;
 
+void resetArgumentMetadata(ArgumentMetadata* metadata);
 void outputChar(OutputBuffer* output, char character);
 void outputString(OutputBuffer* output, const char* str, const ArgumentMetadata* metadata);
 void outputNumber(OutputBuffer* output, const char* result_string, size_t result_length,
                   const ArgumentMetadata* metadata, bool is_negative);
-uint32_t convertUnsigned(uint32_t value, char* buffer, uint32_t radix, bool uppercase);
-uint32_t convertSigned(int32_t value, char* buffer, uint32_t radix);
-uint32_t convertFloat(float value, char* buffer, const ConversionPrecision* precision);
+uint32_t convertUnsigned(uint32_t value, char* buffer, uint32_t radix, bool uppercase,
+                         const ArgumentMetadata* metadata);
+uint32_t convertSigned(int32_t value, char* buffer, uint32_t radix, const ArgumentMetadata* metadata);
+uint32_t convertFloat(float value, char* buffer, const ConversionPrecision* precision,
+                      const ArgumentMetadata* metadata);
 
 #endif
