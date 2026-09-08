@@ -117,7 +117,7 @@ static void test_context_initialisation(void) {
         .state = kStateParsingPrefix,
         .output = {.buffer = nullptr, .buffer_size = 0, .current_index = SIZE_MAX},
         .current_argument = {.prefix_length = UINT8_MAX,
-                             .width = UINT32_MAX,
+                             .field_width = UINT32_MAX,
                              .introductory_consumed = true,
                              .left_justify = true,
                              .show_sign = true,
@@ -134,7 +134,7 @@ static void test_context_initialisation(void) {
     TEST_ASSERT_EQUAL_size_t_MESSAGE(0, parser_context.output.current_index, "Invalid buffer index");
     TEST_ASSERT_EQUAL_UINT8_MESSAGE(kStateCopying, parser_context.state, "Invalid parser state");
     TEST_ASSERT_EQUAL_UINT8_MESSAGE(0, parser_context.current_argument.prefix_length, "Invalid prefix length");
-    TEST_ASSERT_EQUAL_UINT32_MESSAGE(0, parser_context.current_argument.width, "Invalid argument width");
+    TEST_ASSERT_EQUAL_UINT32_MESSAGE(0, parser_context.current_argument.field_width, "Invalid field width");
     TEST_ASSERT_FALSE_MESSAGE(parser_context.current_argument.introductory_consumed, "Invalid introduction flag value");
     TEST_ASSERT_FALSE_MESSAGE(parser_context.current_argument.left_justify, "Invalid justification flag value");
     TEST_ASSERT_FALSE_MESSAGE(parser_context.current_argument.show_sign, "Invalid sign forcing flag value");
@@ -212,8 +212,8 @@ static void test_arguments_evaluation(void) {
     (void)pushCharacter(&parser_context, '5', nullptr);
     TEST_ASSERT_EQUAL_UINT8_MESSAGE(4, parser_context.current_argument.prefix_length,
                                     "Invalid index length at length modifier evaluation");
-    TEST_ASSERT_EQUAL_UINT8_MESSAGE(5, parser_context.current_argument.width, "Invalid format length resetting");
-    TEST_ASSERT_EQUAL_UINT8_MESSAGE(kStateParsingLengthModifier, parser_context.state, "Invalid state");
+    TEST_ASSERT_EQUAL_UINT8_MESSAGE(5, parser_context.current_argument.field_width, "Invalid field width resetting");
+    TEST_ASSERT_EQUAL_UINT8_MESSAGE(kStateParsingFieldWidth, parser_context.state, "Invalid state");
 }
 
 /**
@@ -223,16 +223,16 @@ static void test_arguments_width(void) {
     (void)pushCharacter(&parser_context, '%', nullptr);
 
     (void)pushCharacter(&parser_context, '5', nullptr);
-    TEST_ASSERT_EQUAL_UINT8_MESSAGE(5, parser_context.current_argument.width,
-                                    "Invalid format length at first character");
+    TEST_ASSERT_EQUAL_UINT8_MESSAGE(5, parser_context.current_argument.field_width,
+                                    "Invalid field width at first character");
 
     (void)pushCharacter(&parser_context, '5', nullptr);
-    TEST_ASSERT_EQUAL_UINT8_MESSAGE(55, parser_context.current_argument.width,
-                                    "Invalid format length at second character");
+    TEST_ASSERT_EQUAL_UINT8_MESSAGE(55, parser_context.current_argument.field_width,
+                                    "Invalid field width at second character");
 
     (void)pushCharacter(&parser_context, '5', nullptr);
-    TEST_ASSERT_EQUAL_UINT8_MESSAGE(kMaxFormatLength, parser_context.current_argument.width,
-                                    "Invalid format length at third character");
+    TEST_ASSERT_EQUAL_UINT8_MESSAGE(kMaxFormatLength, parser_context.current_argument.field_width,
+                                    "Invalid field width at third character");
 }
 
 /**
