@@ -24,6 +24,7 @@ static char qualifySignCharacter(const ArgumentMetadata* metadata, bool is_negat
 static size_t getPaddingSize(const ArgumentMetadata* metadata, size_t output_len);
 static uint32_t getFloatPrecision(const ConversionPrecision* precision);
 static uint32_t getPowerOf10(uint32_t exponent);
+static void trimUnsignedIntegerToLength(uint32_t* value, const ArgumentMetadata* metadata);
 
 /*********************************************************************************************************************************/
 /*********************************************************************************************************************************/
@@ -175,9 +176,11 @@ void outputNumber(OutputBuffer* output, const char* result_string, size_t result
  * @param[out] buffer Buffer to store result
  * @param radix Numeric base (2, 8, 10, or 16)
  * @param uppercase Use uppercase for hex digits
+ * @param metadata Metadata of the current argument
  * @return Length of converted string
  */
-uint32_t convertUnsigned(uint32_t value, char* buffer, uint32_t radix, bool uppercase) {
+uint32_t convertUnsigned(uint32_t value, char* buffer, uint32_t radix, bool uppercase,
+                         const ArgumentMetadata* metadata) {
     if (!buffer) {
         return 0U;
     }
@@ -192,6 +195,8 @@ uint32_t convertUnsigned(uint32_t value, char* buffer, uint32_t radix, bool uppe
         buffer[1] = '\0';
         return 1U;
     }
+
+    trimUnsignedIntegerToLength(&value, metadata);
 
     uint32_t length = 0U;
 
@@ -218,9 +223,10 @@ uint32_t convertUnsigned(uint32_t value, char* buffer, uint32_t radix, bool uppe
  * @param value Value to convert
  * @param[out] buffer Buffer to store result
  * @param radix Numeric base (typically 10)
+ * @param metadata Metadata of the current argument
  * @return Length of converted string (excluding sign)
  */
-uint32_t convertSigned(int32_t value, char* buffer, uint32_t radix) {
+uint32_t convertSigned(int32_t value, char* buffer, uint32_t radix, const ArgumentMetadata* metadata) {
     if (!buffer) {
         return 0U;
     }
@@ -233,7 +239,7 @@ uint32_t convertSigned(int32_t value, char* buffer, uint32_t radix) {
         unsigned_value = (uint32_t)value;
     }
 
-    uint32_t length = convertUnsigned(unsigned_value, buffer, radix, false);
+    uint32_t length = convertUnsigned(unsigned_value, buffer, radix, false, metadata);
     return length;
 }
 
@@ -243,9 +249,11 @@ uint32_t convertSigned(int32_t value, char* buffer, uint32_t radix) {
  * @param value Value to convert
  * @param[out] buffer Buffer to store result
  * @param precision Number of characters after the decimal point
+ * @param metadata Metadata of the current argument
  * @return Length of converted float (excluding sign)
  */
-uint32_t convertFloat(float value, char* buffer, const ConversionPrecision* precision) {
+uint32_t convertFloat(float value, char* buffer, const ConversionPrecision* precision,
+                      const ArgumentMetadata* metadata) {
     constexpr uint8_t decimal_radix = 10U;
 
     const uint32_t precision_magnitude = getFloatPrecision(precision);
@@ -254,7 +262,7 @@ uint32_t convertFloat(float value, char* buffer, const ConversionPrecision* prec
 
     // convert integer part to string
     uint32_t buffer_index =
-        convertSigned((int32_t)(precise_value / (int64_t)precise_multiplier), buffer, decimal_radix);
+        convertSigned((int32_t)(precise_value / (int64_t)precise_multiplier), buffer, decimal_radix, metadata);
 
     if (precision_magnitude == 0) {
         return buffer_index;
@@ -278,7 +286,7 @@ uint32_t convertFloat(float value, char* buffer, const ConversionPrecision* prec
 
     //if required, convert the decimal part to string
     if (decimal_part) {
-        buffer_index += convertUnsigned((uint32_t)decimal_part, &buffer[buffer_index], decimal_radix, false);
+        buffer_index += convertUnsigned((uint32_t)decimal_part, &buffer[buffer_index], decimal_radix, false, metadata);
     }
 
     return buffer_index;
@@ -380,4 +388,36 @@ static uint32_t getPowerOf10(const uint32_t exponent) {
     }
 
     return multiplier;
+}
+
+/**
+ * Reset bytes of a 32-bits value depending on its length modifiers
+ *
+ * @param value Value to trim
+ * @param metadata Argument metadata
+ */
+static void trimUnsignedIntegerToLength(uint32_t* value, const ArgumentMetadata* metadata) {
+    const uint8_t bitwise_modifiers =
+        ((uint8_t)(metadata->long_length_modifiers << 2U) | metadata->short_length_modifiers);
+
+    // NOLINTBEGIN (cppcoreguidelines-avoid-magic-numbers)
+    switch (bitwise_modifiers) {
+        case 1:  //'h'
+            *value &= 0x0000FFFFU;
+            break;
+
+        case 2:  //'hh'
+            *value &= 0x000000FFU;
+            break;
+
+        case 4:  //'l'
+        case 8:  //'ll'
+            *value &= 0xFFFFFFFFU;
+            break;
+
+        case 0:   //no modifier
+        default:  // invalid combination
+            break;
+    }
+    // NOLINTEND (cppcoreguidelines-avoid-magic-numbers)
 }

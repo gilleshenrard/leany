@@ -764,7 +764,6 @@ static void test_flag_sanitisation_for_unsupported_conversions(void) {
  * Test the type length modifiers
  */
 static void test_length_modifiers(void) {
-    constexpr char expected[] = "2863311530";
     const uint32_t test_uint = 0xAAAAAAAAU;
     constexpr uint8_t buffer_size = 20U;
     char result[buffer_size];
@@ -773,18 +772,18 @@ static void test_length_modifiers(void) {
 #pragma GCC diagnostic ignored "-Wformat"
 #pragma GCC diagnostic ignored "-Wformat-extra-args"
     custom_snprintf(result, buffer_size, "%hhu", test_uint);
-    TEST_ASSERT_EQUAL_STRING(expected, result);
+    TEST_ASSERT_EQUAL_STRING("170", result);
 #pragma GCC diagnostic pop
 
     custom_snprintf(result, buffer_size, "%hu", (int)test_uint);
-    TEST_ASSERT_EQUAL_STRING(expected, result);
+    TEST_ASSERT_EQUAL_STRING("43690", result);
 
     custom_snprintf(result, buffer_size, "%u", test_uint);
-    TEST_ASSERT_EQUAL_STRING(expected, result);
+    TEST_ASSERT_EQUAL_STRING("2863311530", result);
 
-    custom_snprintf(result, buffer_size, "%lu", (unsigned long)test_uint);
-    TEST_ASSERT_EQUAL_STRING(expected, result);
+    custom_snprintf(result, buffer_size, "%lu", (long unsigned int)test_uint);
+    TEST_ASSERT_EQUAL_STRING("2863311530", result);
 
     custom_snprintf(result, buffer_size, "%llu", (uint64_t)test_uint);
-    TEST_ASSERT_EQUAL_STRING(expected, result);
+    TEST_ASSERT_EQUAL_STRING("2863311530", result);
 }

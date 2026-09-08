@@ -47,8 +47,10 @@ void outputChar(OutputBuffer* output, char character);
 void outputString(OutputBuffer* output, const char* str, const ArgumentMetadata* metadata);
 void outputNumber(OutputBuffer* output, const char* result_string, size_t result_length,
                   const ArgumentMetadata* metadata, bool is_negative);
-uint32_t convertUnsigned(uint32_t value, char* buffer, uint32_t radix, bool uppercase);
-uint32_t convertSigned(int32_t value, char* buffer, uint32_t radix);
-uint32_t convertFloat(float value, char* buffer, const ConversionPrecision* precision);
+uint32_t convertUnsigned(uint32_t value, char* buffer, uint32_t radix, bool uppercase,
+                         const ArgumentMetadata* metadata);
+uint32_t convertSigned(int32_t value, char* buffer, uint32_t radix, const ArgumentMetadata* metadata);
+uint32_t convertFloat(float value, char* buffer, const ConversionPrecision* precision,
+                      const ArgumentMetadata* metadata);
 
 #endif

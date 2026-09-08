@@ -33,6 +33,7 @@ static void parseSpaceSignPrefix(ArgumentMetadata* argument);
 static void parseArgumentPrefixFlag(ArgumentMetadata* argument, bool* flag_modified);
 static void sanitiseUnsignedFlags(ArgumentMetadata* argument);
 static void sanitisePointerFlags(ArgumentMetadata* argument);
+static void sanitiseFloatFlags(ArgumentMetadata* argument);
 
 //constants
 static constexpr char kPercentCharacter = '%';  ///< Character indicating the introduction of a formatted parameter
@@ -241,6 +242,18 @@ static void sanitisePointerFlags(ArgumentMetadata* const argument) {
     argument->show_sign = false;
     argument->zero_pad = false;
     argument->space_sign = false;
+    argument->long_length_modifiers = 0;
+    argument->short_length_modifiers = 0;
+}
+
+/**
+ * Sanitise flags in float arguments which are undefined behaviour in the C standard
+ *
+ * @param argument Argument to sanitise
+ */
+static void sanitiseFloatFlags(ArgumentMetadata* const argument) {
+    argument->long_length_modifiers = 2;
+    argument->short_length_modifiers = 0;
 }
 
 /*********************************************************************************************************************************/
@@ -420,6 +433,7 @@ static ParserResult stateParsingLengthModifiers(ParserContext* context, char inp
  * @retval kParserDone The string had to be cropped, parser's done
  */
 static ParserResult stateParsingConversionSpecifier(ParserContext* context, char input_character, va_list* args) {
+    // #lizard forgives(length)
     constexpr uint8_t decimal_radix = 10U;
     constexpr uint8_t hexa_radix = 16U;
     const bool is_uppercase_hex = (input_character == 'X');
@@ -432,21 +446,23 @@ static ParserResult stateParsingConversionSpecifier(ParserContext* context, char
         case 'd':
         case 'i':
             signed_value = va_arg(*args, int32_t);
-            result_length = convertSigned(signed_value, conversion_buffer, decimal_radix);
+            result_length = convertSigned(signed_value, conversion_buffer, decimal_radix, &context->current_argument);
             outputNumber(&context->output, conversion_buffer, result_length, &context->current_argument,
                          (signed_value < 0));
             break;
 
         case 'u':
             sanitiseUnsignedFlags(&context->current_argument);
-            result_length = convertUnsigned(va_arg(*args, uint32_t), conversion_buffer, decimal_radix, false);
+            result_length = convertUnsigned(va_arg(*args, uint32_t), conversion_buffer, decimal_radix, false,
+                                            &context->current_argument);
             outputNumber(&context->output, conversion_buffer, result_length, &context->current_argument, false);
             break;
 
         case 'X':
         case 'x':
             sanitiseUnsignedFlags(&context->current_argument);
-            result_length = convertUnsigned(va_arg(*args, uint32_t), conversion_buffer, hexa_radix, is_uppercase_hex);
+            result_length = convertUnsigned(va_arg(*args, uint32_t), conversion_buffer, hexa_radix, is_uppercase_hex,
+                                            &context->current_argument);
             outputNumber(&context->output, conversion_buffer, result_length, &context->current_argument, false);
             break;
 
@@ -460,14 +476,16 @@ static ParserResult stateParsingConversionSpecifier(ParserContext* context, char
 
         case 'p':
             sanitisePointerFlags(&context->current_argument);
-            result_length =
-                convertUnsigned((uint32_t)(uintptr_t)va_arg(*args, void*), conversion_buffer, hexa_radix, false);
+            result_length = convertUnsigned((uint32_t)(uintptr_t)va_arg(*args, void*), conversion_buffer, hexa_radix,
+                                            false, &context->current_argument);
             outputNumber(&context->output, conversion_buffer, result_length, &context->current_argument, false);
             break;
 
         case 'f':
+            sanitiseFloatFlags(&context->current_argument);
             float_value = (float)va_arg(*args, double);
-            result_length = convertFloat(float_value, conversion_buffer, &context->current_argument.precision);
+            result_length = convertFloat(float_value, conversion_buffer, &context->current_argument.precision,
+                                         &context->current_argument);
             outputNumber(&context->output, conversion_buffer, result_length, &context->current_argument,
                          (float_value < 0.0F));
             break;
