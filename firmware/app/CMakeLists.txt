@@ -15,4 +15,5 @@ target_compile_options(scpi PRIVATE ${WARNING_FLAGS})
 target_link_libraries(scpi PRIVATE
 	tasks
 	utils
+	custom_stdlib
 )

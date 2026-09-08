@@ -10,7 +10,6 @@ add_subdirectory(custom_stdlib)
 add_library(utils
 	errorstack.c
 	hardware_events.c
-	leany_std.c
 	systick.c)
 target_include_directories(utils PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(utils PRIVATE stm32cubemx)
