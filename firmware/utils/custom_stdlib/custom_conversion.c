@@ -29,6 +29,34 @@ static uint32_t getPowerOf10(uint32_t exponent);
 /*********************************************************************************************************************************/
 
 /**
+ * Reset an argument's metadata
+ *
+ * @param metadata Metadata to reset
+ */
+void resetArgumentMetadata(ArgumentMetadata* metadata) {
+    if (!metadata) {
+        return;
+    }
+
+    *metadata = (ArgumentMetadata){
+        .introductory_consumed = false,
+        .zero_pad = false,
+        .left_justify = false,
+        .show_sign = false,
+        .space_sign = false,
+        .field_width = 0U,
+        .prefix_length = 0U,
+        .long_length_modifiers = 0U,
+        .short_length_modifiers = 0U,
+        .precision =
+            {
+                .decimal_char_consumed = false,
+                .magnitude = 0U,
+            },
+    };
+}
+
+/**
  * Output a single character to buffer with bounds checking
  * 
  * @param[out] output Output buffer metadata

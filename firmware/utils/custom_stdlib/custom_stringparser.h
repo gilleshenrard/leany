@@ -38,7 +38,8 @@ typedef enum : uint8_t {
     kStateCopying = 0,                     ///< State during which characters pushed are not parameters or modifiers
     kStateParsingPrefix = 1,               ///< State during which the argument prefix (length, padding, ...) is parsed
     kStateParsingFieldWidth = 2,           ///< State during which the field width is parsed
-    kStateParsingConversionSpecifier = 3,  ///< State during which the conversion specifier is parsed
+    kStateParsingLengthModifiers = 3,      ///< State during which the length modifiers are parsed
+    kStateParsingConversionSpecifier = 4,  ///< State during which the conversion specifier is parsed
 } ParserState;
 
 /**

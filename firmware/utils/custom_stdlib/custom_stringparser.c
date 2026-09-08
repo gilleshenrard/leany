@@ -22,6 +22,7 @@ enum : uint8_t {
 static ParserResult stateCopyingCharacters(ParserContext* context, char input_character);
 static ParserResult stateParsingArgumentPrefix(ParserContext* context, char input_character);
 static ParserResult stateParsingFieldWidth(ParserContext* context, char input_character);
+static ParserResult stateParsingLengthModifiers(ParserContext* context, char input_character);
 static ParserResult stateParsingConversionSpecifier(ParserContext* context, char input_character, va_list* args);
 
 //utility functions
@@ -93,6 +94,10 @@ ParserResult pushCharacter(ParserContext* context, char input_character, va_list
                 result = stateParsingFieldWidth(context, input_character);
                 break;
 
+            case kStateParsingLengthModifiers:
+                result = stateParsingLengthModifiers(context, input_character);
+                break;
+
             case kStateParsingConversionSpecifier:
                 result = stateParsingConversionSpecifier(context, input_character, args);
                 break;
@@ -128,20 +133,7 @@ static void resetContext(ParserContext* context) {
     }
 
     context->state = kStateCopying;
-    context->current_argument = (ArgumentMetadata){
-        .introductory_consumed = false,
-        .zero_pad = false,
-        .left_justify = false,
-        .show_sign = false,
-        .space_sign = false,
-        .field_width = 0U,
-        .prefix_length = 0U,
-        .precision =
-            {
-                .decimal_char_consumed = false,
-                .magnitude = 0U,
-            },
-    };
+    resetArgumentMetadata(&context->current_argument);
 }
 
 /**
@@ -358,7 +350,7 @@ static ParserResult stateParsingFieldWidth(ParserContext* context, char input_ch
     }
 
     if (!isnumber(input_character)) {
-        context->state = kStateParsingConversionSpecifier;
+        context->state = kStateParsingLengthModifiers;
         return kParserReevaluate;
     }
 
@@ -379,6 +371,44 @@ static ParserResult stateParsingFieldWidth(ParserContext* context, char input_ch
     }
 
     return kParserPending;
+}
+
+/**
+ * State during which the argument's length modifiers are evaluated
+ *
+ * @param[out] context Parser context
+ * @param input_character Character to evaluate
+ * @retval kParserReevaluate The current character needs reevaluation by another state
+ * @retval kParserPending The parser is waiting for a new character
+ */
+static ParserResult stateParsingLengthModifiers(ParserContext* context, char input_character) {
+    ParserResult result = kParserPending;
+
+    switch (input_character) {
+        case 'l':
+            if ((context->current_argument.long_length_modifiers >= 2U) ||
+                (context->current_argument.short_length_modifiers > 0)) {
+                result = kParserInvalid;
+            } else {
+                context->current_argument.long_length_modifiers++;
+            }
+            break;
+
+        case 'h':
+            if ((context->current_argument.short_length_modifiers >= 2U) ||
+                (context->current_argument.long_length_modifiers > 0)) {
+                result = kParserInvalid;
+            } else {
+                context->current_argument.short_length_modifiers++;
+            }
+            break;
+
+        default:
+            context->state = kStateParsingConversionSpecifier;
+            result = kParserReevaluate;
+    }
+
+    return result;
 }
 
 /**
