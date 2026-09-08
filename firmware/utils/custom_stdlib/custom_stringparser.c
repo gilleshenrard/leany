@@ -22,6 +22,7 @@ enum : uint8_t {
 static ParserResult stateCopyingCharacters(ParserContext* context, char input_character);
 static ParserResult stateParsingArgumentPrefix(ParserContext* context, char input_character);
 static ParserResult stateParsingFieldWidth(ParserContext* context, char input_character);
+static ParserResult stateParsingLengthModifiers(ParserContext* context, char input_character);
 static ParserResult stateParsingConversionSpecifier(ParserContext* context, char input_character, va_list* args);
 
 //utility functions
@@ -32,6 +33,7 @@ static void parseSpaceSignPrefix(ArgumentMetadata* argument);
 static void parseArgumentPrefixFlag(ArgumentMetadata* argument, bool* flag_modified);
 static void sanitiseUnsignedFlags(ArgumentMetadata* argument);
 static void sanitisePointerFlags(ArgumentMetadata* argument);
+static void sanitiseFloatFlags(ArgumentMetadata* argument);
 
 //constants
 static constexpr char kPercentCharacter = '%';  ///< Character indicating the introduction of a formatted parameter
@@ -93,6 +95,10 @@ ParserResult pushCharacter(ParserContext* context, char input_character, va_list
                 result = stateParsingFieldWidth(context, input_character);
                 break;
 
+            case kStateParsingLengthModifiers:
+                result = stateParsingLengthModifiers(context, input_character);
+                break;
+
             case kStateParsingConversionSpecifier:
                 result = stateParsingConversionSpecifier(context, input_character, args);
                 break;
@@ -128,20 +134,7 @@ static void resetContext(ParserContext* context) {
     }
 
     context->state = kStateCopying;
-    context->current_argument = (ArgumentMetadata){
-        .introductory_consumed = false,
-        .zero_pad = false,
-        .left_justify = false,
-        .show_sign = false,
-        .space_sign = false,
-        .field_width = 0U,
-        .prefix_length = 0U,
-        .precision =
-            {
-                .decimal_char_consumed = false,
-                .magnitude = 0U,
-            },
-    };
+    resetArgumentMetadata(&context->current_argument);
 }
 
 /**
@@ -249,6 +242,18 @@ static void sanitisePointerFlags(ArgumentMetadata* const argument) {
     argument->show_sign = false;
     argument->zero_pad = false;
     argument->space_sign = false;
+    argument->long_length_modifiers = 0;
+    argument->short_length_modifiers = 0;
+}
+
+/**
+ * Sanitise flags in float arguments which are undefined behaviour in the C standard
+ *
+ * @param argument Argument to sanitise
+ */
+static void sanitiseFloatFlags(ArgumentMetadata* const argument) {
+    argument->long_length_modifiers = 2;
+    argument->short_length_modifiers = 0;
 }
 
 /*********************************************************************************************************************************/
@@ -358,7 +363,7 @@ static ParserResult stateParsingFieldWidth(ParserContext* context, char input_ch
     }
 
     if (!isnumber(input_character)) {
-        context->state = kStateParsingConversionSpecifier;
+        context->state = kStateParsingLengthModifiers;
         return kParserReevaluate;
     }
 
@@ -382,6 +387,44 @@ static ParserResult stateParsingFieldWidth(ParserContext* context, char input_ch
 }
 
 /**
+ * State during which the argument's length modifiers are evaluated
+ *
+ * @param[out] context Parser context
+ * @param input_character Character to evaluate
+ * @retval kParserReevaluate The current character needs reevaluation by another state
+ * @retval kParserPending The parser is waiting for a new character
+ */
+static ParserResult stateParsingLengthModifiers(ParserContext* context, char input_character) {
+    ParserResult result = kParserPending;
+
+    switch (input_character) {
+        case 'l':
+            if ((context->current_argument.long_length_modifiers >= 2U) ||
+                (context->current_argument.short_length_modifiers > 0)) {
+                result = kParserInvalid;
+            } else {
+                context->current_argument.long_length_modifiers++;
+            }
+            break;
+
+        case 'h':
+            if ((context->current_argument.short_length_modifiers >= 2U) ||
+                (context->current_argument.long_length_modifiers > 0)) {
+                result = kParserInvalid;
+            } else {
+                context->current_argument.short_length_modifiers++;
+            }
+            break;
+
+        default:
+            context->state = kStateParsingConversionSpecifier;
+            result = kParserReevaluate;
+    }
+
+    return result;
+}
+
+/**
  * State during which the argument's conversion specifier is evaluated
  *
  * @param[out] context Parser context
@@ -390,6 +433,7 @@ static ParserResult stateParsingFieldWidth(ParserContext* context, char input_ch
  * @retval kParserDone The string had to be cropped, parser's done
  */
 static ParserResult stateParsingConversionSpecifier(ParserContext* context, char input_character, va_list* args) {
+    // #lizard forgives(length)
     constexpr uint8_t decimal_radix = 10U;
     constexpr uint8_t hexa_radix = 16U;
     const bool is_uppercase_hex = (input_character == 'X');
@@ -402,21 +446,23 @@ static ParserResult stateParsingConversionSpecifier(ParserContext* context, char
         case 'd':
         case 'i':
             signed_value = va_arg(*args, int32_t);
-            result_length = convertSigned(signed_value, conversion_buffer, decimal_radix);
+            result_length = convertSigned(signed_value, conversion_buffer, decimal_radix, &context->current_argument);
             outputNumber(&context->output, conversion_buffer, result_length, &context->current_argument,
                          (signed_value < 0));
             break;
 
         case 'u':
             sanitiseUnsignedFlags(&context->current_argument);
-            result_length = convertUnsigned(va_arg(*args, uint32_t), conversion_buffer, decimal_radix, false);
+            result_length = convertUnsigned(va_arg(*args, uint32_t), conversion_buffer, decimal_radix, false,
+                                            &context->current_argument);
             outputNumber(&context->output, conversion_buffer, result_length, &context->current_argument, false);
             break;
 
         case 'X':
         case 'x':
             sanitiseUnsignedFlags(&context->current_argument);
-            result_length = convertUnsigned(va_arg(*args, uint32_t), conversion_buffer, hexa_radix, is_uppercase_hex);
+            result_length = convertUnsigned(va_arg(*args, uint32_t), conversion_buffer, hexa_radix, is_uppercase_hex,
+                                            &context->current_argument);
             outputNumber(&context->output, conversion_buffer, result_length, &context->current_argument, false);
             break;
 
@@ -430,14 +476,16 @@ static ParserResult stateParsingConversionSpecifier(ParserContext* context, char
 
         case 'p':
             sanitisePointerFlags(&context->current_argument);
-            result_length =
-                convertUnsigned((uint32_t)(uintptr_t)va_arg(*args, void*), conversion_buffer, hexa_radix, false);
+            result_length = convertUnsigned((uint32_t)(uintptr_t)va_arg(*args, void*), conversion_buffer, hexa_radix,
+                                            false, &context->current_argument);
             outputNumber(&context->output, conversion_buffer, result_length, &context->current_argument, false);
             break;
 
         case 'f':
+            sanitiseFloatFlags(&context->current_argument);
             float_value = (float)va_arg(*args, double);
-            result_length = convertFloat(float_value, conversion_buffer, &context->current_argument.precision);
+            result_length = convertFloat(float_value, conversion_buffer, &context->current_argument.precision,
+                                         &context->current_argument);
             outputNumber(&context->output, conversion_buffer, result_length, &context->current_argument,
                          (float_value < 0.0F));
             break;
