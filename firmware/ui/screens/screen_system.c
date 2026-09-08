@@ -259,7 +259,7 @@ static ErrorCode updateBatteryVoltage(void) {
     (void)getBatteryVoltageMv(&voltage);
 
     const uint16_t thousands = 1000U;
-    int32_t length = custom_snprintf(battery_voltage, (kMaxBatterySize + 1U), "%1u.%03uV", (voltage / thousands),
-                                     (voltage % thousands));
+    int32_t length = custom_snprintf(battery_voltage, (kMaxBatterySize + 1U), "%1u.%03uV",
+                                     (uint16_t)(voltage / thousands), (uint16_t)(voltage % thousands));
     return printLabel(&sections[kBatteryVoltage].value_label, battery_voltage, (uint8_t)length, kColourEnabled);
 }

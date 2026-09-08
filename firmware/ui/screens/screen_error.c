@@ -207,8 +207,8 @@ static ErrorCode printErrorStackLabel(const ErrorCode* error) {
     };
 
     char error_string[kErrorStackLabelSize + 1U];
-    custom_snprintf(error_string, kErrorStackLabelSize + 1U, "MOD%02u | FN%02u | L%02u", error->module_id,
-                    error->function_id, error->layer0);
+    custom_snprintf(error_string, kErrorStackLabelSize + 1U, "MOD%02u | FN%02u | L%02u", (uint16_t)error->module_id,
+                    (uint16_t)error->function_id, (uint16_t)error->layer0);
 
     result = printLabel(&errorstack_label, error_string, (kErrorStackLabelSize + 1U), kColourDisabled);
     EXIT_ON_ERROR(result, kPrintErrorCodeLabel, 1)
