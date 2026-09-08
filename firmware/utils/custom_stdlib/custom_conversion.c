@@ -267,11 +267,11 @@ uint32_t convertFloat(float value, char* buffer, const ConversionPrecision* prec
  * @return Number of characters in the padding
  */
 static size_t getPaddingSize(const ArgumentMetadata* metadata, size_t output_len) {
-    if (output_len >= metadata->width) {
+    if (output_len >= metadata->field_width) {
         return 0;
     }
 
-    return (metadata->width - output_len);
+    return (metadata->field_width - output_len);
 }
 
 /**

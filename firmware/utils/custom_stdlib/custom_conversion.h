@@ -35,7 +35,7 @@ typedef struct {
     bool left_justify;              ///< Left justify the output
     bool show_sign;                 ///< Always show sign for signed numbers
     bool space_sign;                ///< Use space for positive numbers
-    uint32_t width;                 ///< Minimum field width
+    uint32_t field_width;           ///< Minimum field width
     uint8_t prefix_length;          ///< Argument's prefix length
     ConversionPrecision precision;  ///< Arguments' precision metadata
 } ArgumentMetadata;
