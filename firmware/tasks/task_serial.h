@@ -12,9 +12,13 @@
 
 void uartInterruptTriggered(void);
 void createSerialtask(void);
-void logSerial(ErrorLevel level, const char format[], ...);
 bool popSerialCommand(SerialCommand* command_received);
 void setLogLevel(ErrorLevel level);
 ErrorLevel getLogLevel(void);
+
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+__attribute__((format(printf, 2, 3)))
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
+void logSerial(ErrorLevel level, const char format[], ...);
 
 #endif

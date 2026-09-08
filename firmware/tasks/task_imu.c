@@ -596,6 +596,6 @@ static void consumeStateMachineError(ErrorCode code) {
         return;
     }
 
-    logSerial(code.level, "IMU Error %x", code.dword);
+    logSerial(code.level, "IMU Error %lx", (unsigned long)code.dword);
     imu_state = kStateError;
 }
