@@ -40,6 +40,7 @@ static void test_get_string_length(void);
 static void test_compare_string(void);
 static void test_multiple_arguments(void);
 static void test_flag_sanitisation_for_unsupported_conversions(void);
+static void test_length_modifiers(void);
 
 static ParserContext parser_context;         ///< Parser context to use on all tests
 static char test_buffer[kStringBufferSize];  ///< String buffer to use as output on all tests
@@ -77,6 +78,7 @@ int main(void) {
     RUN_TEST(test_compare_string);
     RUN_TEST(test_multiple_arguments);
     RUN_TEST(test_flag_sanitisation_for_unsupported_conversions);
+    RUN_TEST(test_length_modifiers);
     return UNITY_END();
 }
 
@@ -756,4 +758,33 @@ static void test_flag_sanitisation_for_unsupported_conversions(void) {
 
 #pragma GCC diagnostic pop
     // NOLINTEND (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling, cppcoreguidelines-avoid-magic-numbers)
+}
+
+/**
+ * Test the type length modifiers
+ */
+static void test_length_modifiers(void) {
+    constexpr char expected[] = "2863311530";
+    const uint32_t test_uint = 0xAAAAAAAAU;
+    constexpr uint8_t buffer_size = 20U;
+    char result[buffer_size];
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat"
+#pragma GCC diagnostic ignored "-Wformat-extra-args"
+    custom_snprintf(result, buffer_size, "%hhu", test_uint);
+    TEST_ASSERT_EQUAL_STRING(expected, result);
+#pragma GCC diagnostic pop
+
+    custom_snprintf(result, buffer_size, "%hu", (int)test_uint);
+    TEST_ASSERT_EQUAL_STRING(expected, result);
+
+    custom_snprintf(result, buffer_size, "%u", test_uint);
+    TEST_ASSERT_EQUAL_STRING(expected, result);
+
+    custom_snprintf(result, buffer_size, "%lu", (unsigned long)test_uint);
+    TEST_ASSERT_EQUAL_STRING(expected, result);
+
+    custom_snprintf(result, buffer_size, "%llu", (uint64_t)test_uint);
+    TEST_ASSERT_EQUAL_STRING(expected, result);
 }
