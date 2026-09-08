@@ -13,12 +13,12 @@
 #include <stdint.h>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
-__attribute__((format(printf, 3, 4)))
+__attribute__((format(gnu_printf, 3, 4)))
 #endif /* DOXYGEN_SHOULD_SKIP_THIS */
 int32_t custom_snprintf(char* buffer, size_t size, const char* format, ...);
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
-__attribute__((format(printf, 3, 0))) int32_t
+__attribute__((format(gnu_printf, 3, 0))) int32_t
 #endif /* DOXYGEN_SHOULD_SKIP_THIS */
 custom_vsnprintf(char* buffer, size_t size, const char* format, va_list* args);
 

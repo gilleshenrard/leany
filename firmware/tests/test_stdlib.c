@@ -5,6 +5,7 @@
  * @file test_stdlib.c
  * @brief Unit tests for the lightweight printf-style string parser (custom_stringparser).
  */
+#include <inttypes.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -768,12 +769,8 @@ static void test_length_modifiers(void) {
     constexpr uint8_t buffer_size = 20U;
     char result[buffer_size];
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat"
-#pragma GCC diagnostic ignored "-Wformat-extra-args"
-    custom_snprintf(result, buffer_size, "%hhu", test_uint);
+    custom_snprintf(result, buffer_size, "%hhu", (int)test_uint);
     TEST_ASSERT_EQUAL_STRING("170", result);
-#pragma GCC diagnostic pop
 
     custom_snprintf(result, buffer_size, "%hu", (int)test_uint);
     TEST_ASSERT_EQUAL_STRING("43690", result);
@@ -784,6 +781,6 @@ static void test_length_modifiers(void) {
     custom_snprintf(result, buffer_size, "%lu", (long unsigned int)test_uint);
     TEST_ASSERT_EQUAL_STRING("2863311530", result);
 
-    custom_snprintf(result, buffer_size, "%llu", (uint64_t)test_uint);
+    custom_snprintf(result, buffer_size, "%" PRIu64, (uint64_t)test_uint);
     TEST_ASSERT_EQUAL_STRING("2863311530", result);
 }

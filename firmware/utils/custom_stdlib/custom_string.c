@@ -50,7 +50,7 @@ static uint32_t qualifyHexCharacter(char character);
  * @return Number of characters written (excluding null terminator), or -1 on error
  */
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
-__attribute__((format(printf, 3, 4)))
+__attribute__((format(gnu_printf, 3, 4)))
 #endif
 int32_t custom_snprintf(char* buffer, size_t size, const char* format, ...) {
     va_list args;  // NOLINT (cppcoreguidelines-init-variables)
@@ -87,7 +87,7 @@ int32_t custom_snprintf(char* buffer, size_t size, const char* format, ...) {
  * @return Number of characters written (excluding null terminator), or -1 on error
  */
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
-__attribute__((format(printf, 3, 0)))
+__attribute__((format(gnu_printf, 3, 0)))
 #endif
 int32_t custom_vsnprintf(char* buffer, size_t size, const char* format, va_list* args) {
     /* Validate parameters */
