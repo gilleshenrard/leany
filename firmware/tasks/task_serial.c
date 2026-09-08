@@ -23,9 +23,9 @@
 #include <string.h>
 #include <task.h>
 
+#include "custom_string.h"
 #include "errorstack.h"
 #include "hardware_events.h"
-#include "leany_std.h"
 #include "scpi_parser.h"
 #include "serial_command_types.h"
 #include "systick.h"
@@ -140,6 +140,9 @@ void createSerialtask(void) {
  * @param format Format to apply to the log
  * @param ... Variable list of arguments to format
  */
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+__attribute__((format(printf, 2, 3)))
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 void logSerial(ErrorLevel level, const char format[], ...) {
     //outbound queue not created yet, exit
     if (!queue_outbound) {
@@ -161,7 +164,7 @@ void logSerial(ErrorLevel level, const char format[], ...) {
         packed_message.message[0] = '!';
     }
 
-    (void)leany_vsnprintf(&packed_message.message[is_a_log], (kOutboundSize - 1U - (uint8_t)is_a_log), format, args);
+    (void)custom_vsnprintf(&packed_message.message[is_a_log], (kOutboundSize - 1U - (uint8_t)is_a_log), format, &args);
     const size_t length = getStringLength(packed_message.message, kOutboundSize - 1);
     packed_message.message[length] = '\n';
     packed_message.message[length + 1U] = '\0';

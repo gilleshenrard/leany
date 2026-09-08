@@ -13,12 +13,12 @@
 #include <stdint.h>
 
 #include "bitmap.h"
+#include "custom_string.h"
 #include "display.h"
 #include "errorstack.h"
 #include "fonts.h"
 #include "icons.h"
 #include "label.h"
-#include "leany_std.h"
 #include "orientation.h"
 #include "st7735s.h"
 #include "systick.h"
@@ -183,7 +183,7 @@ static ErrorCode printErrorCodeLabel(uint32_t error_code) {
     };
 
     char error_string[kErrorLabelSize + 1U];
-    leany_snprintf(error_string, kErrorLabelSize + 1U, "%08X", error_code);
+    custom_snprintf(error_string, kErrorLabelSize + 1U, "%08lX", (unsigned long)error_code);
 
     result = printLabel(&errorcode_label, error_string, kErrorLabelSize, kColourCritical);
     EXIT_ON_ERROR(result, kPrintErrorCodeLabel, 1)
@@ -207,8 +207,8 @@ static ErrorCode printErrorStackLabel(const ErrorCode* error) {
     };
 
     char error_string[kErrorStackLabelSize + 1U];
-    leany_snprintf(error_string, kErrorStackLabelSize + 1U, "MOD%02u | FN%02u | L%02u", error->module_id,
-                   error->function_id, error->layer0);
+    custom_snprintf(error_string, kErrorStackLabelSize + 1U, "MOD%02u | FN%02u | L%02u", error->module_id,
+                    error->function_id, error->layer0);
 
     result = printLabel(&errorstack_label, error_string, (kErrorStackLabelSize + 1U), kColourDisabled);
     EXIT_ON_ERROR(result, kPrintErrorCodeLabel, 1)

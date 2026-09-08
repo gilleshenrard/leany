@@ -28,9 +28,9 @@
 #include <stdint.h>
 #include <task.h>
 
+#include "custom_string.h"
 #include "errorstack.h"
 #include "hardware_events.h"
-#include "leany_std.h"
 #include "led.h"
 #include "orientation.h"
 #include "scpi_commands.h"
@@ -371,18 +371,18 @@ static void handleSerialReadCommandEvent(const SerialCommand* command) {
 
     switch (command->code) {
         case kCmdKI:
-            floatToString(getIMU_KI(), float_strbuffer, floatbuffer_size, 2U);
+            custom_snprintf(float_strbuffer, floatbuffer_size, "%.2f", (double)getIMU_KI());
             logSerial(kMaxErrorLevel, "%s", float_strbuffer);
             break;
 
         case kCmdKP:
-            floatToString(getIMU_KP(), float_strbuffer, floatbuffer_size, 2U);
+            custom_snprintf(float_strbuffer, floatbuffer_size, "%.2f", (double)getIMU_KP());
             logSerial(kMaxErrorLevel, "%s", float_strbuffer);
             break;
 
         case kCmdAlignmentEnable:
             // NOLINTNEXTLINE (readability-implicit-bool-conversion)
-            logSerial(kMaxErrorLevel, "%u", isIMUalignmentCheckEnabled());
+            logSerial(kMaxErrorLevel, "%u", (isIMUalignmentCheckEnabled() ? 1U : 0U));
             break;
 
         case kCmdLogLevel:

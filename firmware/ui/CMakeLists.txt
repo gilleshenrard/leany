@@ -24,5 +24,6 @@ target_link_libraries(UI PRIVATE
 	tasks
 	sensorfusion
 	stm32cubemx
+	custom_stdlib
 )
 target_compile_options(UI PRIVATE ${WARNING_FLAGS})

@@ -12,12 +12,12 @@
 #include <stdint.h>
 
 #include "bitmap.h"
+#include "custom_string.h"
 #include "display.h"
 #include "errorstack.h"
 #include "fonts.h"
 #include "hardware_events.h"
 #include "label.h"
-#include "leany_std.h"
 #include "orientation.h"
 #include "softversion.h"
 #include "st7735s.h"
@@ -245,7 +245,7 @@ static ErrorCode updateTemperature(void) {
     int32_t temperature = 0;
     (void)getInternalTemperatureCelsius(&temperature);
 
-    int32_t length = leany_snprintf(internal_temperature, (kMaxTemperatureSize + 1U), "%3u*C", (uint8_t)temperature);
+    int32_t length = custom_snprintf(internal_temperature, (kMaxTemperatureSize + 1U), "%3u*C", (uint8_t)temperature);
     return printLabel(&sections[kTemperature].value_label, internal_temperature, (uint8_t)length, kColourEnabled);
 }
 
@@ -259,7 +259,7 @@ static ErrorCode updateBatteryVoltage(void) {
     (void)getBatteryVoltageMv(&voltage);
 
     const uint16_t thousands = 1000U;
-    int32_t length = leany_snprintf(battery_voltage, (kMaxBatterySize + 1U), "%1u.%03uV", (voltage / thousands),
-                                    (voltage % thousands));
+    int32_t length = custom_snprintf(battery_voltage, (kMaxBatterySize + 1U), "%1u.%03uV", (voltage / thousands),
+                                     (voltage % thousands));
     return printLabel(&sections[kBatteryVoltage].value_label, battery_voltage, (uint8_t)length, kColourEnabled);
 }

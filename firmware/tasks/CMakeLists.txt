@@ -24,5 +24,6 @@ target_link_libraries(tasks PRIVATE
 	scpi
 	sensorfusion
 	stm32cubemx
+	custom_stdlib
 )
 target_compile_options(tasks PRIVATE ${WARNING_FLAGS})

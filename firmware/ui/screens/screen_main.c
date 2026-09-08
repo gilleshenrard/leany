@@ -13,13 +13,13 @@
 #include <stdint.h>
 
 #include "bitmap.h"
+#include "custom_string.h"
 #include "display.h"
 #include "errorstack.h"
 #include "fonts.h"
 #include "hardware_events.h"
 #include "icons.h"
 #include "label.h"
-#include "leany_std.h"
 #include "mahony.h"
 #include "orientation.h"
 #include "st7735s.h"
@@ -296,7 +296,7 @@ static ErrorCode printMeasurements(ColourBigEndian foreground_colour) {
 
         //format the angle string
         char angle_string[kAngleStringLength + 1U];
-        (void)leany_snprintf(angle_string, kAngleStringLength + 1U, "%+02i.%01i*", angle_degrees, angle_tenths);
+        (void)custom_snprintf(angle_string, kAngleStringLength + 1U, "%+02i.%01i*", angle_degrees, angle_tenths);
         const uint8_t length = (uint8_t)getStringLength(angle_string, kAngleStringLength);
 
         //print the label

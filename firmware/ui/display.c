@@ -12,11 +12,11 @@
 #include <stdint.h>
 
 #include "bitmap.h"
+#include "custom_string.h"
 #include "errorstack.h"
 #include "fonts.h"
 #include "icons.h"
 #include "label.h"
-#include "leany_std.h"
 #include "orientation.h"
 #include "st7735s.h"
 #include "task_battery.h"
@@ -279,7 +279,7 @@ ErrorCode printBatteryIndicator(const BatteryStatus* status, BatteryIndicator* i
 
     //format the percentage string
     char percent_string[kPercentLength + 1U];
-    (void)leany_snprintf(percent_string, kPercentLength + 1U, "%u%%", status->level_percents);
+    (void)custom_snprintf(percent_string, kPercentLength + 1U, "%u%%", status->level_percents);
     const uint8_t length = (uint8_t)getStringLength(percent_string, kPercentLength);
 
     //uncompress the string

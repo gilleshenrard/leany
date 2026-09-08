@@ -21,8 +21,8 @@
 #include <stdint.h>
 #include <string.h>
 
+#include "custom_string.h"
 #include "errorstack.h"
-#include "leany_std.h"
 #include "scpi_commands.h"
 #include "serial_command_types.h"
 #include "task_serial.h"
@@ -269,15 +269,15 @@ static bool populateCommand(const Node* scpi_node, SerialCommand* command) {
 
     switch (command->param_type) {
         case kParamInteger:
-            command->parameter.int_value = stringToInt(parameter);
+            command->parameter.int_value = custom_strtoi(parameter);
             break;
 
         case kParamHexa:
-            command->parameter.int_value = stringHexToInt(parameter);
+            command->parameter.int_value = custom_strtoi_hexa(parameter);
             break;
 
         case kParamFloat:
-            command->parameter.float_value = stringToFloat(parameter);
+            command->parameter.float_value = custom_strtof(parameter);
             break;
 
         default:
