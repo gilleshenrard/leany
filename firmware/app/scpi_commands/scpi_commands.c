@@ -125,6 +125,30 @@ static const Node kErrorCommands[] = {
 /*********************************************************************************************************************************/
 
 /**
+ * Monitoring commands descriptors
+ */
+static const Node kMonitoringCommands[] = {
+    {.scpi = {.code = kCmdMonitoringPeriod,
+              .short_name = "PER",
+              .long_name = "PERiod",
+              .mode = kWO,
+              .param_type = kParamInteger}},
+    {.scpi = {.code = kCmdMonitoringStart,
+              .short_name = "STA",
+              .long_name = "STArt",
+              .mode = kWO,
+              .param_type = kParamInteger}},
+    {.scpi = {.code = kCmdMonitoringStop,
+              .short_name = "STO",
+              .long_name = "STOp",
+              .mode = kWO,
+              .param_type = kParamInteger}},
+};
+
+/*********************************************************************************************************************************/
+/*********************************************************************************************************************************/
+
+/**
  * Root commands descriptors
  */
 static const Node kRootCommands[] = {
@@ -146,6 +170,9 @@ static const Node kRootCommands[] = {
     {.scpi = {.short_name = "ERR", .long_name = "ERRor", .mode = kNA},
      .children = kErrorCommands,
      .nb_children = (sizeof(kErrorCommands) / sizeof(Node))},
+    {.scpi = {.short_name = "MON", .long_name = "MONitoring", .mode = kNA},
+     .children = kMonitoringCommands,
+     .nb_children = (sizeof(kMonitoringCommands) / sizeof(Node))},
     {.scpi = {.code = kCmdHelp, .short_name = "HELP", .long_name = "HELP", .mode = kRO},
      .children = nullptr,
      .nb_children = 0},

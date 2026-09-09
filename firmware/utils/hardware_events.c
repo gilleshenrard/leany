@@ -52,6 +52,22 @@ void triggerHardwareEvent(Event event) {
 }
 
 /**
+ * Trigger a hardware event (to be called in an ISR routine)
+ *
+ * @param event Event to trigger
+ */
+// cppcheck-suppress unusedFunction
+void triggerHardwareEventFromISR(Event event) {
+    if (!hardware_events_group) {
+        return;
+    }
+
+    BaseType_t higher_priority_has_woken = pdFALSE;
+    (void)xEventGroupSetBitsFromISR(hardware_events_group, eventToBitmask(event), &higher_priority_has_woken);
+    portYIELD_FROM_ISR(higher_priority_has_woken);
+}
+
+/**
  * Check if a hardware event has been triggered
  *
  * @param event Event to check 

@@ -18,22 +18,25 @@ enum : uint8_t {
  * Enumeration of the command codes available
  */
 typedef enum : uint8_t {
-    kCmdNoBehaviour = 0,      ///< Command node has no behaviour (default)
-    kCmdKP = 1,               ///< Set/Get the filter kP value
-    kCmdKI = 2,               ///< Set/Get the filter kI value
-    kCmdAlignmentEnable = 3,  ///< Enable/Disable the alignment check
-    kCmdToggleHold = 4,       ///< Toggle measurements holding
-    kCmdToggleZero = 5,       ///< Toggle measurements zeroing
-    kCmdLogLevel = 6,         ///< Get/Set the logging level
-    kCmdOrientation = 7,      ///< Get/Set the current display orientation
-    kCmdBatteryPercent = 8,   ///< Get/Set the battery percentage
-    kCmdBatteryCharge = 9,    ///< Get/Set the battery charge status
-    kCmdToggleScreen = 10,    ///< Toggle main/system screen
-    kCmdLedColour = 11,       ///< Set the LED colour
-    kCmdLedEffect = 12,       ///< Set the LED effect
-    kCmdErrorCode = 13,       ///< Set an error code
-    kCmdHelp = 14,            ///< Get the commands help
-    kCmdBatteryOff = 15,      ///< Turn the battery charger OFF
+    kCmdNoBehaviour = 0,        ///< Command node has no behaviour (default)
+    kCmdKP = 1,                 ///< Set/Get the filter kP value
+    kCmdKI = 2,                 ///< Set/Get the filter kI value
+    kCmdAlignmentEnable = 3,    ///< Enable/Disable the alignment check
+    kCmdToggleHold = 4,         ///< Toggle measurements holding
+    kCmdToggleZero = 5,         ///< Toggle measurements zeroing
+    kCmdLogLevel = 6,           ///< Get/Set the logging level
+    kCmdOrientation = 7,        ///< Get/Set the current display orientation
+    kCmdBatteryPercent = 8,     ///< Get/Set the battery percentage
+    kCmdBatteryCharge = 9,      ///< Get/Set the battery charge status
+    kCmdToggleScreen = 10,      ///< Toggle main/system screen
+    kCmdLedColour = 11,         ///< Set the LED colour
+    kCmdLedEffect = 12,         ///< Set the LED effect
+    kCmdErrorCode = 13,         ///< Set an error code
+    kCmdHelp = 14,              ///< Get the commands help
+    kCmdBatteryOff = 15,        ///< Turn the battery charger OFF
+    kCmdMonitoringPeriod = 16,  ///< Set the period between two monitoring cycles in [ms]
+    kCmdMonitoringStart = 17,   ///< Start monitoring mode
+    kCmdMonitoringStop = 18,    ///< Stop monitoring mode
 } SerialCommandCode;
 
 /**

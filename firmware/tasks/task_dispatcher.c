@@ -27,11 +27,13 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <task.h>
+#include <timers.h>
 
 #include "custom_string.h"
 #include "errorstack.h"
 #include "hardware_events.h"
 #include "led.h"
+#include "mahony.h"
 #include "orientation.h"
 #include "scpi_commands.h"
 #include "serial_command_types.h"
@@ -41,14 +43,16 @@
 #include "task_ui.h"
 
 enum : uint8_t {
-    kStackSize_words = 250U,     ///< Amount of words in the task stack
-    kTaskLowPriority = 3U,       ///< FreeRTOS number for a low priority task
-    kEventDelayMS = 20U,         ///< Number of milliseconds for hardware events delay
-    kMutexTimeoutMs = 10U,       ///< Maximum number of milliseconds before considering a mutex timeout
-    kSCPImaxTreeDepth = 16U,     ///< Maximum depth of the command tree traversal
-    kSCPIindentationWidth = 4U,  ///< Number of spaces in the SCPI indentation
+    kStackSize_words = 250U,       ///< Amount of words in the task stack
+    kTaskLowPriority = 3U,         ///< FreeRTOS number for a low priority task
+    kEventDelayMS = 20U,           ///< Number of milliseconds for hardware events delay
+    kMutexTimeoutMs = 10U,         ///< Maximum number of milliseconds before considering a mutex timeout
+    kSCPImaxTreeDepth = 16U,       ///< Maximum depth of the command tree traversal
+    kSCPIindentationWidth = 4U,    ///< Number of spaces in the SCPI indentation
+    kExampleStringSize = 32U,      ///< Maximum characters in the example string
+    kMinMonitoringPeriodMs = 50U,  ///< Minimum period between two monitoring cycles in [ms]
+    kMaxTimerChangeTimeMs = 5U,    ///< Maximum number of milliseconds change in a timer state/period before timeout
     kSCPImaxIndextation = (kSCPImaxTreeDepth * kSCPIindentationWidth),  ///< Maximum size of the indent. buffer
-    kExampleStringSize = 32U,                                           ///< Maximum characters in the example string
 };
 
 /**
@@ -84,9 +88,15 @@ static void handleBatteryStatusEvent(const SerialCommand* command);
 static ErrorCode dumpScpiCommandTree(void);
 static ErrorCode sendScpiTreeLine(const Node* node, uint8_t depth);
 static ErrorCode formatIndentation(uint8_t depth, char out_buffer[kSCPImaxIndextation]);
+static bool setMonitoringEnabled(bool enabled);
+static bool setMonitoringPeriod(uint16_t period_ms);
+static void handleMonitoringCycleEvent(void);
+static void monitoringTimerCallback(TimerHandle_t timer_handle);
 
+//global variables
 static SemaphoreHandle_t events_mutex = nullptr;  ///< Mutex used to protect events coming from the dispatcher
 static ErrorCode last_error = {.dword = 0};       ///< Last error detected
+static TimerHandle_t monitoring_timer = nullptr;  ///< Timer which generates monitoring cycles events
 
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
@@ -101,6 +111,7 @@ ErrorCode createMessageDispatchertask(void) {
     static StackType_t task_stack[kStackSize_words] = {0};  // Buffer used as the task stack
     static StaticTask_t task_state = {0};                   // Task state variables
     static StaticSemaphore_t events_mutex_state = {0};      ///< UI mutex state variables
+    static StaticTimer_t timer_state;
     // NOLINTEND
 
     //create a semaphore to protect events
@@ -111,6 +122,12 @@ ErrorCode createMessageDispatchertask(void) {
     TaskHandle_t task_handle = xTaskCreateStatic(runDispatchertask, "Dispatch task", kStackSize_words, nullptr,
                                                  kTaskLowPriority, task_stack, &task_state);
     configASSERT(task_handle);
+
+    monitoring_timer = xTimerCreateStatic("Monitoring cycle timer", pdMS_TO_TICKS(kMinMonitoringPeriodMs), pdTRUE,
+                                          (void*)0, monitoringTimerCallback, &timer_state);
+    configASSERT(monitoring_timer);
+
+    (void)xTimerStop(monitoring_timer, pdMS_TO_TICKS(kMaxTimerChangeTimeMs));
 
     return kSuccessCode;
 }
@@ -190,8 +207,9 @@ static void runDispatchertask(void* argument) {
     bool holding = false;
 
     while (1) {
-        //if no new event received, loopback
-        if (!waitForHardwareEvents(kEventDelayMS)) {
+        //waiting for events is not fully blocking to keep the task regularly active
+        const bool event_triggered = waitForHardwareEvents(kEventDelayMS);
+        if (!event_triggered) {
             continue;
         }
 
@@ -206,6 +224,7 @@ static void runDispatchertask(void* argument) {
         handleZeroingCancelEvent(&command);
         handleHoldingEvent(&holding, &command);
         handleBatteryStatusEvent(&command);
+        handleMonitoringCycleEvent();
 
         clearHardwareEvents();
     }
@@ -218,7 +237,7 @@ static void runDispatchertask(void* argument) {
 static void transmitEventsToUI(void) {
     //transmit the triggered events to the UI
     for (uint8_t event = 0; event < kNbEvents; event++) {
-        if (event == kEventSerialCommand) {
+        if ((event == kEventSerialCommand) || (event == kEventMonitoringCycle)) {
             continue;
         }
 
@@ -412,6 +431,9 @@ static void handleSerialReadCommandEvent(const SerialCommand* command) {
         case kCmdToggleScreen:
         case kCmdLedColour:
         case kCmdLedEffect:
+        case kCmdMonitoringPeriod:
+        case kCmdMonitoringStart:
+        case kCmdMonitoringStop:
         default:
             return;
     }
@@ -425,7 +447,7 @@ static void handleSerialReadCommandEvent(const SerialCommand* command) {
 static void handleSerialWriteCommandEvent(const SerialCommand* command) {
     // A large switch is the most straightforward way to handle serial write commands.
     // Therefore, Lizard linter can ignore this function's length
-    // #lizard forgives(length, cyclomatic_complexity)
+    // #lizard forgives(length, cyclomatic_complexity, nloc)
     ErrorCode error;
 
     switch (command->code) {
@@ -475,7 +497,25 @@ static void handleSerialWriteCommandEvent(const SerialCommand* command) {
 
         case kCmdBatteryOff:
             error = turnSystemOff();
-            setLastErrorCode(error);
+            setLastErrorCode(pushErrorCode(error, 1, kErrorCritical));
+            break;
+
+        case kCmdMonitoringStart:
+            if (!setMonitoringEnabled(true)) {
+                setLastErrorCode(createErrorCode(1, 2, kErrorInfo));
+            }
+            break;
+
+        case kCmdMonitoringStop:
+            if (!setMonitoringEnabled(false)) {
+                setLastErrorCode(createErrorCode(1, 3, kErrorInfo));
+            }
+            break;
+
+        case kCmdMonitoringPeriod:
+            if (!setMonitoringPeriod((uint16_t)command->parameter.int_value)) {
+                setLastErrorCode(createErrorCode(1, 4, kErrorInfo));
+            }
             break;
 
         case kCmdBatteryPercent:
@@ -582,4 +622,72 @@ static ErrorCode formatIndentation(uint8_t depth, char out_buffer[kSCPImaxIndext
     out_buffer[index] = '\0';
 
     return kSuccessCode;
+}
+
+/**
+ * Set the new state of the monitoring mode
+ *
+ * @param enabled New state
+ * @retval true State changed successfully
+ * @retval false State change failed
+ */
+static bool setMonitoringEnabled(bool enabled) {
+    BaseType_t result = pdFAIL;
+
+    if (enabled) {
+        result = xTimerStart(monitoring_timer, pdMS_TO_TICKS(kMaxTimerChangeTimeMs));
+    } else {
+        result = xTimerStop(monitoring_timer, pdMS_TO_TICKS(kMaxTimerChangeTimeMs));
+    }
+
+    return (result == pdPASS);
+}
+
+/**
+ * Set the period between two monitoring cycles in [ms]
+ *
+ * @param period_ms New period
+ * @retval true Period successfully changed
+ * @retval false Period change failed
+ */
+static bool setMonitoringPeriod(uint16_t period_ms) {
+    if (period_ms < kMinMonitoringPeriodMs) {
+        period_ms = kMinMonitoringPeriodMs;
+    }
+
+    BaseType_t timer_state = xTimerIsTimerActive(monitoring_timer);
+
+    BaseType_t result = xTimerChangePeriod(monitoring_timer, pdMS_TO_TICKS(period_ms), kMaxTimerChangeTimeMs);
+
+    if (timer_state == pdFALSE) {
+        (void)xTimerStop(monitoring_timer, pdMS_TO_TICKS(kMaxTimerChangeTimeMs));
+    }
+    return (result == pdPASS);
+}
+
+/**
+ * Handle a monitoring cycle request event
+ */
+static void handleMonitoringCycleEvent(void) {
+    if (!isHardwareEventTriggered(kEventMonitoringCycle)) {
+        return;
+    }
+
+    constexpr float divider10 = 10.0F;
+
+    int16_t axis_tenths = getAngleDegreesTenths(kXaxis);
+    logSerial(kMaxErrorLevel, ">Roll:%02.01f", ((double)axis_tenths / (double)divider10));
+
+    axis_tenths = getAngleDegreesTenths(kYaxis);
+    logSerial(kMaxErrorLevel, ">Pitch:%02.01f", ((double)axis_tenths / (double)divider10));
+}
+
+/**
+ * Callback to the monitoring timer
+ *
+ * @param timer_handle Timer which triggered the callback
+ */
+static void monitoringTimerCallback(TimerHandle_t timer_handle) {
+    (void)timer_handle;
+    triggerHardwareEvent(kEventMonitoringCycle);
 }
