@@ -62,6 +62,7 @@ typedef enum : uint8_t {
     kDumpTree = 1,         ///< dumpScpiCommandTree(): Function used to send the command tree to serial line
     kSendLine = 2,         ///< sendScpiTreeLine(): Function used to send a command node
     kSendIndentation = 3,  ///< sendIndentation(): Function used to send indentation over serial
+    kSerialWrite = 4,      ///< handleSerialWriteCommandEvent(): Function used to treat serial write commands
 } FunctionCode;
 
 /**
@@ -497,24 +498,24 @@ static void handleSerialWriteCommandEvent(const SerialCommand* command) {
 
         case kCmdBatteryOff:
             error = turnSystemOff();
-            setLastErrorCode(pushErrorCode(error, 1, kErrorCritical));
+            setLastErrorCode(pushErrorCode(error, kSerialWrite, kErrorCritical));
             break;
 
         case kCmdMonitoringStart:
             if (!setMonitoringEnabled(true)) {
-                setLastErrorCode(createErrorCode(1, 2, kErrorInfo));
+                setLastErrorCode(createErrorCode(kSerialWrite, 2, kErrorInfo));
             }
             break;
 
         case kCmdMonitoringStop:
             if (!setMonitoringEnabled(false)) {
-                setLastErrorCode(createErrorCode(1, 3, kErrorInfo));
+                setLastErrorCode(createErrorCode(kSerialWrite, 3, kErrorInfo));
             }
             break;
 
         case kCmdMonitoringPeriod:
             if (!setMonitoringPeriod((uint16_t)command->parameter.int_value)) {
-                setLastErrorCode(createErrorCode(1, 4, kErrorInfo));
+                setLastErrorCode(createErrorCode(kSerialWrite, 4, kErrorInfo));
             }
             break;
 
