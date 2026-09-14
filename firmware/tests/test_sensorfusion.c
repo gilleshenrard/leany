@@ -98,7 +98,7 @@ void setUp(void) {
     context.dt.max_tick = kMaxTick;
     context.dt.last_sampled_tick = 0U;
     context.dt.last_valid_tick = 0U;
-    context.align_check_enabled = false;
+    context.alignment_check_enabled = false;
 
     current_tick = 1U;
 }
@@ -229,7 +229,7 @@ static void test_bad_samples_counter_resets_correctly(void) {
 
     //enable alignment check and feed the maximum number of bad acceleration values
     context.dt.last_sampled_tick = 1U;
-    context.align_check_enabled = true;
+    context.alignment_check_enabled = true;
     iterate_filter(&context, &bad_sample, kMaxBadCounts);
     TEST_ASSERT_TRUE_MESSAGE(isContextReset(&context), "Maximum bad attempts test failed");
 
@@ -243,7 +243,7 @@ static void test_bad_samples_counter_resets_correctly(void) {
     // NOLINTNEXTLINE (readability-magic-numbers)
     context.attitude.q1 = 0.1F;  // non-identity so recovery is distinguishable from reset
     context.dt.last_sampled_tick = 1U;
-    context.align_check_enabled = true;
+    context.alignment_check_enabled = true;
     iterate_filter(&context, &bad_sample, (kMaxBadCounts - 1U));
     updateMahonyFilter(&context, &kPureGravity);
     TEST_ASSERT_FALSE_MESSAGE(isContextReset(&context), "Recovery without reset failed");
@@ -254,13 +254,13 @@ static void test_bad_samples_counter_resets_correctly(void) {
  *
  * @details
  * This is achieved by feeding a unit-norm but horizontally biased acceleration
- * vector with align_check_enabled=0. Under these conditions validateNorm passes
+ * vector with alignment_check_enabled=0. Under these conditions validateNorm passes
  * and alignmentValid is never called, so the filter must update.
  * Example: accel=[0.6, 0, 0.8G] → norm=1.0 (passes validateNorm),
  * dot=0.8 < 0.9659 (would fail alignmentValid if enabled) → filter updates.
  *
  * @internal
- * Exercises the align_check_enabled guard in updateMahonyFilter(), which
+ * Exercises the alignment_check_enabled guard in updateMahonyFilter(), which
  * short-circuits the alignmentValid() call entirely when cleared.
  * Complements test_alignment_check_freezes_update_on_lateral_accel.
  */
@@ -407,7 +407,7 @@ static void test_normalisation_prevents_drift_under_sustained_input(void) {
  * Test that the alignment check freezes quaternion updates on lateral acceleration.
  *
  * @details
- * This is achieved by enabling align_check_enabled after convergence, then
+ * This is achieved by enabling alignment_check_enabled after convergence, then
  * feeding 10 steps of a unit-norm but horizontally biased acceleration vector.
  * Under these conditions the dot product between measured and estimated gravity
  * falls below kMinAlignmentCosine, indicating linear motion rather than
@@ -420,14 +420,14 @@ static void test_normalisation_prevents_drift_under_sustained_input(void) {
  *
  * @internal
  * Exercises the alignmentValid() early-return path in updateMahonyFilter(),
- * which is only reached when align_check_enabled is set and the acceleration
+ * which is only reached when alignment_check_enabled is set and the acceleration
  * norm is valid. A 5G lateral shock would be rejected earlier by validateNorm()
  * and would never reach alignmentValid().
  */
 static void test_alignment_check_freezes_update_on_lateral_accel(void) {
     iterate_filter(&context, &kPureGravity, kConvergenceSteps);
 
-    context.align_check_enabled = true;
+    context.alignment_check_enabled = true;
 
     // Snapshot the quaternion before injecting the misaligned samples
     const Quaternion attitude_before = context.attitude;

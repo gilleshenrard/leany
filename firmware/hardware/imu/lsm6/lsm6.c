@@ -413,7 +413,7 @@ ErrorCode IMUgetSample(IMUsample* sample) {
     EXIT_ON_ERROR(result, kMeasuring, 1)
 
     //read the current sensor tick value
-    result = readRegisters(&spi_descriptor, kTIMESTAMP0, (uint8_t*)&sample->tick, kNbTickRegisters);
+    result = readRegisters(&spi_descriptor, kTIMESTAMP0, (uint8_t*)&sample->imu_tick, kNbTickRegisters);
     EXIT_ON_ERROR(result, kMeasuring, 2)
 
     //convert the temperature LSB values to °C, and compute temperature bias

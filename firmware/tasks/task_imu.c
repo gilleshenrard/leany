@@ -84,7 +84,7 @@ static float angles_zeroing_rad[kNBaxis - 1] = {0, 0};  ///< Angles used to zero
 static bool holding = false;                            ///< Flag indicating whether the measurements are held
 static bool zeroed = false;                             ///< Measurements zeroing status
 static MahonyContext filter_context = {
-    .ki = kIntegralGain, .kp = kProportionalGain, .align_check_enabled = true};  ///< Current Mahony filter context
+    .ki = kIntegralGain, .kp = kProportionalGain, .alignment_check_enabled = true};  ///< Current Mahony filter context
 
 /****************************************************************************************************************/
 /****************************************************************************************************************/
@@ -307,7 +307,7 @@ bool isIMUmeasurementsHolding(void) {
  */
 void setIMUalignmentCheckEnabled(bool value) {
     if (xSemaphoreTake(angles_mutex, pdMS_TO_TICKS(kMutexMS)) == pdTRUE) {
-        filter_context.align_check_enabled = value;
+        filter_context.alignment_check_enabled = value;
         resetMahonyFilter(&filter_context);
         (void)xSemaphoreGive(angles_mutex);
     }
@@ -323,7 +323,7 @@ bool isIMUalignmentCheckEnabled(void) {
     bool enabled = false;
 
     if (xSemaphoreTake(angles_mutex, pdMS_TO_TICKS(kMutexMS)) == pdTRUE) {
-        enabled = filter_context.align_check_enabled;
+        enabled = filter_context.alignment_check_enabled;
         (void)xSemaphoreGive(angles_mutex);
     }
 
@@ -560,7 +560,7 @@ static ErrorCode stateMeasuring(void) {
     }
 
     //apply sensor fusion to the measurements
-    filter_context.dt.last_sampled_tick = sample.tick;
+    filter_context.dt.last_sampled_tick = sample.imu_tick;
     if (!updateMahonyFilter(&filter_context, &sample)) {
         (void)xSemaphoreGive(angles_mutex);
         return kSuccessCode;

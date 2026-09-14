@@ -1,12 +1,11 @@
-/*
+/**
  * SPDX-FileCopyrightText: 2025 Gilles Henrard <contact@gilleshenrard.com>
  *
  * SPDX-License-Identifier: MIT
- */
-
-/**
+ *
  * @file mahony.c
  * @brief Mahony filter implementation for 6DoF attitude estimation using gyroscope and accelerometer.
+ * @author Gilles Henrard
  *
  * @details
  * This file implements a simplified Mahony filter to estimate orientation using gyroscope and
@@ -42,34 +41,29 @@
  * ```
  *
  * ## References
- * - Mahony, R., Hamel, T., & Pflimlin, J.-M. (2008). Nonlinear Complementary Filters on the Special
- *   Orthogonal Group. *IEEE Transactions on Automatic Control*, 53(5), 1203–1218.
- *   DOI: [10.1109/TAC.2008.923738](https://doi.org/10.1109/TAC.2008.923738)
+ * - R. Mahony, T. Hamel and J. -M. Pflimlin, "Nonlinear Complementary Filters on the Special Orthogonal Group,"
  *
- * @author Gilles Henrard
+ *   IEEE Transactions on Automatic Control, vol. 53, no. 5, pp. 1203-1218, June 2008
+ *
+ *   DOI: [10.1109/TAC.2008.923738](https://ieeexplore.ieee.org/document/4608934)
  */
 #include "mahony.h"
 
 #include <math.h>
 #include <stdint.h>
 
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
+// macros
 #define FORCE_INLINE_SILENT __attribute((always_inline))  ///< Macro used to workaround Doxygen issues with __attribute
-#else
-#define FORCE_INLINE_SILENT
-#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
 // utility functions
 static inline FORCE_INLINE_SILENT float half(float number);
 static inline FORCE_INLINE_SILENT float twice(float number);
 static inline FORCE_INLINE_SILENT float squared(float number);
-static inline FORCE_INLINE_SILENT float normaliseArray(float array[3]);
+static inline FORCE_INLINE_SILENT float normaliseArray(float array[kNBaxis]);
 static inline FORCE_INLINE_SILENT float normaliseQuaternion(Quaternion* quaternion);
 static inline FORCE_INLINE_SILENT float clamp(float value, float max_absolute_value);
 static inline FORCE_INLINE_SILENT float computeDTseconds(const TimeDelta* delta);
 static inline FORCE_INLINE_SILENT uint8_t isDTvalid(float delta_seconds);
-static bool normaliseAccelerometer(MahonyContext* context, const IMUsample* sample,
-                                   float normalised_accelerometer[kNBaxis]);
 static bool alignmentValid(const float accelerometer_normalised[kNBaxis], const float estimates_normalised[kNBaxis]);
 static void computeGravityError(float errors[kNBaxis], const float accelerometer_g[kNBaxis],
                                 const float body_estimates[kNBaxis]);
@@ -136,8 +130,11 @@ bool updateMahonyFilter(MahonyContext* context, const IMUsample* sample) {
     }
 
     //normalise accelerometer vectors to unit length, to avoid drift
-    float normalised_accelerometer[kNBaxis];
-    if (!normaliseAccelerometer(context, sample, normalised_accelerometer)) {
+    float normalised_accelerometer[kNBaxis] = {[kXaxis] = sample->accelerometer_g[kXaxis],
+                                               [kYaxis] = sample->accelerometer_g[kYaxis],
+                                               [kZaxis] = sample->accelerometer_g[kZaxis]};
+    const float acceleration_norm = normaliseArray(normalised_accelerometer);
+    if (!validateNorm(context, acceleration_norm, &context->bad_acceleration_count)) {
         return false;
     }
 
@@ -146,7 +143,7 @@ bool updateMahonyFilter(MahonyContext* context, const IMUsample* sample) {
     estimateOrientation(context, body_estimates);
 
     //Abort update if validation is enabled and a strong linear motion is detected
-    if (context->align_check_enabled && !alignmentValid(normalised_accelerometer, body_estimates)) {
+    if (context->alignment_check_enabled && !alignmentValid(normalised_accelerometer, body_estimates)) {
         return false;
     }
 
@@ -176,7 +173,7 @@ bool updateMahonyFilter(MahonyContext* context, const IMUsample* sample) {
 
 /**
  * Get the current angle in [rad] along an axis
- * @note Yaw angle (around the Z axis) will always return 0, due to the absence of a magnetometer
+ * @note Yaw angle (around the Z axis) will always return 0, due to the absence of a magnetometer implementation
  *
  * @param context Current Mahony filter context
  * @param axis    Axis along which getting the angle
@@ -264,10 +261,10 @@ static inline FORCE_INLINE_SILENT float squared(const float number) { return num
 /**
  * Normalise an array of vectors
  *
- * @param array Array to normalise
+ * @param[out] array Array to normalise
  * @return Norm value
  */
-static inline FORCE_INLINE_SILENT float normaliseArray(float array[3]) {
+static inline FORCE_INLINE_SILENT float normaliseArray(float array[kNBaxis]) {
     const float norm = sqrtf(squared(array[0U]) + squared(array[1U]) + squared(array[2U]));
     if (norm < kCloseToZero) {
         return norm;
@@ -282,11 +279,11 @@ static inline FORCE_INLINE_SILENT float normaliseArray(float array[3]) {
 /**
  * Normalise a quaternion
  *
- * @param quaternion Quaternion to normalise
+ * @param[out] quaternion Quaternion to normalise
  * @return Norm value
  */
 static inline FORCE_INLINE_SILENT float normaliseQuaternion(Quaternion* quaternion) {
-    float norm =
+    const float norm =
         sqrtf(squared(quaternion->q0) + squared(quaternion->q1) + squared(quaternion->q2) + squared(quaternion->q3));
     if (norm < kCloseToZero) {
         return norm;
@@ -352,27 +349,6 @@ static bool alignmentValid(const float accelerometer_normalised[kNBaxis], const 
 }
 
 /**
- * Normalise accelerometer vectors to unit length
- * @details This avoids drifting
- *
- * @param context Filter context
- * @param sample Last measured IMU sample
- * @param[out] normalised_accelerometer Array of normalised acceleration values in [G] (9.81 m/s²)
- * @return true Norm is valid
- * @return false Norm is invalid
- */
-static bool normaliseAccelerometer(MahonyContext* context, const IMUsample* sample,
-                                   float normalised_accelerometer[kNBaxis]) {
-    //normalise accelerometer vectors to unit length, to avoid drift
-    normalised_accelerometer[kXaxis] = sample->accelerometer_g[kXaxis];
-    normalised_accelerometer[kYaxis] = sample->accelerometer_g[kYaxis];
-    normalised_accelerometer[kZaxis] = sample->accelerometer_g[kZaxis];
-
-    const float acceleration_norm = normaliseArray(normalised_accelerometer);
-    return validateNorm(context, acceleration_norm, &context->bad_acceleration_count);
-}
-
-/**
  * Compute the 3D error vector between measured and estimated gravity.
  * @details Uses the cross product of the normalized accelerometer vector and the estimated gravity vector (from quaternion)
  * to compute the direction and magnitude of the orientation error. This error is used to correct the gyroscope bias.
@@ -424,21 +400,24 @@ static void integrateGyroQuaternion(Quaternion* current_attitude, const float co
  * Check if a norm provided is within a valid range
  * @details An invalid norm increments a counter which, if too high, will trigger a filter reset
  *
- * @param context Filter context
+ * @param[out] context Filter context
  * @param norm Norm to validate
  * @param bad_norm_counter Counter used to see if the filter should be reset
  * @retval true Norm valid
  * @retval false Norm invalid
  */
 static bool validateNorm(MahonyContext* context, const float norm, uint8_t* bad_norm_counter) {
-    if ((norm < (1.0F - kMaxNormEpsilon)) || (norm > (1.0F + kMaxNormEpsilon))) {
-        if (++(*bad_norm_counter) >= kMaxBadCounts) {
-            resetMahonyFilter(context);
-        }
-        return false;
+    if ((norm > (1.0F - kMaxNormEpsilon)) && (norm < (1.0F + kMaxNormEpsilon))) {
+        *bad_norm_counter = 0;
+        return true;
     }
-    *bad_norm_counter = 0;
-    return true;
+
+    (*bad_norm_counter)++;
+    if (*bad_norm_counter >= kMaxBadCounts) {
+        resetMahonyFilter(context);
+    }
+
+    return false;
 }
 
 /**
