@@ -55,7 +55,7 @@ typedef struct {
     float error_integrals[kNBaxis];  ///< Array containing the integrated errors
     float kp;                        ///< PI filter proportional gain
     float ki;                        ///< PI filter integral gain
-    bool align_check_enabled;        ///< Check valid alignment between estimates and accelerometer?
+    bool alignment_check_enabled;    ///< Whether to check valid alignment between estimates and accelerometer
     uint8_t bad_acceleration_count;  ///< Number of bad accelerometer norms since reset
     uint8_t bad_quaternion_count;    ///< Number of bad quaternion norms since reset
 } __attribute__((aligned(kContextAlignment))) MahonyContext;
@@ -64,7 +64,7 @@ typedef struct {
 typedef struct {
     float accelerometer_g[kNBaxis];  ///< Accelerometer measurements in [G] (9.81 m/s²)
     float gyroscope_radps[kNBaxis];  ///< Gyroscope measurements in [rad/s]
-    uint32_t tick;                   ///< IMU internal tick at which the sample was taken
+    uint32_t imu_tick;               ///< IMU internal tick at which the sample was taken
 } __attribute((aligned(kSampleStructAlignment))) IMUsample;
 
 static constexpr float kProportionalGain = 2.5F;  ///< Propotional gain (KP) of the Mahony filter
