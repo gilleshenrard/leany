@@ -24,10 +24,11 @@ enum : uint16_t {
 //private functions
 static void iterate_filter(MahonyContext* filter_context, const IMUsample* sample, uint32_t steps);
 static float quat_norm(const Quaternion* quat);
-static uint8_t isContextReset(const MahonyContext* filter_context);
+static bool isContextReset(const MahonyContext* filter_context);
+static bool floats_bit_identical(float first, float second);
 static void test_null_pointer_guards(void);
 static void test_tick_handles_overflow(void);
-static void test_bad_samples_counter_resets_correctly(void);
+static void test_bad_accel_samples_skipped_without_reset(void);
 static void test_alignment_check_disabled_allows_update(void);
 static void test_yaw_angle_returns_0(void);
 static void test_correct_attitude_angle_calculation(void);
@@ -38,7 +39,7 @@ static void test_alignment_check_freezes_update_on_lateral_accel(void);
 static void test_integration_stable_at_high_angular_rate(void);
 static void test_integral_clamped_on_windup(void);
 static void test_out_of_range_axis_returns_0(void);
-static void test_bad_quaternion_counter_resets_filter_at_threshold(void);
+static void test_bad_quaternion_norm_triggers_reset(void);
 
 //constants
 static constexpr float kNormTolerance = 0.005F;          ///< Tolerance for quaternion norm comparisons
@@ -66,7 +67,7 @@ int main(void) {
     UNITY_BEGIN();
     RUN_TEST(test_null_pointer_guards);
     RUN_TEST(test_tick_handles_overflow);
-    RUN_TEST(test_bad_samples_counter_resets_correctly);
+    RUN_TEST(test_bad_accel_samples_skipped_without_reset);
     RUN_TEST(test_alignment_check_disabled_allows_update);
     RUN_TEST(test_yaw_angle_returns_0);
     RUN_TEST(test_correct_attitude_angle_calculation);
@@ -77,7 +78,7 @@ int main(void) {
     RUN_TEST(test_integration_stable_at_high_angular_rate);
     RUN_TEST(test_integral_clamped_on_windup);
     RUN_TEST(test_out_of_range_axis_returns_0);
-    RUN_TEST(test_bad_quaternion_counter_resets_filter_at_threshold);
+    RUN_TEST(test_bad_quaternion_norm_triggers_reset);
     return UNITY_END();
 }
 
@@ -170,12 +171,6 @@ static void test_null_pointer_guards(void) {
  * Example: last_valid_tick = UINT32_MAX - 5, last_sampled_tick = 3 →
  * delta = (3 - (UINT32_MAX - 5)) & UINT32_MAX = 9 ticks = 0.09s (valid).
  * Also verifies that dT=0 and dT>5s each trigger a reset.
- *
- * @internal
- * Exercises the bitmask subtraction in getDT() and the bounds check in
- * isDTvalid(). The dT=0 and dT>5s sub-cases exercise the reset branch in
- * updateMahonyFilter(), which currently lacks a return after the reset call —
- * those sub-cases are expected to fail until that bug is fixed.
  */
 static void test_tick_handles_overflow(void) {
     const IMUsample violent_pitch = {
@@ -207,46 +202,46 @@ static void test_tick_handles_overflow(void) {
 }
 
 /**
- * Test that the bad sample counter resets the filter at threshold and
- * clears on valid input before threshold.
+ * Test that consecutive invalid accelerometer samples are skipped without
+ * ever resetting or otherwise touching the filter state, and that a
+ * subsequent valid sample updates normally afterward.
  *
  * @details
- * This is achieved in two sub-cases. First, kMaxBadCounts consecutive
- * out-of-range acceleration samples are fed — the filter must reset to
- * identity on the final one. Second, (kMaxBadCounts - 1) bad samples followed
- * by one valid sample are fed — the counter must clear without triggering a
- * reset. Example: 5 bad samples → q0=1, integrals=0; 4 bad + 1 good →
- * filter not reset, bad_acceleration_count=0.
+ * This is achieved by feeding an out-of-range accelerometer sample for
+ * several consecutive updates, then one valid sample. Under these
+ * conditions the attitude and integrals must remain bit-identical during
+ * the bad streak, since updateMahonyFilter() returns before touching them,
+ * and the following valid sample must update as normal.
+ * Example: accel=[5,0,0] -> norm=5.0, |5.0-1.0| > kMaxNormEpsilon ->
+ * update skipped, attitude unchanged; accel=[0,0,1] -> norm=1.0 -> updates.
  *
  * @internal
- * Exercises the increment and threshold logic in validateNorm(), and the
- * counter-clear path on the first valid sample after a bad streak. The
- * second sub-case specifically guards against off-by-one errors in the
- * threshold comparison.
+ * Exercises the early-return path in updateMahonyFilter() guarded by
+ * normValid(), now that it is a pure check with no counter or reset
+ * attached. Replaces the old counter/threshold test, which asserted a
+ * reset that no longer occurs on this path and only passed because the
+ * untouched attitude happened to already be identity.
  */
-static void test_bad_samples_counter_resets_correctly(void) {
-    const IMUsample bad_sample = {.accelerometer_g[kXaxis] = 5.0F};
+static void test_bad_accel_samples_skipped_without_reset(void) {
+    const IMUsample bad_sample = {.accelerometer_g[kXaxis] = 5.0F};  // NOLINT(readability-magic-numbers)
+    const uint8_t bad_streak_length = 10U;                           // NOLINT(readability-magic-numbers)
 
-    //enable alignment check and feed the maximum number of bad acceleration values
-    context.dt.last_sampled_tick = 1U;
+    // tilt the attitude so "untouched" is distinguishable from "coincidentally identity"
+    context.attitude.q1 = 0.1F;  // NOLINT (cppcoreguidelines-avoid-magic-numbers)
+    const Quaternion attitude_before = context.attitude;
     context.alignment_check_enabled = true;
-    iterate_filter(&context, &bad_sample, kMaxBadCounts);
-    TEST_ASSERT_TRUE_MESSAGE(isContextReset(&context), "Maximum bad attempts test failed");
+    context.dt.last_sampled_tick = 1U;
 
-    //reset the context and feed (max - 1) bad values, then one good
-    (void)memset(&context, 0, sizeof(context));  // NOLINT (DeprecatedOrUnsafeBufferHandling)
-    resetMahonyFilter(&context);
-    context.kp = kProportionalGain;
-    context.ki = kIntegralGain;
-    context.dt.tick_period_seconds = kTickPeriod_sec;
-    context.dt.max_tick = kMaxTick;
-    // NOLINTNEXTLINE (readability-magic-numbers)
-    context.attitude.q1 = 0.1F;  // non-identity so recovery is distinguishable from reset
-    context.dt.last_sampled_tick = 1U;
-    context.alignment_check_enabled = true;
-    iterate_filter(&context, &bad_sample, (kMaxBadCounts - 1U));
-    updateMahonyFilter(&context, &kPureGravity);
-    TEST_ASSERT_FALSE_MESSAGE(isContextReset(&context), "Recovery without reset failed");
+    iterate_filter(&context, &bad_sample, bad_streak_length);
+
+    const bool unchanged = (bool)(floats_bit_identical(attitude_before.q0, context.attitude.q0) &&
+                                  floats_bit_identical(attitude_before.q1, context.attitude.q1) &&
+                                  floats_bit_identical(attitude_before.q2, context.attitude.q2) &&
+                                  floats_bit_identical(attitude_before.q3, context.attitude.q3));
+    TEST_ASSERT_TRUE_MESSAGE(unchanged, "Bad accel streak modified the attitude");
+
+    const bool updated = updateMahonyFilter(&context, &kPureGravity);
+    TEST_ASSERT_TRUE_MESSAGE(updated, "Valid sample after bad streak failed to update");
 }
 
 /**
@@ -549,30 +544,48 @@ static void test_out_of_range_axis_returns_0(void) {
 }
 
 /**
- * Test that the bad quaternion counter resets the filter at threshold.
+ * Test that a NaN or Inf attitude quaternion norm triggers an immediate,
+ * unconditional filter reset.
  *
  * @details
- * This is achieved by forcing a near-zero quaternion before each update call
- * for exactly kMaxBadCounts iterations. Under these conditions normaliseQuaternion()
- * bails early (norm < kCloseToZero = 1e-3), leaving an un-normalised quaternion
- * that validateNorm() then rejects, incrementing bad_quaternion_count each time.
- * Example: q=[0.0001, 0, 0, 0] → norm=0.0001 < 1e-3 → normalisation skipped →
- * |norm - 1.0| = 0.9999 > kMaxNormEpsilon → bad_quaternion_count++.
+ * This is achieved by feeding a gyroscope sample containing NaN, then
+ * separately one containing Inf, each with an otherwise-valid gravity
+ * accelerometer reading. Under these conditions the corrupted gyro value
+ * propagates through the corrected rate of change into every quaternion
+ * component, normaliseQuaternion() returns a non-finite norm, and the
+ * filter must reset on this single occurrence rather than tolerating it.
+ * Example: gyro_x=NaN -> corrected_gyro_radps[X]=NaN -> all four rate-of-
+ * change terms NaN -> quaternion NaN -> norm NaN -> reset.
  *
  * @internal
- * Exercises the bad_quaternion_count threshold in validateNorm(). Direct
- * quaternion manipulation is required because this path cannot be reached
- * through normal Euler integration: all four quaternion components collapsing
- * toward zero simultaneously has no physical equivalent under any sensor input.
+ * Exercises the isnan()/isinf() branch in updateMahonyFilter(), reached via
+ * a realistic corrupted-input path rather than direct quaternion
+ * manipulation. Replaces the old counter-based test: with no debounce or
+ * counter left on this path, a single bad sample must reset immediately.
  */
-static void test_bad_quaternion_counter_resets_filter_at_threshold(void) {
-    for (uint8_t attempt = 0U; attempt < kMaxBadCounts; attempt++) {
-        // Force near-zero norm so normaliseQuaternion bails, triggering validateNorm rejection
-        context.attitude = (Quaternion){.q0 = 1e-3F};  // NOLINT (readability-magic-numbers)
-        context.dt.last_sampled_tick = (uint32_t)(attempt + 1U);
-        updateMahonyFilter(&context, &kPureGravity);
-    }
-    TEST_ASSERT_TRUE_MESSAGE(isContextReset(&context), "bad_quaternion_count failed to trigger reset");
+static void test_bad_quaternion_norm_triggers_reset(void) {
+    const IMUsample nan_gyro = {
+        .accelerometer_g[kZaxis] = 1.0F,
+        .gyroscope_radps[kXaxis] = NAN,
+    };
+    const IMUsample inf_gyro = {
+        .accelerometer_g[kZaxis] = 1.0F,
+        .gyroscope_radps[kXaxis] = INFINITY,
+    };
+
+    // NaN sub-case
+    context.attitude.q1 = 0.1F;  // NOLINT (readability-magic-numbers) non-identity, so reset is distinguishable
+    context.dt.last_sampled_tick = 1U;
+    bool updated = updateMahonyFilter(&context, &nan_gyro);
+    TEST_ASSERT_FALSE_MESSAGE(updated, "Update did not report failure on NaN gyroscope input");
+    TEST_ASSERT_TRUE_MESSAGE(isContextReset(&context), "NaN quaternion norm failed to trigger an immediate reset");
+
+    // Inf sub-case, on a freshly re-tilted context
+    context.attitude.q1 = 0.1F;  // NOLINT (readability-magic-numbers)
+    context.dt.last_sampled_tick++;
+    updated = updateMahonyFilter(&context, &inf_gyro);
+    TEST_ASSERT_FALSE_MESSAGE(updated, "Update did not report failure on Inf gyroscope input");
+    TEST_ASSERT_TRUE_MESSAGE(isContextReset(&context), "Inf quaternion norm failed to trigger an immediate reset");
 }
 
 /*********************************************************************************************************************************/
@@ -612,15 +625,15 @@ static float quat_norm(const Quaternion* quat) {
  * Check whether the filter context is in a reset state.
  *
  * @details
- * A reset context has: attitude quaternion = identity [1,0,0,0], all error
- * integrals = 0, and both bad sample counters = 0. These are exactly the
- * fields touched by resetMahonyFilter().
+ * A reset context has: attitude quaternion = identity [1,0,0,0] and all
+ * error integrals = 0. These are exactly the fields touched by
+ * resetMahonyFilter().
  *
  * @param filter_context Filter context to inspect
  * @retval 1 Context matches a reset state
  * @retval 0 Context has diverged from a reset state
  */
-static uint8_t isContextReset(const MahonyContext* filter_context) {
+static bool isContextReset(const MahonyContext* filter_context) {
     const float default_integrals[kNBaxis] = {0.0F, 0.0F, 0.0F};
     const Quaternion unit_quaternion = {.q0 = 1.0F, .q1 = 0.0F, .q2 = 0.0F, .q3 = 0.0F};
 
@@ -630,6 +643,24 @@ static uint8_t isContextReset(const MahonyContext* filter_context) {
         (memcmp(&filter_context->error_integrals, &default_integrals, (kNBaxis * sizeof(float))) == 0);
     // NOLINTEND
 
-    return (quat_resetted && integrals_resetted && (filter_context->bad_acceleration_count == 0) &&
-            (filter_context->bad_quaternion_count == 0));
+    return (bool)(quat_resetted && integrals_resetted);
+}
+
+/**
+ * Check if two floats are equal bitwise
+ *
+ * @param first First float to check
+ * @param second Second float to check
+ * @return uint8_t 
+ */
+static bool floats_bit_identical(float first, float second) {
+    uint32_t first_bits = 0;
+    uint32_t second_bits = 0;
+
+    // NOLINTBEGIN (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
+    (void)memcpy(&first_bits, &first, sizeof(first));
+    (void)memcpy(&second_bits, &second, sizeof(second));
+    // NOLINTEND (clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
+
+    return (first_bits == second_bits);
 }

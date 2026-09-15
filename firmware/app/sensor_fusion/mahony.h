@@ -56,8 +56,6 @@ typedef struct {
     float kp;                        ///< PI filter proportional gain
     float ki;                        ///< PI filter integral gain
     bool alignment_check_enabled;    ///< Whether to check valid alignment between estimates and accelerometer
-    uint8_t bad_acceleration_count;  ///< Number of bad accelerometer norms since reset
-    uint8_t bad_quaternion_count;    ///< Number of bad quaternion norms since reset
 } __attribute__((aligned(kContextAlignment))) MahonyContext;
 
 /* Sample struct */

@@ -239,7 +239,7 @@ float getIMU_KI(void) {
  * @param value Filter's integral value
  */
 void setIMU_KI(float value) {
-    if (value < 0.0F) {
+    if ((value < 0.0F) || isnan(value) || isinf(value)) {
         return;
     }
 
@@ -256,7 +256,7 @@ void setIMU_KI(float value) {
  * @param value Filter's Proportional value
  */
 void setIMU_KP(float value) {
-    if (value < 0.0F) {
+    if ((value < 0.0F) || isnan(value) || isinf(value)) {
         return;
     }
 
