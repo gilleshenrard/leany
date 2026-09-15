@@ -69,7 +69,7 @@ static void computeGravityError(float errors[kNBaxis], const float accelerometer
                                 const float body_estimates[kNBaxis]);
 static void integrateGyroQuaternion(Quaternion* current_attitude, const float corrected_gyro[kNBaxis],
                                     float timedelta_seconds);
-static bool validateNorm(MahonyContext* context, float norm, uint8_t* bad_norm_counter);
+static bool normValid(float norm);
 static void estimateOrientation(const MahonyContext* context, float body_estimates[kNBaxis]);
 static void applyProportionateErrors(const MahonyContext* context, float corrected_gyro_radps[kNBaxis],
                                      const IMUsample* sample, const float errors[kNBaxis]);
@@ -103,8 +103,6 @@ void resetMahonyFilter(MahonyContext* context) {
     context->error_integrals[kXaxis] = 0.0F;
     context->error_integrals[kYaxis] = 0.0F;
     context->error_integrals[kZaxis] = 0.0F;
-    context->bad_acceleration_count = 0;
-    context->bad_quaternion_count = 0;
     context->dt.last_valid_tick = context->dt.last_sampled_tick;
 }
 
@@ -134,7 +132,7 @@ bool updateMahonyFilter(MahonyContext* context, const IMUsample* sample) {
                                                [kYaxis] = sample->accelerometer_g[kYaxis],
                                                [kZaxis] = sample->accelerometer_g[kZaxis]};
     const float acceleration_norm = normaliseArray(normalised_accelerometer);
-    if (!validateNorm(context, acceleration_norm, &context->bad_acceleration_count)) {
+    if (!normValid(acceleration_norm)) {
         return false;
     }
 
@@ -162,7 +160,8 @@ bool updateMahonyFilter(MahonyContext* context, const IMUsample* sample) {
 
     //normalise the current attitude quaternion to avoid drift
     const float quaterion_norm = normaliseQuaternion(&context->attitude);
-    if (!validateNorm(context, quaterion_norm, &context->bad_quaternion_count)) {
+    if (isnan(quaterion_norm) || isinf(quaterion_norm)) {
+        resetMahonyFilter(context);
         return false;
     }
 
@@ -398,26 +397,13 @@ static void integrateGyroQuaternion(Quaternion* current_attitude, const float co
 
 /**
  * Check if a norm provided is within a valid range
- * @details An invalid norm increments a counter which, if too high, will trigger a filter reset
  *
- * @param[out] context Filter context
  * @param norm Norm to validate
- * @param bad_norm_counter Counter used to see if the filter should be reset
  * @retval true Norm valid
  * @retval false Norm invalid
  */
-static bool validateNorm(MahonyContext* context, const float norm, uint8_t* bad_norm_counter) {
-    if ((norm > (1.0F - kMaxNormEpsilon)) && (norm < (1.0F + kMaxNormEpsilon))) {
-        *bad_norm_counter = 0;
-        return true;
-    }
-
-    (*bad_norm_counter)++;
-    if (*bad_norm_counter >= kMaxBadCounts) {
-        resetMahonyFilter(context);
-    }
-
-    return false;
+static bool normValid(const float norm) {
+    return (bool)((norm > (1.0F - kMaxNormEpsilon)) && (norm < (1.0F + kMaxNormEpsilon)));
 }
 
 /**
