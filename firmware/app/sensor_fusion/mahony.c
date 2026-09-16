@@ -61,7 +61,9 @@ static inline FORCE_INLINE_SILENT float twice(float number);
 static inline FORCE_INLINE_SILENT float squared(float number);
 static inline FORCE_INLINE_SILENT float normaliseArray(float array[kNBaxis]);
 static inline FORCE_INLINE_SILENT float normaliseQuaternion(Quaternion* quaternion);
-static inline FORCE_INLINE_SILENT float clamp(float value, float max_absolute_value);
+static inline FORCE_INLINE_SILENT float clamp_absolute(float value, float max_absolute_value);
+static inline FORCE_INLINE_SILENT float clamp_min_max(float value, float min_value, float max_value);
+static inline FORCE_INLINE_SILENT float absoluteValue(float value);
 static inline FORCE_INLINE_SILENT float computeDTseconds(const TimeDelta* delta);
 static inline FORCE_INLINE_SILENT uint8_t isDTvalid(float delta_seconds);
 static bool alignmentValid(const float accelerometer_normalised[kNBaxis], const float estimates_normalised[kNBaxis]);
@@ -70,11 +72,18 @@ static void computeGravityError(float errors[kNBaxis], const float accelerometer
 static void integrateGyroQuaternion(Quaternion* current_attitude, const float corrected_gyro[kNBaxis],
                                     float timedelta_seconds);
 static bool normValid(float norm);
-static void estimateOrientation(const MahonyContext* context, float body_estimates[kNBaxis]);
-static void applyProportionateErrors(const MahonyContext* context, float corrected_gyro_radps[kNBaxis],
-                                     const IMUsample* sample, const float errors[kNBaxis]);
-static void accumulateIntegralErrors(MahonyContext* context, const float errors[kNBaxis], float timedelta_seconds);
-static void applyIntegralErrors(const MahonyContext* context, float corrected_gyro_radps[kNBaxis]);
+static void estimateOrientation(const Quaternion* attitude, float body_estimates[kNBaxis]);
+static void applyProportionateErrors(float corrected_gyro_radps[kNBaxis], const IMUsample* sample,
+                                     const float errors[kNBaxis], float trusted_kp);
+static void accumulateIntegralErrors(float error_integrals[kNBaxis], const float errors[kNBaxis],
+                                     float timedelta_seconds, float trusted_ki);
+static void applyIntegralErrors(const float error_integrals[kNBaxis], float corrected_gyro_radps[kNBaxis]);
+static float getNormalisedVectorsAngleCosine(const float normalised_first[kNBaxis],
+                                             const float normalised_second[kNBaxis]);
+static float linearInterpolation(float raw_value, float min_raw, float min_output, float max_raw, float max_output);
+static void applyTrustToCoefficients(const MahonyContext* context, const float accelerometer_normalised[kNBaxis],
+                                     const float estimates_normalised[kNBaxis], float acceleration_norm,
+                                     float* trusted_ki, float* trusted_kp);
 
 //constants
 static constexpr float kCloseToZero = 1e-3F;            ///< Value used to compare floats to 0
@@ -83,6 +92,7 @@ static constexpr float kMaxAlignmentCosine = 1.00001F;  ///< maximum alignment a
 static constexpr float kMaxNormEpsilon = 0.15F;         ///< Maximum deviation of a norm around 1
 static constexpr float kMinValidDTseconds = 1e-6F;      ///< Minimum acceptable timespan between updates
 static constexpr float kMaxValidDTseconds = 0.5F;       ///< Maximum acceptable timespan between updates
+static constexpr float kMinKpTrustFraction = 0.2F;      ///< Minimum trust level of kP
 
 /*********************************************************************************************************************************/
 // Mahony filter's publicly accessible functions
@@ -138,12 +148,17 @@ bool updateMahonyFilter(MahonyContext* context, const IMUsample* sample) {
 
     //estimate the current body frame gravity vectors from the current orientation quaternion
     float body_estimates[kNBaxis];
-    estimateOrientation(context, body_estimates);
+    estimateOrientation(&context->attitude, body_estimates);
 
     //Abort update if validation is enabled and a strong linear motion is detected
     if (context->alignment_check_enabled && !alignmentValid(normalised_accelerometer, body_estimates)) {
         return false;
     }
+
+    float trusted_kp = 0.0F;
+    float trusted_ki = 0.0F;
+    applyTrustToCoefficients(context, normalised_accelerometer, body_estimates, acceleration_norm, &trusted_ki,
+                             &trusted_kp);
 
     //compute the error rotation vectors, which will be used to realign the estimations to the measured vectors
     float errors[kNBaxis] = {0.0F, 0.0F, 0.0F};
@@ -151,9 +166,9 @@ bool updateMahonyFilter(MahonyContext* context, const IMUsample* sample) {
 
     //apply the proportion and integral terms to error vectors
     float corrected_gyro_radps[kNBaxis];
-    applyProportionateErrors(context, corrected_gyro_radps, sample, errors);
-    accumulateIntegralErrors(context, errors, timedelta_seconds);
-    applyIntegralErrors(context, corrected_gyro_radps);
+    applyProportionateErrors(corrected_gyro_radps, sample, errors, trusted_kp);
+    accumulateIntegralErrors(context->error_integrals, errors, timedelta_seconds, trusted_ki);
+    applyIntegralErrors(context->error_integrals, corrected_gyro_radps);
 
     //integrate the corrected gyroscope data into the current attitude quaternion
     integrateGyroQuaternion(&context->attitude, corrected_gyro_radps, timedelta_seconds);
@@ -196,7 +211,7 @@ float angleAlongAxis(const MahonyContext* context, Axis axis) {
         case kYaxis:  //pitch
             raw_sine =
                 twice((context->attitude.q1 * context->attitude.q3) - (context->attitude.q0 * context->attitude.q2));
-            return asinf(clamp(raw_sine, 1.0F));  //make sure to clamp the sin value between [-1, 1]
+            return asinf(clamp_absolute(raw_sine, 1.0F));  //make sure to clamp the sin value between [-1, 1]
 
         case kZaxis:
         case kNBaxis:
@@ -218,7 +233,8 @@ float getAttitudeAngle(const MahonyContext* context) {
         return 0.0F;
     }
 
-    const float safe_cosine = clamp(context->attitude.q0, 1.0F);  //make sure to clamp the cos value between [-1, 1]
+    const float safe_cosine =
+        clamp_absolute(context->attitude.q0, 1.0F);  //make sure to clamp the cos value between [-1, 1]
     return twice(acosf(safe_cosine));
 }
 
@@ -302,9 +318,37 @@ static inline FORCE_INLINE_SILENT float normaliseQuaternion(Quaternion* quaterni
  * @param max_absolute_value Absolute maximum magnitude of the output
  * @return Clamped value
  */
-static inline FORCE_INLINE_SILENT float clamp(const float value, const float max_absolute_value) {
+static inline FORCE_INLINE_SILENT float clamp_absolute(const float value, const float max_absolute_value) {
     return fmaxf(-max_absolute_value, fminf(max_absolute_value, value));
 }
+
+/**
+ * Clamp a value to the range [min_value, max_value]
+ *
+ * @param value Value to clamp
+ * @param min_value Minimum value
+ * @param max_value Maximum value
+ * @return Clamped value
+ */
+static inline FORCE_INLINE_SILENT float clamp_min_max(const float value, const float min_value, const float max_value) {
+    if (value < min_value) {
+        return min_value;
+    }
+
+    if (value > max_value) {
+        return max_value;
+    }
+
+    return value;
+}
+
+/**
+ * Compute the absolute value of a floating point number
+ *
+ * @param value Raw value
+ * @return Absolute value
+ */
+static inline FORCE_INLINE_SILENT float absoluteValue(const float value) { return ((value >= 0.0F) ? value : -value); }
 
 /**
  * Compute the elapsed time in [s] between current and previous timestamps
@@ -338,12 +382,7 @@ static inline FORCE_INLINE_SILENT uint8_t isDTvalid(float delta_seconds) {
  * @retval false The angle between vectors is too wide (sign of large linear acceleration)
  */
 static bool alignmentValid(const float accelerometer_normalised[kNBaxis], const float estimates_normalised[kNBaxis]) {
-    //This is done with the means of a dot product between vectors.
-    //As the vectors are normalised, their dot product gives the cosine of the angle between them.
-    const float dot_product = (accelerometer_normalised[kXaxis] * estimates_normalised[kXaxis]) +
-                              (accelerometer_normalised[kYaxis] * estimates_normalised[kYaxis]) +
-                              (accelerometer_normalised[kZaxis] * estimates_normalised[kZaxis]);
-
+    const float dot_product = getNormalisedVectorsAngleCosine(accelerometer_normalised, estimates_normalised);
     return (bool)((dot_product >= kMinAlignmentCosine) && (dot_product <= kMaxAlignmentCosine));
 }
 
@@ -409,60 +448,139 @@ static bool normValid(const float norm) {
 /**
  * Compute body estimates from the current context quaternion
  *
- * @param context Current Mahony filter's context
+ * @param attitude Current Mahony filter's attitude quaternion
  * @param[out] body_estimates Array to fill with the estimates
  */
-static void estimateOrientation(const MahonyContext* context, float body_estimates[kNBaxis]) {
-    body_estimates[kXaxis] =
-        twice((context->attitude.q1 * context->attitude.q3) - (context->attitude.q0 * context->attitude.q2));
-    body_estimates[kYaxis] =
-        twice((context->attitude.q0 * context->attitude.q1) + (context->attitude.q2 * context->attitude.q3));
-    body_estimates[kZaxis] = squared(context->attitude.q0) - squared(context->attitude.q1) -
-                             squared(context->attitude.q2) + squared(context->attitude.q3);
+static void estimateOrientation(const Quaternion* attitude, float body_estimates[kNBaxis]) {
+    body_estimates[kXaxis] = twice((attitude->q1 * attitude->q3) - (attitude->q0 * attitude->q2));
+    body_estimates[kYaxis] = twice((attitude->q0 * attitude->q1) + (attitude->q2 * attitude->q3));
+    body_estimates[kZaxis] =
+        squared(attitude->q0) - squared(attitude->q1) - squared(attitude->q2) + squared(attitude->q3);
 }
 
 /**
  * Apply the filter's PI proportionate term to the current sample gyroscope values
  *
- * @param context Current Mahony filter's context
  * @param[out] corrected_gyro_radps Array to fill with the filtered values
  * @param sample Current sample from which get the gyro values
  * @param errors Error vectors to apply
+ * @param trusted_kp Proportional gain, weighted by current measurement trust
  */
-static void applyProportionateErrors(const MahonyContext* context, float corrected_gyro_radps[kNBaxis],
-                                     const IMUsample* sample, const float errors[kNBaxis]) {
-    corrected_gyro_radps[kXaxis] = (sample->gyroscope_radps[kXaxis] + (context->kp * errors[kXaxis]));
-    corrected_gyro_radps[kYaxis] = (sample->gyroscope_radps[kYaxis] + (context->kp * errors[kYaxis]));
-    corrected_gyro_radps[kZaxis] = (sample->gyroscope_radps[kZaxis] + (context->kp * errors[kZaxis]));
+static void applyProportionateErrors(float corrected_gyro_radps[kNBaxis], const IMUsample* sample,
+                                     const float errors[kNBaxis], const float trusted_kp) {
+    corrected_gyro_radps[kXaxis] = (sample->gyroscope_radps[kXaxis] + (trusted_kp * errors[kXaxis]));
+    corrected_gyro_radps[kYaxis] = (sample->gyroscope_radps[kYaxis] + (trusted_kp * errors[kYaxis]));
+    corrected_gyro_radps[kZaxis] = (sample->gyroscope_radps[kZaxis] + (trusted_kp * errors[kZaxis]));
 }
 
 /**
  * Accumulate the new errors with the integral term into the error integrals array
  *
- * @param[out] context Filter context
- * @param errors Error orientation vector (body frame).
+ * @param[out] error_integrals Integral error terms to update
+ * @param errors Error orientation vector (body frame)
  * @param timedelta_seconds Time delta since last update
+ * @param trusted_ki Integral gain, weighted by current measurement trust
  */
-static void accumulateIntegralErrors(MahonyContext* context, const float errors[kNBaxis], float timedelta_seconds) {
+static void accumulateIntegralErrors(float error_integrals[kNBaxis], const float errors[kNBaxis],
+                                     float timedelta_seconds, const float trusted_ki) {
     // Avoid if gain is 0 to avoid integrals pollution due to float approximating 0.0F
-    if ((context->ki <= kCloseToZero)) {
+    if ((trusted_ki <= kCloseToZero)) {
         return;
     }
 
     for (uint8_t axis = 0; axis < kNBaxis; axis++) {
-        context->error_integrals[axis] += (context->ki * errors[axis] * timedelta_seconds);
-        context->error_integrals[axis] = clamp(context->error_integrals[axis], kMaxIntegralError);
+        error_integrals[axis] += (trusted_ki * errors[axis] * timedelta_seconds);
+        error_integrals[axis] = clamp_absolute(error_integrals[axis], kMaxIntegralError);
     }
 }
 
 /**
  * Apply the filter's PI integral term to the current sample gyroscope values
  *
- * @param context Filter context
+ * @param error_integrals Current integral error terms
  * @param[out] corrected_gyro_radps Array to correct
  */
-static void applyIntegralErrors(const MahonyContext* context, float corrected_gyro_radps[kNBaxis]) {
+static void applyIntegralErrors(const float error_integrals[kNBaxis], float corrected_gyro_radps[kNBaxis]) {
     for (uint8_t axis = 0; axis < kNBaxis; axis++) {
-        corrected_gyro_radps[axis] += context->error_integrals[axis];
+        corrected_gyro_radps[axis] += error_integrals[axis];
     }
+}
+
+/**
+ * Get the cosine of the angle between two normalised vectors
+ *
+ * @param normalised_first First vector
+ * @param normalised_second Second vector
+ * @return Cosine of the angle between vectors
+ */
+static float getNormalisedVectorsAngleCosine(const float normalised_first[kNBaxis],
+                                             const float normalised_second[kNBaxis]) {
+    //This is done with the means of a dot product between vectors.
+    //As the vectors are normalised, their dot product gives the cosine of the angle between them.
+    const float dot_product = (normalised_first[kXaxis] * normalised_second[kXaxis]) +
+                              (normalised_first[kYaxis] * normalised_second[kYaxis]) +
+                              (normalised_first[kZaxis] * normalised_second[kZaxis]);
+
+    return dot_product;
+}
+
+/**
+ * Interpolate a value 
+ *
+ * @param raw_value Raw value to interpolate
+ * @param min_raw Minimum raw value to interpolate
+ * @param min_output Minimum value to output
+ * @param max_raw Maximum raw value to interpolate
+ * @param max_output Maximum value to output
+ * @return Interpolated value
+ */
+// NOLINTNEXTLINE (bugprone-easily-swappable-parameters)
+static float linearInterpolation(float raw_value, const float min_raw, const float min_output, const float max_raw,
+                                 const float max_output) {
+    const float delta_x = (max_raw - min_raw);
+    if ((delta_x <= kCloseToZero) && (delta_x >= -kCloseToZero)) {
+        return INFINITY;
+    }
+
+    raw_value = clamp_min_max(raw_value, min_raw, max_raw);
+
+    const float slope = (max_output - min_output) / delta_x;
+    return min_output + ((raw_value - min_raw) * slope);
+}
+
+/**
+ * Modulate kP and kI coefficients according to a calculated trust level
+ *
+ * @param context Filter context
+ * @param accelerometer_normalised Normalised acceleration vector
+ * @param estimates_normalised Normalised estimated body attitude vector
+ * @param acceleration_norm Norm of the acceleration
+ * @param[out] trusted_ki [0, kI set in context]
+ * @param[out] trusted_kp [kMinKpTrustFraction, kP set in context]
+ */
+static void applyTrustToCoefficients(const MahonyContext* context, const float accelerometer_normalised[kNBaxis],
+                                     const float estimates_normalised[kNBaxis], const float acceleration_norm,
+                                     float* trusted_ki, float* trusted_kp) {
+    if (!context || !trusted_ki || !trusted_kp) {
+        return;
+    }
+
+    *trusted_ki = context->ki;
+    *trusted_kp = context->kp;
+
+    const float norm_absolute_deviation = absoluteValue(acceleration_norm - 1.0F);
+    const float trusted_norm = linearInterpolation(norm_absolute_deviation, 0.0F, 1.0F, kMaxNormEpsilon, 0.0F);
+    if (isinf(trusted_norm)) {
+        return;
+    }
+
+    const float alignment_cosine = getNormalisedVectorsAngleCosine(accelerometer_normalised, estimates_normalised);
+    const float trusted_alignment = linearInterpolation(alignment_cosine, kMinAlignmentCosine, 0.0F, 1.0F, 1.0F);
+    if (isinf(trusted_alignment)) {
+        return;
+    }
+
+    const float weight = (trusted_norm * trusted_alignment);
+    *trusted_ki *= weight;
+    *trusted_kp *= (kMinKpTrustFraction + ((1.0F - kMinKpTrustFraction) * weight));
 }
