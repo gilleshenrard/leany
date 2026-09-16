@@ -56,6 +56,7 @@ typedef enum : uint8_t {
     kSetOrientation = 6,    ///< setDisplayOrientation() : Function in which the screen orientation is set
     kgetOrientation = 7,    ///< getDisplayOrientation() : Function in which the screen orientation is retrieved
     kStateError = 8,        ///< State in which the IMU is in error mode
+    kGetMahonyContext = 9,  ///< getMahonyContext(): Function in which the current context is retrieved
 } FunctionCode;
 
 // State machine functions
@@ -83,8 +84,9 @@ static volatile bool task_notifiable = false;  ///< Flag indicating whether the 
 static float angles_zeroing_rad[kNBaxis - 1] = {0, 0};  ///< Angles used to zero out the measurements
 static bool holding = false;                            ///< Flag indicating whether the measurements are held
 static bool zeroed = false;                             ///< Measurements zeroing status
-static MahonyContext filter_context = {
-    .ki = kIntegralGain, .kp = kProportionalGain, .alignment_check_enabled = true};  ///< Current Mahony filter context
+static MahonyContext filter_context = {.base_ki = kIntegralGain,
+                                       .base_kp = kProportionalGain,
+                                       .alignment_check_enabled = true};  ///< Current Mahony filter context
 
 /****************************************************************************************************************/
 /****************************************************************************************************************/
@@ -210,7 +212,7 @@ float getIMU_KP(void) {
     float current_kp = 0.0F;
 
     if (xSemaphoreTake(angles_mutex, pdMS_TO_TICKS(kMutexMS)) == pdTRUE) {
-        current_kp = filter_context.kp;
+        current_kp = filter_context.base_kp;
         (void)xSemaphoreGive(angles_mutex);
     }
 
@@ -226,7 +228,7 @@ float getIMU_KI(void) {
     float current_ki = 0.0F;
 
     if (xSemaphoreTake(angles_mutex, pdMS_TO_TICKS(kMutexMS)) == pdTRUE) {
-        current_ki = filter_context.ki;
+        current_ki = filter_context.base_ki;
         (void)xSemaphoreGive(angles_mutex);
     }
 
@@ -244,7 +246,7 @@ void setIMU_KI(float value) {
     }
 
     if (xSemaphoreTake(angles_mutex, pdMS_TO_TICKS(kMutexMS)) == pdTRUE) {
-        filter_context.ki = value;
+        filter_context.base_ki = value;
         resetMahonyFilter(&filter_context);
         (void)xSemaphoreGive(angles_mutex);
     }
@@ -261,7 +263,7 @@ void setIMU_KP(float value) {
     }
 
     if (xSemaphoreTake(angles_mutex, pdMS_TO_TICKS(kMutexMS)) == pdTRUE) {
-        filter_context.kp = value;
+        filter_context.base_kp = value;
         resetMahonyFilter(&filter_context);
         (void)xSemaphoreGive(angles_mutex);
     }
@@ -385,6 +387,29 @@ ErrorCode getDisplayOrientation(Orientation* orientation) {
     return kSuccessCode;
 }
 
+/**
+ * Get the current Mahony filter context
+ *
+ * @param[out] context Copy of the current context
+ * @retval 0 Success
+ * @retval 1 NULL context provided
+ * @retval 2 Could not take the angles mutex
+ */
+ErrorCode getMahonyContext(MahonyContext* context) {
+    if (!context) {
+        return createErrorCode(kGetMahonyContext, 1, kErrorCritical);
+    }
+
+    if (xSemaphoreTake(angles_mutex, pdMS_TO_TICKS(kMutexMS)) == pdFALSE) {
+        return createErrorCode(kGetMahonyContext, 2, kErrorError);
+    }
+
+    *context = filter_context;
+    (void)xSemaphoreGive(angles_mutex);
+
+    return kSuccessCode;
+}
+
 /****************************************************************************************************************/
 /****************************************************************************************************************/
 
@@ -420,6 +445,7 @@ static void taskIMU(void* argument) {
             case kIgnoreSamples:
             case kSetOrientation:
             case kgetOrientation:
+            case kGetMahonyContext:
             default:
                 result = createErrorCode(kFunctionTask, 0, kErrorCritical);
                 break;

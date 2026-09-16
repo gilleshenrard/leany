@@ -81,9 +81,8 @@ static void applyIntegralErrors(const float error_integrals[kNBaxis], float corr
 static float getNormalisedVectorsAngleCosine(const float normalised_first[kNBaxis],
                                              const float normalised_second[kNBaxis]);
 static float linearInterpolation(float raw_value, float min_raw, float min_output, float max_raw, float max_output);
-static void applyTrustToCoefficients(const MahonyContext* context, const float accelerometer_normalised[kNBaxis],
-                                     const float estimates_normalised[kNBaxis], float acceleration_norm,
-                                     float* trusted_ki, float* trusted_kp);
+static void applyTrustToCoefficients(MahonyContext* context, const float accelerometer_normalised[kNBaxis],
+                                     const float estimates_normalised[kNBaxis], float acceleration_norm);
 
 //constants
 static constexpr float kCloseToZero = 1e-3F;            ///< Value used to compare floats to 0
@@ -113,7 +112,11 @@ void resetMahonyFilter(MahonyContext* context) {
     context->error_integrals[kXaxis] = 0.0F;
     context->error_integrals[kYaxis] = 0.0F;
     context->error_integrals[kZaxis] = 0.0F;
+    context->weighed_kp = 0.0F;
+    context->weighed_ki = 0.0F;
+    context->trust_weight = 0.0F;
     context->dt.last_valid_tick = context->dt.last_sampled_tick;
+    context->last_reset_cause = kNone;
 }
 
 /**
@@ -134,6 +137,7 @@ bool updateMahonyFilter(MahonyContext* context, const IMUsample* sample) {
     const float timedelta_seconds = computeDTseconds(&context->dt);
     if (!isDTvalid(timedelta_seconds)) {
         resetMahonyFilter(context);
+        context->last_reset_cause = kDTinvalid;
         return true;
     }
 
@@ -155,10 +159,7 @@ bool updateMahonyFilter(MahonyContext* context, const IMUsample* sample) {
         return false;
     }
 
-    float trusted_kp = 0.0F;
-    float trusted_ki = 0.0F;
-    applyTrustToCoefficients(context, normalised_accelerometer, body_estimates, acceleration_norm, &trusted_ki,
-                             &trusted_kp);
+    applyTrustToCoefficients(context, normalised_accelerometer, body_estimates, acceleration_norm);
 
     //compute the error rotation vectors, which will be used to realign the estimations to the measured vectors
     float errors[kNBaxis] = {0.0F, 0.0F, 0.0F};
@@ -166,8 +167,8 @@ bool updateMahonyFilter(MahonyContext* context, const IMUsample* sample) {
 
     //apply the proportion and integral terms to error vectors
     float corrected_gyro_radps[kNBaxis];
-    applyProportionateErrors(corrected_gyro_radps, sample, errors, trusted_kp);
-    accumulateIntegralErrors(context->error_integrals, errors, timedelta_seconds, trusted_ki);
+    applyProportionateErrors(corrected_gyro_radps, sample, errors, context->weighed_kp);
+    accumulateIntegralErrors(context->error_integrals, errors, timedelta_seconds, context->weighed_ki);
     applyIntegralErrors(context->error_integrals, corrected_gyro_radps);
 
     //integrate the corrected gyroscope data into the current attitude quaternion
@@ -177,6 +178,7 @@ bool updateMahonyFilter(MahonyContext* context, const IMUsample* sample) {
     const float quaterion_norm = normaliseQuaternion(&context->attitude);
     if (isnan(quaterion_norm) || isinf(quaterion_norm)) {
         resetMahonyFilter(context);
+        context->last_reset_cause = kQuaternionNanInf;
         return false;
     }
 
@@ -555,18 +557,15 @@ static float linearInterpolation(float raw_value, const float min_raw, const flo
  * @param accelerometer_normalised Normalised acceleration vector
  * @param estimates_normalised Normalised estimated body attitude vector
  * @param acceleration_norm Norm of the acceleration
- * @param[out] trusted_ki [0, kI set in context]
- * @param[out] trusted_kp [kMinKpTrustFraction, kP set in context]
  */
-static void applyTrustToCoefficients(const MahonyContext* context, const float accelerometer_normalised[kNBaxis],
-                                     const float estimates_normalised[kNBaxis], const float acceleration_norm,
-                                     float* trusted_ki, float* trusted_kp) {
-    if (!context || !trusted_ki || !trusted_kp) {
+static void applyTrustToCoefficients(MahonyContext* context, const float accelerometer_normalised[kNBaxis],
+                                     const float estimates_normalised[kNBaxis], const float acceleration_norm) {
+    if (!context) {
         return;
     }
 
-    *trusted_ki = context->ki;
-    *trusted_kp = context->kp;
+    context->weighed_ki = context->base_ki;
+    context->weighed_kp = context->base_kp;
 
     const float norm_absolute_deviation = absoluteValue(acceleration_norm - 1.0F);
     const float trusted_norm = linearInterpolation(norm_absolute_deviation, 0.0F, 1.0F, kMaxNormEpsilon, 0.0F);
@@ -580,7 +579,7 @@ static void applyTrustToCoefficients(const MahonyContext* context, const float a
         return;
     }
 
-    const float weight = (trusted_norm * trusted_alignment);
-    *trusted_ki *= weight;
-    *trusted_kp *= (kMinKpTrustFraction + ((1.0F - kMinKpTrustFraction) * weight));
+    context->trust_weight = (trusted_norm * trusted_alignment);
+    context->weighed_ki *= context->trust_weight;
+    context->weighed_kp *= (kMinKpTrustFraction + ((1.0F - kMinKpTrustFraction) * context->trust_weight));
 }

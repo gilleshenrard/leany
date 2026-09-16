@@ -30,5 +30,6 @@ bool toggleIMU_hold(void);
 bool isIMUmeasurementsHolding(void);
 ErrorCode setDisplayOrientation(Orientation new_orientation);
 ErrorCode getDisplayOrientation(Orientation* orientation);
+ErrorCode getMahonyContext(MahonyContext* context);
 
 #endif
