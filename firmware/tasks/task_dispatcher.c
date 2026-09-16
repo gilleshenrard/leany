@@ -43,7 +43,6 @@
 #include "task_ui.h"
 
 enum : uint8_t {
-    kStackSize_words = 250U,       ///< Amount of words in the task stack
     kTaskLowPriority = 3U,         ///< FreeRTOS number for a low priority task
     kEventDelayMS = 20U,           ///< Number of milliseconds for hardware events delay
     kMutexTimeoutMs = 10U,         ///< Maximum number of milliseconds before considering a mutex timeout
@@ -95,9 +94,10 @@ static void handleMonitoringCycleEvent(void);
 static void monitoringTimerCallback(TimerHandle_t timer_handle);
 
 //global variables
-static SemaphoreHandle_t events_mutex = nullptr;  ///< Mutex used to protect events coming from the dispatcher
-static ErrorCode last_error = {.dword = 0};       ///< Last error detected
-static TimerHandle_t monitoring_timer = nullptr;  ///< Timer which generates monitoring cycles events
+static SemaphoreHandle_t events_mutex = nullptr;    ///< Mutex used to protect events coming from the dispatcher
+static ErrorCode last_error = {.dword = 0};         ///< Last error detected
+static TimerHandle_t monitoring_timer = nullptr;    ///< Timer which generates monitoring cycles events
+static constexpr uint16_t kStackSize_words = 600U;  ///< Amount of words in the task stack
 
 /********************************************************************************************************************************************/
 /********************************************************************************************************************************************/
@@ -674,6 +674,8 @@ static void handleMonitoringCycleEvent(void) {
         return;
     }
 
+    logSerial(kMaxErrorLevel, "\x1b[2J\x1b[H");
+
     constexpr float divider10 = 10.0F;
 
     int16_t axis_tenths = getAngleDegreesTenths(kXaxis);
@@ -692,22 +694,7 @@ static void handleMonitoringCycleEvent(void) {
         const float timedelta_seconds = (float)delta_ticks * context.dt.tick_period_seconds;
         logSerial(kMaxErrorLevel, ">DT:%f", (double)timedelta_seconds);
 
-        const char* last_reset_reason = nullptr;
-        switch (context.last_reset_cause) {
-            case kDTinvalid:
-                last_reset_reason = "Invalid dT";
-                break;
-
-            case kQuaternionNanInf:
-                last_reset_reason = "Quaternion was NaN or Inf";
-                break;
-
-            case kNone:
-            default:
-                last_reset_reason = "None";
-                break;
-        }
-        logSerial(kMaxErrorLevel, ">Reset reason:%s", last_reset_reason);
+        logSerial(kMaxErrorLevel, ">Reset reason:%d", context.last_reset_cause);
     }
 }
 
