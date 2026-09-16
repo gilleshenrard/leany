@@ -27,6 +27,15 @@ typedef enum : uint8_t {
 } Axis;
 
 /**
+ * Reason why the filter was reset
+ */
+typedef enum : uint8_t {
+    kNone = 0,
+    kDTinvalid = 1,
+    kQuaternionNanInf = 2,
+} ResetCause;
+
+/**
  * Structure defining time delta
  */
 typedef struct {
@@ -53,9 +62,13 @@ typedef struct {
     Quaternion attitude;             ///< Current attitude quaternion
     TimeDelta dt;                    ///< Time delta between updates
     float error_integrals[kNBaxis];  ///< Array containing the integrated errors
-    float kp;                        ///< PI filter proportional gain
-    float ki;                        ///< PI filter integral gain
+    float base_kp;                   ///< PI filter proportional gain used as a base value before weighing
+    float base_ki;                   ///< PI filter integral gain used as a base value before weighing
+    float weighed_kp;                ///< PI filter proportional gain used in the filter after trust-weighing
+    float weighed_ki;                ///< PI filter integral gain used in the filter after trust-weighing
+    float trust_weight;              ///< Weight used as a trust level on kP and kI
     bool alignment_check_enabled;    ///< Whether to check valid alignment between estimates and accelerometer
+    ResetCause last_reset_cause;     ///< Last cause for the filter to reset
 } __attribute__((aligned(kContextAlignment))) MahonyContext;
 
 /* Sample struct */

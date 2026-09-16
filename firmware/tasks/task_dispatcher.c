@@ -681,6 +681,34 @@ static void handleMonitoringCycleEvent(void) {
 
     axis_tenths = getAngleDegreesTenths(kYaxis);
     logSerial(kMaxErrorLevel, ">Pitch:%02.01f", ((double)axis_tenths / (double)divider10));
+
+    MahonyContext context;
+    if (!isError(getMahonyContext(&context))) {
+        logSerial(kMaxErrorLevel, ">Weight:%f", (double)context.trust_weight);
+        logSerial(kMaxErrorLevel, ">Weighed kP:%f", (double)context.weighed_kp);
+        logSerial(kMaxErrorLevel, ">Weighed kI:%f", (double)context.weighed_ki);
+
+        const uint32_t delta_ticks = (context.dt.last_sampled_tick - context.dt.last_valid_tick) & context.dt.max_tick;
+        const float timedelta_seconds = (float)delta_ticks * context.dt.tick_period_seconds;
+        logSerial(kMaxErrorLevel, ">DT:%f", (double)timedelta_seconds);
+
+        const char* last_reset_reason = nullptr;
+        switch (context.last_reset_cause) {
+            case kDTinvalid:
+                last_reset_reason = "Invalid dT";
+                break;
+
+            case kQuaternionNanInf:
+                last_reset_reason = "Quaternion was NaN or Inf";
+                break;
+
+            case kNone:
+            default:
+                last_reset_reason = "None";
+                break;
+        }
+        logSerial(kMaxErrorLevel, ">Reset reason:%s", last_reset_reason);
+    }
 }
 
 /**
