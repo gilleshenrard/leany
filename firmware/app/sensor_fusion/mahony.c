@@ -80,7 +80,7 @@ static void applyIntegralErrors(const float error_integrals[kNBaxis], float corr
 static float getNormalisedVectorsAngleCosine(const float normalised_first[kNBaxis],
                                              const float normalised_second[kNBaxis]);
 static void applyTrustToCoefficients(MahonyContext* context, const float accelerometer_normalised[kNBaxis],
-                                     const float estimates_normalised[kNBaxis], float acceleration_norm);
+                                     const float estimates_normalised[kNBaxis]);
 
 //constants
 static constexpr float kCloseToZero = 1e-3F;        ///< Value used to compare floats to 0
@@ -109,6 +109,7 @@ void resetMahonyFilter(MahonyContext* context) {
         .error_integrals[kXaxis] = 0.0F,
         .error_integrals[kYaxis] = 0.0F,
         .error_integrals[kZaxis] = 0.0F,
+        .norm_abs_deviation = 0.0F,
         .weighed_kp = 0.0F,
         .weighed_ki = 0.0F,
         .trust_weight = 0.0F,
@@ -143,6 +144,7 @@ bool updateMahonyFilter(MahonyContext* context, const IMUsample* sample) {
                                                [kYaxis] = sample->accelerometer_g[kYaxis],
                                                [kZaxis] = sample->accelerometer_g[kZaxis]};
     const float acceleration_norm = normaliseArray(normalised_accelerometer);
+    context->state.norm_abs_deviation = absoluteValue(acceleration_norm - 1.0F);
     if (!normValid(context, acceleration_norm)) {
         return false;
     }
@@ -151,11 +153,10 @@ bool updateMahonyFilter(MahonyContext* context, const IMUsample* sample) {
     float body_estimates[kNBaxis];
     estimateOrientation(&context->attitude, body_estimates);
 
-    applyTrustToCoefficients(context, normalised_accelerometer, body_estimates, acceleration_norm);
+    applyTrustToCoefficients(context, normalised_accelerometer, body_estimates);
 
+    //compute the error rotation vectors, which will be used to realign the estimations to the measured vectors
     float errors[kNBaxis] = {0.0F, 0.0F, 0.0F};
-
-    //compute the error rotation vectors, which will be used to realign the estimations to the measured vectors (only if no strong linear acceleration is detected)
     if (!context->state.manual_pure_gyro) {
         computeGravityError(errors, normalised_accelerometer, body_estimates);
     } else {
@@ -538,10 +539,9 @@ static float getNormalisedVectorsAngleCosine(const float normalised_first[kNBaxi
  * @param context Filter context
  * @param accelerometer_normalised Normalised acceleration vector
  * @param estimates_normalised Normalised estimated body attitude vector
- * @param acceleration_norm Norm of the acceleration
  */
 static void applyTrustToCoefficients(MahonyContext* context, const float accelerometer_normalised[kNBaxis],
-                                     const float estimates_normalised[kNBaxis], const float acceleration_norm) {
+                                     const float estimates_normalised[kNBaxis]) {
     if (!context) {
         return;
     }
@@ -549,9 +549,8 @@ static void applyTrustToCoefficients(MahonyContext* context, const float acceler
     context->state.weighed_ki = context->base_ki;
     context->state.weighed_kp = context->base_kp;
 
-    const float norm_absolute_deviation = absoluteValue(acceleration_norm - 1.0F);
     const float trusted_norm =
-        linearInterpolation(norm_absolute_deviation, 0.0F, 1.0F, context->max_norm_epsilon, 0.0F);
+        linearInterpolation(context->state.norm_abs_deviation, 0.0F, 1.0F, context->max_norm_epsilon, 0.0F);
     if (isinf(trusted_norm)) {
         return;
     }
