@@ -384,7 +384,7 @@ static void handleBatteryStatusEvent(const SerialCommand* command) {
 static void handleSerialReadCommandEvent(const SerialCommand* command) {
     // A large switch is the most straightforward way to handle serial read commands.
     // Therefore, Lizard linter can ignore this function's cyclomatic complexity
-    // #lizard forgives(cyclomatic_complexity)
+    // #lizard forgives(cyclomatic_complexity, length)
     uint8_t orientation = 0;
     constexpr uint8_t floatbuffer_size = 16U;
     char float_strbuffer[floatbuffer_size];
@@ -417,6 +417,21 @@ static void handleSerialReadCommandEvent(const SerialCommand* command) {
         case kCmdOrientation:
             getDisplayOrientation((Orientation*)&orientation);
             logSerial(kMaxErrorLevel, "%u", orientation);
+            break;
+
+        case kCmdMinAlignCosine:
+            custom_snprintf(float_strbuffer, floatbuffer_size, "%f", (double)getMinAlignmentCosine());
+            logSerial(kMaxErrorLevel, "%s", float_strbuffer);
+            break;
+
+        case kCmdMaxNormDeviation:
+            custom_snprintf(float_strbuffer, floatbuffer_size, "%f", (double)getMaxNormDeviation());
+            logSerial(kMaxErrorLevel, "%s", float_strbuffer);
+            break;
+
+        case kCmdMinKpTrustFactor:
+            custom_snprintf(float_strbuffer, floatbuffer_size, "%f", (double)getMinimumKpTrustFactor());
+            logSerial(kMaxErrorLevel, "%s", float_strbuffer);
             break;
 
         case kCmdHelp:
@@ -517,6 +532,18 @@ static void handleSerialWriteCommandEvent(const SerialCommand* command) {
             if (!setMonitoringPeriod((uint16_t)command->parameter.int_value)) {
                 setLastErrorCode(createErrorCode(kSerialWrite, 4, kErrorInfo));
             }
+            break;
+
+        case kCmdMinAlignCosine:
+            setMinAlignmentCosine(command->parameter.float_value);
+            break;
+
+        case kCmdMaxNormDeviation:
+            setMaxNormDeviation(command->parameter.float_value);
+            break;
+
+        case kCmdMinKpTrustFactor:
+            setMinimumKpTrustFactor(command->parameter.float_value);
             break;
 
         case kCmdBatteryPercent:

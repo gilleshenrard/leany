@@ -101,25 +101,28 @@ int main(void) {
 
 /**
  * Initialise the filter context to a clean, known state before each test.
- *
- * @internal
- * resetMahonyFilter() only resets the quaternion, integrals, and derived
- * trust fields (weighed_kp, weighed_ki, trust_weight, last_reset_cause).
- * Configuration fields (gains, tick timebase, manual_pure_gyro) must be
- * set explicitly here.
  */
 void setUp(void) {
-    (void)memset(&context, 0, sizeof(context));  // NOLINT (DeprecatedOrUnsafeBufferHandling)
+    context = (MahonyContext){
+        .base_kp = kProportionalGain,
+        .base_ki = kIntegralGain,
+        .max_norm_epsilon = kMaxNormEpsilon,
+        .min_alignment_cosine = kMinAlignCosine,
+        .min_kp_trust_factor = kMinKpTrustFactor,
+        .dt =
+            {
+                .tick_period_seconds = kTickPeriod_sec,
+                .max_tick = kMaxTick,
+                .last_sampled_tick = 0U,
+                .last_valid_tick = 0U,
+            },
+        .state =
+            {
+                .manual_pure_gyro = false,
+            },
+    };
+
     resetMahonyFilter(&context);
-
-    context.base_kp = kProportionalGain;
-    context.base_ki = kIntegralGain;
-    context.dt.tick_period_seconds = kTickPeriod_sec;
-    context.dt.max_tick = kMaxTick;
-    context.dt.last_sampled_tick = 0U;
-    context.dt.last_valid_tick = 0U;
-    context.state.manual_pure_gyro = false;
-
     current_tick = 1U;
 }
 

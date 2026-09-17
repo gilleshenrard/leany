@@ -56,6 +56,21 @@ static const Node kIMUCommands[] = {
               .long_name = "ENablePUreGYro",
               .mode = kRW,
               .param_type = kParamInteger}},
+    {.scpi = {.code = kCmdMinAlignCosine,
+              .short_name = "MINALICOS",
+              .long_name = "MINimumALIgnmentCOSine",
+              .mode = kRW,
+              .param_type = kParamFloat}},
+    {.scpi = {.code = kCmdMaxNormDeviation,
+              .short_name = "MAXNORDEV",
+              .long_name = "MAXimumNORmDEViation",
+              .mode = kRW,
+              .param_type = kParamFloat}},
+    {.scpi = {.code = kCmdMinKpTrustFactor,
+              .short_name = "MINKPTRUFAC",
+              .long_name = "MINimumKPTRUstFACtor",
+              .mode = kRW,
+              .param_type = kParamFloat}},
 };
 
 /*********************************************************************************************************************************/

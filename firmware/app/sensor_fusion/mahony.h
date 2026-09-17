@@ -69,11 +69,14 @@ typedef struct {
  * Structure defining a mahony filter context
  */
 typedef struct {
-    MahonyState state;    ///< Filter state variables
-    Quaternion attitude;  ///< Current attitude quaternion
-    TimeDelta dt;         ///< Time delta between updates
-    float base_kp;        ///< PI filter proportional gain used as a base value before weighing
-    float base_ki;        ///< PI filter integral gain used as a base value before weighing
+    MahonyState state;           ///< Filter state variables
+    Quaternion attitude;         ///< Current attitude quaternion
+    TimeDelta dt;                ///< Time delta between updates
+    float base_kp;               ///< PI filter proportional gain used as a base value before weighing
+    float base_ki;               ///< PI filter integral gain used as a base value before weighing
+    float min_alignment_cosine;  ///< Minimum accepted cosine of the angle between estimated vector and actual accel.
+    float max_norm_epsilon;      ///< Maximum deviation of a norm around 1
+    float min_kp_trust_factor;   ///< Minimum trust level of kP
 } __attribute__((aligned(kContextAlignment))) MahonyContext;
 
 /* Sample struct */
@@ -85,7 +88,9 @@ typedef struct {
 
 static constexpr float kProportionalGain = 25.0F;  ///< Propotional gain (KP) of the Mahony filter
 static constexpr float kIntegralGain = 5.0F;       ///< Integral gain (KI) of the Mahony filter
-static constexpr float kMaxNormEpsilon = 0.15F;    ///< Maximum deviation of a norm around 1
+static constexpr float kMaxNormEpsilon = 0.15F;    ///< Maximum norm deviation of 15%
+static constexpr float kMinKpTrustFactor = 0.2F;   ///< Minimum kP trust of 20%
+static constexpr float kMinAlignCosine = 0.9659F;  ///< Min vectors alignment cosine of 15°
 
 void resetMahonyFilter(MahonyContext* context);
 bool updateMahonyFilter(MahonyContext* context, const IMUsample* sample);
