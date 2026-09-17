@@ -80,10 +80,12 @@ typedef struct {
 
 static constexpr float kProportionalGain = 25.0F;  ///< Propotional gain (KP) of the Mahony filter
 static constexpr float kIntegralGain = 5.0F;       ///< Integral gain (KI) of the Mahony filter
+static constexpr float kMaxNormEpsilon = 0.15F;    ///< Maximum deviation of a norm around 1
 
 void resetMahonyFilter(MahonyContext* context);
 bool updateMahonyFilter(MahonyContext* context, const IMUsample* sample);
 float angleAlongAxis(const MahonyContext* context, Axis axis);
 float getAttitudeAngle(const MahonyContext* context);
+float linearInterpolation(float raw_value, float min_raw, float min_output, float max_raw, float max_output);
 
 #endif
