@@ -93,13 +93,13 @@ void setUp(void) {
     (void)memset(&context, 0, sizeof(context));  // NOLINT (DeprecatedOrUnsafeBufferHandling)
     resetMahonyFilter(&context);
 
-    context.kp = kProportionalGain;
-    context.ki = kIntegralGain;
+    context.base_kp = kProportionalGain;
+    context.base_ki = kIntegralGain;
     context.dt.tick_period_seconds = kTickPeriod_sec;
     context.dt.max_tick = kMaxTick;
     context.dt.last_sampled_tick = 0U;
     context.dt.last_valid_tick = 0U;
-    context.alignment_check_enabled = false;
+    context.manual_pure_gyro = false;
 
     current_tick = 1U;
 }
@@ -229,7 +229,7 @@ static void test_bad_accel_samples_skipped_without_reset(void) {
     // tilt the attitude so "untouched" is distinguishable from "coincidentally identity"
     context.attitude.q1 = 0.1F;  // NOLINT (cppcoreguidelines-avoid-magic-numbers)
     const Quaternion attitude_before = context.attitude;
-    context.alignment_check_enabled = true;
+    context.manual_pure_gyro = false;
     context.dt.last_sampled_tick = 1U;
 
     iterate_filter(&context, &bad_sample, bad_streak_length);
@@ -352,8 +352,8 @@ static void test_gyro_integration_accumulates_correctly(void) {
     const float rate_90degrees_in_1sec = (kPI_F * 0.5F);
 
     // Switch to zero correction gains: the filter becomes a pure integrator
-    context.kp = 0.0F;
-    context.ki = 0.0F;
+    context.base_kp = 0.0F;
+    context.base_ki = 0.0F;
 
     // Apply roll rate for exactly 1 second
     const IMUsample roll_rate = {
@@ -422,7 +422,7 @@ static void test_normalisation_prevents_drift_under_sustained_input(void) {
 static void test_alignment_check_freezes_update_on_lateral_accel(void) {
     iterate_filter(&context, &kPureGravity, kConvergenceSteps);
 
-    context.alignment_check_enabled = true;
+    context.manual_pure_gyro = false;
 
     // Snapshot the quaternion before injecting the misaligned samples
     const Quaternion attitude_before = context.attitude;
@@ -507,8 +507,8 @@ static void test_integral_clamped_on_windup(void) {
     // saturation in one step; 100 gives safe margin
     static constexpr float kHighKi = 100.0F;  // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 
-    context.kp = 0.0F;
-    context.ki = kHighKi;
+    context.base_kp = 0.0F;
+    context.base_ki = kHighKi;
 
     // Purely lateral: norm=1 (passes validateNorm), produces error[Y]=-1 from identity
     const IMUsample lateral = {

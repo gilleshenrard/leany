@@ -86,7 +86,7 @@ static bool holding = false;                            ///< Flag indicating whe
 static bool zeroed = false;                             ///< Measurements zeroing status
 static MahonyContext filter_context = {.base_ki = kIntegralGain,
                                        .base_kp = kProportionalGain,
-                                       .alignment_check_enabled = true};  ///< Current Mahony filter context
+                                       .manual_pure_gyro = false};  ///< Current Mahony filter context
 
 /****************************************************************************************************************/
 /****************************************************************************************************************/
@@ -303,29 +303,28 @@ bool isIMUmeasurementsHolding(void) {
 }
 
 /**
- * Set whether the estimated and actual vectors alignment is invalid and should reset the filter
+ * Set whether the manual pure gyroscope estimation mode is enabled
  *
  * @param value 1 if check enabled, 0 otherwise
  */
-void setIMUalignmentCheckEnabled(bool value) {
+void setManualPureGyroEnabled(bool value) {
     if (xSemaphoreTake(angles_mutex, pdMS_TO_TICKS(kMutexMS)) == pdTRUE) {
-        filter_context.alignment_check_enabled = value;
-        resetMahonyFilter(&filter_context);
+        filter_context.manual_pure_gyro = value;
         (void)xSemaphoreGive(angles_mutex);
     }
 }
 
 /**
- * Check whether the estimated and actual vectors alignment validity is checked
+ * Check whether the manual pure gyroscope estimation mode is enabled
  *
  * @retval true Enabled
  * @retval false Disabled
  */
-bool isIMUalignmentCheckEnabled(void) {
+bool isManualPureGyroEnabled(void) {
     bool enabled = false;
 
     if (xSemaphoreTake(angles_mutex, pdMS_TO_TICKS(kMutexMS)) == pdTRUE) {
-        enabled = filter_context.alignment_check_enabled;
+        enabled = filter_context.manual_pure_gyro;
         (void)xSemaphoreGive(angles_mutex);
     }
 
@@ -419,6 +418,10 @@ ErrorCode getMahonyContext(MahonyContext* context) {
  * @param argument Unused
  */
 static void taskIMU(void* argument) {
+    // A large switch is the most straightforward way to ignore funcions that are not states
+    // Therefore, Lizard linter can ignore this function's cyclomatic complexity
+    // #lizard forgives(cyclomatic_complexity)
+
     (void)argument;
     while (1) {
         //run the state machine

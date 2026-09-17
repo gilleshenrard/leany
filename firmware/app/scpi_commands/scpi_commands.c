@@ -51,9 +51,9 @@ static const Node kIMUCommands[] = {
               .long_name = "TOGgleZERO",
               .mode = kRW,
               .param_type = kParamInteger}},
-    {.scpi = {.code = kCmdAlignmentEnable,
-              .short_name = "ENALI",
-              .long_name = "ENableALIgnment",
+    {.scpi = {.code = kCmdPureGyroEnable,
+              .short_name = "ENPUGY",
+              .long_name = "ENablePUreGYro",
               .mode = kRW,
               .param_type = kParamInteger}},
 };

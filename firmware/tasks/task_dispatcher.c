@@ -400,9 +400,9 @@ static void handleSerialReadCommandEvent(const SerialCommand* command) {
             logSerial(kMaxErrorLevel, "%s", float_strbuffer);
             break;
 
-        case kCmdAlignmentEnable:
+        case kCmdPureGyroEnable:
             // NOLINTNEXTLINE (readability-implicit-bool-conversion)
-            logSerial(kMaxErrorLevel, "%u", (isIMUalignmentCheckEnabled() ? 1U : 0U));
+            logSerial(kMaxErrorLevel, "%u", (isManualPureGyroEnabled() ? 1U : 0U));
             break;
 
         case kCmdLogLevel:
@@ -460,8 +460,8 @@ static void handleSerialWriteCommandEvent(const SerialCommand* command) {
             setIMU_KP(command->parameter.float_value);
             break;
 
-        case kCmdAlignmentEnable:
-            setIMUalignmentCheckEnabled((bool)command->parameter.int_value);
+        case kCmdPureGyroEnable:
+            setManualPureGyroEnabled((bool)command->parameter.int_value);
             break;
 
         case kCmdLogLevel:
