@@ -85,7 +85,10 @@ static float angles_zeroing_rad[kNBaxis - 1] = {0, 0};  ///< Angles used to zero
 static bool holding = false;                            ///< Flag indicating whether the measurements are held
 static bool zeroed = false;                             ///< Measurements zeroing status
 static MahonyContext filter_context = {.base_ki = kIntegralGain,
-                                       .base_kp = kProportionalGain,
+                                       .base_kp = kProportionalGain,  // computed with 1/Tau
+                                       .min_alignment_cosine = kMinAlignCosine,
+                                       .max_norm_epsilon = kMaxNormEpsilon,
+                                       .min_kp_trust_factor = kMinKpTrustFactor,
                                        .state.manual_pure_gyro = false};  ///< Current Mahony filter context
 
 /****************************************************************************************************************/
@@ -407,6 +410,102 @@ ErrorCode getMahonyContext(MahonyContext* context) {
     (void)xSemaphoreGive(angles_mutex);
 
     return kSuccessCode;
+}
+
+/**
+ * Get the Mahony filter's minimum cosine of the angle between estimated body attitude and measured acceleration
+ *
+ * @return Minimum alignment cosine
+ */
+float getMinAlignmentCosine(void) {
+    float alignment_cosine = 0.0F;
+
+    if (xSemaphoreTake(angles_mutex, pdMS_TO_TICKS(kMutexMS)) == pdTRUE) {
+        alignment_cosine = filter_context.min_alignment_cosine;
+        (void)xSemaphoreGive(angles_mutex);
+    }
+
+    return alignment_cosine;
+}
+
+/**
+ * Set the Mahony filter's minimum cosine of the angle between estimated body attitude and measured acceleration
+ *
+ * @param value Minimum alignment cosine
+ */
+void setMinAlignmentCosine(float value) {
+    if ((value < 0.0F) || isnan(value) || isinf(value)) {
+        return;
+    }
+
+    if (xSemaphoreTake(angles_mutex, pdMS_TO_TICKS(kMutexMS)) == pdTRUE) {
+        filter_context.min_alignment_cosine = value;
+        (void)xSemaphoreGive(angles_mutex);
+    }
+}
+
+/**
+ * Get the Mahony filter's maximum deviation from a norm of 1
+ *
+ * @return Maximum deviation
+ */
+float getMaxNormDeviation(void) {
+    float max_epsilon = 0.0F;
+
+    if (xSemaphoreTake(angles_mutex, pdMS_TO_TICKS(kMutexMS)) == pdTRUE) {
+        max_epsilon = filter_context.max_norm_epsilon;
+        (void)xSemaphoreGive(angles_mutex);
+    }
+
+    return max_epsilon;
+}
+
+/**
+ * Set the Mahony filter's maximum deviation from a norm of 1
+ *
+ * @param value Minimum alignment cosine
+ */
+void setMaxNormDeviation(float value) {
+    if ((value < 0.0F) || isnan(value) || isinf(value)) {
+        return;
+    }
+
+    if (xSemaphoreTake(angles_mutex, pdMS_TO_TICKS(kMutexMS)) == pdTRUE) {
+        filter_context.max_norm_epsilon = value;
+        (void)xSemaphoreGive(angles_mutex);
+    }
+}
+
+/**
+ * Get the Mahony filter's minimum factor of trust for kP
+ *
+ * @return Minimum factor
+ */
+float getMinimumKpTrustFactor(void) {
+    float min_factor = 0.0F;
+
+    if (xSemaphoreTake(angles_mutex, pdMS_TO_TICKS(kMutexMS)) == pdTRUE) {
+        min_factor = filter_context.min_kp_trust_factor;
+        (void)xSemaphoreGive(angles_mutex);
+    }
+
+    return min_factor;
+}
+
+/**
+ * Set the Mahony filter's minimum factor of trust for kP
+ *
+ * @param value Minimum trust factor
+ */
+void setMinimumKpTrustFactor(float value) {
+    if ((value < 0.0F) || isnan(value) || isinf(value)) {
+        return;
+    }
+
+    if (xSemaphoreTake(angles_mutex, pdMS_TO_TICKS(kMutexMS)) == pdTRUE) {
+        filter_context.min_kp_trust_factor = value;
+        (void)xSemaphoreGive(angles_mutex);
+    }
 }
 
 /****************************************************************************************************************/

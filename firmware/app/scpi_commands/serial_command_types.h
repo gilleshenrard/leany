@@ -37,6 +37,9 @@ typedef enum : uint8_t {
     kCmdMonitoringPeriod = 16,  ///< Set the period between two monitoring cycles in [ms]
     kCmdMonitoringStart = 17,   ///< Start monitoring mode
     kCmdMonitoringStop = 18,    ///< Stop monitoring mode
+    kCmdMinAlignCosine = 19,    ///< Get/Set the minimum alignment cosine
+    kCmdMaxNormDeviation = 20,  ///< Get/Set the maximum deviation from a norm of 1
+    kCmdMinKpTrustFactor = 21,  ///< Get/Set the minimum kP trust factor
 } SerialCommandCode;
 
 /**

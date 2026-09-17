@@ -70,7 +70,7 @@ static void computeGravityError(float errors[kNBaxis], const float accelerometer
                                 const float body_estimates[kNBaxis]);
 static void integrateGyroQuaternion(Quaternion* current_attitude, const float corrected_gyro[kNBaxis],
                                     float timedelta_seconds);
-static bool normValid(float norm);
+static bool normValid(const MahonyContext* context, float norm);
 static void estimateOrientation(const Quaternion* attitude, float body_estimates[kNBaxis]);
 static void applyProportionateErrors(float corrected_gyro_radps[kNBaxis], const IMUsample* sample,
                                      const float errors[kNBaxis], float trusted_kp);
@@ -83,12 +83,10 @@ static void applyTrustToCoefficients(MahonyContext* context, const float acceler
                                      const float estimates_normalised[kNBaxis], float acceleration_norm);
 
 //constants
-static constexpr float kCloseToZero = 1e-3F;           ///< Value used to compare floats to 0
-static constexpr float kMinAlignmentCosine = 0.9659F;  ///< cosine value for 15°, used as a maximum alignment angle
-static constexpr float kMinValidDTseconds = 1e-6F;     ///< Minimum acceptable timespan between updates
-static constexpr float kMaxValidDTseconds = 4.0F;      ///< Maximum acceptable timespan between updates
-static constexpr float kMinKpTrustFraction = 0.2F;     ///< Minimum trust level of kP
-static constexpr float kMaxIntegralError = 0.3F;       ///< Maximum integral error absolute value accepted
+static constexpr float kCloseToZero = 1e-3F;        ///< Value used to compare floats to 0
+static constexpr float kMinValidDTseconds = 1e-6F;  ///< Minimum acceptable timespan between updates
+static constexpr float kMaxValidDTseconds = 4.0F;   ///< Maximum acceptable timespan between updates
+static constexpr float kMaxIntegralError = 0.3F;    ///< Maximum integral error absolute value accepted
 
 /*********************************************************************************************************************************/
 // Mahony filter's publicly accessible functions
@@ -145,7 +143,7 @@ bool updateMahonyFilter(MahonyContext* context, const IMUsample* sample) {
                                                [kYaxis] = sample->accelerometer_g[kYaxis],
                                                [kZaxis] = sample->accelerometer_g[kZaxis]};
     const float acceleration_norm = normaliseArray(normalised_accelerometer);
-    if (!normValid(acceleration_norm)) {
+    if (!normValid(context, acceleration_norm)) {
         return false;
     }
 
@@ -162,7 +160,7 @@ bool updateMahonyFilter(MahonyContext* context, const IMUsample* sample) {
         computeGravityError(errors, normalised_accelerometer, body_estimates);
     } else {
         context->state.trust_weight = context->state.weighed_ki = 0.0F;
-        context->state.weighed_kp = (context->base_kp * kMinKpTrustFraction);
+        context->state.weighed_kp = (context->base_kp * context->min_kp_trust_factor);
     }
 
     //apply the proportion and integral terms to error vectors
@@ -446,12 +444,13 @@ static void integrateGyroQuaternion(Quaternion* current_attitude, const float co
 /**
  * Check if a norm provided is within a valid range
  *
+ * @param context Filter context
  * @param norm Norm to validate
  * @retval true Norm valid
  * @retval false Norm invalid
  */
-static bool normValid(const float norm) {
-    return (bool)((norm > (1.0F - kMaxNormEpsilon)) && (norm < (1.0F + kMaxNormEpsilon)));
+static bool normValid(const MahonyContext* context, const float norm) {
+    return (bool)((norm > (1.0F - context->max_norm_epsilon)) && (norm < (1.0F + context->max_norm_epsilon)));
 }
 
 /**
@@ -551,18 +550,21 @@ static void applyTrustToCoefficients(MahonyContext* context, const float acceler
     context->state.weighed_kp = context->base_kp;
 
     const float norm_absolute_deviation = absoluteValue(acceleration_norm - 1.0F);
-    const float trusted_norm = linearInterpolation(norm_absolute_deviation, 0.0F, 1.0F, kMaxNormEpsilon, 0.0F);
+    const float trusted_norm =
+        linearInterpolation(norm_absolute_deviation, 0.0F, 1.0F, context->max_norm_epsilon, 0.0F);
     if (isinf(trusted_norm)) {
         return;
     }
 
     const float alignment_cosine = getNormalisedVectorsAngleCosine(accelerometer_normalised, estimates_normalised);
-    const float trusted_alignment = linearInterpolation(alignment_cosine, kMinAlignmentCosine, 0.0F, 1.0F, 1.0F);
+    const float trusted_alignment =
+        linearInterpolation(alignment_cosine, context->min_alignment_cosine, 0.0F, 1.0F, 1.0F);
     if (isinf(trusted_alignment)) {
         return;
     }
 
     context->state.trust_weight = (trusted_norm * trusted_alignment);
     context->state.weighed_ki *= context->state.trust_weight;
-    context->state.weighed_kp *= (kMinKpTrustFraction + ((1.0F - kMinKpTrustFraction) * context->state.trust_weight));
+    context->state.weighed_kp *=
+        (context->min_kp_trust_factor + ((1.0F - context->min_kp_trust_factor) * context->state.trust_weight));
 }
