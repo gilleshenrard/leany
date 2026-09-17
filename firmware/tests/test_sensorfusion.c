@@ -118,7 +118,7 @@ void setUp(void) {
     context.dt.max_tick = kMaxTick;
     context.dt.last_sampled_tick = 0U;
     context.dt.last_valid_tick = 0U;
-    context.manual_pure_gyro = false;
+    context.state.manual_pure_gyro = false;
 
     current_tick = 1U;
 }
@@ -221,7 +221,7 @@ static void test_tick_handles_overflow(void) {
     context.dt.last_valid_tick = context.dt.last_sampled_tick;
     updateMahonyFilter(&context, &violent_pitch);
     TEST_ASSERT_TRUE_MESSAGE(isContextReset(&context), "dT 0s context failed");
-    TEST_ASSERT_EQUAL_INT(kDTinvalid, context.last_reset_cause);
+    TEST_ASSERT_EQUAL_INT(kDTinvalid, context.state.last_reset_cause);
 
     //test dT beyond kMaxValidDTseconds -> filter reset, cause recorded as kDTinvalid
     const float excessive_dt_sec = (kExpectedMaxValidDT_sec + 0.5F);  // NOLINT(*-magic-numbers)
@@ -230,7 +230,7 @@ static void test_tick_handles_overflow(void) {
     context.dt.last_sampled_tick = tick_dt_excessive;
     updateMahonyFilter(&context, &violent_pitch);
     TEST_ASSERT_TRUE_MESSAGE(isContextReset(&context), "dT beyond ceiling context failed");
-    TEST_ASSERT_EQUAL_INT(kDTinvalid, context.last_reset_cause);
+    TEST_ASSERT_EQUAL_INT(kDTinvalid, context.state.last_reset_cause);
 }
 
 /**
@@ -312,9 +312,9 @@ static void test_misaligned_accel_reduces_trust_but_keeps_updating(void) {
     iterate_filter(&context, &unit_norm_misaligned, kAlignmentCheckSteps);
 
     // trust must have dropped well below full trust
-    TEST_ASSERT_LESS_THAN_FLOAT(1.0F, context.trust_weight);
+    TEST_ASSERT_LESS_THAN_FLOAT(1.0F, context.state.trust_weight);
     // but weighed_kp must never drop below its floor
-    TEST_ASSERT_GREATER_OR_EQUAL_FLOAT((context.base_kp * kExpectedKpTrustFloor), context.weighed_kp);
+    TEST_ASSERT_GREATER_OR_EQUAL_FLOAT((context.base_kp * kExpectedKpTrustFloor), context.state.weighed_kp);
 
     // the quaternion must have moved — no freeze, unlike the old hard-gate behaviour
     const bool unchanged = (bool)(floats_bit_identical(attitude_before.q0, context.attitude.q0) &&
@@ -349,7 +349,7 @@ static void test_misaligned_accel_reduces_trust_but_keeps_updating(void) {
 static void test_manual_pure_gyro_zeroes_correction(void) {
     const float rate_90degrees_in_1sec = (kPI_F * 0.5F);
 
-    context.manual_pure_gyro = true;
+    context.state.manual_pure_gyro = true;
 
     // deliberately wrong accelerometer reading: perpendicular to true "up" at identity
     const IMUsample garbage_accel_with_gyro = {
@@ -359,12 +359,12 @@ static void test_manual_pure_gyro_zeroes_correction(void) {
     iterate_filter(&context, &garbage_accel_with_gyro, kStepsIn1second);
 
     // telemetry must reflect the forced override, not the (bad) computed trust
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, context.trust_weight);  // NOLINT (cppcoreguidelines-avoid-magic-numbers)
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, context.weighed_ki);    // NOLINT (cppcoreguidelines-avoid-magic-numbers)
-    TEST_ASSERT_FLOAT_WITHIN(kTrustTolerance, (context.base_kp * kExpectedKpTrustFloor), context.weighed_kp);
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, context.state.trust_weight);  // NOLINT (cppcoreguidelines-avoid-magic-numbers)
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, context.state.weighed_ki);    // NOLINT (cppcoreguidelines-avoid-magic-numbers)
+    TEST_ASSERT_FLOAT_WITHIN(kTrustTolerance, (context.base_kp * kExpectedKpTrustFloor), context.state.weighed_kp);
 
     // the resulting angle must match pure gyro integration — the garbage accel had zero effect
-    TEST_ASSERT_FLOAT_WITHIN(kAngleTolerance_rad, rate_90degrees_in_1sec, angleAlongAxis(&context, kXaxis));
+    TEST_ASSERT_FLOAT_WITHIN(kAngleTolerance_rad, rate_90degrees_in_1sec, angleAlongAxis(&context.attitude, kXaxis));
     TEST_ASSERT_FLOAT_WITHIN(kNormTolerance, 1.0F, quat_norm(&context.attitude));
 }
 
@@ -397,7 +397,7 @@ static void test_sustained_misalignment_never_freezes_updates(void) {
     TEST_ASSERT_EQUAL_UINT32(context.dt.last_sampled_tick, context.dt.last_valid_tick);
 
     // the attitude must have actually moved under the weighted correction, not frozen at identity
-    TEST_ASSERT_GREATER_THAN_FLOAT(0.0F, fabsf(angleAlongAxis(&context, kYaxis)));
+    TEST_ASSERT_GREATER_THAN_FLOAT(0.0F, fabsf(angleAlongAxis(&context.attitude, kYaxis)));
     TEST_ASSERT_FLOAT_WITHIN(kNormTolerance, 1.0F, quat_norm(&context.attitude));
 }
 
@@ -421,9 +421,9 @@ static void test_trust_weight_full_at_perfect_conditions(void) {
     context.dt.last_sampled_tick = 1U;
     updateMahonyFilter(&context, &kPureGravity);
 
-    TEST_ASSERT_FLOAT_WITHIN(kTrustTolerance, 1.0F, context.trust_weight);
-    TEST_ASSERT_FLOAT_WITHIN(kTrustTolerance, context.base_kp, context.weighed_kp);
-    TEST_ASSERT_FLOAT_WITHIN(kTrustTolerance, context.base_ki, context.weighed_ki);
+    TEST_ASSERT_FLOAT_WITHIN(kTrustTolerance, 1.0F, context.state.trust_weight);
+    TEST_ASSERT_FLOAT_WITHIN(kTrustTolerance, context.base_kp, context.state.weighed_kp);
+    TEST_ASSERT_FLOAT_WITHIN(kTrustTolerance, context.base_ki, context.state.weighed_ki);
 }
 
 /**
@@ -450,9 +450,9 @@ static void test_trust_weight_floored_beyond_alignment_limit(void) {
     context.dt.last_sampled_tick = 1U;
     updateMahonyFilter(&context, &perpendicular_accel);
 
-    TEST_ASSERT_FLOAT_WITHIN(kTrustTolerance, 0.0F, context.trust_weight);
-    TEST_ASSERT_FLOAT_WITHIN(kTrustTolerance, (context.base_kp * kExpectedKpTrustFloor), context.weighed_kp);
-    TEST_ASSERT_FLOAT_WITHIN(kTrustTolerance, 0.0F, context.weighed_ki);
+    TEST_ASSERT_FLOAT_WITHIN(kTrustTolerance, 0.0F, context.state.trust_weight);
+    TEST_ASSERT_FLOAT_WITHIN(kTrustTolerance, (context.base_kp * kExpectedKpTrustFloor), context.state.weighed_kp);
+    TEST_ASSERT_FLOAT_WITHIN(kTrustTolerance, 0.0F, context.state.weighed_ki);
 }
 
 /**
@@ -483,7 +483,7 @@ static void test_trust_weight_scales_with_norm_deviation(void) {
     context.dt.last_sampled_tick = 1U;
     updateMahonyFilter(&context, &deviated_norm);
 
-    TEST_ASSERT_FLOAT_WITHIN(kTrustTolerance, expected_trust, context.trust_weight);
+    TEST_ASSERT_FLOAT_WITHIN(kTrustTolerance, expected_trust, context.state.trust_weight);
 }
 
 /**
@@ -505,17 +505,17 @@ static void test_trust_weight_scales_with_norm_deviation(void) {
 static void test_reset_clears_derived_trust_and_cause_fields(void) {
     // NOLINTBEGIN (cppcoreguidelines-avoid-magic-numbers)
     context.attitude.q1 = 0.3F;
-    context.error_integrals[kXaxis] = 0.1F;
-    context.weighed_kp = 99.0F;
-    context.weighed_ki = 99.0F;
-    context.trust_weight = 0.5F;
-    context.last_reset_cause = kQuaternionNanInf;
+    context.state.error_integrals[kXaxis] = 0.1F;
+    context.state.weighed_kp = 99.0F;
+    context.state.weighed_ki = 99.0F;
+    context.state.trust_weight = 0.5F;
+    context.state.last_reset_cause = kQuaternionNanInf;
     // NOLINTEND
 
     resetMahonyFilter(&context);
 
     TEST_ASSERT_TRUE_MESSAGE(isContextReset(&context), "resetMahonyFilter() left the context in a non-reset state");
-    TEST_ASSERT_EQUAL_INT(kNone, context.last_reset_cause);
+    TEST_ASSERT_EQUAL_INT(kNone, context.state.last_reset_cause);
 }
 
 /**
@@ -533,7 +533,7 @@ static void test_reset_clears_derived_trust_and_cause_fields(void) {
  */
 static void test_yaw_angle_returns_0(void) {
     // NOLINTNEXTLINE (cppcoreguidelines-avoid-magic-numbers)
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, angleAlongAxis(&context, kZaxis));
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, angleAlongAxis(&context.attitude, kZaxis));
 }
 
 /**
@@ -551,7 +551,7 @@ static void test_yaw_angle_returns_0(void) {
  */
 static void test_correct_attitude_angle_calculation(void) {
     // NOLINTNEXTLINE (cppcoreguidelines-avoid-magic-numbers)
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, getAttitudeAngle(&context));
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, getAttitudeAngle(&context.attitude));
 }
 
 /**
@@ -574,8 +574,8 @@ static void test_controller_no_shift_at_rest(void) {
     iterate_filter(&context, &kPureGravity, kConvergenceSteps);
 
     //make sure the attitude still points to pure gravity (within acceptable range)
-    TEST_ASSERT_FLOAT_WITHIN(kAngleTolerance_rad, 0.0F, angleAlongAxis(&context, kXaxis));
-    TEST_ASSERT_FLOAT_WITHIN(kAngleTolerance_rad, 0.0F, angleAlongAxis(&context, kYaxis));
+    TEST_ASSERT_FLOAT_WITHIN(kAngleTolerance_rad, 0.0F, angleAlongAxis(&context.attitude, kXaxis));
+    TEST_ASSERT_FLOAT_WITHIN(kAngleTolerance_rad, 0.0F, angleAlongAxis(&context.attitude, kYaxis));
     TEST_ASSERT_FLOAT_WITHIN(kNormTolerance, 1.0F, quat_norm(&context.attitude));
 }
 
@@ -612,7 +612,7 @@ static void test_gyro_integration_accumulates_correctly(void) {
     iterate_filter(&context, &roll_rate, kStepsIn1second);
 
     //make sure the final angle and norm are correct (within acceptable range)
-    TEST_ASSERT_FLOAT_WITHIN(kAngleTolerance_rad, rate_90degrees_in_1sec, angleAlongAxis(&context, kXaxis));
+    TEST_ASSERT_FLOAT_WITHIN(kAngleTolerance_rad, rate_90degrees_in_1sec, angleAlongAxis(&context.attitude, kXaxis));
     TEST_ASSERT_FLOAT_WITHIN(kNormTolerance, 1.0F, quat_norm(&context.attitude));
 }
 
@@ -666,7 +666,7 @@ static void test_normalisation_prevents_drift_under_sustained_input(void) {
  */
 static void test_integration_stable_at_high_angular_rate(void) {
     const float min_expected_pitch_change_rad = 0.1F;
-    const float pitch_before = angleAlongAxis(&context, kYaxis);
+    const float pitch_before = angleAlongAxis(&context.attitude, kYaxis);
 
     // Apply violent pitch rotation for 0.5 s (50 steps at 100 Hz)
     const IMUsample violent_pitch = {
@@ -675,7 +675,7 @@ static void test_integration_stable_at_high_angular_rate(void) {
     };
     iterate_filter(&context, &violent_pitch, kHighRateSteps);
 
-    const float pitch_after = angleAlongAxis(&context, kYaxis);
+    const float pitch_after = angleAlongAxis(&context.attitude, kYaxis);
 
     TEST_ASSERT_FLOAT_WITHIN(kNormTolerance, 1.0F, quat_norm(&context.attitude));
 
@@ -723,9 +723,9 @@ static void test_integral_clamped_on_windup(void) {
     iterate_filter(&context, &small_tilt, kAlignmentCheckSteps);
 
     // Y-axis integral must have saturated at -kExpectedMaxIntegral
-    TEST_ASSERT_FLOAT_WITHIN(kNormTolerance, -kExpectedMaxIntegral, context.error_integrals[kYaxis]);
+    TEST_ASSERT_FLOAT_WITHIN(kNormTolerance, -kExpectedMaxIntegral, context.state.error_integrals[kYaxis]);
     for (uint8_t axis = 0U; axis < kNBaxis; axis++) {
-        TEST_ASSERT_FLOAT_WITHIN(kExpectedMaxIntegral, 0.0F, context.error_integrals[axis]);
+        TEST_ASSERT_FLOAT_WITHIN(kExpectedMaxIntegral, 0.0F, context.state.error_integrals[axis]);
     }
 }
 
@@ -745,7 +745,7 @@ static void test_integral_clamped_on_windup(void) {
  */
 static void test_out_of_range_axis_returns_0(void) {
     // NOLINTNEXTLINE (readability-magic-numbers)
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, angleAlongAxis(&context, kNBaxis));
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, angleAlongAxis(&context.attitude, kNBaxis));
 }
 
 /**
@@ -786,7 +786,7 @@ static void test_bad_quaternion_norm_triggers_reset(void) {
     bool updated = updateMahonyFilter(&context, &nan_gyro);
     TEST_ASSERT_FALSE_MESSAGE(updated, "Update did not report failure on NaN gyroscope input");
     TEST_ASSERT_TRUE_MESSAGE(isContextReset(&context), "NaN quaternion norm failed to trigger an immediate reset");
-    TEST_ASSERT_EQUAL_INT(kQuaternionNanInf, context.last_reset_cause);
+    TEST_ASSERT_EQUAL_INT(kQuaternionNanInf, context.state.last_reset_cause);
 
     // Inf sub-case, on a freshly re-tilted context
     context.attitude.q1 = 0.1F;  // NOLINT (readability-magic-numbers)
@@ -794,7 +794,7 @@ static void test_bad_quaternion_norm_triggers_reset(void) {
     updated = updateMahonyFilter(&context, &inf_gyro);
     TEST_ASSERT_FALSE_MESSAGE(updated, "Update did not report failure on Inf gyroscope input");
     TEST_ASSERT_TRUE_MESSAGE(isContextReset(&context), "Inf quaternion norm failed to trigger an immediate reset");
-    TEST_ASSERT_EQUAL_INT(kQuaternionNanInf, context.last_reset_cause);
+    TEST_ASSERT_EQUAL_INT(kQuaternionNanInf, context.state.last_reset_cause);
 }
 
 /*********************************************************************************************************************************/
@@ -853,12 +853,12 @@ static bool isContextReset(const MahonyContext* filter_context) {
     // NOLINTBEGIN (DeprecatedOrUnsafeBufferHandling)
     const bool quat_resetted = (memcmp(&filter_context->attitude, &unit_quaternion, sizeof(Quaternion)) == 0);
     const bool integrals_resetted =
-        (memcmp(&filter_context->error_integrals, &default_integrals, (kNBaxis * sizeof(float))) == 0);
+        (memcmp(&filter_context->state.error_integrals, &default_integrals, (kNBaxis * sizeof(float))) == 0);
     // NOLINTEND
 
-    const bool trust_resetted = (bool)(floats_bit_identical(filter_context->weighed_kp, 0.0F) &&
-                                       floats_bit_identical(filter_context->weighed_ki, 0.0F) &&
-                                       floats_bit_identical(filter_context->trust_weight, 0.0F));
+    const bool trust_resetted = (bool)(floats_bit_identical(filter_context->state.weighed_kp, 0.0F) &&
+                                       floats_bit_identical(filter_context->state.weighed_ki, 0.0F) &&
+                                       floats_bit_identical(filter_context->state.trust_weight, 0.0F));
 
     return (bool)(quat_resetted && integrals_resetted && trust_resetted);
 }

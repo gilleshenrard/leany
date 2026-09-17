@@ -11,9 +11,10 @@
 
 enum : uint8_t {
     kQuaternionAlignment = 16U,    ///< Memory alignment of the quaternion structure
-    kContextAlignment = 64U,       ///< Memory alignment of the mahony context structure
+    kContextAlignment = 128U,      ///< Memory alignment of the mahony context structure
     kTimeDeltaAlignment = 16U,     ///< Memory alignment of the time delta structure
     kSampleStructAlignment = 32U,  ///< Memory alignment of the IMU sample structure
+    kMahonyStateAlignment = 32U,   ///< Memory alignment of the IMU sample structure
 };
 
 /**
@@ -55,20 +56,24 @@ typedef struct {
     float q3;  ///< Value which multiplies the unit vector along the Z axis
 } __attribute__((aligned(kQuaternionAlignment))) Quaternion;
 
+typedef struct {
+    float error_integrals[kNBaxis];  ///< Array containing the integrated errors
+    float weighed_kp;                ///< PI filter proportional gain used in the filter after trust-weighing
+    float weighed_ki;                ///< PI filter integral gain used in the filter after trust-weighing
+    float trust_weight;              ///< Weight used as a trust level on kP and kI
+    ResetCause last_reset_cause;     ///< Last cause for the filter to reset
+    bool manual_pure_gyro;           ///< Whether to manually disable acceleration-based error correction
+} __attribute__((aligned(kMahonyStateAlignment))) MahonyState;
+
 /**
  * Structure defining a mahony filter context
  */
 typedef struct {
-    Quaternion attitude;             ///< Current attitude quaternion
-    TimeDelta dt;                    ///< Time delta between updates
-    float error_integrals[kNBaxis];  ///< Array containing the integrated errors
-    float base_kp;                   ///< PI filter proportional gain used as a base value before weighing
-    float base_ki;                   ///< PI filter integral gain used as a base value before weighing
-    float weighed_kp;                ///< PI filter proportional gain used in the filter after trust-weighing
-    float weighed_ki;                ///< PI filter integral gain used in the filter after trust-weighing
-    float trust_weight;              ///< Weight used as a trust level on kP and kI
-    bool manual_pure_gyro;           ///< Whether to manually disable acceleration-based error correction
-    ResetCause last_reset_cause;     ///< Last cause for the filter to reset
+    MahonyState state;    ///< Filter state variables
+    Quaternion attitude;  ///< Current attitude quaternion
+    TimeDelta dt;         ///< Time delta between updates
+    float base_kp;        ///< PI filter proportional gain used as a base value before weighing
+    float base_ki;        ///< PI filter integral gain used as a base value before weighing
 } __attribute__((aligned(kContextAlignment))) MahonyContext;
 
 /* Sample struct */
@@ -84,8 +89,8 @@ static constexpr float kMaxNormEpsilon = 0.15F;    ///< Maximum deviation of a n
 
 void resetMahonyFilter(MahonyContext* context);
 bool updateMahonyFilter(MahonyContext* context, const IMUsample* sample);
-float angleAlongAxis(const MahonyContext* context, Axis axis);
-float getAttitudeAngle(const MahonyContext* context);
+float angleAlongAxis(const Quaternion* attitude, Axis axis);
+float getAttitudeAngle(const Quaternion* attitude);
 float linearInterpolation(float raw_value, float min_raw, float min_output, float max_raw, float max_output);
 
 #endif
