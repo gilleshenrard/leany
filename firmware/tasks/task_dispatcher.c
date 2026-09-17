@@ -716,6 +716,7 @@ static void handleMonitoringCycleEvent(void) {
         logSerial(kMaxErrorLevel, ">Weight:%f", (double)context.state.trust_weight);
         logSerial(kMaxErrorLevel, ">Weighed kP:%f", (double)context.state.weighed_kp);
         logSerial(kMaxErrorLevel, ">Weighed kI:%f", (double)context.state.weighed_ki);
+        logSerial(kMaxErrorLevel, ">Abs. Norm deviation:%f", (double)context.state.norm_abs_deviation);
 
         const uint32_t delta_ticks = (context.dt.last_sampled_tick - context.dt.last_valid_tick) & context.dt.max_tick;
         const float timedelta_seconds = (float)delta_ticks * context.dt.tick_period_seconds;

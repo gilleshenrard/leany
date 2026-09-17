@@ -62,6 +62,7 @@ typedef struct {
     float weighed_ki;                ///< PI filter integral gain used in the filter after trust-weighing
     float trust_weight;              ///< Weight used as a trust level on kP and kI
     ResetCause last_reset_cause;     ///< Last cause for the filter to reset
+    float norm_abs_deviation;        ///< Absolute value of the norm's current deviation from 1
     bool manual_pure_gyro;           ///< Whether to manually disable acceleration-based error correction
 } __attribute__((aligned(kMahonyStateAlignment))) MahonyState;
 
