@@ -154,16 +154,19 @@ bool updateMahonyFilter(MahonyContext* context, const IMUsample* sample) {
     float body_estimates[kNBaxis];
     estimateOrientation(&context->attitude, body_estimates);
 
-    //Abort update if validation is enabled and a strong linear motion is detected
-    if (context->alignment_check_enabled && !alignmentValid(normalised_accelerometer, body_estimates)) {
-        return false;
-    }
-
     applyTrustToCoefficients(context, normalised_accelerometer, body_estimates, acceleration_norm);
 
-    //compute the error rotation vectors, which will be used to realign the estimations to the measured vectors
     float errors[kNBaxis] = {0.0F, 0.0F, 0.0F};
-    computeGravityError(errors, normalised_accelerometer, body_estimates);
+
+    //compute the error rotation vectors, which will be used to realign the estimations to the measured vectors
+    // (do this only if no strong linear acceleration is detected)
+    if (!context->alignment_check_enabled || alignmentValid(normalised_accelerometer, body_estimates)) {
+        computeGravityError(errors, normalised_accelerometer, body_estimates);
+    } else {
+        context->trust_weight = 0.0F;
+        context->weighed_ki = 0.0F;
+        context->weighed_kp = (context->base_kp * kMinKpTrustFraction);
+    }
 
     //apply the proportion and integral terms to error vectors
     float corrected_gyro_radps[kNBaxis];
