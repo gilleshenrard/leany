@@ -30,9 +30,9 @@ typedef enum : uint8_t {
  * Reason why the filter was reset
  */
 typedef enum : uint8_t {
-    kNone = 0,
-    kDTinvalid = 1,
-    kQuaternionNanInf = 2,
+    kNone = 0,              ///< The filter did not reset
+    kDTinvalid = 1,         ///< Took too much/not enough time between valid updates
+    kQuaternionNanInf = 2,  ///< The final quaternion norm was NaN or Inf
 } ResetCause;
 
 /**
@@ -67,7 +67,7 @@ typedef struct {
     float weighed_kp;                ///< PI filter proportional gain used in the filter after trust-weighing
     float weighed_ki;                ///< PI filter integral gain used in the filter after trust-weighing
     float trust_weight;              ///< Weight used as a trust level on kP and kI
-    bool alignment_check_enabled;    ///< Whether to check valid alignment between estimates and accelerometer
+    bool manual_pure_gyro;           ///< Whether to manually disable acceleration-based error correction
     ResetCause last_reset_cause;     ///< Last cause for the filter to reset
 } __attribute__((aligned(kContextAlignment))) MahonyContext;
 
@@ -80,8 +80,6 @@ typedef struct {
 
 static constexpr float kProportionalGain = 25.0F;  ///< Propotional gain (KP) of the Mahony filter
 static constexpr float kIntegralGain = 5.0F;       ///< Integral gain (KI) of the Mahony filter
-static constexpr uint8_t kMaxBadCounts = 5U;       ///< Maximum number of bad accel. or quatern. counts before reset
-static constexpr float kMaxIntegralError = 0.3F;   ///< Maximum integral error absolute value accepted
 
 void resetMahonyFilter(MahonyContext* context);
 bool updateMahonyFilter(MahonyContext* context, const IMUsample* sample);

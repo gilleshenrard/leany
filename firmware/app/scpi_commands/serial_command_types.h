@@ -21,7 +21,7 @@ typedef enum : uint8_t {
     kCmdNoBehaviour = 0,        ///< Command node has no behaviour (default)
     kCmdKP = 1,                 ///< Set/Get the filter kP value
     kCmdKI = 2,                 ///< Set/Get the filter kI value
-    kCmdAlignmentEnable = 3,    ///< Enable/Disable the alignment check
+    kCmdPureGyroEnable = 3,     ///< Enable/Disable the manual pure gyro mode
     kCmdToggleHold = 4,         ///< Toggle measurements holding
     kCmdToggleZero = 5,         ///< Toggle measurements zeroing
     kCmdLogLevel = 6,           ///< Get/Set the logging level

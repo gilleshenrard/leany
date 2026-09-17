@@ -66,7 +66,6 @@ static inline FORCE_INLINE_SILENT float clamp_min_max(float value, float min_val
 static inline FORCE_INLINE_SILENT float absoluteValue(float value);
 static inline FORCE_INLINE_SILENT float computeDTseconds(const TimeDelta* delta);
 static inline FORCE_INLINE_SILENT uint8_t isDTvalid(float delta_seconds);
-static bool alignmentValid(const float accelerometer_normalised[kNBaxis], const float estimates_normalised[kNBaxis]);
 static void computeGravityError(float errors[kNBaxis], const float accelerometer_g[kNBaxis],
                                 const float body_estimates[kNBaxis]);
 static void integrateGyroQuaternion(Quaternion* current_attitude, const float corrected_gyro[kNBaxis],
@@ -85,13 +84,13 @@ static void applyTrustToCoefficients(MahonyContext* context, const float acceler
                                      const float estimates_normalised[kNBaxis], float acceleration_norm);
 
 //constants
-static constexpr float kCloseToZero = 1e-3F;            ///< Value used to compare floats to 0
-static constexpr float kMinAlignmentCosine = 0.9659F;   ///< cosine value for 15°, used as a maximum alignment angle
-static constexpr float kMaxAlignmentCosine = 1.00001F;  ///< maximum alignment angle cosine acceptable
-static constexpr float kMaxNormEpsilon = 0.15F;         ///< Maximum deviation of a norm around 1
-static constexpr float kMinValidDTseconds = 1e-6F;      ///< Minimum acceptable timespan between updates
-static constexpr float kMaxValidDTseconds = 4.0F;       ///< Maximum acceptable timespan between updates
-static constexpr float kMinKpTrustFraction = 0.2F;      ///< Minimum trust level of kP
+static constexpr float kCloseToZero = 1e-3F;           ///< Value used to compare floats to 0
+static constexpr float kMinAlignmentCosine = 0.9659F;  ///< cosine value for 15°, used as a maximum alignment angle
+static constexpr float kMaxNormEpsilon = 0.15F;        ///< Maximum deviation of a norm around 1
+static constexpr float kMinValidDTseconds = 1e-6F;     ///< Minimum acceptable timespan between updates
+static constexpr float kMaxValidDTseconds = 4.0F;      ///< Maximum acceptable timespan between updates
+static constexpr float kMinKpTrustFraction = 0.2F;     ///< Minimum trust level of kP
+static constexpr float kMaxIntegralError = 0.3F;       ///< Maximum integral error absolute value accepted
 
 /*********************************************************************************************************************************/
 // Mahony filter's publicly accessible functions
@@ -160,12 +159,8 @@ bool updateMahonyFilter(MahonyContext* context, const IMUsample* sample) {
 
     //compute the error rotation vectors, which will be used to realign the estimations to the measured vectors
     // (do this only if no strong linear acceleration is detected)
-    if (!context->alignment_check_enabled || alignmentValid(normalised_accelerometer, body_estimates)) {
+    if (!context->manual_pure_gyro) {
         computeGravityError(errors, normalised_accelerometer, body_estimates);
-    } else {
-        context->trust_weight = 0.0F;
-        context->weighed_ki = 0.0F;
-        context->weighed_kp = (context->base_kp * kMinKpTrustFraction);
     }
 
     //apply the proportion and integral terms to error vectors
@@ -376,19 +371,6 @@ static inline FORCE_INLINE_SILENT float computeDTseconds(const TimeDelta* delta)
  */
 static inline FORCE_INLINE_SILENT uint8_t isDTvalid(float delta_seconds) {
     return ((delta_seconds > kMinValidDTseconds) && (delta_seconds < kMaxValidDTseconds));
-}
-
-/**
- * Check if the linear acceleration vector measured in the 3D space aligns well enough with the estimates vector
- *
- * @param accelerometer_normalised Accelerometer vectors, normalised to unit length
- * @param estimates_normalised Estimates vectors, normalised to unit length
- * @retval true Estimates are close enough to the accelerometer measurements
- * @retval false The angle between vectors is too wide (sign of large linear acceleration)
- */
-static bool alignmentValid(const float accelerometer_normalised[kNBaxis], const float estimates_normalised[kNBaxis]) {
-    const float dot_product = getNormalisedVectorsAngleCosine(accelerometer_normalised, estimates_normalised);
-    return (bool)((dot_product >= kMinAlignmentCosine) && (dot_product <= kMaxAlignmentCosine));
 }
 
 /**
