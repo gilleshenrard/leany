@@ -686,15 +686,15 @@ static void handleMonitoringCycleEvent(void) {
 
     MahonyContext context;
     if (!isError(getMahonyContext(&context))) {
-        logSerial(kMaxErrorLevel, ">Weight:%f", (double)context.trust_weight);
-        logSerial(kMaxErrorLevel, ">Weighed kP:%f", (double)context.weighed_kp);
-        logSerial(kMaxErrorLevel, ">Weighed kI:%f", (double)context.weighed_ki);
+        logSerial(kMaxErrorLevel, ">Weight:%f", (double)context.state.trust_weight);
+        logSerial(kMaxErrorLevel, ">Weighed kP:%f", (double)context.state.weighed_kp);
+        logSerial(kMaxErrorLevel, ">Weighed kI:%f", (double)context.state.weighed_ki);
 
         const uint32_t delta_ticks = (context.dt.last_sampled_tick - context.dt.last_valid_tick) & context.dt.max_tick;
         const float timedelta_seconds = (float)delta_ticks * context.dt.tick_period_seconds;
         logSerial(kMaxErrorLevel, ">DT:%f", (double)timedelta_seconds);
 
-        logSerial(kMaxErrorLevel, ">Reset reason:%d", context.last_reset_cause);
+        logSerial(kMaxErrorLevel, ">Reset reason:%d", context.state.last_reset_cause);
     }
 }
 

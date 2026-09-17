@@ -105,15 +105,17 @@ void resetMahonyFilter(MahonyContext* context) {
         return;
     }
 
-    context->attitude = (Quaternion){.q0 = 1.0F, .q1 = 0.0F, .q2 = 0.0F, .q3 = 0.0F};
-    context->error_integrals[kXaxis] = 0.0F;
-    context->error_integrals[kYaxis] = 0.0F;
-    context->error_integrals[kZaxis] = 0.0F;
-    context->weighed_kp = 0.0F;
-    context->weighed_ki = 0.0F;
-    context->trust_weight = 0.0F;
     context->dt.last_valid_tick = context->dt.last_sampled_tick;
-    context->last_reset_cause = kNone;
+    context->attitude = (Quaternion){.q0 = 1.0F, .q1 = 0.0F, .q2 = 0.0F, .q3 = 0.0F};
+    context->state = (MahonyState){
+        .error_integrals[kXaxis] = 0.0F,
+        .error_integrals[kYaxis] = 0.0F,
+        .error_integrals[kZaxis] = 0.0F,
+        .weighed_kp = 0.0F,
+        .weighed_ki = 0.0F,
+        .trust_weight = 0.0F,
+        .last_reset_cause = kNone,
+    };
 }
 
 /**
@@ -134,7 +136,7 @@ bool updateMahonyFilter(MahonyContext* context, const IMUsample* sample) {
     const float timedelta_seconds = computeDTseconds(&context->dt);
     if (!isDTvalid(timedelta_seconds)) {
         resetMahonyFilter(context);
-        context->last_reset_cause = kDTinvalid;
+        context->state.last_reset_cause = kDTinvalid;
         return true;
     }
 
@@ -156,18 +158,18 @@ bool updateMahonyFilter(MahonyContext* context, const IMUsample* sample) {
     float errors[kNBaxis] = {0.0F, 0.0F, 0.0F};
 
     //compute the error rotation vectors, which will be used to realign the estimations to the measured vectors (only if no strong linear acceleration is detected)
-    if (!context->manual_pure_gyro) {
+    if (!context->state.manual_pure_gyro) {
         computeGravityError(errors, normalised_accelerometer, body_estimates);
     } else {
-        context->trust_weight = context->weighed_ki = 0.0F;
-        context->weighed_kp = (context->base_kp * kMinKpTrustFraction);
+        context->state.trust_weight = context->state.weighed_ki = 0.0F;
+        context->state.weighed_kp = (context->base_kp * kMinKpTrustFraction);
     }
 
     //apply the proportion and integral terms to error vectors
     float corrected_gyro_radps[kNBaxis];
-    applyProportionateErrors(corrected_gyro_radps, sample, errors, context->weighed_kp);
-    accumulateIntegralErrors(context->error_integrals, errors, timedelta_seconds, context->weighed_ki);
-    applyIntegralErrors(context->error_integrals, corrected_gyro_radps);
+    applyProportionateErrors(corrected_gyro_radps, sample, errors, context->state.weighed_kp);
+    accumulateIntegralErrors(context->state.error_integrals, errors, timedelta_seconds, context->state.weighed_ki);
+    applyIntegralErrors(context->state.error_integrals, corrected_gyro_radps);
 
     //integrate the corrected gyroscope data into the current attitude quaternion
     integrateGyroQuaternion(&context->attitude, corrected_gyro_radps, timedelta_seconds);
@@ -176,7 +178,7 @@ bool updateMahonyFilter(MahonyContext* context, const IMUsample* sample) {
     const float quaterion_norm = normaliseQuaternion(&context->attitude);
     if (isnan(quaterion_norm) || isinf(quaterion_norm)) {
         resetMahonyFilter(context);
-        context->last_reset_cause = kQuaternionNanInf;
+        context->state.last_reset_cause = kQuaternionNanInf;
         return false;
     }
 
@@ -189,28 +191,25 @@ bool updateMahonyFilter(MahonyContext* context, const IMUsample* sample) {
  * Get the current angle in [rad] along an axis
  * @note Yaw angle (around the Z axis) will always return 0, due to the absence of a magnetometer implementation
  *
- * @param context Current Mahony filter context
+ * @param attitude Current attitude quaternion
  * @param axis    Axis along which getting the angle
  * @return Angle in [rad] if X or Y axis requested, 0 otherwise
  */
-float angleAlongAxis(const MahonyContext* context, Axis axis) {
+float angleAlongAxis(const Quaternion* attitude, Axis axis) {
     float raw_sine = 0.0F;
 
     //if no context provided, exit
-    if (!context) {
+    if (!attitude) {
         return 0.0F;
     }
 
     switch (axis) {
         case kXaxis:  //roll
-            return atan2f(
-                (twice((context->attitude.q0 * context->attitude.q1) + (context->attitude.q2 * context->attitude.q3))),
-                1.0F - (twice((context->attitude.q1 * context->attitude.q1) +
-                              (context->attitude.q2 * context->attitude.q2))));
+            return atan2f((twice((attitude->q0 * attitude->q1) + (attitude->q2 * attitude->q3))),
+                          1.0F - (twice((attitude->q1 * attitude->q1) + (attitude->q2 * attitude->q2))));
 
         case kYaxis:  //pitch
-            raw_sine =
-                twice((context->attitude.q1 * context->attitude.q3) - (context->attitude.q0 * context->attitude.q2));
+            raw_sine = twice((attitude->q1 * attitude->q3) - (attitude->q0 * attitude->q2));
             return asinf(clamp_absolute(raw_sine, 1.0F));  //make sure to clamp the sin value between [-1, 1]
 
         case kZaxis:
@@ -223,18 +222,17 @@ float angleAlongAxis(const MahonyContext* context, Axis axis) {
 /**
  * Get the angle in [rad] along the current quaternion attitude axis
  *
- * @param context Current Mahony filter context
+ * @param attitude Current attitude quaternion
  * @return Angle in [rad]
  */
 // cppcheck-suppress unusedFunction
-float getAttitudeAngle(const MahonyContext* context) {
+float getAttitudeAngle(const Quaternion* attitude) {
     //if no context provided, exit
-    if (!context) {
+    if (!attitude) {
         return 0.0F;
     }
 
-    const float safe_cosine =
-        clamp_absolute(context->attitude.q0, 1.0F);  //make sure to clamp the cos value between [-1, 1]
+    const float safe_cosine = clamp_absolute(attitude->q0, 1.0F);  //make sure to clamp the cos value between [-1, 1]
     return twice(acosf(safe_cosine));
 }
 
@@ -549,8 +547,8 @@ static void applyTrustToCoefficients(MahonyContext* context, const float acceler
         return;
     }
 
-    context->weighed_ki = context->base_ki;
-    context->weighed_kp = context->base_kp;
+    context->state.weighed_ki = context->base_ki;
+    context->state.weighed_kp = context->base_kp;
 
     const float norm_absolute_deviation = absoluteValue(acceleration_norm - 1.0F);
     const float trusted_norm = linearInterpolation(norm_absolute_deviation, 0.0F, 1.0F, kMaxNormEpsilon, 0.0F);
@@ -564,7 +562,7 @@ static void applyTrustToCoefficients(MahonyContext* context, const float acceler
         return;
     }
 
-    context->trust_weight = (trusted_norm * trusted_alignment);
-    context->weighed_ki *= context->trust_weight;
-    context->weighed_kp *= (kMinKpTrustFraction + ((1.0F - kMinKpTrustFraction) * context->trust_weight));
+    context->state.trust_weight = (trusted_norm * trusted_alignment);
+    context->state.weighed_ki *= context->state.trust_weight;
+    context->state.weighed_kp *= (kMinKpTrustFraction + ((1.0F - kMinKpTrustFraction) * context->state.trust_weight));
 }

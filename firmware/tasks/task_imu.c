@@ -86,7 +86,7 @@ static bool holding = false;                            ///< Flag indicating whe
 static bool zeroed = false;                             ///< Measurements zeroing status
 static MahonyContext filter_context = {.base_ki = kIntegralGain,
                                        .base_kp = kProportionalGain,
-                                       .manual_pure_gyro = false};  ///< Current Mahony filter context
+                                       .state.manual_pure_gyro = false};  ///< Current Mahony filter context
 
 /****************************************************************************************************************/
 /****************************************************************************************************************/
@@ -149,7 +149,7 @@ int16_t getAngleDegreesTenths(Axis axis) {
         return 0;
     }
 
-    float current_angle_rad = angleAlongAxis(&filter_context, axis);
+    float current_angle_rad = angleAlongAxis(&filter_context.attitude, axis);
     float total = (current_angle_rad + angles_zeroing_rad[axis]);
 
     (void)xSemaphoreGive(angles_mutex);
@@ -164,8 +164,8 @@ void IMUzeroDown(void) {
         return;
     }
 
-    angles_zeroing_rad[kXaxis] = -angleAlongAxis(&filter_context, kXaxis);
-    angles_zeroing_rad[kYaxis] = -angleAlongAxis(&filter_context, kYaxis);
+    angles_zeroing_rad[kXaxis] = -angleAlongAxis(&filter_context.attitude, kXaxis);
+    angles_zeroing_rad[kYaxis] = -angleAlongAxis(&filter_context.attitude, kYaxis);
     zeroed = true;
 
     (void)xSemaphoreGive(angles_mutex);
@@ -309,7 +309,7 @@ bool isIMUmeasurementsHolding(void) {
  */
 void setManualPureGyroEnabled(bool value) {
     if (xSemaphoreTake(angles_mutex, pdMS_TO_TICKS(kMutexMS)) == pdTRUE) {
-        filter_context.manual_pure_gyro = value;
+        filter_context.state.manual_pure_gyro = value;
         (void)xSemaphoreGive(angles_mutex);
     }
 }
@@ -324,7 +324,7 @@ bool isManualPureGyroEnabled(void) {
     bool enabled = false;
 
     if (xSemaphoreTake(angles_mutex, pdMS_TO_TICKS(kMutexMS)) == pdTRUE) {
-        enabled = filter_context.manual_pure_gyro;
+        enabled = filter_context.state.manual_pure_gyro;
         (void)xSemaphoreGive(angles_mutex);
     }
 
@@ -596,8 +596,8 @@ static ErrorCode stateMeasuring(void) {
     }
 
     //get the current angles
-    current_angles[kXaxis] = angleAlongAxis(&filter_context, kXaxis);
-    current_angles[kYaxis] = angleAlongAxis(&filter_context, kYaxis);
+    current_angles[kXaxis] = angleAlongAxis(&filter_context.attitude, kXaxis);
+    current_angles[kYaxis] = angleAlongAxis(&filter_context.attitude, kYaxis);
     (void)xSemaphoreGive(angles_mutex);
 
     //if angles did not change enough, exit
