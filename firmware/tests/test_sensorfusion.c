@@ -19,6 +19,7 @@ enum : uint16_t {
     kStepsIn1second = 100U,      ///< Steps representing exactly 1 second at 100 Hz
     kAlignmentCheckSteps = 10U,  ///< Number of steps in which alignment test is done
     kHighRateSteps = 50U,        ///< Number of steps in which high rate test is done
+    kSustainedSteps = 50U,       ///< Number of steps used to exercise sustained low-trust conditions
 };
 
 //private functions
@@ -29,13 +30,18 @@ static bool floats_bit_identical(float first, float second);
 static void test_null_pointer_guards(void);
 static void test_tick_handles_overflow(void);
 static void test_bad_accel_samples_skipped_without_reset(void);
-static void test_alignment_check_disabled_allows_update(void);
+static void test_misaligned_accel_reduces_trust_but_keeps_updating(void);
+static void test_manual_pure_gyro_zeroes_correction(void);
+static void test_sustained_misalignment_never_freezes_updates(void);
+static void test_trust_weight_full_at_perfect_conditions(void);
+static void test_trust_weight_floored_beyond_alignment_limit(void);
+static void test_trust_weight_scales_with_norm_deviation(void);
+static void test_reset_clears_derived_trust_and_cause_fields(void);
 static void test_yaw_angle_returns_0(void);
 static void test_correct_attitude_angle_calculation(void);
 static void test_controller_no_shift_at_rest(void);
 static void test_gyro_integration_accumulates_correctly(void);
 static void test_normalisation_prevents_drift_under_sustained_input(void);
-static void test_alignment_check_freezes_update_on_lateral_accel(void);
 static void test_integration_stable_at_high_angular_rate(void);
 static void test_integral_clamped_on_windup(void);
 static void test_out_of_range_axis_returns_0(void);
@@ -43,11 +49,17 @@ static void test_bad_quaternion_norm_triggers_reset(void);
 
 //constants
 static constexpr float kNormTolerance = 0.005F;          ///< Tolerance for quaternion norm comparisons
+static constexpr float kTrustTolerance = 0.01F;          ///< Tolerance for trust weight / gain comparisons
 static constexpr float kAngleTolerance_rad = 0.05F;      ///< Tolerance for angle comparisons in [rad] (~3 degrees)
 static constexpr float kTickPeriod_sec = 0.01F;          ///< Simulated tick period in [s]: 10ms -> 100 Hz update rate
 static constexpr float kPI_F = 3.14159265358979323846F;  ///< Pi, as a float value
 static constexpr uint32_t kMaxTick = UINT32_MAX;         ///< Maximum value a system tick can take
 static constexpr float kStrongGyro_radps = (4.0F * kPI_F);  ///< Strong rotation speed
+
+// mirrors of mahony.c's private constants: any change there must be reflected here
+static constexpr float kExpectedMaxIntegral = 0.3F;     ///< mirrors kMaxIntegralError in mahony.c
+static constexpr float kExpectedKpTrustFloor = 0.2F;    ///< mirrors kMinKpTrustFraction in mahony.c
+static constexpr float kExpectedMaxValidDT_sec = 4.0F;  ///< mirrors kMaxValidDTseconds in mahony.c
 
 //state variables
 static MahonyContext context;                                                 ///< Filter context used during tests
@@ -61,20 +73,25 @@ static constexpr IMUsample kPureGravity = {.accelerometer_g[kZaxis] = 1.0F};  //
 /**
  * Tests runner
  *
- * @return UNITY_END result 
+ * @return UNITY_END result
  */
 int main(void) {
     UNITY_BEGIN();
     RUN_TEST(test_null_pointer_guards);
     RUN_TEST(test_tick_handles_overflow);
     RUN_TEST(test_bad_accel_samples_skipped_without_reset);
-    RUN_TEST(test_alignment_check_disabled_allows_update);
+    RUN_TEST(test_misaligned_accel_reduces_trust_but_keeps_updating);
+    RUN_TEST(test_manual_pure_gyro_zeroes_correction);
+    RUN_TEST(test_sustained_misalignment_never_freezes_updates);
+    RUN_TEST(test_trust_weight_full_at_perfect_conditions);
+    RUN_TEST(test_trust_weight_floored_beyond_alignment_limit);
+    RUN_TEST(test_trust_weight_scales_with_norm_deviation);
+    RUN_TEST(test_reset_clears_derived_trust_and_cause_fields);
     RUN_TEST(test_yaw_angle_returns_0);
     RUN_TEST(test_correct_attitude_angle_calculation);
     RUN_TEST(test_controller_no_shift_at_rest);
     RUN_TEST(test_gyro_integration_accumulates_correctly);
     RUN_TEST(test_normalisation_prevents_drift_under_sustained_input);
-    RUN_TEST(test_alignment_check_freezes_update_on_lateral_accel);
     RUN_TEST(test_integration_stable_at_high_angular_rate);
     RUN_TEST(test_integral_clamped_on_windup);
     RUN_TEST(test_out_of_range_axis_returns_0);
@@ -86,8 +103,10 @@ int main(void) {
  * Initialise the filter context to a clean, known state before each test.
  *
  * @internal
- * resetMahonyFilter() only resets the quaternion, error integrals, and bad counters.
- * All other fields must be set explicitly here.
+ * resetMahonyFilter() only resets the quaternion, integrals, and derived
+ * trust fields (weighed_kp, weighed_ki, trust_weight, last_reset_cause).
+ * Configuration fields (gains, tick timebase, manual_pure_gyro) must be
+ * set explicitly here.
  */
 void setUp(void) {
     (void)memset(&context, 0, sizeof(context));  // NOLINT (DeprecatedOrUnsafeBufferHandling)
@@ -162,15 +181,25 @@ static void test_null_pointer_guards(void) {
 }
 
 /**
- * Test that tick wraparound does not trigger a spurious filter reset.
+ * Test that tick wraparound does not trigger a spurious filter reset, and that
+ * genuinely invalid dT values reset the filter with the correct recorded cause.
  *
  * @details
  * This is achieved by setting last_valid_tick near UINT32_MAX and last_sampled_tick
- * near zero, then running one update. Under these conditions getDT() computes
+ * near zero, then running one update. Under these conditions computeDTseconds() computes
  * the correct elapsed time via bitmask subtraction rather than overflowing.
  * Example: last_valid_tick = UINT32_MAX - 5, last_sampled_tick = 3 →
  * delta = (3 - (UINT32_MAX - 5)) & UINT32_MAX = 9 ticks = 0.09s (valid).
- * Also verifies that dT=0 and dT>5s each trigger a reset.
+ * Also verifies that dT=0 and dT beyond kMaxValidDTseconds each trigger a reset
+ * with last_reset_cause == kDTinvalid.
+ *
+ * @internal
+ * Exercises the bitmask subtraction in computeDTseconds() and the bounds check
+ * in isDTvalid(). kExpectedMaxValidDT_sec mirrors mahony.c's private
+ * kMaxValidDTseconds — any change there must be reflected here. Since a real
+ * reset overwrites last_reset_cause to the actual cause (not kNone),
+ * isContextReset() intentionally does not check that field — it is asserted
+ * directly here instead.
  */
 static void test_tick_handles_overflow(void) {
     const IMUsample violent_pitch = {
@@ -188,17 +217,20 @@ static void test_tick_handles_overflow(void) {
     updateMahonyFilter(&context, &violent_pitch);
     TEST_ASSERT_FALSE_MESSAGE(isContextReset(&context), "Correct wraparound context failed");
 
-    //test dT = 0 ticks -> filter reset
+    //test dT = 0 ticks -> filter reset, cause recorded as kDTinvalid
     context.dt.last_valid_tick = context.dt.last_sampled_tick;
     updateMahonyFilter(&context, &violent_pitch);
     TEST_ASSERT_TRUE_MESSAGE(isContextReset(&context), "dT 0s context failed");
+    TEST_ASSERT_EQUAL_INT(kDTinvalid, context.last_reset_cause);
 
-    //test dT > 5s -> filter reset
-    const uint32_t tick_dt_5s = (uint32_t)(5.0F / kTickPeriod_sec);
+    //test dT beyond kMaxValidDTseconds -> filter reset, cause recorded as kDTinvalid
+    const float excessive_dt_sec = (kExpectedMaxValidDT_sec + 0.5F);  // NOLINT(*-magic-numbers)
+    const uint32_t tick_dt_excessive = (uint32_t)(excessive_dt_sec / kTickPeriod_sec);
     context.dt.last_valid_tick = 0;
-    context.dt.last_sampled_tick = tick_dt_5s;
+    context.dt.last_sampled_tick = tick_dt_excessive;
     updateMahonyFilter(&context, &violent_pitch);
-    TEST_ASSERT_TRUE_MESSAGE(isContextReset(&context), "dT > 5s context failed");
+    TEST_ASSERT_TRUE_MESSAGE(isContextReset(&context), "dT beyond ceiling context failed");
+    TEST_ASSERT_EQUAL_INT(kDTinvalid, context.last_reset_cause);
 }
 
 /**
@@ -217,10 +249,10 @@ static void test_tick_handles_overflow(void) {
  *
  * @internal
  * Exercises the early-return path in updateMahonyFilter() guarded by
- * normValid(), now that it is a pure check with no counter or reset
- * attached. Replaces the old counter/threshold test, which asserted a
- * reset that no longer occurs on this path and only passed because the
- * untouched attitude happened to already be identity.
+ * normValid(). This is the one deliberately-kept "hard skip, no gyro
+ * integration" path in the current design — reserved for catastrophic norms,
+ * as opposed to misalignment, which is handled by continuous trust-weighting
+ * (see test_misaligned_accel_reduces_trust_but_keeps_updating).
  */
 static void test_bad_accel_samples_skipped_without_reset(void) {
     const IMUsample bad_sample = {.accelerometer_g[kXaxis] = 5.0F};  // NOLINT(readability-magic-numbers)
@@ -229,7 +261,6 @@ static void test_bad_accel_samples_skipped_without_reset(void) {
     // tilt the attitude so "untouched" is distinguishable from "coincidentally identity"
     context.attitude.q1 = 0.1F;  // NOLINT (cppcoreguidelines-avoid-magic-numbers)
     const Quaternion attitude_before = context.attitude;
-    context.manual_pure_gyro = false;
     context.dt.last_sampled_tick = 1U;
 
     iterate_filter(&context, &bad_sample, bad_streak_length);
@@ -245,28 +276,246 @@ static void test_bad_accel_samples_skipped_without_reset(void) {
 }
 
 /**
- * @brief Test that disabling the alignment check allows misaligned acceleration updates.
+ * Test that a norm-valid but misaligned accelerometer sample reduces the
+ * trust-weighted gains, but never freezes the attitude update.
  *
  * @details
- * This is achieved by feeding a unit-norm but horizontally biased acceleration
- * vector with alignment_check_enabled=0. Under these conditions validateNorm passes
- * and alignmentValid is never called, so the filter must update.
- * Example: accel=[0.6, 0, 0.8G] → norm=1.0 (passes validateNorm),
- * dot=0.8 < 0.9659 (would fail alignmentValid if enabled) → filter updates.
+ * This is achieved by converging the filter, then feeding a unit-norm but
+ * horizontally biased acceleration vector. Under these conditions the
+ * alignment cosine falls below kMinAlignmentCosine, trust_weight is driven
+ * toward its floor, and weighed_kp/weighed_ki shrink accordingly — but the
+ * quaternion must still change every cycle, since gyro integration is
+ * unconditional.
+ * Example: accel=[0.6, 0, 0.8G] → norm=1.0 (passes normValid), cosine=0.8 
+ * 0.9659 → trust_weight clamped low, but attitude still updates.
  *
  * @internal
- * Exercises the alignment_check_enabled guard in updateMahonyFilter(), which
- * short-circuits the alignmentValid() call entirely when cleared.
- * Complements test_alignment_check_freezes_update_on_lateral_accel.
+ * Replaces the old hard-freeze test (test_alignment_check_freezes_update_on_
+ * lateral_accel / test_alignment_check_disabled_allows_update), which
+ * asserted a bit-identical, frozen quaternion — a behaviour that no longer
+ * exists now that alignmentValid() has been removed and gyro integration
+ * runs unconditionally through applyTrustToCoefficients()'s continuous
+ * weighting instead.
  */
-static void test_alignment_check_disabled_allows_update(void) {
-    const IMUsample misaligned = {.accelerometer_g = {0.6F, 0.0F, 0.8F}};
-    const Quaternion attitude_before = context.attitude;
-    context.dt.last_sampled_tick = 1U;
+static void test_misaligned_accel_reduces_trust_but_keeps_updating(void) {
+    iterate_filter(&context, &kPureGravity, kConvergenceSteps);
 
-    updateMahonyFilter(&context, &misaligned);
-    // NOLINTNEXTLINE (readability-magic-numbers)
-    TEST_ASSERT_NOT_EQUAL_FLOAT(attitude_before.q0, context.attitude.q0);
+    const Quaternion attitude_before = context.attitude;
+
+    /*
+     * norm([0.6, 0, 0.8]) = sqrt(0.36 + 0 + 0.64) = 1.0 -> passes normValid.
+     * dot([0.6, 0, 0.8], [0, 0, 1]) = 0.8 < 0.9659 -> below the alignment limit.
+     */
+    const IMUsample unit_norm_misaligned = {
+        .accelerometer_g = {0.6F, 0.0F, 0.8F},  // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+    };
+    iterate_filter(&context, &unit_norm_misaligned, kAlignmentCheckSteps);
+
+    // trust must have dropped well below full trust
+    TEST_ASSERT_LESS_THAN_FLOAT(1.0F, context.trust_weight);
+    // but weighed_kp must never drop below its floor
+    TEST_ASSERT_GREATER_OR_EQUAL_FLOAT((context.base_kp * kExpectedKpTrustFloor), context.weighed_kp);
+
+    // the quaternion must have moved — no freeze, unlike the old hard-gate behaviour
+    const bool unchanged = (bool)(floats_bit_identical(attitude_before.q0, context.attitude.q0) &&
+                                  floats_bit_identical(attitude_before.q1, context.attitude.q1) &&
+                                  floats_bit_identical(attitude_before.q2, context.attitude.q2) &&
+                                  floats_bit_identical(attitude_before.q3, context.attitude.q3));
+    TEST_ASSERT_FALSE_MESSAGE(unchanged, "Misaligned-but-valid accel incorrectly froze the attitude");
+    TEST_ASSERT_FLOAT_WITHIN(kNormTolerance, 1.0F, quat_norm(&context.attitude));
+}
+
+/**
+ * Test that manual_pure_gyro forces the correction to zero, regardless of
+ * how wrong the accelerometer reading is, while still integrating gyro data.
+ *
+ * @details
+ * This is achieved by enabling manual_pure_gyro, then feeding a deliberately
+ * wrong accelerometer reading (perpendicular to the true "up") alongside a
+ * known constant gyro rate for exactly 1 second. Under these conditions the
+ * resulting angle must match pure gyro integration exactly, proving the
+ * garbage accelerometer reading had zero influence, and the telemetry fields
+ * must reflect the forced-floor state.
+ * Example: accel=[1,0,0] (wrong), gyro_x=Pi/2 rad/s, dt=0.01s, 100 steps ->
+ * roll = Pi/2 rad/s × 1s = Pi/2 rad, identical to test_gyro_integration_
+ * accumulates_correctly despite the garbage accelerometer input.
+ *
+ * @internal
+ * Exercises the manual_pure_gyro branch in updateMahonyFilter(), which forces
+ * errors[] to {0,0,0} and sets trust_weight/weighed_ki to 0 and weighed_kp to
+ * base_kp * kMinKpTrustFraction, regardless of what applyTrustToCoefficients()
+ * computed from the (here, deliberately bad) sensor data.
+ */
+static void test_manual_pure_gyro_zeroes_correction(void) {
+    const float rate_90degrees_in_1sec = (kPI_F * 0.5F);
+
+    context.manual_pure_gyro = true;
+
+    // deliberately wrong accelerometer reading: perpendicular to true "up" at identity
+    const IMUsample garbage_accel_with_gyro = {
+        .accelerometer_g = {1.0F, 0.0F, 0.0F},  // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+        .gyroscope_radps[kXaxis] = rate_90degrees_in_1sec,
+    };
+    iterate_filter(&context, &garbage_accel_with_gyro, kStepsIn1second);
+
+    // telemetry must reflect the forced override, not the (bad) computed trust
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, context.trust_weight);  // NOLINT (cppcoreguidelines-avoid-magic-numbers)
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, context.weighed_ki);    // NOLINT (cppcoreguidelines-avoid-magic-numbers)
+    TEST_ASSERT_FLOAT_WITHIN(kTrustTolerance, (context.base_kp * kExpectedKpTrustFloor), context.weighed_kp);
+
+    // the resulting angle must match pure gyro integration — the garbage accel had zero effect
+    TEST_ASSERT_FLOAT_WITHIN(kAngleTolerance_rad, rate_90degrees_in_1sec, angleAlongAxis(&context, kXaxis));
+    TEST_ASSERT_FLOAT_WITHIN(kNormTolerance, 1.0F, quat_norm(&context.attitude));
+}
+
+/**
+ * Test that sustained, norm-valid misalignment never stalls the filter.
+ *
+ * @details
+ * This is achieved by feeding a fixed, deliberately misaligned but unit-norm
+ * accelerometer reading for many consecutive updates, with manual_pure_gyro
+ * disabled. Under these conditions every single update must complete
+ * successfully — last_valid_tick must track last_sampled_tick exactly, with
+ * no accumulated backlog — and the attitude must have visibly moved under
+ * the (reduced but nonzero) weighted correction.
+ *
+ * @internal
+ * Regression guard for the live-lock found during bench testing: with the
+ * old alignmentValid() hard gate, a persistently misaligned-but-valid sample
+ * caused updateMahonyFilter() to return before ever calling
+ * integrateGyroQuaternion(), so dt accumulated indefinitely until the
+ * kMaxValidDTseconds timeout forced a reset. That early-return path no
+ * longer exists for alignment; only normValid() retains it, deliberately,
+ * for catastrophic norms (see test_bad_accel_samples_skipped_without_reset).
+ */
+static void test_sustained_misalignment_never_freezes_updates(void) {
+    const IMUsample persistently_misaligned = {.accelerometer_g = {1.0F, 0.0F, 0.0F}};  // NOLINT(*-magic-numbers)
+
+    iterate_filter(&context, &persistently_misaligned, kSustainedSteps);
+
+    // every cycle must have completed: no backlog accumulated in dt
+    TEST_ASSERT_EQUAL_UINT32(context.dt.last_sampled_tick, context.dt.last_valid_tick);
+
+    // the attitude must have actually moved under the weighted correction, not frozen at identity
+    TEST_ASSERT_GREATER_THAN_FLOAT(0.0F, fabsf(angleAlongAxis(&context, kYaxis)));
+    TEST_ASSERT_FLOAT_WITHIN(kNormTolerance, 1.0F, quat_norm(&context.attitude));
+}
+
+/**
+ * Test that trust reaches (approximately) full strength under perfect
+ * conditions: unit-norm acceleration, perfectly aligned with the estimate.
+ *
+ * @details
+ * This is achieved by feeding kPureGravity once from a freshly reset (identity)
+ * context. Under these conditions norm_absolute_deviation=0 and
+ * alignment_cosine=1.0 exactly, so both interpolated trust factors saturate
+ * at their maximum.
+ * Example: accel=[0,0,1], estimate=[0,0,1] → cosine=1.0 → trust_weight≈1.0 →
+ * weighed_kp≈base_kp, weighed_ki≈base_ki.
+ *
+ * @internal
+ * Exercises the "ceiling" end of applyTrustToCoefficients()'s two
+ * interpolation curves together, indirectly (the function is private).
+ */
+static void test_trust_weight_full_at_perfect_conditions(void) {
+    context.dt.last_sampled_tick = 1U;
+    updateMahonyFilter(&context, &kPureGravity);
+
+    TEST_ASSERT_FLOAT_WITHIN(kTrustTolerance, 1.0F, context.trust_weight);
+    TEST_ASSERT_FLOAT_WITHIN(kTrustTolerance, context.base_kp, context.weighed_kp);
+    TEST_ASSERT_FLOAT_WITHIN(kTrustTolerance, context.base_ki, context.weighed_ki);
+}
+
+/**
+ * Test that trust is floored to zero once alignment exceeds kMinAlignmentCosine,
+ * without ever going negative.
+ *
+ * @details
+ * This is achieved by feeding an accelerometer reading exactly perpendicular
+ * to the current (identity) estimate. Under these conditions the alignment
+ * cosine is 0, far beyond the 15° limit, so the interpolation clamps to its
+ * floor rather than extrapolating past it.
+ * Example: accel=[1,0,0], estimate=[0,0,1] → cosine=0 → trusted_alignment
+ * clamps to 0 → trust_weight=0 → weighed_kp = base_kp * kMinKpTrustFraction,
+ * weighed_ki = 0.
+ *
+ * @internal
+ * Exercises the clamp_min_max() call inside linearInterpolation(), guarding
+ * against the interpolation extrapolating to a negative trust value for
+ * inputs beyond the configured range.
+ */
+static void test_trust_weight_floored_beyond_alignment_limit(void) {
+    const IMUsample perpendicular_accel = {.accelerometer_g = {1.0F, 0.0F, 0.0F}};  // NOLINT(*-magic-numbers)
+
+    context.dt.last_sampled_tick = 1U;
+    updateMahonyFilter(&context, &perpendicular_accel);
+
+    TEST_ASSERT_FLOAT_WITHIN(kTrustTolerance, 0.0F, context.trust_weight);
+    TEST_ASSERT_FLOAT_WITHIN(kTrustTolerance, (context.base_kp * kExpectedKpTrustFloor), context.weighed_kp);
+    TEST_ASSERT_FLOAT_WITHIN(kTrustTolerance, 0.0F, context.weighed_ki);
+}
+
+/**
+ * Test that trust scales down proportionally to accelerometer norm deviation,
+ * independent of alignment.
+ *
+ * @details
+ * This is achieved by feeding an accelerometer reading that stays perfectly
+ * aligned with the estimate's direction (so alignment trust stays at its
+ * ceiling) but whose magnitude deviates from 1G by a known amount within
+ * kMaxNormEpsilon. Under these conditions only the norm-based trust factor
+ * should account for the resulting reduction.
+ * Example: accel=[0,0,1.1] → norm=1.1, deviation=0.1, direction unchanged →
+ * cosine=1.0 (full alignment trust) → trusted_norm = 1 - (0.1/0.15) ≈ 0.333
+ * → trust_weight ≈ 0.333.
+ *
+ * @internal
+ * Exercises the norm-based linearInterpolation() call in
+ * applyTrustToCoefficients() in isolation from the alignment-based one, by
+ * keeping direction constant and varying magnitude only. Uses the now-public
+ * kMaxNormEpsilon directly rather than a mirrored copy.
+ */
+static void test_trust_weight_scales_with_norm_deviation(void) {
+    const float norm_deviation = 0.1F;  // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+    const float expected_trust = (1.0F - (norm_deviation / kMaxNormEpsilon));
+    const IMUsample deviated_norm = {.accelerometer_g[kZaxis] = (1.0F + norm_deviation)};
+
+    context.dt.last_sampled_tick = 1U;
+    updateMahonyFilter(&context, &deviated_norm);
+
+    TEST_ASSERT_FLOAT_WITHIN(kTrustTolerance, expected_trust, context.trust_weight);
+}
+
+/**
+ * Test that resetMahonyFilter() clears every field it is responsible for,
+ * including the derived trust fields and the reset cause.
+ *
+ * @details
+ * This is achieved by dirtying every field resetMahonyFilter() is documented
+ * to touch, then calling it directly and checking the resulting state via
+ * isContextReset(), plus a direct check on last_reset_cause.
+ *
+ * @internal
+ * isContextReset() deliberately does not check last_reset_cause (see its own
+ * doc comment) since a reset triggered through updateMahonyFilter() legitimately
+ * overwrites it to the actual cause. This test calls resetMahonyFilter()
+ * directly, the one path where kNone is the correct expected value, and
+ * checks it explicitly.
+ */
+static void test_reset_clears_derived_trust_and_cause_fields(void) {
+    // NOLINTBEGIN (cppcoreguidelines-avoid-magic-numbers)
+    context.attitude.q1 = 0.3F;
+    context.error_integrals[kXaxis] = 0.1F;
+    context.weighed_kp = 99.0F;
+    context.weighed_ki = 99.0F;
+    context.trust_weight = 0.5F;
+    context.last_reset_cause = kQuaternionNanInf;
+    // NOLINTEND
+
+    resetMahonyFilter(&context);
+
+    TEST_ASSERT_TRUE_MESSAGE(isContextReset(&context), "resetMahonyFilter() left the context in a non-reset state");
+    TEST_ASSERT_EQUAL_INT(kNone, context.last_reset_cause);
 }
 
 /**
@@ -343,8 +592,8 @@ static void test_controller_no_shift_at_rest(void) {
  * gyro_x = Pi/2 rad/s, dt = 0.01s, 100 steps -> roll = Pi/2 rad/s × 1s = Pi/2 rad
  *
  * @internal
- * Exercises integrateGyroMeasurements() in isolation. With kp and ki zeroed,
- * applyProportionate() adds zero correction and the integral branch is
+ * Exercises integrateGyroQuaternion() in isolation. With kp and ki zeroed,
+ * applyProportionateErrors() adds zero correction and the integral branch is
  * skipped entirely, so the only active path is the quaternion derivative
  * and the Euler integration step.
  */
@@ -399,55 +648,6 @@ static void test_normalisation_prevents_drift_under_sustained_input(void) {
 }
 
 /**
- * Test that the alignment check freezes quaternion updates on lateral acceleration.
- *
- * @details
- * This is achieved by enabling alignment_check_enabled after convergence, then
- * feeding 10 steps of a unit-norm but horizontally biased acceleration vector.
- * Under these conditions the dot product between measured and estimated gravity
- * falls below kMinAlignmentCosine, indicating linear motion rather than
- * gravity, and updateMahonyFilter() must return without touching the quaternion.
- *
- * @par Example
- * accel = [0.6, 0, 0.8G] → norm = 1.0 (passes validateNorm),
- * dot([0.6, 0, 0.8], [0, 0, 1]) = 0.8 < 0.9659 (fails alignmentValid) →
- * quaternion unchanged
- *
- * @internal
- * Exercises the alignmentValid() early-return path in updateMahonyFilter(),
- * which is only reached when alignment_check_enabled is set and the acceleration
- * norm is valid. A 5G lateral shock would be rejected earlier by validateNorm()
- * and would never reach alignmentValid().
- */
-static void test_alignment_check_freezes_update_on_lateral_accel(void) {
-    iterate_filter(&context, &kPureGravity, kConvergenceSteps);
-
-    context.manual_pure_gyro = false;
-
-    // Snapshot the quaternion before injecting the misaligned samples
-    const Quaternion attitude_before = context.attitude;
-
-    /*
-     * Feed 10 samples with a unit-norm but horizontally biased accel.
-     * norm([0.6, 0, 0.8]) = sqrt(0.36 + 0 + 0.64) = 1.0 -> passes validateNorm.
-     * dot([0.6, 0, 0.8], [0, 0, 1]) = 0.8 < 0.9659 -> fails alignmentValid.
-     */
-    const IMUsample unit_norm_values = {
-        .accelerometer_g = {0.6F, 0.0F, 0.8F},
-    };
-    iterate_filter(&context, &unit_norm_values, kAlignmentCheckSteps);
-
-    // The quaternion must be bit-identical (no update happened)
-    // NOLINTBEGIN (cppcoreguidelines-avoid-magic-numbers)
-    TEST_ASSERT_EQUAL_FLOAT(attitude_before.q0, context.attitude.q0);
-    TEST_ASSERT_EQUAL_FLOAT(attitude_before.q1, context.attitude.q1);
-    TEST_ASSERT_EQUAL_FLOAT(attitude_before.q2, context.attitude.q2);
-    TEST_ASSERT_EQUAL_FLOAT(attitude_before.q3, context.attitude.q3);
-    TEST_ASSERT_FLOAT_WITHIN(kNormTolerance, 1.0F, quat_norm(&context.attitude));
-    // NOLINTEND
-}
-
-/**
  * Test that the quaternion integration remains stable at high angular rates.
  *
  * @details
@@ -459,10 +659,10 @@ static void test_alignment_check_freezes_update_on_lateral_accel(void) {
  *
  * @internal
  * Exercises normaliseQuaternion() under near-worst-case integration stress. Also
- * verifies that the PI correction path in applyProportionate() does not freeze the
+ * verifies that the PI correction path in applyProportionateErrors() does not freeze the
  * update under high rates — the pitch must change by at least 0.1 rad over 0.5s.
- * This threshold was derived empirically with kp=2.5, ki=0.5: the accel correction
- * actively counters the rotation, limiting the actual pitch change to ~0.168 rad.
+ * This threshold was derived empirically with base_kp=25, base_ki=5: the accel
+ * correction actively counters the rotation, but does not fully cancel it.
  */
 static void test_integration_stable_at_high_angular_rate(void) {
     const float min_expected_pitch_change_rad = 0.1F;
@@ -487,38 +687,43 @@ static void test_integration_stable_at_high_angular_rate(void) {
  * Test that integral terms are clamped to prevent windup under sustained error.
  *
  * @details
- * This is achieved by zeroing kp and setting a high ki, then feeding a purely
- * lateral acceleration vector for 10 steps. Under these conditions the cross-product
- * error on the Y axis is large and non-zero from identity, driving the integral to
- * saturation within the first step.
- * Example: accel=[1,0,0], body_estimates=[0,0,1] → error[Y] = 0*0 - 1*1 = -1.0 →
- * integral[Y] += 100 * (-1.0) * 0.01s = -1.0 → clamped to -0.3.
+ * This is achieved by zeroing kp and setting a high ki, then feeding a small
+ * (10°) tilt for 10 steps — small enough to stay within kMinAlignmentCosine's
+ * 15° trust cone (so weighed_ki is scaled down, not floored to zero), but
+ * large enough to produce a real, sustained cross-product error. Under these
+ * conditions the integral saturates well within the iteration budget.
+ * Example: accel=[sin10°,0,cos10°], body_estimates=[0,0,1] → error[Y]≈-0.174 →
+ * cosine≈0.985 → trust_weight≈0.55 → weighed_ki≈55 → integral saturates by
+ * step 4, clamped to -0.3 for the remainder.
  *
  * @internal
- * Exercises the clamp() call applied to each error_integrals[axis] inside
- * updateMahonyFilter(). kExpectedMaxIntegral mirrors the private kMaxIntegralError
- * constant in mahony.c — any change to that constant must be reflected here.
- * kp=0 removes the proportional path so only the integral branch is active.
+ * Exercises the clamp_absolute() call applied to each error_integrals[axis]
+ * inside accumulateIntegralErrors(). A full 90° lateral sample (cosine=0)
+ * would instead floor trust_weight to 0 via applyTrustToCoefficients(),
+ * zeroing weighed_ki regardless of base_ki — this test must stay inside
+ * the alignment cone to exercise the clamp at all. kExpectedMaxIntegral
+ * mirrors mahony.c's private kMaxIntegralError, and kExpectedAlignmentLimit
+ * documents why 10° was chosen over the old 90° sample.
  */
 static void test_integral_clamped_on_windup(void) {
-    // mirrors kMaxIntegralError in mahony.c
-    static constexpr float kExpectedMaxIntegral = 0.3F;
-    // ki > kMaxIntegralError / (|error| * dt) = 0.3 / (1.0 * 0.01) = 30 guarantees
-    // saturation in one step; 100 gives safe margin
-    static constexpr float kHighKi = 100.0F;  // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+    // ki high enough that even scaled-down trust (~0.55 at 10°) still drives
+    // rapid saturation well within kAlignmentCheckSteps
+    static constexpr float kHighKi = 100.0F;       // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+    static constexpr float kSmallTiltDeg = 10.0F;  // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+    static constexpr float kSmallTilt_rad = (kSmallTiltDeg * kPI_F / 180.0F);
 
     context.base_kp = 0.0F;
     context.base_ki = kHighKi;
 
-    // Purely lateral: norm=1 (passes validateNorm), produces error[Y]=-1 from identity
-    const IMUsample lateral = {
-        .accelerometer_g = {1.0F, 0.0F, 0.0F},  // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+    // Small tilt: within the alignment cone (cosine ≈ 0.985 > kExpectedAlignmentLimit),
+    // still produces a real, nonzero error[Y]
+    const IMUsample small_tilt = {
+        .accelerometer_g = {sinf(kSmallTilt_rad), 0.0F, cosf(kSmallTilt_rad)},
     };
-    iterate_filter(&context, &lateral, kAlignmentCheckSteps);
+    iterate_filter(&context, &small_tilt, kAlignmentCheckSteps);
 
-    // Y-axis integral must be saturated at -kExpectedMaxIntegral after first step
+    // Y-axis integral must have saturated at -kExpectedMaxIntegral
     TEST_ASSERT_FLOAT_WITHIN(kNormTolerance, -kExpectedMaxIntegral, context.error_integrals[kYaxis]);
-    // All integrals must remain within the symmetric clamp range
     for (uint8_t axis = 0U; axis < kNBaxis; axis++) {
         TEST_ASSERT_FLOAT_WITHIN(kExpectedMaxIntegral, 0.0F, context.error_integrals[axis]);
     }
@@ -545,7 +750,7 @@ static void test_out_of_range_axis_returns_0(void) {
 
 /**
  * Test that a NaN or Inf attitude quaternion norm triggers an immediate,
- * unconditional filter reset.
+ * unconditional filter reset, with the correct cause recorded.
  *
  * @details
  * This is achieved by feeding a gyroscope sample containing NaN, then
@@ -555,13 +760,15 @@ static void test_out_of_range_axis_returns_0(void) {
  * component, normaliseQuaternion() returns a non-finite norm, and the
  * filter must reset on this single occurrence rather than tolerating it.
  * Example: gyro_x=NaN -> corrected_gyro_radps[X]=NaN -> all four rate-of-
- * change terms NaN -> quaternion NaN -> norm NaN -> reset.
+ * change terms NaN -> quaternion NaN -> norm NaN -> reset, cause=kQuaternionNanInf.
  *
  * @internal
  * Exercises the isnan()/isinf() branch in updateMahonyFilter(), reached via
  * a realistic corrupted-input path rather than direct quaternion
- * manipulation. Replaces the old counter-based test: with no debounce or
- * counter left on this path, a single bad sample must reset immediately.
+ * manipulation. With no debounce or counter left on this path, a single
+ * bad sample must reset immediately. isContextReset() does not check
+ * last_reset_cause (see its doc comment) since the real cause here is
+ * kQuaternionNanInf, not kNone — asserted directly.
  */
 static void test_bad_quaternion_norm_triggers_reset(void) {
     const IMUsample nan_gyro = {
@@ -579,6 +786,7 @@ static void test_bad_quaternion_norm_triggers_reset(void) {
     bool updated = updateMahonyFilter(&context, &nan_gyro);
     TEST_ASSERT_FALSE_MESSAGE(updated, "Update did not report failure on NaN gyroscope input");
     TEST_ASSERT_TRUE_MESSAGE(isContextReset(&context), "NaN quaternion norm failed to trigger an immediate reset");
+    TEST_ASSERT_EQUAL_INT(kQuaternionNanInf, context.last_reset_cause);
 
     // Inf sub-case, on a freshly re-tilted context
     context.attitude.q1 = 0.1F;  // NOLINT (readability-magic-numbers)
@@ -586,6 +794,7 @@ static void test_bad_quaternion_norm_triggers_reset(void) {
     updated = updateMahonyFilter(&context, &inf_gyro);
     TEST_ASSERT_FALSE_MESSAGE(updated, "Update did not report failure on Inf gyroscope input");
     TEST_ASSERT_TRUE_MESSAGE(isContextReset(&context), "Inf quaternion norm failed to trigger an immediate reset");
+    TEST_ASSERT_EQUAL_INT(kQuaternionNanInf, context.last_reset_cause);
 }
 
 /*********************************************************************************************************************************/
@@ -625,25 +834,33 @@ static float quat_norm(const Quaternion* quat) {
  * Check whether the filter context is in a reset state.
  *
  * @details
- * A reset context has: attitude quaternion = identity [1,0,0,0] and all
- * error integrals = 0. These are exactly the fields touched by
- * resetMahonyFilter().
+ * A reset context has: attitude quaternion = identity [1,0,0,0], all error
+ * integrals = 0, weighed_kp = 0, weighed_ki = 0, and trust_weight = 0.
+ * last_reset_cause is deliberately NOT checked here: a reset triggered
+ * through updateMahonyFilter() correctly overwrites it to the actual cause
+ * (kDTinvalid / kQuaternionNanInf) immediately after calling
+ * resetMahonyFilter(), so kNone would be the wrong expectation in that case.
+ * Callers that need to verify last_reset_cause check it directly.
  *
  * @param filter_context Filter context to inspect
- * @retval 1 Context matches a reset state
- * @retval 0 Context has diverged from a reset state
+ * @retval true Context matches a reset state
+ * @retval false Context has diverged from a reset state
  */
 static bool isContextReset(const MahonyContext* filter_context) {
     const float default_integrals[kNBaxis] = {0.0F, 0.0F, 0.0F};
     const Quaternion unit_quaternion = {.q0 = 1.0F, .q1 = 0.0F, .q2 = 0.0F, .q3 = 0.0F};
 
     // NOLINTBEGIN (DeprecatedOrUnsafeBufferHandling)
-    const uint8_t quat_resetted = (memcmp(&filter_context->attitude, &unit_quaternion, sizeof(Quaternion)) == 0);
-    const uint8_t integrals_resetted =
+    const bool quat_resetted = (memcmp(&filter_context->attitude, &unit_quaternion, sizeof(Quaternion)) == 0);
+    const bool integrals_resetted =
         (memcmp(&filter_context->error_integrals, &default_integrals, (kNBaxis * sizeof(float))) == 0);
     // NOLINTEND
 
-    return (bool)(quat_resetted && integrals_resetted);
+    const bool trust_resetted = (bool)(floats_bit_identical(filter_context->weighed_kp, 0.0F) &&
+                                       floats_bit_identical(filter_context->weighed_ki, 0.0F) &&
+                                       floats_bit_identical(filter_context->trust_weight, 0.0F));
+
+    return (bool)(quat_resetted && integrals_resetted && trust_resetted);
 }
 
 /**
@@ -651,7 +868,7 @@ static bool isContextReset(const MahonyContext* filter_context) {
  *
  * @param first First float to check
  * @param second Second float to check
- * @return uint8_t 
+ * @return Whether both floats share the exact same bit pattern
  */
 static bool floats_bit_identical(float first, float second) {
     uint32_t first_bits = 0;

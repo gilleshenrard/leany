@@ -79,14 +79,12 @@ static void accumulateIntegralErrors(float error_integrals[kNBaxis], const float
 static void applyIntegralErrors(const float error_integrals[kNBaxis], float corrected_gyro_radps[kNBaxis]);
 static float getNormalisedVectorsAngleCosine(const float normalised_first[kNBaxis],
                                              const float normalised_second[kNBaxis]);
-static float linearInterpolation(float raw_value, float min_raw, float min_output, float max_raw, float max_output);
 static void applyTrustToCoefficients(MahonyContext* context, const float accelerometer_normalised[kNBaxis],
                                      const float estimates_normalised[kNBaxis], float acceleration_norm);
 
 //constants
 static constexpr float kCloseToZero = 1e-3F;           ///< Value used to compare floats to 0
 static constexpr float kMinAlignmentCosine = 0.9659F;  ///< cosine value for 15°, used as a maximum alignment angle
-static constexpr float kMaxNormEpsilon = 0.15F;        ///< Maximum deviation of a norm around 1
 static constexpr float kMinValidDTseconds = 1e-6F;     ///< Minimum acceptable timespan between updates
 static constexpr float kMaxValidDTseconds = 4.0F;      ///< Maximum acceptable timespan between updates
 static constexpr float kMinKpTrustFraction = 0.2F;     ///< Minimum trust level of kP
@@ -157,10 +155,12 @@ bool updateMahonyFilter(MahonyContext* context, const IMUsample* sample) {
 
     float errors[kNBaxis] = {0.0F, 0.0F, 0.0F};
 
-    //compute the error rotation vectors, which will be used to realign the estimations to the measured vectors
-    // (do this only if no strong linear acceleration is detected)
+    //compute the error rotation vectors, which will be used to realign the estimations to the measured vectors (only if no strong linear acceleration is detected)
     if (!context->manual_pure_gyro) {
         computeGravityError(errors, normalised_accelerometer, body_estimates);
+    } else {
+        context->trust_weight = context->weighed_ki = 0.0F;
+        context->weighed_kp = (context->base_kp * kMinKpTrustFraction);
     }
 
     //apply the proportion and integral terms to error vectors
@@ -236,6 +236,30 @@ float getAttitudeAngle(const MahonyContext* context) {
     const float safe_cosine =
         clamp_absolute(context->attitude.q0, 1.0F);  //make sure to clamp the cos value between [-1, 1]
     return twice(acosf(safe_cosine));
+}
+
+/**
+ * Interpolate a value 
+ *
+ * @param raw_value Raw value to interpolate
+ * @param min_raw Minimum raw value to interpolate
+ * @param min_output Minimum value to output
+ * @param max_raw Maximum raw value to interpolate
+ * @param max_output Maximum value to output
+ * @return Interpolated value
+ */
+// NOLINTNEXTLINE (bugprone-easily-swappable-parameters)
+float linearInterpolation(float raw_value, const float min_raw, const float min_output, const float max_raw,
+                          const float max_output) {
+    const float delta_x = (max_raw - min_raw);
+    if ((delta_x <= kCloseToZero) && (delta_x >= -kCloseToZero)) {
+        return INFINITY;
+    }
+
+    raw_value = clamp_min_max(raw_value, min_raw, max_raw);
+
+    const float slope = (max_output - min_output) / delta_x;
+    return min_output + ((raw_value - min_raw) * slope);
 }
 
 /*********************************************************************************************************************************/
@@ -509,30 +533,6 @@ static float getNormalisedVectorsAngleCosine(const float normalised_first[kNBaxi
                               (normalised_first[kZaxis] * normalised_second[kZaxis]);
 
     return dot_product;
-}
-
-/**
- * Interpolate a value 
- *
- * @param raw_value Raw value to interpolate
- * @param min_raw Minimum raw value to interpolate
- * @param min_output Minimum value to output
- * @param max_raw Maximum raw value to interpolate
- * @param max_output Maximum value to output
- * @return Interpolated value
- */
-// NOLINTNEXTLINE (bugprone-easily-swappable-parameters)
-static float linearInterpolation(float raw_value, const float min_raw, const float min_output, const float max_raw,
-                                 const float max_output) {
-    const float delta_x = (max_raw - min_raw);
-    if ((delta_x <= kCloseToZero) && (delta_x >= -kCloseToZero)) {
-        return INFINITY;
-    }
-
-    raw_value = clamp_min_max(raw_value, min_raw, max_raw);
-
-    const float slope = (max_output - min_output) / delta_x;
-    return min_output + ((raw_value - min_raw) * slope);
 }
 
 /**
