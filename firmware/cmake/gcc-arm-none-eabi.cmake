@@ -34,6 +34,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Og -g3 -ggdb")
 else()
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Os -g1")
+	set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} -DNDEBUG")
 endif()
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${ARM_FLAGS}")

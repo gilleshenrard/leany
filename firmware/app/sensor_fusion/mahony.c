@@ -52,20 +52,17 @@
 #include <math.h>
 #include <stdint.h>
 
-// macros
-#define FORCE_INLINE_SILENT __attribute((always_inline))  ///< Macro used to workaround Doxygen issues with __attribute
-
 // utility functions
-static inline FORCE_INLINE_SILENT float half(float number);
-static inline FORCE_INLINE_SILENT float twice(float number);
-static inline FORCE_INLINE_SILENT float squared(float number);
-static inline FORCE_INLINE_SILENT float normaliseArray(float array[kNBaxis]);
-static inline FORCE_INLINE_SILENT float normaliseQuaternion(Quaternion* quaternion);
-static inline FORCE_INLINE_SILENT float clamp_absolute(float value, float max_absolute_value);
-static inline FORCE_INLINE_SILENT float clamp_min_max(float value, float min_value, float max_value);
-static inline FORCE_INLINE_SILENT float absoluteValue(float value);
-static inline FORCE_INLINE_SILENT float computeDTseconds(const TimeDelta* delta);
-static inline FORCE_INLINE_SILENT uint8_t isDTvalid(float delta_seconds);
+static inline float half(float number);
+static inline float twice(float number);
+static inline float squared(float number);
+static float normaliseArray(float array[kNBaxis]);
+static float normaliseQuaternion(Quaternion* quaternion);
+static float clamp_absolute(float value, float max_absolute_value);
+static inline float clamp_min_max(float value, float min_value, float max_value);
+static inline float absoluteValue(float value);
+static inline float computeDTseconds(const TimeDelta* delta);
+static inline uint8_t isDTvalid(float delta_seconds);
 static void computeGravityError(float errors[kNBaxis], const float accelerometer_g[kNBaxis],
                                 const float body_estimates[kNBaxis]);
 static void integrateGyroQuaternion(Quaternion* current_attitude, const float corrected_gyro[kNBaxis],
@@ -270,7 +267,7 @@ float linearInterpolation(float raw_value, const float min_raw, const float min_
  * @param number Number to half
  * @return Half the value of number
  */
-static inline FORCE_INLINE_SILENT float half(const float number) {
+static inline float half(const float number) {
     return 0.5F * number;  // NOLINT(*-magic-numbers)
 }
 
@@ -281,7 +278,7 @@ static inline FORCE_INLINE_SILENT float half(const float number) {
  * @param number Number to double
  * @return Double the value of number
  */
-static inline FORCE_INLINE_SILENT float twice(const float number) {
+static inline float twice(const float number) {
     return 2.0F * number;  // NOLINT(*-magic-numbers)
 }
 
@@ -292,7 +289,7 @@ static inline FORCE_INLINE_SILENT float twice(const float number) {
  * @param number Number to square
  * @return Number squared
  */
-static inline FORCE_INLINE_SILENT float squared(const float number) { return number * number; }
+static inline float squared(const float number) { return number * number; }
 
 /**
  * Normalise an array of vectors
@@ -300,7 +297,7 @@ static inline FORCE_INLINE_SILENT float squared(const float number) { return num
  * @param[out] array Array to normalise
  * @return Norm value
  */
-static inline FORCE_INLINE_SILENT float normaliseArray(float array[kNBaxis]) {
+static float normaliseArray(float array[kNBaxis]) {
     const float norm = sqrtf(squared(array[0U]) + squared(array[1U]) + squared(array[2U]));
     if (norm < kCloseToZero) {
         return norm;
@@ -318,7 +315,7 @@ static inline FORCE_INLINE_SILENT float normaliseArray(float array[kNBaxis]) {
  * @param[out] quaternion Quaternion to normalise
  * @return Norm value
  */
-static inline FORCE_INLINE_SILENT float normaliseQuaternion(Quaternion* quaternion) {
+static float normaliseQuaternion(Quaternion* quaternion) {
     const float norm =
         sqrtf(squared(quaternion->q0) + squared(quaternion->q1) + squared(quaternion->q2) + squared(quaternion->q3));
     if (norm < kCloseToZero) {
@@ -339,7 +336,7 @@ static inline FORCE_INLINE_SILENT float normaliseQuaternion(Quaternion* quaterni
  * @param max_absolute_value Absolute maximum magnitude of the output
  * @return Clamped value
  */
-static inline FORCE_INLINE_SILENT float clamp_absolute(const float value, const float max_absolute_value) {
+static float clamp_absolute(const float value, const float max_absolute_value) {
     return fmaxf(-max_absolute_value, fminf(max_absolute_value, value));
 }
 
@@ -351,7 +348,7 @@ static inline FORCE_INLINE_SILENT float clamp_absolute(const float value, const 
  * @param max_value Maximum value
  * @return Clamped value
  */
-static inline FORCE_INLINE_SILENT float clamp_min_max(const float value, const float min_value, const float max_value) {
+static inline float clamp_min_max(const float value, const float min_value, const float max_value) {
     if (value < min_value) {
         return min_value;
     }
@@ -369,7 +366,7 @@ static inline FORCE_INLINE_SILENT float clamp_min_max(const float value, const f
  * @param value Raw value
  * @return Absolute value
  */
-static inline FORCE_INLINE_SILENT float absoluteValue(const float value) { return ((value >= 0.0F) ? value : -value); }
+static inline float absoluteValue(const float value) { return ((value >= 0.0F) ? value : -value); }
 
 /**
  * Compute the elapsed time in [s] between current and previous timestamps
@@ -377,7 +374,7 @@ static inline FORCE_INLINE_SILENT float absoluteValue(const float value) { retur
  * @param delta Time delta structure
  * @return time delta in [s]
  */
-static inline FORCE_INLINE_SILENT float computeDTseconds(const TimeDelta* delta) {
+static inline float computeDTseconds(const TimeDelta* delta) {
     //compute the time delta and avoid issues with the overflow after maxTick
     const uint32_t delta_ticks = (delta->last_sampled_tick - delta->last_valid_tick) & delta->max_tick;
     return ((float)delta_ticks * delta->tick_period_seconds);
@@ -390,7 +387,7 @@ static inline FORCE_INLINE_SILENT float computeDTseconds(const TimeDelta* delta)
  * @retval 0 Time delta is out of bounds
  * @retval 1 Time delta is within bounds
  */
-static inline FORCE_INLINE_SILENT uint8_t isDTvalid(float delta_seconds) {
+static inline uint8_t isDTvalid(float delta_seconds) {
     return ((delta_seconds > kMinValidDTseconds) && (delta_seconds < kMaxValidDTseconds));
 }
 
