@@ -706,10 +706,12 @@ static void handleMonitoringCycleEvent(void) {
     constexpr float divider10 = 10.0F;
 
     int16_t axis_tenths = getAngleDegreesTenths(kXaxis);
-    logSerial(kMaxErrorLevel, ">Roll:%02.01f", ((double)axis_tenths / (double)divider10));
+    logSerial(kMaxErrorLevel, ">Roll:%02.01f",
+              (double)(axis_tenths / divider10));  // NOLINT (cppcoreguidelines-narrowing-conversions)
 
     axis_tenths = getAngleDegreesTenths(kYaxis);
-    logSerial(kMaxErrorLevel, ">Pitch:%02.01f", ((double)axis_tenths / (double)divider10));
+    logSerial(kMaxErrorLevel, ">Pitch:%02.01f",
+              (double)(axis_tenths / divider10));  // NOLINT (cppcoreguidelines-narrowing-conversions)
 
     MahonyContext context;
     if (!isError(getMahonyContext(&context))) {

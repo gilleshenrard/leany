@@ -14,7 +14,7 @@
 
 #include "systick.h"
 
-static inline uint32_t hexToCompareValue(uint8_t hexvalue);
+static uint32_t hexToCompareValue(uint8_t hexvalue);
 static void applyLEDpwm(Colour colour);
 
 static Colour current_colour = kBlack;    ///< Colour to apply to the blink effect
@@ -121,7 +121,7 @@ void LEDsetColour(const Colour* colour) {
  * @param hexvalue HEX value between 0 and 255
  * @return Corresponding compare register value to set to the timer
  */
-static inline uint32_t hexToCompareValue(uint8_t hexvalue) {
+static uint32_t hexToCompareValue(uint8_t hexvalue) {
     if (!hexvalue) {
         return 0;
     }

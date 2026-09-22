@@ -10,13 +10,7 @@
 
 #include <math.h>
 
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
-#define FORCE_INLINE_SILENT __attribute((always_inline))  ///< Macro used to workaround Doxygen issues with __attribute
-#else
-#define FORCE_INLINE_SILENT
-#endif /* DOXYGEN_SHOULD_SKIP_THIS */
-
-static inline FORCE_INLINE_SILENT float clamp(float value, float max_absolute_value);
+static inline float clamp(float value, float max_absolute_value);
 
 /**
  * @brief Compute a complementary filter on accelerometer/gyroscope values
@@ -71,6 +65,6 @@ void complementaryFilter(const IMUsample* sample, float filtered_angles_rad[]) {
  * @param max_absolute_value Absolute maximum magnitude of the output
  * @return Clamped value
  */
-static inline FORCE_INLINE_SILENT float clamp(const float value, const float max_absolute_value) {
+static inline float clamp(const float value, const float max_absolute_value) {
     return fmaxf(-max_absolute_value, fminf(max_absolute_value, value));
 }
