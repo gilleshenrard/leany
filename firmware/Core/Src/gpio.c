@@ -60,7 +60,7 @@ void MX_GPIO_Init(void)
   LL_GPIO_ResetOutputPin(GPIOA, BATT_EN_Pin|ST7735S_DC_Pin|ST7735S_BL_Pin);
 
   /**/
-  LL_GPIO_ResetOutputPin(DEBUG_OUT_GPIO_Port, DEBUG_OUT_Pin);
+  LL_GPIO_ResetOutputPin(GPIOB, DEBUG_OUT_Pin|EEPROM_WP_Pin);
 
   /**/
   GPIO_InitStruct.Pin = IMU_CS_Pin;
@@ -103,6 +103,13 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
   LL_GPIO_Init(DEBUG_OUT_GPIO_Port, &GPIO_InitStruct);
+
+  /**/
+  GPIO_InitStruct.Pin = EEPROM_WP_Pin;
+  GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
+  GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_OPENDRAIN;
+  LL_GPIO_Init(EEPROM_WP_GPIO_Port, &GPIO_InitStruct);
 
   /**/
   LL_GPIO_AF_SetEXTISource(LL_GPIO_AF_EXTI_PORTB, LL_GPIO_AF_EXTI_LINE0);

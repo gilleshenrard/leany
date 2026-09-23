@@ -41,7 +41,7 @@ void MX_I2C1_Init(void)
   PB6   ------> I2C1_SCL
   PB7   ------> I2C1_SDA
   */
-  GPIO_InitStruct.Pin = CHG_SCL_Pin|CHG_SDA_Pin;
+  GPIO_InitStruct.Pin = I2C_SCL_Pin|I2C_SDA_Pin;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
   GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_HIGH;
   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_OPENDRAIN;

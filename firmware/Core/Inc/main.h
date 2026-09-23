@@ -125,10 +125,12 @@ void Error_Handler(void);
 #define ST7735S_BL_GPIO_Port GPIOA
 #define DEBUG_OUT_Pin LL_GPIO_PIN_4
 #define DEBUG_OUT_GPIO_Port GPIOB
-#define CHG_SCL_Pin LL_GPIO_PIN_6
-#define CHG_SCL_GPIO_Port GPIOB
-#define CHG_SDA_Pin LL_GPIO_PIN_7
-#define CHG_SDA_GPIO_Port GPIOB
+#define I2C_SCL_Pin LL_GPIO_PIN_6
+#define I2C_SCL_GPIO_Port GPIOB
+#define I2C_SDA_Pin LL_GPIO_PIN_7
+#define I2C_SDA_GPIO_Port GPIOB
+#define EEPROM_WP_Pin LL_GPIO_PIN_8
+#define EEPROM_WP_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 

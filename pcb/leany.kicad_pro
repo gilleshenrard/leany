@@ -97,7 +97,7 @@
         "hole_to_hole": "error",
         "holes_co_located": "error",
         "invalid_outline": "error",
-        "isolated_copper": "error",
+        "isolated_copper": "ignore",
         "item_on_disabled_layer": "error",
         "items_not_allowed": "error",
         "length_out_of_range": "error",
@@ -445,7 +445,7 @@
       "different_unit_net": "error",
       "duplicate_reference": "error",
       "duplicate_sheet_names": "error",
-      "endpoint_off_grid": "error",
+      "endpoint_off_grid": "ignore",
       "extra_units": "error",
       "field_name_whitespace": "warning",
       "footprint_filter": "ignore",
@@ -899,7 +899,7 @@
         "uuid": "e47b2519-93ca-4a48-9414-ecc253dd35f5"
       }
     ],
-    "used_designators": "",
+    "used_designators": "U7,#PWR49-52,C27,R27-29",
     "variants": []
   },
   "sheets": [

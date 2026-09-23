@@ -6,7 +6,7 @@
 	(paper "A4")
 	(title_block
 		(title "Leany - Power management")
-		(date "2026-06-30")
+		(date "2026-09-23")
 		(rev "0.3")
 		(comment 1 "CERN Open Hardware Licence Version 2 - Permissive")
 		(comment 2 "Copyright (c) 2026 Gilles Henrard")
@@ -5534,12 +5534,6 @@
 		(uuid "40c74288-fdc7-4052-8616-1519c2677364")
 	)
 	(junction
-		(at 128.27 50.8)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "4115a330-5bc6-499e-929f-c8b5f9b68870")
-	)
-	(junction
 		(at 132.08 38.1)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -5574,12 +5568,6 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "59dfc221-96fb-43e2-8a78-0623def706dc")
-	)
-	(junction
-		(at 127 60.96)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "5c296638-19f4-48cc-911a-da801f9a9b65")
 	)
 	(junction
 		(at 158.75 81.28)
@@ -5725,12 +5713,6 @@
 		(color 0 0 0 0)
 		(uuid "fa955517-354e-4e91-b017-7f40f65374d9")
 	)
-	(junction
-		(at 129.54 63.5)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "fa992534-7635-47ee-8a3c-82af75b46b51")
-	)
 	(no_connect
 		(at 133.35 53.34)
 		(uuid "4a21d081-0bd0-4a4b-8191-f28d7b972e60")
@@ -5778,16 +5760,6 @@
 			(type default)
 		)
 		(uuid "01fadd73-deb7-43df-8446-df8c317c38c4")
-	)
-	(wire
-		(pts
-			(xy 129.54 59.69) (xy 129.54 63.5)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "0673cddc-dda8-479b-a805-0909473ae453")
 	)
 	(wire
 		(pts
@@ -5871,23 +5843,13 @@
 	)
 	(wire
 		(pts
-			(xy 124.46 63.5) (xy 129.54 63.5)
+			(xy 129.54 63.5) (xy 133.35 63.5)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
 		(uuid "1a2d2335-9c3a-41b8-88ad-bca066c103ab")
-	)
-	(wire
-		(pts
-			(xy 127 54.61) (xy 127 50.8)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "1a33fac1-cde8-498f-92a7-f1e933d29f57")
 	)
 	(wire
 		(pts
@@ -5921,7 +5883,7 @@
 	)
 	(wire
 		(pts
-			(xy 127 60.96) (xy 133.35 60.96)
+			(xy 129.54 60.96) (xy 133.35 60.96)
 		)
 		(stroke
 			(width 0)
@@ -5938,16 +5900,6 @@
 			(type default)
 		)
 		(uuid "235e71ef-aac7-4011-abbb-92175abb59cf")
-	)
-	(wire
-		(pts
-			(xy 129.54 63.5) (xy 133.35 63.5)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "24d66ccf-d5a9-41d6-ad98-44649c943ec9")
 	)
 	(wire
 		(pts
@@ -5968,26 +5920,6 @@
 			(type default)
 		)
 		(uuid "280df5fd-c9b8-4ed1-9d85-478aceb98ef3")
-	)
-	(wire
-		(pts
-			(xy 128.27 49.53) (xy 128.27 50.8)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "282928ce-f1cd-47e0-8cdd-659a3a3c356d")
-	)
-	(wire
-		(pts
-			(xy 124.46 60.96) (xy 127 60.96)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "2840eeb6-e0a7-4f82-82cc-9d6a26880ff0")
 	)
 	(wire
 		(pts
@@ -6261,16 +6193,6 @@
 	)
 	(wire
 		(pts
-			(xy 127 50.8) (xy 128.27 50.8)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "5db91234-78d1-49d7-af7b-5fadad115ea6")
-	)
-	(wire
-		(pts
 			(xy 69.85 38.1) (xy 74.93 38.1)
 		)
 		(stroke
@@ -6381,16 +6303,6 @@
 	)
 	(wire
 		(pts
-			(xy 129.54 50.8) (xy 129.54 54.61)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "72c6e1ad-c8f1-44a7-bb66-b631eb8b36b5")
-	)
-	(wire
-		(pts
 			(xy 54.61 76.2) (xy 54.61 77.47)
 		)
 		(stroke
@@ -6441,7 +6353,7 @@
 	)
 	(wire
 		(pts
-			(xy 123.19 66.04) (xy 133.35 66.04)
+			(xy 129.54 66.04) (xy 133.35 66.04)
 		)
 		(stroke
 			(width 0)
@@ -6508,16 +6420,6 @@
 			(type default)
 		)
 		(uuid "860e465f-30aa-40d7-bb6c-8e19be7e48a8")
-	)
-	(wire
-		(pts
-			(xy 127 59.69) (xy 127 60.96)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "895e9cfd-5b59-43eb-9fc4-ec1dd08f95d5")
 	)
 	(wire
 		(pts
@@ -6618,16 +6520,6 @@
 			(type default)
 		)
 		(uuid "a4887e96-1f67-4218-923d-6a08890f7903")
-	)
-	(wire
-		(pts
-			(xy 128.27 50.8) (xy 129.54 50.8)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "a49a48d9-eb1a-46ec-9b04-277f0771d831")
 	)
 	(wire
 		(pts
@@ -7013,9 +6905,9 @@
 			)
 		)
 	)
-	(global_label "CHG_SDA"
+	(global_label "I2C_SDA"
 		(shape bidirectional)
-		(at 124.46 60.96 180)
+		(at 129.54 60.96 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -7025,7 +6917,7 @@
 		)
 		(uuid "173c209b-e949-4d93-9f05-91919a25bffe")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 111.9573 60.96 0)
+			(at 117.8235 60.96 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -7039,7 +6931,7 @@
 	)
 	(global_label "CHG_INT"
 		(shape output)
-		(at 123.19 66.04 180)
+		(at 129.54 66.04 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -7049,7 +6941,7 @@
 		)
 		(uuid "2b565801-01af-4e48-b0bf-9f492fdb8bb9")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 112.4638 66.04 0)
+			(at 118.8138 66.04 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -7109,9 +7001,9 @@
 			)
 		)
 	)
-	(global_label "CHG_SCL"
+	(global_label "I2C_SCL"
 		(shape input)
-		(at 124.46 63.5 180)
+		(at 129.54 63.5 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -7121,7 +7013,7 @@
 		)
 		(uuid "92e32b2f-e9bd-4d21-b506-b9d9c45a70b4")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 113.1291 63.5 0)
+			(at 118.9953 63.5 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8495,83 +8387,6 @@
 			(project "leany"
 				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72"
 					(reference "#FLG03")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:+3V3")
-		(at 128.27 49.53 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(uuid "52ad2e61-cef8-435a-bc45-fc46e5466a4b")
-		(property "Reference" "#PWR33"
-			(at 128.27 53.34 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "+3V3"
-			(at 128.016 45.72 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 128.27 49.53 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 128.27 49.53 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"+3V3\""
-			(at 128.27 49.53 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "1"
-			(uuid "b5a2399c-2931-4503-82e7-dd8080ce672d")
-		)
-		(instances
-			(project "leany"
-				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72"
-					(reference "#PWR33")
 					(unit 1)
 				)
 			)
@@ -10635,97 +10450,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Device:R_Small")
-		(at 127 57.15 180)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(uuid "aba638d4-e4e4-47e5-b476-0b42ef090315")
-		(property "Reference" "R23"
-			(at 127 57.15 90)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.016 1.016)
-				)
-			)
-		)
-		(property "Value" "4k7"
-			(at 125.984 50.8 90)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "leany_footprints:R_0402_1005Metric"
-			(at 127 57.15 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 127 57.15 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "Resistor, small symbol"
-			(at 127 57.15 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "LCSC" "C25900"
-			(at 127 57.15 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "1"
-			(uuid "aea46055-1ecb-49bf-9cae-28cd4249dd8e")
-		)
-		(pin "2"
-			(uuid "b8e06f53-dea5-4608-8260-bd0fcbe3ea98")
-		)
-		(instances
-			(project "leany"
-				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72"
-					(reference "R23")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "power:GND")
 		(at 218.44 44.45 0)
 		(unit 1)
@@ -12435,97 +12159,6 @@
 			(project "leany"
 				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72"
 					(reference "C18")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Device:R_Small")
-		(at 129.54 57.15 180)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(uuid "f6c80c33-1669-4960-9ad2-3f0a19bed8b0")
-		(property "Reference" "R24"
-			(at 129.54 57.15 90)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.016 1.016)
-				)
-			)
-		)
-		(property "Value" "4k7"
-			(at 130.81 51.054 90)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "leany_footprints:R_0402_1005Metric"
-			(at 129.54 57.15 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 129.54 57.15 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "Resistor, small symbol"
-			(at 129.54 57.15 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "LCSC" "C25900"
-			(at 129.54 57.15 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "1"
-			(uuid "75d1170a-8421-498e-b137-1d1757b35f8e")
-		)
-		(pin "2"
-			(uuid "304a3713-0dea-428a-84b0-d3dc7d1e9233")
-		)
-		(instances
-			(project "leany"
-				(path "/e47b2519-93ca-4a48-9414-ecc253dd35f5/702fc064-eab2-4b82-8f62-a654ccd28f72"
-					(reference "R24")
 					(unit 1)
 				)
 			)
