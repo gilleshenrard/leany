@@ -91,6 +91,7 @@ pcb/*.bak
 pcb/*.rpt
 pcb/*.json
 pcb/*.net
+pcb/*.kicad_prl
 pcb/leany-backups
 pcb/fp-info-cache
 pcb/*auto*save*
